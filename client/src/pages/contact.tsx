@@ -8,6 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const CHURCHES = [
+  "Dominion Cathedral",
+  "House of Glory",
+  "Lighthouse",
+  "Rehoboth Chapel",
+  "Sanctuary of Praise",
+  "Tabernacle of Peace",
+  "Victory House Parish",
+];
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
@@ -197,13 +208,20 @@ export default function Contact() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Church Preference (Optional)</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter a church name or location you prefer"
-                                {...field}
-                                data-testid="input-church-preference"
-                              />
-                            </FormControl>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-church-preference">
+                                  <SelectValue placeholder="Select a church" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {CHURCHES.map((church) => (
+                                  <SelectItem key={church} value={church} data-testid={`option-church-${church.toLowerCase().replace(/\s+/g, '-')}`}>
+                                    {church}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
