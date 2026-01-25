@@ -1,0 +1,156 @@
+You are Replit Agent. Build a beginner-friendly web application called “New Converts Tracker” for a church organization.
+
+PRIMARY PURPOSE
+Track new converts across multiple churches. Leaders log in under their account, add new converts belonging to their church, and log follow-up check-in updates over time. Admin can manage churches, leaders, and view converts by church. Public visitors can access content about salvation and the journey of salvation (no login required).
+
+NON-CODER REQUIREMENT
+I do NOT know how to code. Create a complete working app end-to-end with clear UI, minimal setup steps, and a README.
+
+TECH STACK (choose one and implement cleanly)
+- Next.js (App Router) + PostgreSQL (preferred)
+OR
+- React + Node/Express + PostgreSQL
+Use Replit managed PostgreSQL and wire it up.
+
+AUTH / ROLES
+Implement login with two roles:
+1) ADMIN: can create and manage Churches and Leaders; can view all converts and check-ins.
+2) LEADER: belongs to exactly one Church; can only create/read/update converts and check-ins for their own Church.
+
+FIRST-TIME SETUP
+- Use a secret ADMIN_SETUP_KEY (from environment variables) that enables creating the first Admin account.
+- After the first admin exists, the setup route must be disabled.
+- Keep login simple and secure: hashed passwords (bcrypt), sessions/JWT, and basic CSRF protection if applicable.
+
+PUBLIC SITE (NO LOGIN)
+Create public pages:
+- Home: “Welcome / Salvation message” with CTA buttons (Learn more, Next steps, Contact)
+- Salvation: simple gospel presentation + prayer + what to do next
+- Journey: “New believer journey” content (Bible reading, prayer, community, baptism, discipleship)
+- Contact/Prayer Request form: public visitors can submit a prayer request or request contact.
+  - Store submissions in DB and show them to Admin.
+  - If email is configured, email Admin a notification.
+
+CORE DATA MODELS (PostgreSQL)
+- churches:
+  - id (uuid), name, location (text), created_at
+- users:
+  - id (uuid), role (ADMIN/LEADER), full_name, email (unique), password_hash, church_id nullable, created_at
+  - Leaders must have church_id; Admin church_id is null
+- converts:
+  - id (uuid), church_id, created_by_user_id
+  - first_name, last_name, phone_e164, email, address (optional)
+  - summary_notes (text)
+  - status (NEW, ACTIVE, IN_PROGRESS, CONNECTED, INACTIVE) default NEW
+  - created_at, updated_at
+- checkins:
+  - id (uuid), convert_id, church_id, created_by_user_id
+  - checkin_date (date)
+  - notes (text)
+  - outcome (CONNECTED, NO_RESPONSE, NEEDS_PRAYER, SCHEDULED_VISIT, REFERRED, OTHER)
+  - next_followup_date (date nullable)
+  - created_at
+- prayer_requests:
+  - id (uuid), name, phone, email, message, church_preference optional, created_at
+- audit_log (minimal):
+  - id, actor_user_id, action, entity_type, entity_id, created_at
+
+IMPORTANT ACCESS RULES
+- Leader can only see converts/checkins belonging to their own church_id.
+- Admin can see everything; Admin can filter by church.
+- All create/edit actions must enforce role and church ownership server-side.
+
+FEATURES (MVP)
+ADMIN:
+- Admin dashboard with metrics:
+  - total churches, total leaders, total converts (last 30 days), check-ins due (next_followup_date <= today)
+- Church management:
+  - Create/edit churches
+  - View church detail: list converts, list leaders
+- Leader management:
+  - Create leader user (assign church)
+  - Reset leader password (admin action)
+- Reporting:
+  - Filter converts by church, status, date range
+  - Export CSV for a selected church’s converts and last check-in summary
+
+LEADER:
+- Leader dashboard:
+  - My church name
+  - Converts summary
+  - Follow-ups due list (based on next_followup_date)
+- Converts:
+  - Add convert (form)
+  - View convert profile with timeline of check-ins
+  - Update status and summary notes
+- Check-ins:
+  - Add check-in record for a convert
+  - Set next_followup_date
+  - Provide “Download calendar invite (.ics)” for next follow-up date (no external calendar integration needed)
+
+PUBLIC:
+- Home, Salvation, Journey pages
+- Prayer Request / Contact form
+
+EMAIL (OPTIONAL, CONFIGURED BY SECRETS)
+If these secrets exist:
+- SENDGRID_API_KEY
+- EMAIL_FROM
+Then:
+- On new prayer request, email Admin users a notification.
+- On check-in with next_followup_date, email the leader a reminder summary (optional: send immediately as a confirmation, NOT scheduled).
+If email secrets are missing, the app must still work; show a friendly message “Email not configured.”
+
+UI/UX
+- Clean layout, beginner-friendly navigation
+- Use a simple design system (Tailwind ok)
+- Forms must include validation and helpful error messages
+- Include search bars where useful:
+  - search converts by name/phone
+- Include confirmation modal for delete actions (if deletes allowed)
+
+SECURITY / SAFETY
+- Hash passwords with bcrypt
+- Validate phone numbers to E.164 (US format +1XXXXXXXXXX)
+- Never send or expose password hashes
+- Rate limit login attempts (basic)
+- Use environment variables for secrets
+- Do not delete data on restart
+
+ROUTES / PAGES (suggested)
+Public:
+- / (home)
+- /salvation
+- /journey
+- /contact
+
+Auth:
+- /login
+- /setup (first admin creation; disabled afterward)
+
+App (protected):
+Admin:
+- /admin/dashboard
+- /admin/churches
+- /admin/churches/[id]
+- /admin/leaders
+- /admin/converts (global search/filter)
+- /admin/prayer-requests
+
+Leader:
+- /leader/dashboard
+- /leader/converts
+- /leader/converts/[id]
+
+DELIVERABLES
+- Working app in Replit: click Run and it works
+- README with:
+  - How to add Secrets (ADMIN_SETUP_KEY, database auto, optional SendGrid)
+  - How to create first admin
+  - How admin creates churches and leaders
+  - How leaders add converts and check-ins
+  - How to deploy on Replit
+- Seed data:
+  - One sample church
+  - One sample leader
+  - One sample convert and check-in (use fake data)
