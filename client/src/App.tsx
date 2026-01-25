@@ -12,6 +12,7 @@ import Journey from "@/pages/journey";
 import Contact from "@/pages/contact";
 import Login from "@/pages/login";
 import Setup from "@/pages/setup";
+import AdminReset from "@/pages/admin-reset";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminChurches from "@/pages/admin/churches";
 import AdminLeaders from "@/pages/admin/leaders";
@@ -84,6 +85,7 @@ function Router() {
       {/* Auth routes */}
       <Route path="/login" component={AuthRedirect} />
       <Route path="/setup" component={Setup} />
+      <Route path="/admin-reset" component={AdminReset} />
       
       {/* Admin routes */}
       <Route path="/admin">

@@ -131,10 +131,17 @@ export default function Login() {
               </form>
             </Form>
 
-            <div className="mt-6 text-center text-sm">
-              <Link href="/setup" className="text-muted-foreground hover:text-foreground transition-colors">
-                First time? Set up admin account
-              </Link>
+            <div className="mt-6 text-center text-sm space-y-2">
+              <div>
+                <Link href="/setup" className="text-muted-foreground hover:text-foreground transition-colors">
+                  First time? Set up admin account
+                </Link>
+              </div>
+              <div>
+                <Link href="/admin-reset" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-forgot-password">
+                  Forgot your password?
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>

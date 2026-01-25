@@ -109,6 +109,41 @@ export async function registerRoutes(
 
   // ==================== AUTH ROUTES ====================
 
+  // Admin password reset (using setup key)
+  app.post("/api/auth/admin-reset", async (req, res) => {
+    try {
+      const schema = z.object({
+        email: z.string().email(),
+        newPassword: z.string().min(8),
+        setupKey: z.string().min(1),
+      });
+
+      const data = schema.parse(req.body);
+
+      // Verify setup key
+      if (data.setupKey !== process.env.ADMIN_SETUP_KEY) {
+        return res.status(401).json({ message: "Invalid setup key" });
+      }
+
+      // Find admin user by email
+      const user = await storage.getUserByEmail(data.email);
+      if (!user || user.role !== "ADMIN") {
+        return res.status(404).json({ message: "Admin account not found with this email" });
+      }
+
+      // Update password
+      const passwordHash = await bcrypt.hash(data.newPassword, 10);
+      await storage.updateUserPassword(user.id, passwordHash);
+
+      res.json({ message: "Password reset successfully. You can now log in." });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
   // Check if setup is available
   app.get("/api/auth/setup-status", async (req, res) => {
     try {
