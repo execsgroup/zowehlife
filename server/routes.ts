@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
+import { sendFollowUpNotification } from "./email";
 import {
   insertChurchSchema,
   insertPrayerRequestSchema,
@@ -595,6 +596,17 @@ export async function registerRoutes(
     }
   });
 
+  // Get upcoming follow-ups
+  app.get("/api/leader/followups", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const followups = await storage.getUpcomingFollowups(user.churchId);
+      res.json(followups);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get follow-ups" });
+    }
+  });
+
   // Create convert
   app.post("/api/leader/converts", requireLeader, async (req, res) => {
     try {
@@ -725,6 +737,19 @@ export async function registerRoutes(
         entityType: "CHECKIN",
         entityId: checkin.id,
       });
+
+      if (data.nextFollowupDate) {
+        const church = await storage.getChurch(user.churchId);
+        sendFollowUpNotification({
+          convertName: `${convert.firstName} ${convert.lastName}`,
+          convertEmail: convert.email || undefined,
+          leaderName: user.fullName,
+          leaderEmail: user.email,
+          churchName: church?.name || "Church",
+          followUpDate: data.nextFollowupDate,
+          notes: data.notes || undefined,
+        }).catch(err => console.error("Email notification failed:", err));
+      }
 
       res.status(201).json(checkin);
     } catch (error) {

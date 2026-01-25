@@ -49,6 +49,16 @@ export interface IStorage {
   getCheckinsByChurch(churchId: string): Promise<Checkin[]>;
   createCheckin(checkin: InsertCheckin): Promise<Checkin>;
   getFollowupsDue(churchId?: string): Promise<Checkin[]>;
+  getUpcomingFollowups(churchId: string): Promise<Array<{
+    id: string;
+    convertId: string;
+    convertFirstName: string;
+    convertLastName: string;
+    convertPhone: string | null;
+    convertEmail: string | null;
+    nextFollowupDate: string;
+    notes: string | null;
+  }>>;
 
   // Prayer Requests
   getPrayerRequests(): Promise<PrayerRequest[]>;
@@ -220,6 +230,34 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(checkins.nextFollowupDate);
     return query;
+  }
+
+  async getUpcomingFollowups(churchId: string) {
+    const today = new Date().toISOString().split("T")[0];
+    const results = await db
+      .select({
+        id: checkins.id,
+        convertId: checkins.convertId,
+        convertFirstName: converts.firstName,
+        convertLastName: converts.lastName,
+        convertPhone: converts.phone,
+        convertEmail: converts.email,
+        nextFollowupDate: checkins.nextFollowupDate,
+        notes: checkins.notes,
+      })
+      .from(checkins)
+      .innerJoin(converts, eq(checkins.convertId, converts.id))
+      .where(
+        and(
+          gte(checkins.nextFollowupDate, today),
+          eq(checkins.churchId, churchId)
+        )
+      )
+      .orderBy(checkins.nextFollowupDate);
+    return results.map(r => ({
+      ...r,
+      nextFollowupDate: r.nextFollowupDate || ""
+    }));
   }
 
   // Prayer Requests

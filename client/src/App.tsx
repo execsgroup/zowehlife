@@ -20,6 +20,7 @@ import AdminConverts from "@/pages/admin/converts";
 import AdminPrayerRequests from "@/pages/admin/prayer-requests";
 import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
+import LeaderFollowups from "@/pages/leader/followups";
 import ConvertDetail from "@/pages/leader/convert-detail";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
@@ -119,6 +120,9 @@ function Router() {
       </Route>
       <Route path="/leader/converts/:id">
         <ProtectedRoute component={ConvertDetail} allowedRoles={["LEADER"]} />
+      </Route>
+      <Route path="/leader/followups">
+        <ProtectedRoute component={LeaderFollowups} allowedRoles={["LEADER"]} />
       </Route>
       
       {/* Fallback */}
