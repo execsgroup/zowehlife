@@ -20,20 +20,20 @@ interface FollowUp {
   notes: string | null;
 }
 
-function getDateBadge(dateStr: string) {
+function getDateBadge(dateStr: string, id: string) {
   const date = new Date(dateStr);
   const daysUntil = differenceInDays(date, new Date());
   
   if (isToday(date)) {
-    return <Badge variant="destructive">Today</Badge>;
+    return <Badge variant="destructive" data-testid={`badge-status-${id}`}>Today</Badge>;
   }
   if (isTomorrow(date)) {
-    return <Badge className="bg-orange-500 hover:bg-orange-600">Tomorrow</Badge>;
+    return <Badge variant="default" data-testid={`badge-status-${id}`}>Tomorrow</Badge>;
   }
   if (daysUntil <= 7) {
-    return <Badge variant="secondary">This Week</Badge>;
+    return <Badge variant="secondary" data-testid={`badge-status-${id}`}>This Week</Badge>;
   }
-  return <Badge variant="outline">Upcoming</Badge>;
+  return <Badge variant="outline" data-testid={`badge-status-${id}`}>Upcoming</Badge>;
 }
 
 export default function LeaderFollowups() {
@@ -45,8 +45,8 @@ export default function LeaderFollowups() {
     <DashboardLayout title="Upcoming Follow-ups">
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Upcoming Follow-ups</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Upcoming Follow-ups</h2>
+          <p className="text-muted-foreground" data-testid="text-page-description">
             Your scheduled follow-ups with new converts
           </p>
         </div>
@@ -77,7 +77,7 @@ export default function LeaderFollowups() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
+                          <span className="font-medium" data-testid={`text-convert-name-${followup.id}`}>
                             {followup.convertFirstName} {followup.convertLastName}
                           </span>
                         </div>
@@ -104,11 +104,13 @@ export default function LeaderFollowups() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                          <span data-testid={`text-followup-date-${followup.id}`}>
+                            {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getDateBadge(followup.nextFollowupDate)}
+                        {getDateBadge(followup.nextFollowupDate, followup.id)}
                       </TableCell>
                       <TableCell className="max-w-[200px]">
                         <p className="text-sm text-muted-foreground truncate">
@@ -117,7 +119,7 @@ export default function LeaderFollowups() {
                       </TableCell>
                       <TableCell className="text-right">
                         <Link href={`/leader/converts/${followup.convertId}`}>
-                          <Button variant="outline" size="sm" data-testid={`button-view-convert-${followup.id}`}>
+                          <Button variant="outline" data-testid={`button-view-convert-${followup.id}`}>
                             View Convert
                           </Button>
                         </Link>
