@@ -55,13 +55,10 @@ export default function AdminReset() {
 
   const resetMutation = useMutation({
     mutationFn: async (data: ResetFormData) => {
-      return apiRequest("/api/auth/admin-reset", {
-        method: "POST",
-        body: JSON.stringify({
-          email: data.email,
-          newPassword: data.newPassword,
-          setupKey: data.setupKey,
-        }),
+      return apiRequest("POST", "/api/auth/admin-reset", {
+        email: data.email,
+        newPassword: data.newPassword,
+        setupKey: data.setupKey,
       });
     },
     onSuccess: () => {
