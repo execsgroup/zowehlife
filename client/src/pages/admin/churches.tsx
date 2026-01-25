@@ -1,0 +1,268 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { insertChurchSchema, type Church } from "@shared/schema";
+import { Plus, MapPin, Users, UserPlus, Loader2, Pencil } from "lucide-react";
+import { format } from "date-fns";
+
+const churchFormSchema = insertChurchSchema.extend({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  location: z.string().min(2, "Location is required"),
+});
+
+type ChurchFormData = z.infer<typeof churchFormSchema>;
+
+interface ChurchWithCounts extends Church {
+  leaderCount: number;
+  convertCount: number;
+}
+
+export default function AdminChurches() {
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingChurch, setEditingChurch] = useState<Church | null>(null);
+
+  const { data: churches, isLoading } = useQuery<ChurchWithCounts[]>({
+    queryKey: ["/api/admin/churches"],
+  });
+
+  const form = useForm<ChurchFormData>({
+    resolver: zodResolver(churchFormSchema),
+    defaultValues: {
+      name: "",
+      location: "",
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: ChurchFormData) => {
+      if (editingChurch) {
+        await apiRequest("PATCH", `/api/admin/churches/${editingChurch.id}`, data);
+      } else {
+        await apiRequest("POST", "/api/admin/churches", data);
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: editingChurch ? "Church updated" : "Church created",
+        description: editingChurch
+          ? "The church has been updated successfully."
+          : "The new church has been added successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      setDialogOpen(false);
+      setEditingChurch(null);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save church",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const openEditDialog = (church: Church) => {
+    setEditingChurch(church);
+    form.reset({
+      name: church.name,
+      location: church.location,
+    });
+    setDialogOpen(true);
+  };
+
+  const openCreateDialog = () => {
+    setEditingChurch(null);
+    form.reset({ name: "", location: "" });
+    setDialogOpen(true);
+  };
+
+  return (
+    <DashboardLayout title="Churches">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Church Management</h2>
+            <p className="text-muted-foreground">
+              Add and manage churches in your organization
+            </p>
+          </div>
+
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openCreateDialog} className="gap-2" data-testid="button-add-church">
+                <Plus className="h-4 w-4" />
+                Add Church
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingChurch ? "Edit Church" : "Add New Church"}</DialogTitle>
+                <DialogDescription>
+                  {editingChurch
+                    ? "Update the church information below."
+                    : "Enter the details for the new church."}
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit((data) => createMutation.mutate(data))}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Church Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter church name"
+                            {...field}
+                            data-testid="input-church-name"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="City, State"
+                            {...field}
+                            data-testid="input-church-location"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={createMutation.isPending}
+                      data-testid="button-save-church"
+                    >
+                      {createMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : editingChurch ? (
+                        "Update Church"
+                      ) : (
+                        "Add Church"
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="p-6 space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : churches && churches.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Church Name</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead className="text-center">Leaders</TableHead>
+                    <TableHead className="text-center">Converts</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {churches.map((church) => (
+                    <TableRow key={church.id} data-testid={`row-church-${church.id}`}>
+                      <TableCell className="font-medium">{church.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {church.location}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Users className="h-3 w-3 text-muted-foreground" />
+                          {church.leaderCount}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <UserPlus className="h-3 w-3 text-muted-foreground" />
+                          {church.convertCount}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {format(new Date(church.createdAt), "MMM d, yyyy")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditDialog(church)}
+                          data-testid={`button-edit-church-${church.id}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="p-12 text-center">
+                <Church className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No churches yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Get started by adding your first church
+                </p>
+                <Button onClick={openCreateDialog} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Church
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  );
+}

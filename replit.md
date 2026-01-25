@@ -1,0 +1,103 @@
+# New Converts Tracker
+
+## Overview
+A church organization web application for tracking new converts across multiple churches. Leaders log in, add converts to their church, and record follow-up check-ins. Admin manages churches and leaders.
+
+## Project Structure
+```
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   │   ├── ui/         # shadcn/ui components
+│   │   │   ├── app-sidebar.tsx
+│   │   │   ├── dashboard-layout.tsx
+│   │   │   ├── public-nav.tsx
+│   │   │   ├── public-footer.tsx
+│   │   │   ├── theme-provider.tsx
+│   │   │   └── theme-toggle.tsx
+│   │   ├── pages/          # Page components
+│   │   │   ├── admin/      # Admin dashboard pages
+│   │   │   ├── leader/     # Leader dashboard pages
+│   │   │   ├── home.tsx    # Public home page
+│   │   │   ├── salvation.tsx
+│   │   │   ├── journey.tsx
+│   │   │   ├── contact.tsx
+│   │   │   ├── login.tsx
+│   │   │   └── setup.tsx
+│   │   ├── lib/
+│   │   │   ├── auth.tsx    # Auth context and hooks
+│   │   │   ├── queryClient.ts
+│   │   │   └── utils.ts
+│   │   ├── hooks/
+│   │   ├── App.tsx         # Main app with routing
+│   │   ├── main.tsx
+│   │   └── index.css       # Tailwind and theme variables
+│   └── index.html
+├── server/                 # Express backend
+│   ├── index.ts
+│   ├── routes.ts           # API routes with auth middleware
+│   ├── storage.ts          # Database storage layer
+│   ├── db.ts               # PostgreSQL connection
+│   ├── static.ts
+│   └── vite.ts
+├── shared/
+│   └── schema.ts           # Drizzle schema and Zod validators
+└── README.md
+```
+
+## Key Architecture Decisions
+- **Auth**: Session-based authentication with bcrypt password hashing
+- **Roles**: ADMIN (manages all) and LEADER (manages own church's converts)
+- **Database**: PostgreSQL with Drizzle ORM
+- **Frontend**: React + TailwindCSS + shadcn/ui components
+- **Routing**: wouter for client-side routing
+
+## Database Schema
+- **churches**: id, name, location, created_at
+- **users**: id, role (ADMIN/LEADER), full_name, email, password_hash, church_id
+- **converts**: id, church_id, created_by_user_id, first_name, last_name, phone, email, address, summary_notes, status
+- **checkins**: id, convert_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date
+- **prayer_requests**: id, name, phone, email, message, church_preference
+- **audit_log**: id, actor_user_id, action, entity_type, entity_id
+
+## API Routes
+### Public
+- `POST /api/prayer-requests` - Submit prayer request
+
+### Auth
+- `GET /api/auth/setup-status` - Check if admin setup available
+- `POST /api/auth/setup` - Create first admin
+- `POST /api/auth/login` - Login
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Get current user
+
+### Admin (requires ADMIN role)
+- `GET /api/admin/stats` - Dashboard statistics
+- `GET/POST /api/admin/churches` - List/create churches
+- `PATCH /api/admin/churches/:id` - Update church
+- `GET/POST /api/admin/leaders` - List/create leaders
+- `POST /api/admin/leaders/:id/reset-password` - Reset leader password
+- `GET /api/admin/converts` - List all converts
+- `GET /api/admin/converts/export` - Export CSV
+- `GET /api/admin/prayer-requests` - List prayer requests
+
+### Leader (requires LEADER role)
+- `GET /api/leader/stats` - Dashboard statistics
+- `GET/POST /api/leader/converts` - List/create converts
+- `GET/PATCH /api/leader/converts/:id` - Get/update convert
+- `POST /api/leader/converts/:convertId/checkins` - Create check-in
+
+## Environment Variables
+- `DATABASE_URL` - PostgreSQL connection (auto-provided by Replit)
+- `ADMIN_SETUP_KEY` - Required for first admin setup
+- `SESSION_SECRET` - Session encryption key
+
+## Running the Project
+```bash
+npm run dev      # Start development server
+npm run db:push  # Push schema to database
+```
+
+## User Preferences
+- Uses dark/light theme toggle
+- Mobile-responsive design with sidebar navigation for dashboard
