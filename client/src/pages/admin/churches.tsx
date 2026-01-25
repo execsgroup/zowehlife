@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertChurchSchema, type Church } from "@shared/schema";
-import { Plus, MapPin, Users, UserPlus, Loader2, Pencil } from "lucide-react";
+import { Plus, MapPin, Users, UserPlus, Loader2, Pencil, Church as ChurchIcon } from "lucide-react";
 import { format } from "date-fns";
 
 const churchFormSchema = insertChurchSchema.extend({
@@ -249,7 +249,7 @@ export default function AdminChurches() {
               </Table>
             ) : (
               <div className="p-12 text-center">
-                <Church className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <ChurchIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No churches yet</h3>
                 <p className="text-muted-foreground mb-4">
                   Get started by adding your first church
