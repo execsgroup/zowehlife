@@ -69,8 +69,7 @@ export function AppSidebar() {
             <Heart className="h-5 w-5 text-sidebar-primary-foreground" />
           </div>
           <div className="flex flex-col">
-            <span className="font-semibold text-sm">New Converts</span>
-            <span className="text-xs text-sidebar-foreground/70">Tracker</span>
+            <span className="font-semibold text-sm">The Zoweh Life</span>
           </div>
         </Link>
       </SidebarHeader>

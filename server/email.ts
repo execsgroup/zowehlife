@@ -63,7 +63,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
 
     emailsToSend.push(
       client.emails.send({
-        from: fromEmail || 'New Converts Tracker <noreply@resend.dev>',
+        from: fromEmail || 'The Zoweh Life <noreply@resend.dev>',
         to: data.leaderEmail,
         subject: `Follow-up Reminder: ${data.convertName} on ${formattedDate}`,
         html: `
@@ -78,7 +78,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
             </div>
             <p>Please ensure to reach out and connect with ${data.convertName} on the scheduled date.</p>
-            <p>Blessings,<br>New Converts Tracker</p>
+            <p>Blessings,<br>The Zoweh Life</p>
           </div>
         `
       })
@@ -87,7 +87,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
     if (data.convertEmail) {
       emailsToSend.push(
         client.emails.send({
-          from: fromEmail || 'New Converts Tracker <noreply@resend.dev>',
+          from: fromEmail || 'The Zoweh Life <noreply@resend.dev>',
           to: data.convertEmail,
           subject: `We'd love to connect with you - ${data.churchName}`,
           html: `
