@@ -370,6 +370,7 @@ export default function LeaderConverts() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Date of Birth</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Added</TableHead>
@@ -381,6 +382,9 @@ export default function LeaderConverts() {
                     <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
                       <TableCell className="font-medium">
                         {convert.firstName} {convert.lastName}
+                      </TableCell>
+                      <TableCell data-testid={`text-dob-${convert.id}`}>
+                        {convert.dateOfBirth ? new Date(convert.dateOfBirth).toLocaleDateString() : "—"}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
