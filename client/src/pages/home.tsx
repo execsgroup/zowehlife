@@ -22,7 +22,7 @@ export default function Home() {
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
                 Discover the{" "}
-                <span className="text-primary">Life-Changing Power</span>{" "}
+                <span className="text-primary">Life Changing Power</span>{" "}
                 of Faith
               </h1>
 
