@@ -43,6 +43,7 @@ const checkinFormSchema = z.object({
 const updateConvertSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
+  dateOfBirth: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   address: z.string().optional(),
@@ -102,6 +103,7 @@ export default function ConvertDetail() {
     defaultValues: {
       firstName: "",
       lastName: "",
+      dateOfBirth: "",
       phone: "",
       email: "",
       address: "",
@@ -116,6 +118,7 @@ export default function ConvertDetail() {
       editForm.reset({
         firstName: convert.firstName,
         lastName: convert.lastName,
+        dateOfBirth: convert.dateOfBirth || "",
         phone: convert.phone || "",
         email: convert.email || "",
         address: convert.address || "",
@@ -546,6 +549,20 @@ END:VCALENDAR`;
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={editForm.control}
+                  name="dateOfBirth"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date of Birth</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} data-testid="input-edit-dob" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField

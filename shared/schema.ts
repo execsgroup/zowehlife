@@ -34,6 +34,7 @@ export const converts = pgTable("converts", {
   createdByUserId: varchar("created_by_user_id").notNull().references(() => users.id),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
+  dateOfBirth: date("date_of_birth"),
   phone: text("phone"),
   email: text("email"),
   address: text("address"),

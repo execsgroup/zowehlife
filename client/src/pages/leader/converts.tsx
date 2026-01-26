@@ -24,6 +24,7 @@ import { format } from "date-fns";
 const convertFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
+  dateOfBirth: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   address: z.string().optional(),
@@ -57,6 +58,7 @@ export default function LeaderConverts() {
     defaultValues: {
       firstName: "",
       lastName: "",
+      dateOfBirth: "",
       phone: "",
       email: "",
       address: "",
@@ -173,6 +175,24 @@ export default function LeaderConverts() {
                       )}
                     />
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="dateOfBirth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                            data-testid="input-convert-dob"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField
