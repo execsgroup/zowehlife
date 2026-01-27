@@ -7,6 +7,7 @@ import { z } from "zod";
 export const userRoleEnum = pgEnum("user_role", ["ADMIN", "LEADER"]);
 export const convertStatusEnum = pgEnum("convert_status", ["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]);
 export const checkinOutcomeEnum = pgEnum("checkin_outcome", ["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]);
+export const accountRequestStatusEnum = pgEnum("account_request_status", ["PENDING", "APPROVED", "DENIED"]);
 
 // Churches table
 export const churches = pgTable("churches", {
@@ -75,6 +76,20 @@ export const auditLog = pgTable("audit_log", {
   action: text("action").notNull(),
   entityType: text("entity_type").notNull(),
   entityId: varchar("entity_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Account requests table (for prospective leaders)
+export const accountRequests = pgTable("account_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  reason: text("reason"),
+  status: accountRequestStatusEnum("status").notNull().default("PENDING"),
+  reviewedByUserId: varchar("reviewed_by_user_id").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -153,6 +168,14 @@ export const insertAuditLogSchema = createInsertSchema(auditLog).omit({
   createdAt: true,
 });
 
+export const insertAccountRequestSchema = createInsertSchema(accountRequests).omit({
+  id: true,
+  status: true,
+  reviewedByUserId: true,
+  reviewedAt: true,
+  createdAt: true,
+});
+
 // Login schema
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -185,6 +208,9 @@ export type InsertPrayerRequest = z.infer<typeof insertPrayerRequestSchema>;
 
 export type AuditLogEntry = typeof auditLog.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+
+export type AccountRequest = typeof accountRequests.$inferSelect;
+export type InsertAccountRequest = z.infer<typeof insertAccountRequestSchema>;
 
 export type LoginData = z.infer<typeof loginSchema>;
 export type AdminSetupData = z.infer<typeof adminSetupSchema>;
