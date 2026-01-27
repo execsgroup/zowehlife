@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { PublicNav } from "@/components/public-nav";
@@ -21,7 +20,7 @@ const leaderRequestSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
-  churchId: z.string().min(1, "Please select a church"),
+  churchName: z.string().min(2, "Church name must be at least 2 characters"),
   reason: z.string().optional(),
 });
 
@@ -31,17 +30,13 @@ export default function Home() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const { data: churches } = useQuery<{ id: string; name: string }[]>({
-    queryKey: ["/api/public/churches"],
-  });
-
   const form = useForm<LeaderRequestFormData>({
     resolver: zodResolver(leaderRequestSchema),
     defaultValues: {
       fullName: "",
       email: "",
       phone: "",
-      churchId: "",
+      churchName: "",
       reason: "",
     },
   });
@@ -255,24 +250,13 @@ export default function Home() {
                         />
                         <FormField
                           control={form.control}
-                          name="churchId"
+                          name="churchName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Select Church *</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-leader-church">
-                                    <SelectValue placeholder="Choose your church" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {churches?.map((church) => (
-                                    <SelectItem key={church.id} value={church.id} data-testid={`option-church-${church.id}`}>
-                                      {church.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <FormLabel>Church Name *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter your church name" {...field} data-testid="input-leader-church" />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
