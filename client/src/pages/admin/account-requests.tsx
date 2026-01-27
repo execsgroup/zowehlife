@@ -1,26 +1,32 @@
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { UserPlus, Check, X, Mail, Phone, Church, Calendar, Loader2, FileText } from "lucide-react";
+import { UserPlus, Check, X, Mail, Phone, Church, Calendar, Loader2, FileText, Edit } from "lucide-react";
 
 interface AccountRequest {
   id: string;
   fullName: string;
   email: string;
   phone: string | null;
-  churchId: string;
+  churchName: string;
   reason: string | null;
   status: "PENDING" | "APPROVED" | "DENIED";
   reviewedByUserId: string | null;
   reviewedAt: string | null;
   createdAt: string;
-  church: { id: string; name: string } | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -29,16 +35,38 @@ const statusColors: Record<string, string> = {
   DENIED: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
+const reviewFormSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
+  phone: z.string().optional(),
+  churchName: z.string().min(2, "Church name must be at least 2 characters"),
+  reason: z.string().optional(),
+});
+
+type ReviewFormData = z.infer<typeof reviewFormSchema>;
+
 export default function AccountRequests() {
   const { toast } = useToast();
+  const [reviewingRequest, setReviewingRequest] = useState<AccountRequest | null>(null);
 
   const { data: requests, isLoading } = useQuery<AccountRequest[]>({
     queryKey: ["/api/admin/account-requests"],
   });
 
+  const form = useForm<ReviewFormData>({
+    resolver: zodResolver(reviewFormSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      churchName: "",
+      reason: "",
+    },
+  });
+
   const approveMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await apiRequest("POST", `/api/admin/account-requests/${id}/approve`);
+    mutationFn: async (data: ReviewFormData) => {
+      await apiRequest("POST", `/api/admin/account-requests/${reviewingRequest?.id}/approve`, data);
     },
     onSuccess: () => {
       toast({
@@ -47,7 +75,9 @@ export default function AccountRequests() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/account-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/leaders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      setReviewingRequest(null);
     },
     onError: (error: Error) => {
       toast({
@@ -59,8 +89,8 @@ export default function AccountRequests() {
   });
 
   const denyMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await apiRequest("POST", `/api/admin/account-requests/${id}/deny`);
+    mutationFn: async () => {
+      await apiRequest("POST", `/api/admin/account-requests/${reviewingRequest?.id}/deny`);
     },
     onSuccess: () => {
       toast({
@@ -68,6 +98,7 @@ export default function AccountRequests() {
         description: "The applicant has been notified via email.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/account-requests"] });
+      setReviewingRequest(null);
     },
     onError: (error: Error) => {
       toast({
@@ -77,6 +108,26 @@ export default function AccountRequests() {
       });
     },
   });
+
+  const handleReview = (request: AccountRequest) => {
+    form.reset({
+      fullName: request.fullName,
+      email: request.email,
+      phone: request.phone || "",
+      churchName: request.churchName,
+      reason: request.reason || "",
+    });
+    setReviewingRequest(request);
+  };
+
+  const handleApprove = () => {
+    const data = form.getValues();
+    approveMutation.mutate(data);
+  };
+
+  const handleDeny = () => {
+    denyMutation.mutate();
+  };
 
   const pendingRequests = requests?.filter(r => r.status === "PENDING") || [];
   const processedRequests = requests?.filter(r => r.status !== "PENDING") || [];
@@ -147,7 +198,7 @@ export default function AccountRequests() {
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Church className="h-4 w-4 text-muted-foreground" />
-                          {request.church?.name || "Unknown"}
+                          {request.churchName}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -167,80 +218,15 @@ export default function AccountRequests() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="gap-1 text-chart-4 hover:text-chart-4"
-                                disabled={approveMutation.isPending}
-                                data-testid={`button-approve-${request.id}`}
-                              >
-                                {approveMutation.isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <Check className="h-4 w-4" />
-                                )}
-                                Approve
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Approve Account Request</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will create a leader account for <strong>{request.fullName}</strong> at <strong>{request.church?.name}</strong>. 
-                                  They will receive an email with their login credentials.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => approveMutation.mutate(request.id)}
-                                  data-testid={`button-confirm-approve-${request.id}`}
-                                >
-                                  Approve
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="gap-1 text-destructive hover:text-destructive"
-                                disabled={denyMutation.isPending}
-                                data-testid={`button-deny-${request.id}`}
-                              >
-                                {denyMutation.isPending ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <X className="h-4 w-4" />
-                                )}
-                                Deny
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Deny Account Request</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to deny the account request from <strong>{request.fullName}</strong>? 
-                                  They will receive a notification email.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => denyMutation.mutate(request.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  data-testid={`button-confirm-deny-${request.id}`}
-                                >
-                                  Deny
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+                        <Button
+                          variant="outline"
+                          className="gap-1"
+                          onClick={() => handleReview(request)}
+                          data-testid={`button-review-${request.id}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                          Review
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -275,7 +261,7 @@ export default function AccountRequests() {
                     <TableRow key={request.id} data-testid={`row-history-${request.id}`}>
                       <TableCell className="font-medium">{request.fullName}</TableCell>
                       <TableCell className="text-muted-foreground">{request.email}</TableCell>
-                      <TableCell>{request.church?.name || "Unknown"}</TableCell>
+                      <TableCell>{request.churchName}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[request.status]}>
                           {request.status}
@@ -295,6 +281,122 @@ export default function AccountRequests() {
           </Card>
         )}
       </div>
+
+      <Dialog open={!!reviewingRequest} onOpenChange={(open) => !open && setReviewingRequest(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Review Account Request</DialogTitle>
+            <DialogDescription>
+              Review and edit the request details before approving or denying. Upon approval, a new church will be created if it doesn't exist.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form className="space-y-4">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-review-name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" {...field} data-testid="input-review-email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input type="tel" {...field} data-testid="input-review-phone" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="churchName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Church Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-review-church" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="reason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Reason for Request</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        className="resize-none"
+                        rows={3}
+                        data-testid="input-review-reason"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+          <DialogFooter className="flex gap-2 sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-1 text-destructive hover:text-destructive"
+              onClick={handleDeny}
+              disabled={denyMutation.isPending || approveMutation.isPending}
+              data-testid="button-dialog-deny"
+            >
+              {denyMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <X className="h-4 w-4" />
+              )}
+              Deny Request
+            </Button>
+            <Button
+              type="button"
+              className="gap-1"
+              onClick={handleApprove}
+              disabled={approveMutation.isPending || denyMutation.isPending}
+              data-testid="button-dialog-approve"
+            >
+              {approveMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+              Approve & Create Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

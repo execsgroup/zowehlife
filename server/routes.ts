@@ -586,20 +586,11 @@ export async function registerRoutes(
     }
   });
 
-  // Get account requests with church info
+  // Get account requests
   app.get("/api/admin/account-requests", requireAdmin, async (req, res) => {
     try {
       const requests = await storage.getAccountRequests();
-      const requestsWithChurch = await Promise.all(
-        requests.map(async (request) => {
-          const church = await storage.getChurch(request.churchId);
-          return {
-            ...request,
-            church: church ? { id: church.id, name: church.name } : null,
-          };
-        })
-      );
-      res.json(requestsWithChurch);
+      res.json(requests);
     } catch (error) {
       res.status(500).json({ message: "Failed to get account requests" });
     }
@@ -610,6 +601,7 @@ export async function registerRoutes(
     try {
       const { id } = req.params;
       const adminUser = (req as any).user;
+      const editedData = req.body as { fullName: string; email: string; phone?: string; churchName: string; reason?: string };
 
       const request = await storage.getAccountRequest(id);
       if (!request) {
@@ -620,11 +612,19 @@ export async function registerRoutes(
         return res.status(400).json({ message: "This request has already been processed" });
       }
 
+      // Use edited data if provided, otherwise use original request data
+      const finalName = editedData?.fullName || request.fullName;
+      const finalEmail = editedData?.email || request.email;
+      const finalChurchName = editedData?.churchName || request.churchName;
+
       // Check if email already taken (could have been created since request)
-      const existingUser = await storage.getUserByEmail(request.email);
+      const existingUser = await storage.getUserByEmail(finalEmail);
       if (existingUser) {
         return res.status(400).json({ message: "An account with this email already exists" });
       }
+
+      // Find or create the church
+      const church = await storage.findOrCreateChurch(finalChurchName);
 
       // Generate temporary password
       const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
@@ -633,10 +633,10 @@ export async function registerRoutes(
       // Create the leader account
       const newLeader = await storage.createUser({
         role: "LEADER",
-        fullName: request.fullName,
-        email: request.email,
+        fullName: finalName,
+        email: finalEmail,
         passwordHash,
-        churchId: request.churchId,
+        churchId: church.id,
       });
 
       // Update request status
@@ -657,14 +657,19 @@ export async function registerRoutes(
         entityId: newLeader.id,
       });
 
-      // Get church name for email
-      const church = await storage.getChurch(request.churchId);
+      // Log church creation if it was new
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "CREATE",
+        entityType: "CHURCH",
+        entityId: church.id,
+      });
 
       // Send approval email
       await sendAccountApprovalEmail({
-        leaderName: request.fullName,
-        leaderEmail: request.email,
-        churchName: church?.name || "Unknown Church",
+        leaderName: finalName,
+        leaderEmail: finalEmail,
+        churchName: church.name,
         temporaryPassword: tempPassword,
       });
 

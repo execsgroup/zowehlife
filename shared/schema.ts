@@ -13,7 +13,7 @@ export const accountRequestStatusEnum = pgEnum("account_request_status", ["PENDI
 export const churches = pgTable("churches", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
-  location: text("location").notNull(),
+  location: text("location"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

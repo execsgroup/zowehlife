@@ -35,8 +35,10 @@ export interface IStorage {
 
   // Churches
   getChurch(id: string): Promise<Church | undefined>;
+  getChurchByName(name: string): Promise<Church | undefined>;
   getChurches(): Promise<Church[]>;
   createChurch(church: InsertChurch): Promise<Church>;
+  findOrCreateChurch(name: string): Promise<Church>;
   updateChurch(id: string, church: Partial<InsertChurch>): Promise<Church>;
 
   // Converts
@@ -151,12 +153,25 @@ export class DatabaseStorage implements IStorage {
     return church || undefined;
   }
 
+  async getChurchByName(name: string): Promise<Church | undefined> {
+    const [church] = await db.select().from(churches).where(eq(churches.name, name));
+    return church || undefined;
+  }
+
   async getChurches(): Promise<Church[]> {
     return db.select().from(churches).orderBy(desc(churches.createdAt));
   }
 
   async createChurch(insertChurch: InsertChurch): Promise<Church> {
     const [church] = await db.insert(churches).values(insertChurch).returning();
+    return church;
+  }
+
+  async findOrCreateChurch(name: string): Promise<Church> {
+    let church = await this.getChurchByName(name);
+    if (!church) {
+      church = await this.createChurch({ name });
+    }
     return church;
   }
 
