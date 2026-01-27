@@ -41,6 +41,7 @@ const adminNavItems = [
   { title: "Leaders", url: "/admin/leaders", icon: Users },
   { title: "All Converts", url: "/admin/converts", icon: UserPlus },
   { title: "Prayer Requests", url: "/admin/prayer-requests", icon: HandHeart },
+  { title: "Account Requests", url: "/admin/account-requests", icon: ClipboardList },
 ];
 
 const leaderNavItems = [

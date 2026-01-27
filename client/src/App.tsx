@@ -18,6 +18,7 @@ import AdminChurches from "@/pages/admin/churches";
 import AdminLeaders from "@/pages/admin/leaders";
 import AdminConverts from "@/pages/admin/converts";
 import AdminPrayerRequests from "@/pages/admin/prayer-requests";
+import AdminAccountRequests from "@/pages/admin/account-requests";
 import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
 import LeaderFollowups from "@/pages/leader/followups";
@@ -106,6 +107,9 @@ function Router() {
       </Route>
       <Route path="/admin/prayer-requests">
         <ProtectedRoute component={AdminPrayerRequests} allowedRoles={["ADMIN"]} />
+      </Route>
+      <Route path="/admin/account-requests">
+        <ProtectedRoute component={AdminAccountRequests} allowedRoles={["ADMIN"]} />
       </Route>
       
       {/* Leader routes */}
