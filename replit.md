@@ -55,14 +55,17 @@ A church organization web application for tracking new converts across multiple 
 ## Database Schema
 - **churches**: id, name, location, created_at
 - **users**: id, role (ADMIN/LEADER), full_name, email, password_hash, church_id
-- **converts**: id, church_id, created_by_user_id, first_name, last_name, phone, email, address, summary_notes, status
+- **converts**: id, church_id, created_by_user_id, first_name, last_name, phone, email, address, date_of_birth, summary_notes, status
 - **checkins**: id, convert_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date
 - **prayer_requests**: id, name, phone, email, message, church_preference
+- **account_requests**: id, full_name, email, phone, church_id, reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 - **audit_log**: id, actor_user_id, action, entity_type, entity_id
 
 ## API Routes
 ### Public
+- `GET /api/public/churches` - Get list of churches for form dropdowns
 - `POST /api/prayer-requests` - Submit prayer request
+- `POST /api/account-requests` - Submit leader account request
 
 ### Auth
 - `GET /api/auth/setup-status` - Check if admin setup available
@@ -80,6 +83,9 @@ A church organization web application for tracking new converts across multiple 
 - `GET /api/admin/converts` - List all converts
 - `GET /api/admin/converts/export` - Export CSV
 - `GET /api/admin/prayer-requests` - List prayer requests
+- `GET /api/admin/account-requests` - List leader account requests
+- `POST /api/admin/account-requests/:id/approve` - Approve request and create leader account
+- `POST /api/admin/account-requests/:id/deny` - Deny account request
 
 ### Leader (requires LEADER role)
 - `GET /api/leader/stats` - Dashboard statistics
