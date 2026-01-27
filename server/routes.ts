@@ -310,12 +310,6 @@ export async function registerRoutes(
         return res.status(400).json({ message: "An account with this email already exists" });
       }
 
-      // Check if church exists
-      const church = await storage.getChurch(data.churchId);
-      if (!church) {
-        return res.status(400).json({ message: "Selected church not found" });
-      }
-
       const request = await storage.createAccountRequest(data);
       res.status(201).json({ message: "Account request submitted successfully. You will be notified once reviewed." });
     } catch (error) {
@@ -601,7 +595,9 @@ export async function registerRoutes(
     try {
       const { id } = req.params;
       const adminUser = (req as any).user;
-      const editedData = req.body as { fullName: string; email: string; phone?: string; churchName: string; reason?: string };
+
+      // Validate the edited data
+      const editedData = insertAccountRequestSchema.parse(req.body);
 
       const request = await storage.getAccountRequest(id);
       if (!request) {
@@ -612,10 +608,12 @@ export async function registerRoutes(
         return res.status(400).json({ message: "This request has already been processed" });
       }
 
-      // Use edited data if provided, otherwise use original request data
-      const finalName = editedData?.fullName || request.fullName;
-      const finalEmail = editedData?.email || request.email;
-      const finalChurchName = editedData?.churchName || request.churchName;
+      // Use edited data
+      const finalName = editedData.fullName;
+      const finalEmail = editedData.email;
+      const finalChurchName = editedData.churchName;
+      const finalPhone = editedData.phone;
+      const finalReason = editedData.reason;
 
       // Check if email already taken (could have been created since request)
       const existingUser = await storage.getUserByEmail(finalEmail);
@@ -623,8 +621,17 @@ export async function registerRoutes(
         return res.status(400).json({ message: "An account with this email already exists" });
       }
 
+      // Persist edited fields to the account request record
+      await storage.updateAccountRequest(id, {
+        fullName: finalName,
+        email: finalEmail,
+        phone: finalPhone,
+        churchName: finalChurchName,
+        reason: finalReason,
+      });
+
       // Find or create the church
-      const church = await storage.findOrCreateChurch(finalChurchName);
+      const { church, created: churchCreated } = await storage.findOrCreateChurch(finalChurchName);
 
       // Generate temporary password
       const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
@@ -657,13 +664,15 @@ export async function registerRoutes(
         entityId: newLeader.id,
       });
 
-      // Log church creation if it was new
-      await storage.createAuditLog({
-        actorUserId: adminUser.id,
-        action: "CREATE",
-        entityType: "CHURCH",
-        entityId: church.id,
-      });
+      // Log church creation only if it was new
+      if (churchCreated) {
+        await storage.createAuditLog({
+          actorUserId: adminUser.id,
+          action: "CREATE",
+          entityType: "CHURCH",
+          entityId: church.id,
+        });
+      }
 
       // Send approval email
       await sendAccountApprovalEmail({
@@ -675,6 +684,9 @@ export async function registerRoutes(
 
       res.json({ message: "Account request approved and leader account created" });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data provided", errors: error.errors });
+      }
       console.error("Failed to approve account request:", error);
       res.status(500).json({ message: "Failed to approve account request" });
     }

@@ -38,7 +38,7 @@ export interface IStorage {
   getChurchByName(name: string): Promise<Church | undefined>;
   getChurches(): Promise<Church[]>;
   createChurch(church: InsertChurch): Promise<Church>;
-  findOrCreateChurch(name: string): Promise<Church>;
+  findOrCreateChurch(name: string): Promise<{ church: Church; created: boolean }>;
   updateChurch(id: string, church: Partial<InsertChurch>): Promise<Church>;
 
   // Converts
@@ -77,6 +77,7 @@ export interface IStorage {
   getPendingAccountRequests(): Promise<AccountRequest[]>;
   getAccountRequest(id: string): Promise<AccountRequest | undefined>;
   createAccountRequest(request: InsertAccountRequest): Promise<AccountRequest>;
+  updateAccountRequest(id: string, data: Partial<InsertAccountRequest>): Promise<AccountRequest>;
   updateAccountRequestStatus(id: string, status: "APPROVED" | "DENIED", reviewedByUserId: string): Promise<AccountRequest>;
 
   // Stats
@@ -167,12 +168,13 @@ export class DatabaseStorage implements IStorage {
     return church;
   }
 
-  async findOrCreateChurch(name: string): Promise<Church> {
+  async findOrCreateChurch(name: string): Promise<{ church: Church; created: boolean }> {
     let church = await this.getChurchByName(name);
     if (!church) {
       church = await this.createChurch({ name });
+      return { church, created: true };
     }
-    return church;
+    return { church, created: false };
   }
 
   async updateChurch(id: string, updateData: Partial<InsertChurch>): Promise<Church> {
@@ -320,6 +322,15 @@ export class DatabaseStorage implements IStorage {
 
   async createAccountRequest(insertRequest: InsertAccountRequest): Promise<AccountRequest> {
     const [request] = await db.insert(accountRequests).values(insertRequest).returning();
+    return request;
+  }
+
+  async updateAccountRequest(id: string, data: Partial<InsertAccountRequest>): Promise<AccountRequest> {
+    const [request] = await db
+      .update(accountRequests)
+      .set(data)
+      .where(eq(accountRequests.id, id))
+      .returning();
     return request;
   }
 
