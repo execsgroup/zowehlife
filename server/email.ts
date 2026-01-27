@@ -115,3 +115,75 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
     return { success: false, error };
   }
 }
+
+interface AccountApprovalEmailData {
+  leaderName: string;
+  leaderEmail: string;
+  churchName: string;
+  temporaryPassword: string;
+}
+
+export async function sendAccountApprovalEmail(data: AccountApprovalEmailData) {
+  try {
+    const { client, fromEmail } = await getUncachableResendClient();
+
+    await client.emails.send({
+      from: fromEmail || 'The Zoweh Life <noreply@resend.dev>',
+      to: data.leaderEmail,
+      subject: 'Your Leader Account Has Been Approved - The Zoweh Life',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Welcome to The Zoweh Life!</h2>
+          <p>Hello ${data.leaderName},</p>
+          <p>Great news! Your leader account request has been approved. You can now log in and start managing converts for <strong>${data.churchName}</strong>.</p>
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Your Login Details:</strong></p>
+            <p><strong>Email:</strong> ${data.leaderEmail}</p>
+            <p><strong>Temporary Password:</strong> ${data.temporaryPassword}</p>
+          </div>
+          <p style="color: #666; font-size: 14px;"><em>Please change your password after your first login for security purposes.</em></p>
+          <p>We're excited to have you on board. If you have any questions, please reach out to your administrator.</p>
+          <p>Blessings,<br>The Zoweh Life Team</p>
+        </div>
+      `
+    });
+
+    console.log(`Account approval email sent to ${data.leaderEmail}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send account approval email:', error);
+    return { success: false, error };
+  }
+}
+
+interface AccountDenialEmailData {
+  applicantName: string;
+  applicantEmail: string;
+}
+
+export async function sendAccountDenialEmail(data: AccountDenialEmailData) {
+  try {
+    const { client, fromEmail } = await getUncachableResendClient();
+
+    await client.emails.send({
+      from: fromEmail || 'The Zoweh Life <noreply@resend.dev>',
+      to: data.applicantEmail,
+      subject: 'Leader Account Request Update - The Zoweh Life',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Account Request Update</h2>
+          <p>Hello ${data.applicantName},</p>
+          <p>Thank you for your interest in becoming a leader with The Zoweh Life.</p>
+          <p>After careful review, we are unable to approve your account request at this time. If you believe this was in error or have questions, please contact your church administrator directly.</p>
+          <p>Blessings,<br>The Zoweh Life Team</p>
+        </div>
+      `
+    });
+
+    console.log(`Account denial email sent to ${data.applicantEmail}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send account denial email:', error);
+    return { success: false, error };
+  }
+}

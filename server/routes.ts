@@ -3,10 +3,11 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
-import { sendFollowUpNotification } from "./email";
+import { sendFollowUpNotification, sendAccountApprovalEmail, sendAccountDenialEmail } from "./email";
 import {
   insertChurchSchema,
   insertPrayerRequestSchema,
+  insertAccountRequestSchema,
   loginSchema,
   adminSetupSchema,
 } from "@shared/schema";
@@ -288,6 +289,43 @@ export async function registerRoutes(
     }
   });
 
+  // Get public list of churches (for account request form)
+  app.get("/api/public/churches", async (req, res) => {
+    try {
+      const churchList = await storage.getChurches();
+      res.json(churchList.map(c => ({ id: c.id, name: c.name })));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get churches" });
+    }
+  });
+
+  // Submit leader account request
+  app.post("/api/account-requests", async (req, res) => {
+    try {
+      const data = insertAccountRequestSchema.parse(req.body);
+
+      // Check if email already exists
+      const existingUser = await storage.getUserByEmail(data.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      // Check if church exists
+      const church = await storage.getChurch(data.churchId);
+      if (!church) {
+        return res.status(400).json({ message: "Selected church not found" });
+      }
+
+      const request = await storage.createAccountRequest(data);
+      res.status(201).json({ message: "Account request submitted successfully. You will be notified once reviewed." });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to submit account request" });
+    }
+  });
+
   // ==================== ADMIN ROUTES ====================
 
   // Admin stats
@@ -545,6 +583,134 @@ export async function registerRoutes(
       res.json(requests);
     } catch (error) {
       res.status(500).json({ message: "Failed to get prayer requests" });
+    }
+  });
+
+  // Get account requests with church info
+  app.get("/api/admin/account-requests", requireAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getAccountRequests();
+      const requestsWithChurch = await Promise.all(
+        requests.map(async (request) => {
+          const church = await storage.getChurch(request.churchId);
+          return {
+            ...request,
+            church: church ? { id: church.id, name: church.name } : null,
+          };
+        })
+      );
+      res.json(requestsWithChurch);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get account requests" });
+    }
+  });
+
+  // Approve account request
+  app.post("/api/admin/account-requests/:id/approve", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const adminUser = (req as any).user;
+
+      const request = await storage.getAccountRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Account request not found" });
+      }
+
+      if (request.status !== "PENDING") {
+        return res.status(400).json({ message: "This request has already been processed" });
+      }
+
+      // Check if email already taken (could have been created since request)
+      const existingUser = await storage.getUserByEmail(request.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      // Generate temporary password
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+      // Create the leader account
+      const newLeader = await storage.createUser({
+        role: "LEADER",
+        fullName: request.fullName,
+        email: request.email,
+        passwordHash,
+        churchId: request.churchId,
+      });
+
+      // Update request status
+      await storage.updateAccountRequestStatus(id, "APPROVED", adminUser.id);
+
+      // Log the action
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "APPROVE_ACCOUNT_REQUEST",
+        entityType: "ACCOUNT_REQUEST",
+        entityId: id,
+      });
+
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "CREATE",
+        entityType: "USER",
+        entityId: newLeader.id,
+      });
+
+      // Get church name for email
+      const church = await storage.getChurch(request.churchId);
+
+      // Send approval email
+      await sendAccountApprovalEmail({
+        leaderName: request.fullName,
+        leaderEmail: request.email,
+        churchName: church?.name || "Unknown Church",
+        temporaryPassword: tempPassword,
+      });
+
+      res.json({ message: "Account request approved and leader account created" });
+    } catch (error) {
+      console.error("Failed to approve account request:", error);
+      res.status(500).json({ message: "Failed to approve account request" });
+    }
+  });
+
+  // Deny account request
+  app.post("/api/admin/account-requests/:id/deny", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const adminUser = (req as any).user;
+
+      const request = await storage.getAccountRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Account request not found" });
+      }
+
+      if (request.status !== "PENDING") {
+        return res.status(400).json({ message: "This request has already been processed" });
+      }
+
+      // Update request status
+      await storage.updateAccountRequestStatus(id, "DENIED", adminUser.id);
+
+      // Log the action
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "DENY_ACCOUNT_REQUEST",
+        entityType: "ACCOUNT_REQUEST",
+        entityId: id,
+      });
+
+      // Send denial email
+      await sendAccountDenialEmail({
+        applicantName: request.fullName,
+        applicantEmail: request.email,
+      });
+
+      res.json({ message: "Account request denied" });
+    } catch (error) {
+      console.error("Failed to deny account request:", error);
+      res.status(500).json({ message: "Failed to deny account request" });
     }
   });
 

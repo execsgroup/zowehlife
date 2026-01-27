@@ -5,6 +5,7 @@ import {
   checkins,
   prayerRequests,
   auditLog,
+  accountRequests,
   type Church,
   type InsertChurch,
   type User,
@@ -16,6 +17,8 @@ import {
   type PrayerRequest,
   type InsertPrayerRequest,
   type InsertAuditLog,
+  type AccountRequest,
+  type InsertAccountRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte } from "drizzle-orm";
@@ -66,6 +69,13 @@ export interface IStorage {
 
   // Audit Log
   createAuditLog(log: InsertAuditLog): Promise<void>;
+
+  // Account Requests
+  getAccountRequests(): Promise<AccountRequest[]>;
+  getPendingAccountRequests(): Promise<AccountRequest[]>;
+  getAccountRequest(id: string): Promise<AccountRequest | undefined>;
+  createAccountRequest(request: InsertAccountRequest): Promise<AccountRequest>;
+  updateAccountRequestStatus(id: string, status: "APPROVED" | "DENIED", reviewedByUserId: string): Promise<AccountRequest>;
 
   // Stats
   getAdminStats(): Promise<{
@@ -273,6 +283,38 @@ export class DatabaseStorage implements IStorage {
   // Audit Log
   async createAuditLog(log: InsertAuditLog): Promise<void> {
     await db.insert(auditLog).values(log);
+  }
+
+  // Account Requests
+  async getAccountRequests(): Promise<AccountRequest[]> {
+    return db.select().from(accountRequests).orderBy(desc(accountRequests.createdAt));
+  }
+
+  async getPendingAccountRequests(): Promise<AccountRequest[]> {
+    return db
+      .select()
+      .from(accountRequests)
+      .where(eq(accountRequests.status, "PENDING"))
+      .orderBy(desc(accountRequests.createdAt));
+  }
+
+  async getAccountRequest(id: string): Promise<AccountRequest | undefined> {
+    const [request] = await db.select().from(accountRequests).where(eq(accountRequests.id, id));
+    return request || undefined;
+  }
+
+  async createAccountRequest(insertRequest: InsertAccountRequest): Promise<AccountRequest> {
+    const [request] = await db.insert(accountRequests).values(insertRequest).returning();
+    return request;
+  }
+
+  async updateAccountRequestStatus(id: string, status: "APPROVED" | "DENIED", reviewedByUserId: string): Promise<AccountRequest> {
+    const [request] = await db
+      .update(accountRequests)
+      .set({ status, reviewedByUserId, reviewedAt: new Date() })
+      .where(eq(accountRequests.id, id))
+      .returning();
+    return request;
   }
 
   // Stats
