@@ -1,11 +1,76 @@
+import { useState } from "react";
 import { Link } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
-import { Heart, BookOpen, Users, ArrowRight, Sparkles, HandHeart, Church } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Heart, BookOpen, Users, ArrowRight, Sparkles, HandHeart, Church, UserPlus, Loader2 } from "lucide-react";
+
+const leaderRequestSchema = z.object({
+  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
+  phone: z.string().optional(),
+  churchId: z.string().min(1, "Please select a church"),
+  reason: z.string().optional(),
+});
+
+type LeaderRequestFormData = z.infer<typeof leaderRequestSchema>;
 
 export default function Home() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  const { data: churches } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ["/api/public/churches"],
+  });
+
+  const form = useForm<LeaderRequestFormData>({
+    resolver: zodResolver(leaderRequestSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      churchId: "",
+      reason: "",
+    },
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async (data: LeaderRequestFormData) => {
+      await apiRequest("POST", "/api/account-requests", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Request Submitted",
+        description: "Your leader account request has been submitted. You will receive an email once it's reviewed.",
+      });
+      form.reset();
+      setDialogOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Submission Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: LeaderRequestFormData) => {
+    submitMutation.mutate(data);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <PublicNav />
@@ -118,8 +183,144 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
+        {/* Become a Leader Section */}
         <section className="py-16 md:py-24">
+          <div className="container mx-auto px-4">
+            <Card className="max-w-2xl mx-auto">
+              <CardHeader className="text-center">
+                <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4 mx-auto">
+                  <UserPlus className="h-7 w-7 text-primary" />
+                </div>
+                <CardTitle className="text-2xl md:text-3xl">Become a Leader</CardTitle>
+                <CardDescription className="text-base">
+                  Are you a church leader interested in helping track and follow up with new converts?
+                  Request access to our leader portal.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg" className="gap-2" data-testid="button-become-leader">
+                      <UserPlus className="h-4 w-4" />
+                      Request Leader Account
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Request Leader Account</DialogTitle>
+                      <DialogDescription>
+                        Fill out this form to request a leader account. An administrator will review your request.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="fullName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Full Name *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="John Doe" {...field} data-testid="input-leader-name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email *</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="john@example.com" {...field} data-testid="input-leader-email" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone</FormLabel>
+                              <FormControl>
+                                <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-leader-phone" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="churchId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Select Church *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-leader-church">
+                                    <SelectValue placeholder="Choose your church" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {churches?.map((church) => (
+                                    <SelectItem key={church.id} value={church.id} data-testid={`option-church-${church.id}`}>
+                                      {church.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="reason"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Why do you want to become a leader? (Optional)</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Tell us about your role in the church..."
+                                  className="resize-none"
+                                  {...field}
+                                  data-testid="input-leader-reason"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={submitMutation.isPending}
+                          data-testid="button-submit-leader-request"
+                        >
+                          {submitMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            "Submit Request"
+                          )}
+                        </Button>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 md:py-24 bg-muted/30">
           <div className="container mx-auto px-4">
             <Card className="max-w-4xl mx-auto overflow-hidden">
               <div className="bg-gradient-to-r from-primary to-primary/80 p-8 md:p-12 text-primary-foreground">
