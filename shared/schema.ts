@@ -85,7 +85,7 @@ export const accountRequests = pgTable("account_requests", {
   fullName: text("full_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
-  churchId: varchar("church_id").notNull().references(() => churches.id),
+  churchName: text("church_name").notNull(),
   reason: text("reason"),
   status: accountRequestStatusEnum("status").notNull().default("PENDING"),
   reviewedByUserId: varchar("reviewed_by_user_id").references(() => users.id),
