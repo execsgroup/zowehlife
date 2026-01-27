@@ -58,8 +58,14 @@ A church organization web application for tracking new converts across multiple 
 - **converts**: id, church_id, created_by_user_id, first_name, last_name, phone, email, address, date_of_birth, summary_notes, status
 - **checkins**: id, convert_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date
 - **prayer_requests**: id, name, phone, email, message, church_preference
-- **account_requests**: id, full_name, email, phone, church_id, reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
+- **account_requests**: id, full_name, email, phone, church_name (free text), reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 - **audit_log**: id, actor_user_id, action, entity_type, entity_id
+
+## Leader Account Request Flow
+1. Prospective leaders submit request via public form with free-text church name
+2. Admin reviews pending requests and can edit all fields before approval
+3. On approval: edits are persisted, church is auto-created if it doesn't exist, leader account is created
+4. Approval email is sent with temporary password
 
 ## API Routes
 ### Public
