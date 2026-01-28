@@ -8,13 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Heart, BookOpen, Users, ArrowRight, Sparkles, HandHeart, Church, UserPlus, Loader2 } from "lucide-react";
+import type { Church as ChurchType } from "@shared/schema";
 
 const leaderRequestSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -28,7 +31,13 @@ type LeaderRequestFormData = z.infer<typeof leaderRequestSchema>;
 
 export default function Home() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showChurchList, setShowChurchList] = useState(false);
+  const [selectedChurchId, setSelectedChurchId] = useState<string>("");
   const { toast } = useToast();
+
+  const { data: churches } = useQuery<ChurchType[]>({
+    queryKey: ["/api/public/churches"],
+  });
 
   const form = useForm<LeaderRequestFormData>({
     resolver: zodResolver(leaderRequestSchema),
@@ -51,6 +60,8 @@ export default function Home() {
         description: "Your leader account request has been submitted. You will receive an email once it's reviewed.",
       });
       form.reset();
+      setShowChurchList(false);
+      setSelectedChurchId("");
       setDialogOpen(false);
     },
     onError: (error: Error) => {
@@ -226,7 +237,14 @@ export default function Home() {
       </main>
 
       {/* Leader Account Request Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) {
+          setShowChurchList(false);
+          setSelectedChurchId("");
+          form.reset();
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Request Leader Account</DialogTitle>
@@ -275,19 +293,97 @@ export default function Home() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="churchName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Church Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your church name" {...field} data-testid="input-leader-church" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="showChurchList"
+                    checked={showChurchList}
+                    onCheckedChange={(checked) => {
+                      setShowChurchList(checked === true);
+                      if (!checked) {
+                        setSelectedChurchId("");
+                        form.setValue("churchName", "");
+                      }
+                    }}
+                    data-testid="checkbox-show-churches"
+                  />
+                  <label
+                    htmlFor="showChurchList"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Click here to see if your church is registered
+                  </label>
+                </div>
+
+                {showChurchList && churches && churches.length > 0 && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium">Select Your Church</label>
+                      <Select
+                        value={selectedChurchId}
+                        onValueChange={(value) => {
+                          setSelectedChurchId(value);
+                          if (value !== "not-found") {
+                            const selectedChurch = churches.find(c => c.id.toString() === value);
+                            if (selectedChurch) {
+                              form.setValue("churchName", selectedChurch.name);
+                            }
+                          } else {
+                            form.setValue("churchName", "");
+                          }
+                        }}
+                      >
+                        <SelectTrigger data-testid="select-church-dropdown">
+                          <SelectValue placeholder="Select your church..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {churches.map((church) => (
+                            <SelectItem key={church.id} value={church.id.toString()}>
+                              {church.name}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="not-found">My church is not listed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedChurchId === "not-found" && (
+                      <FormField
+                        control={form.control}
+                        name="churchName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Enter Your Church Name *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your church name" {...field} data-testid="input-leader-church-manual" />
+                            </FormControl>
+                            <FormDescription className="text-xs">
+                              Your church will be added to our registry upon approval.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
                 )}
-              />
+
+                {!showChurchList && (
+                  <FormField
+                    control={form.control}
+                    name="churchName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Church Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your church name" {...field} data-testid="input-leader-church" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
               <FormField
                 control={form.control}
                 name="reason"
