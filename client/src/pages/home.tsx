@@ -107,7 +107,7 @@ export default function Home() {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="gap-2" 
+                  className="gap-2 w-full sm:w-auto" 
                   onClick={() => setDialogOpen(true)}
                   data-testid="button-become-leader-hero"
                 >
