@@ -17,7 +17,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Church, type User } from "@shared/schema";
-import { Plus, Mail, Users, Loader2, KeyRound } from "lucide-react";
+import { Plus, Mail, Users, Loader2, KeyRound, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 
 const leaderFormSchema = z.object({
@@ -42,6 +43,7 @@ export default function AdminLeaders() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedLeader, setSelectedLeader] = useState<LeaderWithChurch | null>(null);
 
   const { data: leaders, isLoading } = useQuery<LeaderWithChurch[]>({
@@ -114,10 +116,37 @@ export default function AdminLeaders() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/admin/leaders/${selectedLeader?.id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Leader deleted",
+        description: "The leader account has been deleted successfully.",
+      });
+      setDeleteDialogOpen(false);
+      setSelectedLeader(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/leaders"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete leader",
+        variant: "destructive",
+      });
+    },
+  });
+
   const openResetDialog = (leader: LeaderWithChurch) => {
     setSelectedLeader(leader);
     resetForm.reset({ newPassword: "" });
     setResetDialogOpen(true);
+  };
+
+  const openDeleteDialog = (leader: LeaderWithChurch) => {
+    setSelectedLeader(leader);
+    setDeleteDialogOpen(true);
   };
 
   return (
@@ -314,6 +343,36 @@ export default function AdminLeaders() {
               </Form>
             </DialogContent>
           </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Leader Account</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete {selectedLeader?.fullName}'s account? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteMutation.mutate()}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deleteMutation.isPending}
+                  data-testid="button-confirm-delete"
+                >
+                  {deleteMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         <Card>
@@ -373,16 +432,28 @@ export default function AdminLeaders() {
                           {format(new Date(leader.createdAt), "MMM d, yyyy")}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openResetDialog(leader)}
-                            className="gap-1"
-                            data-testid={`button-reset-password-${leader.id}`}
-                          >
-                            <KeyRound className="h-3 w-3" />
-                            Reset Password
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openResetDialog(leader)}
+                              className="gap-1"
+                              data-testid={`button-reset-password-${leader.id}`}
+                            >
+                              <KeyRound className="h-3 w-3" />
+                              Reset Password
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openDeleteDialog(leader)}
+                              className="gap-1 text-destructive hover:text-destructive"
+                              data-testid={`button-delete-leader-${leader.id}`}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

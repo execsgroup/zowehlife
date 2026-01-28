@@ -29,6 +29,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserPassword(id: string, passwordHash: string): Promise<void>;
+  deleteUser(id: string): Promise<void>;
   getAdminCount(): Promise<number>;
   getLeaders(): Promise<User[]>;
   getLeadersByChurch(churchId: string): Promise<User[]>;
@@ -123,6 +124,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserPassword(id: string, passwordHash: string): Promise<void> {
     await db.update(users).set({ passwordHash }).where(eq(users.id, id));
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   async getAdminCount(): Promise<number> {

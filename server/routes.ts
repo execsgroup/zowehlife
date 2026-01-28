@@ -503,6 +503,37 @@ export async function registerRoutes(
     }
   });
 
+  // Delete leader
+  app.delete("/api/admin/leaders/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const adminUser = (req as any).user;
+
+      const user = await storage.getUser(id);
+      if (!user || user.role !== "LEADER") {
+        return res.status(404).json({ message: "Leader not found" });
+      }
+
+      // Prevent deleting yourself
+      if (user.id === adminUser.id) {
+        return res.status(400).json({ message: "You cannot delete your own account" });
+      }
+
+      await storage.deleteUser(id);
+
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "DELETE_LEADER",
+        entityType: "USER",
+        entityId: id,
+      });
+
+      res.json({ message: "Leader deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete leader" });
+    }
+  });
+
   // Get all converts (admin view)
   app.get("/api/admin/converts", requireAdmin, async (req, res) => {
     try {
