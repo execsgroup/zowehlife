@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
@@ -203,111 +203,15 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="lg" className="gap-2" data-testid="button-become-leader">
-                      <UserPlus className="h-4 w-4" />
-                      Request Leader Account
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Request Leader Account</DialogTitle>
-                      <DialogDescription>
-                        Fill out this form to request a leader account. An administrator will review your request.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="fullName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Full Name *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="John Doe" {...field} data-testid="input-leader-name" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email *</FormLabel>
-                              <FormControl>
-                                <Input type="email" placeholder="john@example.com" {...field} data-testid="input-leader-email" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="phone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Phone</FormLabel>
-                              <FormControl>
-                                <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-leader-phone" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="churchName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Church Name *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter your church name" {...field} data-testid="input-leader-church" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="reason"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Why do you want to become a leader? (Optional)</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Tell us about your role in the church..."
-                                  className="resize-none"
-                                  {...field}
-                                  data-testid="input-leader-reason"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button
-                          type="submit"
-                          className="w-full"
-                          disabled={submitMutation.isPending}
-                          data-testid="button-submit-leader-request"
-                        >
-                          {submitMutation.isPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Submitting...
-                            </>
-                          ) : (
-                            "Submit Request"
-                          )}
-                        </Button>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
+                <Button 
+                  size="lg" 
+                  className="gap-2" 
+                  onClick={() => setDialogOpen(true)}
+                  data-testid="button-become-leader"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Request Leader Account
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -349,6 +253,107 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {/* Leader Account Request Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Leader Account</DialogTitle>
+            <DialogDescription>
+              Fill out this form to request a leader account. An administrator will review your request.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} data-testid="input-leader-name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email *</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="john@example.com" {...field} data-testid="input-leader-email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-leader-phone" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="churchName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Church Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your church name" {...field} data-testid="input-leader-church" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="reason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Why do you want to become a leader? (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Tell us about your role in the church..."
+                        className="resize-none"
+                        {...field}
+                        data-testid="input-leader-reason"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={submitMutation.isPending}
+                data-testid="button-submit-leader-request"
+              >
+                {submitMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Request"
+                )}
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       <PublicFooter />
     </div>
