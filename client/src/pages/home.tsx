@@ -188,35 +188,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Become a Leader Section */}
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4">
-            <Card className="max-w-2xl mx-auto">
-              <CardHeader className="text-center">
-                <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4 mx-auto">
-                  <UserPlus className="h-7 w-7 text-primary" />
-                </div>
-                <CardTitle className="text-2xl md:text-3xl">Become a Leader</CardTitle>
-                <CardDescription className="text-base">
-                  Are you a church leader interested in helping track and follow up with new converts?
-                  Request access to our leader portal.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <Button 
-                  size="lg" 
-                  className="gap-2" 
-                  onClick={() => setDialogOpen(true)}
-                  data-testid="button-become-leader"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Request Leader Account
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
         {/* CTA Section */}
         <section className="py-16 md:py-24 bg-muted/30">
           <div className="container mx-auto px-4">
