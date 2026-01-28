@@ -126,9 +126,12 @@ interface AccountApprovalEmailData {
 export async function sendAccountApprovalEmail(data: AccountApprovalEmailData) {
   try {
     const { client, fromEmail } = await getUncachableResendClient();
+    
+    const actualFromEmail = fromEmail || 'The Zoweh Life <onboarding@resend.dev>';
+    console.log(`Attempting to send approval email from: ${actualFromEmail} to: ${data.leaderEmail}`);
 
-    await client.emails.send({
-      from: fromEmail || 'The Zoweh Life <noreply@resend.dev>',
+    const result = await client.emails.send({
+      from: actualFromEmail,
       to: data.leaderEmail,
       subject: 'Your Leader Account Has Been Approved - The Zoweh Life',
       html: `
@@ -148,10 +151,15 @@ export async function sendAccountApprovalEmail(data: AccountApprovalEmailData) {
       `
     });
 
-    console.log(`Account approval email sent to ${data.leaderEmail}`);
+    if (result.error) {
+      console.error('Resend API returned error:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    console.log(`Account approval email sent successfully to ${data.leaderEmail}, id: ${result.data?.id}`);
     return { success: true };
-  } catch (error) {
-    console.error('Failed to send account approval email:', error);
+  } catch (error: any) {
+    console.error('Failed to send account approval email:', error?.message || error);
     return { success: false, error };
   }
 }
