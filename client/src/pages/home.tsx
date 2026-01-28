@@ -91,7 +91,7 @@ export default function Home() {
                 or seeking to deepen your relationship with God, we're here to walk alongside you.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
                 <Link href="/salvation">
                   <Button size="lg" className="gap-2" data-testid="button-learn-more">
                     Learn About Salvation
@@ -104,6 +104,16 @@ export default function Home() {
                     <HandHeart className="h-4 w-4" />
                   </Button>
                 </Link>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="gap-2" 
+                  onClick={() => setDialogOpen(true)}
+                  data-testid="button-become-leader-hero"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Become a Leader
+                </Button>
               </div>
             </div>
           </div>
