@@ -675,12 +675,23 @@ export async function registerRoutes(
       }
 
       // Send approval email
-      await sendAccountApprovalEmail({
+      const emailResult = await sendAccountApprovalEmail({
         leaderName: finalName,
         leaderEmail: finalEmail,
         churchName: church.name,
         temporaryPassword: tempPassword,
       });
+
+      if (!emailResult.success) {
+        console.error("Failed to send approval email:", emailResult.error);
+        return res.json({ 
+          message: "Account created but email notification failed. Please manually share the login credentials.",
+          credentials: {
+            email: finalEmail,
+            temporaryPassword: tempPassword
+          }
+        });
+      }
 
       res.json({ message: "Account request approved and leader account created" });
     } catch (error) {

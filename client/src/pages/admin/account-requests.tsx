@@ -66,13 +66,22 @@ export default function AccountRequests() {
 
   const approveMutation = useMutation({
     mutationFn: async (data: ReviewFormData) => {
-      await apiRequest("POST", `/api/admin/account-requests/${reviewingRequest?.id}/approve`, data);
+      const res = await apiRequest("POST", `/api/admin/account-requests/${reviewingRequest?.id}/approve`, data);
+      return res.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Request Approved",
-        description: "The leader account has been created and the applicant has been notified via email.",
-      });
+    onSuccess: (data) => {
+      if (data.credentials) {
+        toast({
+          title: "Account Created - Email Failed",
+          description: `Please manually share credentials with the leader. Email: ${data.credentials.email}, Temporary Password: ${data.credentials.temporaryPassword}`,
+          duration: 30000,
+        });
+      } else {
+        toast({
+          title: "Request Approved",
+          description: "The leader account has been created and the applicant has been notified via email.",
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/admin/account-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/leaders"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
