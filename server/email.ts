@@ -63,7 +63,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
 
     emailsToSend.push(
       client.emails.send({
-        from: fromEmail || 'The Zoweh Life <noreply@resend.dev>',
+        from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
         to: data.leaderEmail,
         subject: `Follow-up Reminder: ${data.convertName} on ${formattedDate}`,
         html: `
@@ -78,7 +78,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
             </div>
             <p>Please ensure to reach out and connect with ${data.convertName} on the scheduled date.</p>
-            <p>Blessings,<br>The Zoweh Life</p>
+            <p>Blessings,<br>Zoweh Life</p>
           </div>
         `
       })
@@ -87,7 +87,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
     if (data.convertEmail) {
       emailsToSend.push(
         client.emails.send({
-          from: fromEmail || 'The Zoweh Life <noreply@resend.dev>',
+          from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
           to: data.convertEmail,
           subject: `We'd love to connect with you - ${data.churchName}`,
           html: `
@@ -127,16 +127,16 @@ export async function sendAccountApprovalEmail(data: AccountApprovalEmailData) {
   try {
     const { client, fromEmail } = await getUncachableResendClient();
     
-    const actualFromEmail = fromEmail || 'The Zoweh Life <onboarding@resend.dev>';
+    const actualFromEmail = fromEmail || 'Zoweh Life <onboarding@resend.dev>';
     console.log(`Attempting to send approval email from: ${actualFromEmail} to: ${data.leaderEmail}`);
 
     const result = await client.emails.send({
       from: actualFromEmail,
       to: data.leaderEmail,
-      subject: 'Your Leader Account Has Been Approved - The Zoweh Life',
+      subject: 'Your Leader Account Has Been Approved - Zoweh Life',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Welcome to The Zoweh Life!</h2>
+          <h2 style="color: #333;">Welcome to Zoweh Life!</h2>
           <p>Hello ${data.leaderName},</p>
           <p>Great news! Your leader account request has been approved. You can now log in and start managing converts for <strong>${data.churchName}</strong>.</p>
           <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -146,7 +146,7 @@ export async function sendAccountApprovalEmail(data: AccountApprovalEmailData) {
           </div>
           <p style="color: #666; font-size: 14px;"><em>Please change your password after your first login for security purposes.</em></p>
           <p>We're excited to have you on board. If you have any questions, please reach out to your administrator.</p>
-          <p>Blessings,<br>The Zoweh Life Team</p>
+          <p>Blessings,<br>Zoweh Life Team</p>
         </div>
       `
     });
@@ -174,16 +174,16 @@ export async function sendAccountDenialEmail(data: AccountDenialEmailData) {
     const { client, fromEmail } = await getUncachableResendClient();
 
     await client.emails.send({
-      from: fromEmail || 'The Zoweh Life <noreply@resend.dev>',
+      from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
       to: data.applicantEmail,
-      subject: 'Leader Account Request Update - The Zoweh Life',
+      subject: 'Leader Account Request Update - Zoweh Life',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">Account Request Update</h2>
           <p>Hello ${data.applicantName},</p>
-          <p>Thank you for your interest in becoming a leader with The Zoweh Life.</p>
+          <p>Thank you for your interest in becoming a leader with Zoweh Life.</p>
           <p>After careful review, we are unable to approve your account request at this time. If you believe this was in error or have questions, please contact your church administrator directly.</p>
-          <p>Blessings,<br>The Zoweh Life Team</p>
+          <p>Blessings,<br>Zoweh Life Team</p>
         </div>
       `
     });

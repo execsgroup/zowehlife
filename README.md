@@ -1,4 +1,4 @@
-# The Zoweh Life
+# Zoweh Life
 
 A beginner-friendly web application for church organizations to track new converts across multiple churches. Leaders can log in, add new converts belonging to their church, and log follow-up check-in updates over time.
 

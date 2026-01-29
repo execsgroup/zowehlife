@@ -11,7 +11,7 @@ export function PublicFooter() {
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
                 <Heart className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-semibold">The Zoweh Life</span>
+              <span className="font-semibold">Zoweh Life</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Nurturing faith and building community, one soul at a time.
@@ -57,7 +57,7 @@ export function PublicFooter() {
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} The Zoweh Life. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Zoweh Life. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -231,7 +231,7 @@ export default function ConvertDetail() {
     const dateStr = format(date, "yyyyMMdd");
     const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//The Zoweh Life//EN
+PRODID:-//Zoweh Life//EN
 BEGIN:VEVENT
 DTSTART:${dateStr}
 DTEND:${dateStr}
