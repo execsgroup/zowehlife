@@ -22,7 +22,10 @@ const convertFormSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   address: z.string().optional(),
-  dateOfBirth: z.string().optional(),
+  birthDay: z.string().optional(),
+  birthMonth: z.string().optional(),
+  country: z.string().optional(),
+  salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus"]).optional(),
   summaryNotes: z.string().optional(),
   wantsContact: z.enum(["Yes", "No"]).optional(),
   gender: z.enum(["Male", "Female"]).optional(),
@@ -30,6 +33,33 @@ const convertFormSchema = z.object({
   isChurchMember: z.enum(["Yes", "No"]).optional(),
   prayerRequest: z.string().optional(),
 });
+
+const countries = [
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+  "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada",
+  "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba",
+  "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Estonia",
+  "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana",
+  "Greece", "Grenada", "Guatemala", "Guinea", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India",
+  "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan",
+  "Kenya", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Lithuania",
+  "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Mauritania", "Mauritius", "Mexico",
+  "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nepal", "Netherlands",
+  "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Panama",
+  "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda",
+  "Saudi Arabia", "Senegal", "Serbia", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Somalia", "South Africa", "South Korea",
+  "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan",
+  "Tanzania", "Thailand", "Togo", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Uganda", "Ukraine", "United Arab Emirates",
+  "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+];
+
+const months = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+const days = Array.from({ length: 31 }, (_, i) => String(i + 1));
 
 type ConvertFormData = z.infer<typeof convertFormSchema>;
 
@@ -58,7 +88,10 @@ export default function NewConvert() {
       phone: "",
       email: "",
       address: "",
-      dateOfBirth: "",
+      birthDay: undefined,
+      birthMonth: undefined,
+      country: undefined,
+      salvationDecision: undefined,
       summaryNotes: "",
       wantsContact: undefined,
       gender: undefined,
@@ -165,9 +198,6 @@ export default function NewConvert() {
               <Heart className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-3xl font-bold mb-2">Welcome to the Family!</h1>
-            <p className="text-muted-foreground">
-              We're so glad you're here. Please share your information so we can stay connected.
-            </p>
           </div>
 
           <Card>
@@ -176,9 +206,13 @@ export default function NewConvert() {
                 <Church className="h-5 w-5" />
                 <span className="font-medium">{church.name}</span>
               </div>
-              <CardTitle>New Convert Information</CardTitle>
-              <CardDescription>
-                Fill out this form to connect with our church community. We'll be in touch to help you on your faith journey.
+              <CardTitle>Salvation Form</CardTitle>
+              <CardDescription className="space-y-3 text-sm">
+                <p>We are delighted that you have accepted Jesus Christ as your personal Lord and Savior.</p>
+                <p>If you are already born again and decided to rededicate your life, we congratulate you on making such a significant decision.</p>
+                <p>God knows everything about you, but you need to get to know Him in an intimate and personal way.</p>
+                <p>We'd like to get in touch with you now that you have taken such a significant decision so that we can assist you in keeping your commitment.</p>
+                <p>Please fill out the form below</p>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -255,15 +289,94 @@ export default function NewConvert() {
                     )}
                   />
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="birthDay"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Day of Birth</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-birth-day">
+                                <SelectValue placeholder="Select day" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {days.map((day) => (
+                                <SelectItem key={day} value={day}>{day}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="birthMonth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Month of Birth</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-birth-month">
+                                <SelectValue placeholder="Select month" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {months.map((month) => (
+                                <SelectItem key={month} value={month}>{month}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <FormField
                     control={form.control}
-                    name="dateOfBirth"
+                    name="country"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Date of Birth</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} data-testid="input-dob" />
-                        </FormControl>
+                        <FormLabel>Country of Residence</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-country">
+                              <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {countries.map((country) => (
+                              <SelectItem key={country} value={country}>{country}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="salvationDecision"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Please choose an option</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-salvation-decision">
+                              <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="I just made Jesus Christ my Lord and Savior">I just made Jesus Christ my Lord and Savior</SelectItem>
+                            <SelectItem value="I have rededicated my life to Jesus">I have rededicated my life to Jesus</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
