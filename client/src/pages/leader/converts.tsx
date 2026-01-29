@@ -652,7 +652,7 @@ export default function LeaderConverts() {
                     <TableHead>Contact</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Added</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -692,8 +692,8 @@ export default function LeaderConverts() {
                       <TableCell className="text-muted-foreground">
                         {format(new Date(convert.createdAt), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <TableCell>
+                        <div className="flex items-center gap-1">
                           <Link href={`/leader/converts/${convert.id}`}>
                             <Button
                               variant="ghost"
