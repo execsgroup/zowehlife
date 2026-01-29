@@ -50,13 +50,39 @@ const checkinFormSchema = z.object({
 const updateConvertSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  dateOfBirth: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
-  address: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  country: z.string().optional(),
+  salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus", ""]).optional(),
+  wantsContact: z.enum(["Yes", "No", ""]).optional(),
+  gender: z.enum(["Male", "Female", ""]).optional(),
+  ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above", ""]).optional(),
+  isChurchMember: z.enum(["Yes", "No", ""]).optional(),
+  prayerRequest: z.string().optional(),
   summaryNotes: z.string().optional(),
   status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]),
 });
+
+const countries = [
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+  "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada",
+  "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba",
+  "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Estonia",
+  "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana",
+  "Greece", "Grenada", "Guatemala", "Guinea", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India",
+  "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan",
+  "Kenya", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Lithuania",
+  "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Mauritania", "Mauritius", "Mexico",
+  "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nepal", "Netherlands",
+  "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Panama",
+  "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda",
+  "Saudi Arabia", "Senegal", "Serbia", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Somalia", "South Africa", "South Korea",
+  "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan",
+  "Tanzania", "Thailand", "Togo", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Uganda", "Ukraine", "United Arab Emirates",
+  "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+];
 
 type CheckinFormData = z.infer<typeof checkinFormSchema>;
 type UpdateConvertData = z.infer<typeof updateConvertSchema>;
@@ -110,10 +136,16 @@ export default function ConvertDetail() {
     defaultValues: {
       firstName: "",
       lastName: "",
-      dateOfBirth: "",
       phone: "",
       email: "",
-      address: "",
+      dateOfBirth: "",
+      country: "",
+      salvationDecision: "",
+      wantsContact: "",
+      gender: "",
+      ageGroup: "",
+      isChurchMember: "",
+      prayerRequest: "",
       summaryNotes: "",
       status: "NEW",
     },
@@ -125,10 +157,16 @@ export default function ConvertDetail() {
       editForm.reset({
         firstName: convert.firstName,
         lastName: convert.lastName,
-        dateOfBirth: convert.dateOfBirth || "",
         phone: convert.phone || "",
         email: convert.email || "",
-        address: convert.address || "",
+        dateOfBirth: convert.dateOfBirth || "",
+        country: convert.country || "",
+        salvationDecision: (convert.salvationDecision || "") as "" | "I just made Jesus Christ my Lord and Savior" | "I have rededicated my life to Jesus",
+        wantsContact: (convert.wantsContact || "") as "" | "Yes" | "No",
+        gender: (convert.gender || "") as "" | "Male" | "Female",
+        ageGroup: (convert.ageGroup || "") as "" | "Under 18" | "18-24" | "25-34" | "35 and Above",
+        isChurchMember: (convert.isChurchMember || "") as "" | "Yes" | "No",
+        prayerRequest: convert.prayerRequest || "",
         summaryNotes: convert.summaryNotes || "",
         status: convert.status,
       });
@@ -174,6 +212,7 @@ export default function ConvertDetail() {
         description: "The convert information has been updated.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/converts", convertId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
       setEditDialogOpen(false);
     },
     onError: (error: Error) => {
@@ -622,7 +661,7 @@ END:VCALENDAR`;
 
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Convert</DialogTitle>
               <DialogDescription>
@@ -634,6 +673,28 @@ END:VCALENDAR`;
                 onSubmit={editForm.handleSubmit((data) => updateMutation.mutate(data))}
                 className="space-y-4"
               >
+                <FormField
+                  control={editForm.control}
+                  name="salvationDecision"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Salvation Decision</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-salvation">
+                            <SelectValue placeholder="Select an option" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="I just made Jesus Christ my Lord and Savior">I just made Jesus Christ my Lord and Savior</SelectItem>
+                          <SelectItem value="I have rededicated my life to Jesus">I have rededicated my life to Jesus</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={editForm.control}
@@ -665,6 +726,34 @@ END:VCALENDAR`;
 
                 <FormField
                   control={editForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-edit-phone" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="john@example.com" {...field} data-testid="input-edit-email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
                   name="dateOfBirth"
                   render={({ field }) => (
                     <FormItem>
@@ -677,29 +766,117 @@ END:VCALENDAR`;
                   )}
                 />
 
+                <FormField
+                  control={editForm.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country of Residence</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-country">
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem key={country} value={country}>{country}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={editForm.control}
-                    name="phone"
+                    name="wantsContact"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone</FormLabel>
-                        <FormControl>
-                          <Input type="tel" {...field} data-testid="input-edit-phone" />
-                        </FormControl>
+                        <FormLabel>Would you like us to contact you?</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-edit-wants-contact">
+                              <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Yes">Yes</SelectItem>
+                            <SelectItem value="No">No</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
                   <FormField
                     control={editForm.control}
-                    name="email"
+                    name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" {...field} data-testid="input-edit-email" />
-                        </FormControl>
+                        <FormLabel>Gender</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-edit-gender">
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    control={editForm.control}
+                    name="ageGroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Age Group</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-edit-age-group">
+                              <SelectValue placeholder="Select age group" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Under 18">Under 18</SelectItem>
+                            <SelectItem value="18-24">18-24</SelectItem>
+                            <SelectItem value="25-34">25-34</SelectItem>
+                            <SelectItem value="35 and Above">35 and Above</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name="isChurchMember"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Are you a member of any Church?</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-edit-church-member">
+                              <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Yes">Yes</SelectItem>
+                            <SelectItem value="No">No</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -708,12 +885,17 @@ END:VCALENDAR`;
 
                 <FormField
                   control={editForm.control}
-                  name="address"
+                  name="prayerRequest"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>Prayer Request / Additional Information</FormLabel>
                       <FormControl>
-                        <Input {...field} data-testid="input-edit-address" />
+                        <Textarea
+                          placeholder="Share any prayer requests or additional information..."
+                          className="resize-none"
+                          {...field}
+                          data-testid="input-edit-prayer-request"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -725,7 +907,7 @@ END:VCALENDAR`;
                   name="summaryNotes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>Additional Notes (Leader Only)</FormLabel>
                       <FormControl>
                         <Textarea className="resize-none" {...field} data-testid="input-edit-notes" />
                       </FormControl>

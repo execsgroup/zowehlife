@@ -678,6 +678,44 @@ export async function registerRoutes(
     }
   });
 
+  // Admin update convert
+  app.patch("/api/admin/converts/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const convert = await storage.getConvert(id);
+      if (!convert) {
+        return res.status(404).json({ message: "Convert not found" });
+      }
+
+      const schema = z.object({
+        firstName: z.string().min(1).optional(),
+        lastName: z.string().min(1).optional(),
+        phone: z.string().optional(),
+        email: z.string().email().optional().or(z.literal("")),
+        dateOfBirth: z.string().optional(),
+        country: z.string().optional(),
+        salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus", ""]).optional(),
+        wantsContact: z.enum(["Yes", "No", ""]).optional(),
+        gender: z.enum(["Male", "Female", ""]).optional(),
+        ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above", ""]).optional(),
+        isChurchMember: z.enum(["Yes", "No", ""]).optional(),
+        prayerRequest: z.string().optional(),
+        summaryNotes: z.string().optional(),
+        status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]).optional(),
+      });
+
+      const data = schema.parse(req.body);
+      const updatedConvert = await storage.updateConvert(id, data);
+      res.json(updatedConvert);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to update convert" });
+    }
+  });
+
   // Export converts as CSV
   app.get("/api/admin/converts/export", requireAdmin, async (req, res) => {
     try {
