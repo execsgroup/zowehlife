@@ -33,6 +33,7 @@ import {
   ChevronUp,
   Home,
   CalendarClock,
+  Settings,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -48,6 +49,7 @@ const leaderNavItems = [
   { title: "Dashboard", url: "/leader/dashboard", icon: LayoutDashboard },
   { title: "My Converts", url: "/leader/converts", icon: UserPlus },
   { title: "Upcoming Follow-ups", url: "/leader/followups", icon: CalendarClock },
+  { title: "Church Settings", url: "/leader/settings", icon: Settings },
 ];
 
 export function AppSidebar() {

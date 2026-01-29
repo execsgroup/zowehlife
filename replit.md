@@ -56,6 +56,9 @@ A church organization web application for tracking new converts across multiple 
 - **churches**: id, name, location, public_token (unique link token), created_at
 - **users**: id, role (ADMIN/LEADER), full_name, email, password_hash, church_id
 - **converts**: id, church_id, created_by_user_id (nullable), first_name, last_name, phone, email, address, date_of_birth, birth_day, birth_month, country, salvation_decision, summary_notes, status, self_submitted, wants_contact, gender, age_group, is_church_member, prayer_request
+
+## Church Logo Upload
+Leaders can upload a church logo from the "Church Settings" page in their dashboard. The logo will be displayed on the public Salvation Form for new converts. Logos are stored in Replit's Object Storage and can be up to 5MB in size (images only).
 - **checkins**: id, convert_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date
 - **prayer_requests**: id, name, phone, email, message, church_preference
 - **account_requests**: id, full_name, email, phone, church_name (free text), reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at

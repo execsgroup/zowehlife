@@ -42,6 +42,7 @@ export interface IStorage {
   createChurch(church: InsertChurch): Promise<Church>;
   findOrCreateChurch(name: string): Promise<{ church: Church; created: boolean }>;
   updateChurch(id: string, church: Partial<InsertChurch>): Promise<Church>;
+  updateChurchLogo(id: string, logoUrl: string): Promise<void>;
   generateTokenForChurch(id: string): Promise<Church>;
 
   // Converts
@@ -241,6 +242,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(churches.id, id))
       .returning();
     return church;
+  }
+
+  async updateChurchLogo(id: string, logoUrl: string): Promise<void> {
+    await db
+      .update(churches)
+      .set({ logoUrl })
+      .where(eq(churches.id, id));
   }
 
   async generateTokenForChurch(id: string): Promise<Church> {

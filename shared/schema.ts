@@ -14,6 +14,7 @@ export const churches = pgTable("churches", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   location: text("location"),
+  logoUrl: text("logo_url"),
   publicToken: text("public_token").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

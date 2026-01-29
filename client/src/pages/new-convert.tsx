@@ -59,7 +59,7 @@ export default function NewConvert() {
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
 
-  const { data: church, isLoading: churchLoading, error: churchError } = useQuery<{ id: string; name: string }>({
+  const { data: church, isLoading: churchLoading, error: churchError } = useQuery<{ id: string; name: string; logoUrl: string | null }>({
     queryKey: ["/api/public/church", token],
     queryFn: async () => {
       const res = await fetch(`/api/public/church/${token}`);
@@ -182,9 +182,20 @@ export default function NewConvert() {
       <main className="flex-1 py-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="text-center mb-8">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
-              <Heart className="h-8 w-8 text-primary" />
-            </div>
+            {church.logoUrl ? (
+              <div className="w-24 h-24 mx-auto mb-4 rounded-lg overflow-hidden">
+                <img
+                  src={church.logoUrl}
+                  alt={`${church.name} logo`}
+                  className="w-full h-full object-contain"
+                  data-testid="img-church-logo"
+                />
+              </div>
+            ) : (
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
+                <Heart className="h-8 w-8 text-primary" />
+              </div>
+            )}
             <h1 className="text-3xl font-bold mb-2">Welcome to the Family!</h1>
           </div>
 

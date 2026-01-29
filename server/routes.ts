@@ -4,6 +4,7 @@ import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { sendFollowUpNotification, sendAccountApprovalEmail, sendAccountDenialEmail } from "./email";
+import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import {
   insertChurchSchema,
   insertPrayerRequestSchema,
@@ -109,6 +110,9 @@ export async function registerRoutes(
       },
     })
   );
+
+  // Register object storage routes
+  registerObjectStorageRoutes(app);
 
   // ==================== AUTH ROUTES ====================
 
@@ -310,7 +314,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Church not found" });
       }
       
-      res.json({ id: church.id, name: church.name });
+      res.json({ id: church.id, name: church.name, logoUrl: church.logoUrl });
     } catch (error) {
       res.status(500).json({ message: "Failed to get church info" });
     }
@@ -842,6 +846,37 @@ export async function registerRoutes(
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to get stats" });
+    }
+  });
+
+  // Get leader's church info
+  app.get("/api/leader/church", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Church not found" });
+      }
+      res.json(church);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get church info" });
+    }
+  });
+
+  // Update church logo
+  app.patch("/api/leader/church/logo", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { logoUrl } = req.body;
+
+      if (typeof logoUrl !== "string") {
+        return res.status(400).json({ message: "Invalid logo URL" });
+      }
+
+      await storage.updateChurchLogo(user.churchId, logoUrl);
+      res.json({ message: "Logo updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update logo" });
     }
   });
 
