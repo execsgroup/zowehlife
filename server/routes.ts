@@ -652,7 +652,7 @@ export async function registerRoutes(
 
       const schema = z.object({
         checkinDate: z.string(),
-        outcome: z.enum(["CONTACTED", "NO_ANSWER", "FOLLOW_UP_SCHEDULED", "COMPLETED"]),
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
         notes: z.string().optional(),
         nextFollowupDate: z.string().optional(),
       });

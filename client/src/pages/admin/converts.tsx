@@ -35,7 +35,7 @@ interface ConvertWithChurch extends Convert {
 
 const checkinFormSchema = z.object({
   checkinDate: z.string().min(1, "Date is required"),
-  outcome: z.enum(["CONTACTED", "NO_ANSWER", "FOLLOW_UP_SCHEDULED", "COMPLETED"]),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
   notes: z.string().optional(),
   nextFollowupDate: z.string().optional(),
 });
@@ -62,7 +62,7 @@ export default function AdminConverts() {
     resolver: zodResolver(checkinFormSchema),
     defaultValues: {
       checkinDate: format(new Date(), "yyyy-MM-dd"),
-      outcome: "CONTACTED",
+      outcome: "CONNECTED",
       notes: "",
       nextFollowupDate: "",
     },
@@ -83,7 +83,7 @@ export default function AdminConverts() {
       setSelectedConvert(null);
       checkinForm.reset({
         checkinDate: format(new Date(), "yyyy-MM-dd"),
-        outcome: "CONTACTED",
+        outcome: "CONNECTED",
         notes: "",
         nextFollowupDate: "",
       });
@@ -101,7 +101,7 @@ export default function AdminConverts() {
     setSelectedConvert(convert);
     checkinForm.reset({
       checkinDate: format(new Date(), "yyyy-MM-dd"),
-      outcome: "CONTACTED",
+      outcome: "CONNECTED",
       notes: "",
       nextFollowupDate: "",
     });
@@ -344,10 +344,12 @@ export default function AdminConverts() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="CONTACTED">Contacted</SelectItem>
-                        <SelectItem value="NO_ANSWER">No Answer</SelectItem>
-                        <SelectItem value="FOLLOW_UP_SCHEDULED">Follow-up Scheduled</SelectItem>
-                        <SelectItem value="COMPLETED">Completed</SelectItem>
+                        <SelectItem value="CONNECTED">Connected</SelectItem>
+                        <SelectItem value="NO_RESPONSE">No Response</SelectItem>
+                        <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
+                        <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
+                        <SelectItem value="REFERRED">Referred</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
