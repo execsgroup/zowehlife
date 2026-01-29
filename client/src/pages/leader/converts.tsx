@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, Eye, FileSpreadsheet } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, Eye, FileSpreadsheet, MessageSquarePlus } from "lucide-react";
 import { format } from "date-fns";
 
 const countries = [
@@ -69,12 +69,23 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
+const checkinFormSchema = z.object({
+  checkinDate: z.string().min(1, "Date is required"),
+  outcome: z.enum(["CONTACTED", "NO_ANSWER", "FOLLOW_UP_SCHEDULED", "COMPLETED"]),
+  notes: z.string().optional(),
+  nextFollowupDate: z.string().optional(),
+});
+
+type CheckinFormData = z.infer<typeof checkinFormSchema>;
+
 export default function LeaderConverts() {
   const { toast } = useToast();
   const [location] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  const [selectedConvert, setSelectedConvert] = useState<Convert | null>(null);
 
   const { data: converts, isLoading } = useQuery<Convert[]>({
     queryKey: ["/api/leader/converts"],
@@ -101,12 +112,62 @@ export default function LeaderConverts() {
     },
   });
 
+  const checkinForm = useForm<CheckinFormData>({
+    resolver: zodResolver(checkinFormSchema),
+    defaultValues: {
+      checkinDate: format(new Date(), "yyyy-MM-dd"),
+      outcome: "CONTACTED",
+      notes: "",
+      nextFollowupDate: "",
+    },
+  });
+
   // Check for ?new=true query param
   useEffect(() => {
     if (location.includes("new=true")) {
       setDialogOpen(true);
     }
   }, [location]);
+
+  const checkinMutation = useMutation({
+    mutationFn: async (data: CheckinFormData) => {
+      if (!selectedConvert) return;
+      await apiRequest("POST", `/api/leader/converts/${selectedConvert.id}/checkins`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Check-in recorded",
+        description: "The follow-up check-in has been saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      setFollowUpDialogOpen(false);
+      setSelectedConvert(null);
+      checkinForm.reset({
+        checkinDate: format(new Date(), "yyyy-MM-dd"),
+        outcome: "CONTACTED",
+        notes: "",
+        nextFollowupDate: "",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to record check-in",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFollowUp = (convert: Convert) => {
+    setSelectedConvert(convert);
+    checkinForm.reset({
+      checkinDate: format(new Date(), "yyyy-MM-dd"),
+      outcome: "CONTACTED",
+      notes: "",
+      nextFollowupDate: "",
+    });
+    setFollowUpDialogOpen(true);
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: ConvertFormData) => {
@@ -632,17 +693,29 @@ export default function LeaderConverts() {
                         {format(new Date(convert.createdAt), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/leader/converts/${convert.id}`}>
+                        <div className="flex items-center justify-end gap-1">
+                          <Link href={`/leader/converts/${convert.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1"
+                              data-testid={`button-view-convert-${convert.id}`}
+                            >
+                              <Eye className="h-3 w-3" />
+                              View
+                            </Button>
+                          </Link>
                           <Button
                             variant="ghost"
                             size="sm"
                             className="gap-1"
-                            data-testid={`button-view-convert-${convert.id}`}
+                            onClick={() => handleFollowUp(convert)}
+                            data-testid={`button-followup-convert-${convert.id}`}
                           >
-                            <Eye className="h-3 w-3" />
-                            View
+                            <MessageSquarePlus className="h-3 w-3" />
+                            Follow Up
                           </Button>
-                        </Link>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -668,6 +741,116 @@ export default function LeaderConverts() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Follow Up Check-in Dialog */}
+      <Dialog open={followUpDialogOpen} onOpenChange={setFollowUpDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Record Follow-Up</DialogTitle>
+            <DialogDescription>
+              {selectedConvert && (
+                <>Record a check-in for {selectedConvert.firstName} {selectedConvert.lastName}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...checkinForm}>
+            <form
+              onSubmit={checkinForm.handleSubmit((data) => checkinMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <FormField
+                control={checkinForm.control}
+                name="checkinDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Check-in Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} data-testid="input-followup-date" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={checkinForm.control}
+                name="outcome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Outcome</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-followup-outcome">
+                          <SelectValue placeholder="Select outcome" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="CONTACTED">Contacted</SelectItem>
+                        <SelectItem value="NO_ANSWER">No Answer</SelectItem>
+                        <SelectItem value="FOLLOW_UP_SCHEDULED">Follow-up Scheduled</SelectItem>
+                        <SelectItem value="COMPLETED">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={checkinForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Add any notes about this check-in..."
+                        {...field}
+                        data-testid="input-followup-notes"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={checkinForm.control}
+                name="nextFollowupDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Next Follow-up Date (optional)</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} data-testid="input-next-followup-date" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setFollowUpDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={checkinMutation.isPending}
+                  data-testid="button-save-followup"
+                >
+                  {checkinMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Check-in"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

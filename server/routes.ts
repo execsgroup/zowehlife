@@ -639,6 +639,45 @@ export async function registerRoutes(
     }
   });
 
+  // Admin create check-in for any convert
+  app.post("/api/admin/converts/:convertId/checkins", requireAdmin, async (req, res) => {
+    try {
+      const { convertId } = req.params;
+      const user = (req as any).user;
+
+      const convert = await storage.getConvert(convertId);
+      if (!convert) {
+        return res.status(404).json({ message: "Convert not found" });
+      }
+
+      const schema = z.object({
+        checkinDate: z.string(),
+        outcome: z.enum(["CONTACTED", "NO_ANSWER", "FOLLOW_UP_SCHEDULED", "COMPLETED"]),
+        notes: z.string().optional(),
+        nextFollowupDate: z.string().optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      const checkin = await storage.createCheckin({
+        convertId: convert.id,
+        churchId: convert.churchId,
+        createdByUserId: user.id,
+        checkinDate: data.checkinDate,
+        outcome: data.outcome,
+        notes: data.notes || null,
+        nextFollowupDate: data.nextFollowupDate || null,
+      });
+
+      res.status(201).json(checkin);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to create check-in" });
+    }
+  });
+
   // Export converts as CSV
   app.get("/api/admin/converts/export", requireAdmin, async (req, res) => {
     try {
