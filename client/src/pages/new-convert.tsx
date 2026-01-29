@@ -21,12 +21,9 @@ const convertFormSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   phone: z.string().optional(),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
-  address: z.string().optional(),
-  birthDay: z.string().optional(),
-  birthMonth: z.string().optional(),
+  dateOfBirth: z.string().optional(),
   country: z.string().optional(),
   salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus"]).optional(),
-  summaryNotes: z.string().optional(),
   wantsContact: z.enum(["Yes", "No"]).optional(),
   gender: z.enum(["Male", "Female"]).optional(),
   ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
@@ -54,12 +51,6 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
-const days = Array.from({ length: 31 }, (_, i) => String(i + 1));
 
 type ConvertFormData = z.infer<typeof convertFormSchema>;
 
@@ -87,12 +78,9 @@ export default function NewConvert() {
       lastName: "",
       phone: "",
       email: "",
-      address: "",
-      birthDay: undefined,
-      birthMonth: undefined,
+      dateOfBirth: "",
       country: undefined,
       salvationDecision: undefined,
-      summaryNotes: "",
       wantsContact: undefined,
       gender: undefined,
       ageGroup: undefined,
@@ -218,6 +206,28 @@ export default function NewConvert() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="salvationDecision"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Please choose an option</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-salvation-decision">
+                              <SelectValue placeholder="Select an option" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="I just made Jesus Christ my Lord and Savior">I just made Jesus Christ my Lord and Savior</SelectItem>
+                            <SelectItem value="I have rededicated my life to Jesus">I have rededicated my life to Jesus</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -277,65 +287,17 @@ export default function NewConvert() {
 
                   <FormField
                     control={form.control}
-                    name="address"
+                    name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Address</FormLabel>
+                        <FormLabel>Date of Birth</FormLabel>
                         <FormControl>
-                          <Input placeholder="123 Main St, City, State" {...field} data-testid="input-address" />
+                          <Input type="date" {...field} data-testid="input-date-of-birth" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="birthDay"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Day of Birth</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-birth-day">
-                                <SelectValue placeholder="Select day" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {days.map((day) => (
-                                <SelectItem key={day} value={day}>{day}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="birthMonth"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Month of Birth</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-birth-month">
-                                <SelectValue placeholder="Select month" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {months.map((month) => (
-                                <SelectItem key={month} value={month}>{month}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
 
                   <FormField
                     control={form.control}
@@ -353,28 +315,6 @@ export default function NewConvert() {
                             {countries.map((country) => (
                               <SelectItem key={country} value={country}>{country}</SelectItem>
                             ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="salvationDecision"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Please choose an option</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-salvation-decision">
-                              <SelectValue placeholder="Select an option" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="I just made Jesus Christ my Lord and Savior">I just made Jesus Christ my Lord and Savior</SelectItem>
-                            <SelectItem value="I have rededicated my life to Jesus">I have rededicated my life to Jesus</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -481,32 +421,13 @@ export default function NewConvert() {
                     name="prayerRequest"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Prayer Request</FormLabel>
+                        <FormLabel>Prayer Request / Additional information you'd like to share</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Share any prayer requests you may have..."
+                            placeholder="Share any prayer requests or additional information..."
                             className="resize-none"
                             {...field}
                             data-testid="input-prayer-request"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="summaryNotes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Any additional information you'd like to share</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Tell us a bit about yourself or your faith journey..."
-                            className="resize-none"
-                            {...field}
-                            data-testid="input-notes"
                           />
                         </FormControl>
                         <FormMessage />
