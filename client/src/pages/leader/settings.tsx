@@ -83,7 +83,7 @@ export default function LeaderSettings() {
         queryClient.invalidateQueries({ queryKey: ["/api/leader/church"] });
         toast({
           title: "Logo Updated",
-          description: "Your church logo has been updated successfully.",
+          description: "Your ministry logo has been updated successfully.",
         });
       } catch (error) {
         toast({
@@ -113,7 +113,7 @@ export default function LeaderSettings() {
       queryClient.invalidateQueries({ queryKey: ["/api/leader/church"] });
       toast({
         title: "Logo Removed",
-        description: "Your church logo has been removed.",
+        description: "Your ministry logo has been removed.",
       });
     },
     onError: () => {
@@ -191,16 +191,16 @@ export default function LeaderSettings() {
   };
 
   return (
-    <DashboardLayout title="Church Settings">
+    <DashboardLayout title="Ministry Settings">
       <div className="space-y-6 max-w-2xl">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Church className="h-5 w-5" />
-              Church Information
+              Ministry Information
             </CardTitle>
             <CardDescription>
-              Manage your church's profile and branding
+              Manage your ministry's profile and branding
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -211,7 +211,7 @@ export default function LeaderSettings() {
             ) : church ? (
               <>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Church Name</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Ministry Name</h3>
                   <p className="text-lg font-medium">{church.name}</p>
                 </div>
 
@@ -223,9 +223,9 @@ export default function LeaderSettings() {
                 )}
 
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Church Logo</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Ministry Logo</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Upload your church logo. It will be displayed on the Salvation Form for new converts.
+                    Upload your ministry logo. It will be displayed on the registration form for new converts.
                   </p>
                   
                   <div className="flex items-start gap-4">
@@ -297,7 +297,7 @@ export default function LeaderSettings() {
                 </div>
               </>
             ) : (
-              <p className="text-muted-foreground">Unable to load church information.</p>
+              <p className="text-muted-foreground">Unable to load ministry information.</p>
             )}
           </CardContent>
         </Card>

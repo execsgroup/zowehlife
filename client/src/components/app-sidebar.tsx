@@ -45,7 +45,7 @@ interface ChurchData {
 
 const adminNavItems = [
   { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
-  { title: "Churches", url: "/admin/churches", icon: Church },
+  { title: "Ministries", url: "/admin/churches", icon: Church },
   { title: "Leaders", url: "/admin/leaders", icon: Users },
   { title: "All Converts", url: "/admin/converts", icon: UserPlus },
   { title: "Prayer Requests", url: "/admin/prayer-requests", icon: HandHeart },
@@ -56,7 +56,7 @@ const leaderNavItems = [
   { title: "Dashboard", url: "/leader/dashboard", icon: LayoutDashboard },
   { title: "My Converts", url: "/leader/converts", icon: UserPlus },
   { title: "Upcoming Follow-ups", url: "/leader/followups", icon: CalendarClock },
-  { title: "Church Settings", url: "/leader/settings", icon: Settings },
+  { title: "Ministry Settings", url: "/leader/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -154,7 +154,7 @@ export function AppSidebar() {
               <div className="flex flex-col items-start text-left flex-1 min-w-0">
                 <span className="text-sm font-medium truncate w-full">{user?.fullName}</span>
                 <span className="text-xs text-sidebar-foreground/70 truncate w-full">
-                  {user?.role === "ADMIN" ? "Administrator" : "Church Leader"}
+                  {user?.role === "ADMIN" ? "Administrator" : "Ministry Leader"}
                 </span>
               </div>
               <ChevronUp className="h-4 w-4 text-sidebar-foreground/70" />

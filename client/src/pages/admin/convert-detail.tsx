@@ -212,7 +212,7 @@ export default function AdminConvertDetail() {
                 <CardDescription>
                   Added on {format(new Date(convert.createdAt), "MMMM d, yyyy")}
                   {convert.church && (
-                    <span> • Church: <strong>{convert.church.name}</strong></span>
+                    <span> • Ministry: <strong>{convert.church.name}</strong></span>
                   )}
                 </CardDescription>
               </div>
@@ -315,7 +315,7 @@ export default function AdminConvertDetail() {
                   <div className="flex items-center gap-2">
                     <ChurchIcon className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Church Member:</span>
+                      <span className="text-muted-foreground mr-1">Ministry Member:</span>
                       {convert.isChurchMember}
                     </span>
                   </div>
@@ -576,7 +576,7 @@ export default function AdminConvertDetail() {
                     name="isChurchMember"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Are you a member of any Church?</FormLabel>
+                        <FormLabel>Are you a member of any Ministry?</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-church-member">

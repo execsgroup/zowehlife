@@ -40,7 +40,7 @@ export default function AdminChurches() {
     if (!church.publicToken) {
       toast({
         title: "Error",
-        description: "This church doesn't have a public link yet.",
+        description: "This ministry doesn't have a public link yet.",
         variant: "destructive",
       });
       return;
@@ -52,7 +52,7 @@ export default function AdminChurches() {
       setCopiedId(church.id);
       toast({
         title: "Link Copied!",
-        description: "Share this link with new converts to register directly to this church.",
+        description: "Share this link with new converts to register directly to this ministry.",
       });
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
@@ -86,10 +86,10 @@ export default function AdminChurches() {
     },
     onSuccess: () => {
       toast({
-        title: editingChurch ? "Church updated" : "Church created",
+        title: editingChurch ? "Ministry updated" : "Ministry created",
         description: editingChurch
-          ? "The church has been updated successfully."
-          : "The new church has been added successfully.",
+          ? "The ministry has been updated successfully."
+          : "The new ministry has been added successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
@@ -100,7 +100,7 @@ export default function AdminChurches() {
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to save church",
+        description: error.message || "Failed to save ministry",
         variant: "destructive",
       });
     },
@@ -122,13 +122,13 @@ export default function AdminChurches() {
   };
 
   return (
-    <DashboardLayout title="Churches">
+    <DashboardLayout title="Ministries">
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Church Management</h2>
+            <h2 className="text-2xl font-bold tracking-tight">Ministry Management</h2>
             <p className="text-muted-foreground">
-              Add and manage churches in your organization
+              Add and manage ministries in your organization
             </p>
           </div>
 
@@ -136,16 +136,16 @@ export default function AdminChurches() {
             <DialogTrigger asChild>
               <Button onClick={openCreateDialog} className="gap-2" data-testid="button-add-church">
                 <Plus className="h-4 w-4" />
-                Add Church
+                Add Ministry
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingChurch ? "Edit Church" : "Add New Church"}</DialogTitle>
+                <DialogTitle>{editingChurch ? "Edit Ministry" : "Add New Ministry"}</DialogTitle>
                 <DialogDescription>
                   {editingChurch
-                    ? "Update the church information below."
-                    : "Enter the details for the new church."}
+                    ? "Update the ministry information below."
+                    : "Enter the details for the new ministry."}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -158,10 +158,10 @@ export default function AdminChurches() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Church Name</FormLabel>
+                        <FormLabel>Ministry Name</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter church name"
+                            placeholder="Enter ministry name"
                             {...field}
                             data-testid="input-church-name"
                           />
@@ -206,9 +206,9 @@ export default function AdminChurches() {
                           Saving...
                         </>
                       ) : editingChurch ? (
-                        "Update Church"
+                        "Update Ministry"
                       ) : (
-                        "Add Church"
+                        "Add Ministry"
                       )}
                     </Button>
                   </div>
@@ -230,7 +230,7 @@ export default function AdminChurches() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Church Name</TableHead>
+                    <TableHead>Ministry Name</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead className="text-center">Leaders</TableHead>
                     <TableHead className="text-center">Converts</TableHead>
@@ -281,7 +281,7 @@ export default function AdminChurches() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Copy public convert link</p>
+                              <p>Copy public registration link</p>
                             </TooltipContent>
                           </Tooltip>
                           <Tooltip>
@@ -296,7 +296,7 @@ export default function AdminChurches() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Edit church</p>
+                              <p>Edit ministry</p>
                             </TooltipContent>
                           </Tooltip>
                         </div>
@@ -308,13 +308,13 @@ export default function AdminChurches() {
             ) : (
               <div className="p-12 text-center">
                 <ChurchIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No churches yet</h3>
+                <h3 className="text-lg font-semibold mb-2">No ministries yet</h3>
                 <p className="text-muted-foreground mb-4">
-                  Get started by adding your first church
+                  Get started by adding your first ministry
                 </p>
                 <Button onClick={openCreateDialog} className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Add Church
+                  Add Ministry
                 </Button>
               </div>
             )}

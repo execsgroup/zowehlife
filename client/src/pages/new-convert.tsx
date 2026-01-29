@@ -64,7 +64,7 @@ export default function NewConvert() {
     queryFn: async () => {
       const res = await fetch(`/api/public/church/${token}`);
       if (!res.ok) {
-        throw new Error("Church not found");
+        throw new Error("Ministry not found");
       }
       return res.json();
     },
@@ -137,9 +137,9 @@ export default function NewConvert() {
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-8 text-center">
               <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Church Not Found</h2>
+              <h2 className="text-xl font-semibold mb-2">Ministry Not Found</h2>
               <p className="text-muted-foreground mb-4">
-                This link appears to be invalid or the church is no longer registered.
+                This link appears to be invalid or the ministry is no longer registered.
               </p>
               <Link href="/">
                 <Button variant="outline">Return to Home</Button>
@@ -409,7 +409,7 @@ export default function NewConvert() {
                       name="isChurchMember"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Are you a member of any Church?</FormLabel>
+                          <FormLabel>Are you a member of any Ministry?</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-church-member">

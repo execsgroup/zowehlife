@@ -23,7 +23,7 @@ const leaderRequestSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
-  churchName: z.string().min(2, "Church name must be at least 2 characters"),
+  churchName: z.string().min(2, "Ministry name must be at least 2 characters"),
   reason: z.string().optional(),
 });
 
@@ -186,7 +186,7 @@ export default function Home() {
                   </div>
                   <h3 className="text-xl font-semibold mb-2">Find Community</h3>
                   <p className="text-muted-foreground mb-4">
-                    Connect with a local church and fellow believers who will support you.
+                    Connect with a local ministry and fellow believers who will support you.
                   </p>
                   <Link href="/contact">
                     <Button variant="ghost" className="gap-1" data-testid="link-contact-card">
@@ -216,7 +216,7 @@ export default function Home() {
                     </h3>
                     <p className="text-primary-foreground/90 mb-4 md:mb-0">
                       Whether you want to learn more about faith, need prayer, or want to connect
-                      with a local church, we're here for you.
+                      with a local ministry, we're here for you.
                     </p>
                   </div>
                   <Link href="/contact">
@@ -311,14 +311,14 @@ export default function Home() {
                     htmlFor="showChurchList"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Click here to see if your church is registered
+                    Click here to see if your ministry is registered
                   </label>
                 </div>
 
                 {showChurchList && churches && churches.length > 0 && (
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium">Select Your Church</label>
+                      <label className="text-sm font-medium">Select Your Ministry</label>
                       <Select
                         value={selectedChurchId}
                         onValueChange={(value) => {
@@ -334,7 +334,7 @@ export default function Home() {
                         }}
                       >
                         <SelectTrigger data-testid="select-church-dropdown">
-                          <SelectValue placeholder="Select your church..." />
+                          <SelectValue placeholder="Select your ministry..." />
                         </SelectTrigger>
                         <SelectContent>
                           {churches.map((church) => (
@@ -342,7 +342,7 @@ export default function Home() {
                               {church.name}
                             </SelectItem>
                           ))}
-                          <SelectItem value="not-found">My church is not listed</SelectItem>
+                          <SelectItem value="not-found">My ministry is not listed</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -353,12 +353,12 @@ export default function Home() {
                         name="churchName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Enter Your Church Name *</FormLabel>
+                            <FormLabel>Enter Your Ministry Name *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter your church name" {...field} data-testid="input-leader-church-manual" />
+                              <Input placeholder="Enter your ministry name" {...field} data-testid="input-leader-church-manual" />
                             </FormControl>
                             <FormDescription className="text-xs">
-                              Your church will be added to our registry upon approval.
+                              Your ministry will be added to our registry upon approval.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -374,9 +374,9 @@ export default function Home() {
                     name="churchName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Church Name *</FormLabel>
+                        <FormLabel>Ministry Name *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your church name" {...field} data-testid="input-leader-church" />
+                          <Input placeholder="Enter your ministry name" {...field} data-testid="input-leader-church" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -392,7 +392,7 @@ export default function Home() {
                     <FormLabel>Why do you want to become a leader? (Optional)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Tell us about your role in the church..."
+                        placeholder="Tell us about your role in the ministry..."
                         className="resize-none"
                         {...field}
                         data-testid="input-leader-reason"

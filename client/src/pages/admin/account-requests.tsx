@@ -39,7 +39,7 @@ const reviewFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
-  churchName: z.string().min(2, "Church name must be at least 2 characters"),
+  churchName: z.string().min(2, "Ministry name must be at least 2 characters"),
   reason: z.string().optional(),
 });
 
@@ -180,7 +180,7 @@ export default function AccountRequests() {
                   <TableRow>
                     <TableHead>Applicant</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Church</TableHead>
+                    <TableHead>Ministry</TableHead>
                     <TableHead>Reason</TableHead>
                     <TableHead>Submitted</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -259,7 +259,7 @@ export default function AccountRequests() {
                   <TableRow>
                     <TableHead>Applicant</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Church</TableHead>
+                    <TableHead>Ministry</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Submitted</TableHead>
                     <TableHead>Reviewed</TableHead>
@@ -296,7 +296,7 @@ export default function AccountRequests() {
           <DialogHeader>
             <DialogTitle>Review Account Request</DialogTitle>
             <DialogDescription>
-              Review and edit the request details before approving or denying. Upon approval, a new church will be created if it doesn't exist.
+              Review and edit the request details before approving or denying. Upon approval, a new ministry will be created if it doesn't exist.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -345,7 +345,7 @@ export default function AccountRequests() {
                 name="churchName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Church Name</FormLabel>
+                    <FormLabel>Ministry Name</FormLabel>
                     <FormControl>
                       <Input {...field} data-testid="input-review-church" />
                     </FormControl>

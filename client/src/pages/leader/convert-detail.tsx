@@ -404,7 +404,7 @@ END:VCALENDAR`;
                   <div className="flex items-center gap-2">
                     <Church className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Church Member:</span>
+                      <span className="text-muted-foreground mr-1">Ministry Member:</span>
                       {convert.isChurchMember}
                     </span>
                   </div>
@@ -865,7 +865,7 @@ END:VCALENDAR`;
                     name="isChurchMember"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Are you a member of any Church?</FormLabel>
+                        <FormLabel>Are you a member of any Ministry?</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-church-member">

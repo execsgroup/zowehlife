@@ -25,7 +25,7 @@ const leaderFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  churchId: z.string().min(1, "Please select a church"),
+  churchId: z.string().min(1, "Please select a ministry"),
 });
 
 const resetPasswordSchema = z.object({
@@ -156,7 +156,7 @@ export default function AdminLeaders() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Leader Management</h2>
             <p className="text-muted-foreground">
-              Create and manage church leader accounts
+              Create and manage ministry leader accounts
             </p>
           </div>
 
@@ -171,7 +171,7 @@ export default function AdminLeaders() {
               <DialogHeader>
                 <DialogTitle>Create New Leader</DialogTitle>
                 <DialogDescription>
-                  Create a new leader account and assign them to a church.
+                  Create a new leader account and assign them to a ministry.
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -237,11 +237,11 @@ export default function AdminLeaders() {
                     name="churchId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Assign to Church</FormLabel>
+                        <FormLabel>Assign to Ministry</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-leader-church">
-                              <SelectValue placeholder="Select a church" />
+                              <SelectValue placeholder="Select a ministry" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -389,7 +389,7 @@ export default function AdminLeaders() {
                   <TableRow>
                     <TableHead>Leader</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Church</TableHead>
+                    <TableHead>Ministry</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -466,8 +466,8 @@ export default function AdminLeaders() {
                 <h3 className="text-lg font-semibold mb-2">No leaders yet</h3>
                 <p className="text-muted-foreground mb-4">
                   {churches && churches.length > 0
-                    ? "Add your first church leader"
-                    : "Create a church first, then add leaders"}
+                    ? "Add your first ministry leader"
+                    : "Create a ministry first, then add leaders"}
                 </p>
                 {churches && churches.length > 0 && (
                   <Button onClick={() => setDialogOpen(true)} className="gap-2">

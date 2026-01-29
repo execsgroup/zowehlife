@@ -226,7 +226,7 @@ export default function LeaderConverts() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Converts</h2>
             <p className="text-muted-foreground">
-              Manage and track your church's new converts
+              Manage and track your ministry's new converts
             </p>
           </div>
 
@@ -473,7 +473,7 @@ export default function LeaderConverts() {
                       name="isChurchMember"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Church Member?</FormLabel>
+                          <FormLabel>Ministry Member?</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-church-member">

@@ -144,7 +144,7 @@ export default function AdminConverts() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Converts Overview</h2>
             <p className="text-muted-foreground">
-              View and filter all converts across churches
+              View and filter all converts across ministries
             </p>
           </div>
 
@@ -171,10 +171,10 @@ export default function AdminConverts() {
 
               <Select value={churchFilter} onValueChange={setChurchFilter}>
                 <SelectTrigger className="w-full sm:w-48" data-testid="select-church-filter">
-                  <SelectValue placeholder="All Churches" />
+                  <SelectValue placeholder="All Ministries" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Churches</SelectItem>
+                  <SelectItem value="all">All Ministries</SelectItem>
                   {churches?.map((church) => (
                     <SelectItem key={church.id} value={church.id}>
                       {church.name}
@@ -215,7 +215,7 @@ export default function AdminConverts() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Church</TableHead>
+                    <TableHead>Ministry</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Added</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -309,7 +309,7 @@ export default function AdminConverts() {
             <DialogTitle>Record Follow-Up</DialogTitle>
             <DialogDescription>
               {selectedConvert && (
-                <>Record a check-in for {selectedConvert.firstName} {selectedConvert.lastName} ({selectedConvert.church?.name || "Unknown Church"})</>
+                <>Record a check-in for {selectedConvert.firstName} {selectedConvert.lastName} ({selectedConvert.church?.name || "Unknown Ministry"})</>
               )}
             </DialogDescription>
           </DialogHeader>

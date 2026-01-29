@@ -28,7 +28,7 @@ export default function AdminDashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Churches</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Ministries</CardTitle>
               <Church className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -101,15 +101,15 @@ export default function AdminDashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="hover-elevate">
             <CardHeader>
-              <CardTitle className="text-lg">Manage Churches</CardTitle>
+              <CardTitle className="text-lg">Manage Ministries</CardTitle>
               <CardDescription>
-                Add, edit, and view church information
+                Add, edit, and view ministry information
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Link href="/admin/churches">
                 <Button className="gap-2" data-testid="link-admin-churches">
-                  View Churches
+                  View Ministries
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
             <CardHeader>
               <CardTitle className="text-lg">Manage Leaders</CardTitle>
               <CardDescription>
-                Create and manage church leader accounts
+                Create and manage ministry leader accounts
               </CardDescription>
             </CardHeader>
             <CardContent>

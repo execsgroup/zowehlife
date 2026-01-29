@@ -207,11 +207,11 @@ export default function Contact() {
                         name="churchPreference"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Church Preference (Optional)</FormLabel>
+                            <FormLabel>Ministry Preference (Optional)</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-church-preference">
-                                  <SelectValue placeholder="Select a church" />
+                                  <SelectValue placeholder="Select a ministry" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
