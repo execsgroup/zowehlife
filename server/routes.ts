@@ -619,6 +619,26 @@ export async function registerRoutes(
     }
   });
 
+  // Get single convert by ID (admin)
+  app.get("/api/admin/converts/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const convert = await storage.getConvert(id);
+      
+      if (!convert) {
+        return res.status(404).json({ message: "Convert not found" });
+      }
+      
+      const church = await storage.getChurch(convert.churchId);
+      res.json({
+        ...convert,
+        church: church || null,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get convert" });
+    }
+  });
+
   // Export converts as CSV
   app.get("/api/admin/converts/export", requireAdmin, async (req, res) => {
     try {
@@ -643,26 +663,118 @@ export async function registerRoutes(
         );
       }
 
-      // Build CSV
-      const headers = ["First Name", "Last Name", "Phone", "Email", "Status", "Created At"];
-      const rows = convertsList.map((c) => [
+      // Get church names for each convert
+      const convertsWithChurch = await Promise.all(
+        convertsList.map(async (c) => {
+          const church = await storage.getChurch(c.churchId);
+          return { ...c, churchName: church?.name || "" };
+        })
+      );
+
+      // Build CSV with all fields
+      const headers = [
+        "First Name", "Last Name", "Phone", "Email", "Date of Birth", "Country",
+        "Gender", "Age Group", "Salvation Decision", "Wants Contact", "Church Member",
+        "Prayer Request", "Notes", "Status", "Church", "Self Submitted", "Created At"
+      ];
+      const rows = convertsWithChurch.map((c) => [
         c.firstName,
         c.lastName,
         c.phone || "",
         c.email || "",
+        c.dateOfBirth || "",
+        c.country || "",
+        c.gender || "",
+        c.ageGroup || "",
+        c.salvationDecision || "",
+        c.wantsContact || "",
+        c.isChurchMember || "",
+        c.prayerRequest || "",
+        c.summaryNotes || "",
         c.status,
+        c.churchName,
+        c.selfSubmitted === "true" ? "Yes" : "No",
         new Date(c.createdAt).toISOString(),
       ]);
 
       const csv = [
         headers.join(","),
-        ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+        ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
       ].join("\n");
 
       res.setHeader("Content-Type", "text/csv");
       res.setHeader("Content-Disposition", "attachment; filename=converts.csv");
       res.send(csv);
     } catch (error) {
+      res.status(500).json({ message: "Failed to export converts" });
+    }
+  });
+
+  // Export converts as Excel
+  app.get("/api/admin/converts/export-excel", requireAdmin, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const { churchId, status, search } = req.query;
+
+      let convertsList = await storage.getConverts();
+
+      // Apply filters
+      if (churchId && typeof churchId === "string") {
+        convertsList = convertsList.filter((c) => c.churchId === churchId);
+      }
+      if (status && typeof status === "string") {
+        convertsList = convertsList.filter((c) => c.status === status);
+      }
+      if (search && typeof search === "string") {
+        const searchLower = search.toLowerCase();
+        convertsList = convertsList.filter(
+          (c) =>
+            `${c.firstName} ${c.lastName}`.toLowerCase().includes(searchLower) ||
+            c.phone?.includes(search) ||
+            c.email?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Get church names for each convert
+      const convertsWithChurch = await Promise.all(
+        convertsList.map(async (c) => {
+          const church = await storage.getChurch(c.churchId);
+          return { ...c, churchName: church?.name || "" };
+        })
+      );
+
+      // Build data for Excel
+      const data = convertsWithChurch.map((c) => ({
+        "First Name": c.firstName,
+        "Last Name": c.lastName,
+        "Phone": c.phone || "",
+        "Email": c.email || "",
+        "Date of Birth": c.dateOfBirth || "",
+        "Country": c.country || "",
+        "Gender": c.gender || "",
+        "Age Group": c.ageGroup || "",
+        "Salvation Decision": c.salvationDecision || "",
+        "Wants Contact": c.wantsContact || "",
+        "Church Member": c.isChurchMember || "",
+        "Prayer Request": c.prayerRequest || "",
+        "Notes": c.summaryNotes || "",
+        "Status": c.status,
+        "Church": c.churchName,
+        "Self Submitted": c.selfSubmitted === "true" ? "Yes" : "No",
+        "Created At": new Date(c.createdAt).toLocaleDateString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Converts");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=converts.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
       res.status(500).json({ message: "Failed to export converts" });
     }
   });
@@ -897,6 +1009,64 @@ export async function registerRoutes(
       res.json(convertsList);
     } catch (error) {
       res.status(500).json({ message: "Failed to get converts" });
+    }
+  });
+
+  // Export leader's converts as Excel
+  app.get("/api/leader/converts/export-excel", requireLeader, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const user = (req as any).user;
+      const { status, search } = req.query;
+
+      let convertsList = await storage.getConvertsByChurch(user.churchId);
+
+      // Apply filters
+      if (status && typeof status === "string") {
+        convertsList = convertsList.filter((c) => c.status === status);
+      }
+      if (search && typeof search === "string") {
+        const searchLower = search.toLowerCase();
+        convertsList = convertsList.filter(
+          (c) =>
+            `${c.firstName} ${c.lastName}`.toLowerCase().includes(searchLower) ||
+            c.phone?.includes(search) ||
+            c.email?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Build data for Excel
+      const data = convertsList.map((c) => ({
+        "First Name": c.firstName,
+        "Last Name": c.lastName,
+        "Phone": c.phone || "",
+        "Email": c.email || "",
+        "Date of Birth": c.dateOfBirth || "",
+        "Country": c.country || "",
+        "Gender": c.gender || "",
+        "Age Group": c.ageGroup || "",
+        "Salvation Decision": c.salvationDecision || "",
+        "Wants Contact": c.wantsContact || "",
+        "Church Member": c.isChurchMember || "",
+        "Prayer Request": c.prayerRequest || "",
+        "Notes": c.summaryNotes || "",
+        "Status": c.status,
+        "Self Submitted": c.selfSubmitted === "true" ? "Yes" : "No",
+        "Created At": new Date(c.createdAt).toLocaleDateString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Converts");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=converts.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
+      res.status(500).json({ message: "Failed to export converts" });
     }
   });
 

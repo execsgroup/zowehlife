@@ -30,6 +30,13 @@ import {
   Download,
   FileText,
   Edit,
+  User,
+  Heart,
+  Globe,
+  Users,
+  MessageSquare,
+  Church,
+  Cake,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -267,44 +274,150 @@ END:VCALENDAR`;
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              {convert.phone && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <a href={`tel:${convert.phone}`} className="hover:text-foreground">
-                    {convert.phone}
-                  </a>
-                </div>
-              )}
-              {convert.email && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <a href={`mailto:${convert.email}`} className="hover:text-foreground">
-                    {convert.email}
-                  </a>
-                </div>
-              )}
-              {convert.address && (
-                <div className="flex items-center gap-2 text-muted-foreground md:col-span-2">
-                  <MapPin className="h-4 w-4" />
-                  {convert.address}
-                </div>
-              )}
+          <CardContent className="space-y-6">
+            {/* Contact Information */}
+            <div>
+              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Contact Information</h4>
+              <div className="grid gap-4 md:grid-cols-2">
+                {convert.phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <a href={`tel:${convert.phone}`} className="hover:underline">
+                      {convert.phone}
+                    </a>
+                  </div>
+                )}
+                {convert.email && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <a href={`mailto:${convert.email}`} className="hover:underline">
+                      {convert.email}
+                    </a>
+                  </div>
+                )}
+                {convert.address && (
+                  <div className="flex items-center gap-2 md:col-span-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{convert.address}</span>
+                  </div>
+                )}
+                {convert.country && (
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <span>{convert.country}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
+            <Separator />
+
+            {/* Personal Details */}
+            <div>
+              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Personal Details</h4>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {convert.dateOfBirth && (
+                  <div className="flex items-center gap-2">
+                    <Cake className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <span className="text-muted-foreground mr-1">Date of Birth:</span>
+                      {format(new Date(convert.dateOfBirth), "MMMM d, yyyy")}
+                    </span>
+                  </div>
+                )}
+                {convert.gender && (
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <span className="text-muted-foreground mr-1">Gender:</span>
+                      {convert.gender}
+                    </span>
+                  </div>
+                )}
+                {convert.ageGroup && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <span className="text-muted-foreground mr-1">Age Group:</span>
+                      {convert.ageGroup}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Faith Journey */}
+            <div>
+              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Faith Journey</h4>
+              <div className="grid gap-4 md:grid-cols-2">
+                {convert.salvationDecision && (
+                  <div className="flex items-start gap-2 md:col-span-2">
+                    <Heart className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <span>
+                      <span className="text-muted-foreground mr-1">Decision:</span>
+                      {convert.salvationDecision}
+                    </span>
+                  </div>
+                )}
+                {convert.isChurchMember !== null && convert.isChurchMember !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Church className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <span className="text-muted-foreground mr-1">Church Member:</span>
+                      {convert.isChurchMember}
+                    </span>
+                  </div>
+                )}
+                {convert.wantsContact !== null && convert.wantsContact !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      <span className="text-muted-foreground mr-1">Wants Contact:</span>
+                      {convert.wantsContact}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Prayer Request */}
+            {convert.prayerRequest && (
+              <>
+                <Separator />
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Prayer Request</h4>
+                  <p className="whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">
+                    {convert.prayerRequest}
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Summary Notes */}
             {convert.summaryNotes && (
               <>
-                <Separator className="my-4" />
+                <Separator />
                 <div>
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Notes
+                    Additional Notes
                   </h4>
                   <p className="text-muted-foreground whitespace-pre-wrap">
                     {convert.summaryNotes}
                   </p>
                 </div>
+              </>
+            )}
+
+            {/* Self-submitted indicator */}
+            {convert.selfSubmitted === "true" && (
+              <>
+                <Separator />
+                <Badge variant="secondary" className="w-fit">
+                  Self-submitted via public form
+                </Badge>
               </>
             )}
           </CardContent>

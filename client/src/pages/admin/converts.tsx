@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/queryClient";
 import { type Church, type Convert } from "@shared/schema";
-import { Search, UserPlus, Download, Phone, Mail } from "lucide-react";
+import { Search, UserPlus, Download, Phone, Mail, Eye, FileSpreadsheet } from "lucide-react";
+import { Link } from "wouter";
 import { format } from "date-fns";
 
 const statusColors: Record<string, string> = {
@@ -38,18 +39,18 @@ export default function AdminConverts() {
     queryKey: ["/api/admin/churches"],
   });
 
-  const handleExport = async () => {
+  const handleExportExcel = async () => {
     const params = new URLSearchParams();
     if (churchFilter !== "all") params.set("churchId", churchFilter);
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (search) params.set("search", search);
 
-    const response = await fetch(`/api/admin/converts/export?${params}`);
+    const response = await fetch(`/api/admin/converts/export-excel?${params}`);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `converts-export-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `converts-export-${format(new Date(), "yyyy-MM-dd")}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -78,9 +79,9 @@ export default function AdminConverts() {
             </p>
           </div>
 
-          <Button onClick={handleExport} variant="outline" className="gap-2" data-testid="button-export-csv">
-            <Download className="h-4 w-4" />
-            Export CSV
+          <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
+            <FileSpreadsheet className="h-4 w-4" />
+            Export Excel
           </Button>
         </div>
 
@@ -148,13 +149,18 @@ export default function AdminConverts() {
                     <TableHead>Church</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Added</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredConverts.map((convert) => (
                     <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
                       <TableCell className="font-medium">
-                        {convert.firstName} {convert.lastName}
+                        <Link href={`/admin/converts/${convert.id}`}>
+                          <span className="hover:underline cursor-pointer text-primary" data-testid={`link-convert-name-${convert.id}`}>
+                            {convert.firstName} {convert.lastName}
+                          </span>
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
@@ -182,6 +188,19 @@ export default function AdminConverts() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(convert.createdAt), "MMM d, yyyy")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link href={`/admin/converts/${convert.id}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1"
+                            data-testid={`button-view-convert-${convert.id}`}
+                          >
+                            <Eye className="h-3 w-3" />
+                            View
+                          </Button>
+                        </Link>
                       </TableCell>
                     </TableRow>
                   ))}

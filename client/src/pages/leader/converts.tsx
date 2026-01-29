@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, Eye } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, Eye, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 
 const countries = [
@@ -143,6 +143,21 @@ export default function LeaderConverts() {
     return matchesSearch && matchesStatus;
   });
 
+  const handleExportExcel = async () => {
+    const params = new URLSearchParams();
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (search) params.set("search", search);
+
+    const response = await fetch(`/api/leader/converts/export-excel?${params}`);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `converts-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <DashboardLayout title="My Converts">
       <div className="space-y-6">
@@ -154,7 +169,12 @@ export default function LeaderConverts() {
             </p>
           </div>
 
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <div className="flex gap-2">
+            <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
+              <FileSpreadsheet className="h-4 w-4" />
+              Export Excel
+            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2" data-testid="button-add-convert">
                 <Plus className="h-4 w-4" />
@@ -518,6 +538,7 @@ export default function LeaderConverts() {
               </Form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Filters */}
@@ -577,7 +598,11 @@ export default function LeaderConverts() {
                   {filteredConverts.map((convert) => (
                     <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
                       <TableCell className="font-medium">
-                        {convert.firstName} {convert.lastName}
+                        <Link href={`/leader/converts/${convert.id}`}>
+                          <span className="hover:underline cursor-pointer text-primary" data-testid={`link-convert-name-${convert.id}`}>
+                            {convert.firstName} {convert.lastName}
+                          </span>
+                        </Link>
                       </TableCell>
                       <TableCell data-testid={`text-dob-${convert.id}`}>
                         {convert.dateOfBirth ? new Date(convert.dateOfBirth).toLocaleDateString() : "—"}
