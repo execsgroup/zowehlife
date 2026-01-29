@@ -55,12 +55,9 @@ export interface IStorage {
     lastName: string;
     phone?: string;
     email?: string;
-    address?: string;
-    birthDay?: string;
-    birthMonth?: string;
+    dateOfBirth?: string;
     country?: string;
     salvationDecision?: string;
-    summaryNotes?: string;
     wantsContact?: string;
     gender?: string;
     ageGroup?: string;
@@ -302,12 +299,9 @@ export class DatabaseStorage implements IStorage {
     lastName: string;
     phone?: string;
     email?: string;
-    address?: string;
-    birthDay?: string;
-    birthMonth?: string;
+    dateOfBirth?: string;
     country?: string;
     salvationDecision?: string;
-    summaryNotes?: string;
     wantsContact?: string;
     gender?: string;
     ageGroup?: string;
@@ -320,12 +314,9 @@ export class DatabaseStorage implements IStorage {
       lastName: data.lastName,
       phone: data.phone || null,
       email: data.email || null,
-      address: data.address || null,
-      birthDay: data.birthDay || null,
-      birthMonth: data.birthMonth || null,
+      dateOfBirth: data.dateOfBirth || null,
       country: data.country || null,
       salvationDecision: data.salvationDecision || null,
-      summaryNotes: data.summaryNotes || null,
       wantsContact: data.wantsContact || null,
       gender: data.gender || null,
       ageGroup: data.ageGroup || null,
