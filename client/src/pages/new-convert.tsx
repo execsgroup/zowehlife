@@ -208,11 +208,11 @@ export default function NewConvert() {
               </div>
               <CardTitle>Salvation Form</CardTitle>
               <CardDescription className="space-y-3 text-sm">
-                <p>We are delighted that you have accepted Jesus Christ as your personal Lord and Savior.</p>
-                <p>If you are already born again and decided to rededicate your life, we congratulate you on making such a significant decision.</p>
-                <p>God knows everything about you, but you need to get to know Him in an intimate and personal way.</p>
-                <p>We'd like to get in touch with you now that you have taken such a significant decision so that we can assist you in keeping your commitment.</p>
-                <p>Please fill out the form below</p>
+                <p>We celebrate your decision to accept Jesus Christ as your Lord and Savior.</p>
+                <p>If you've chosen to rededicate your life to Him, we honor that commitment.</p>
+                <p>God knows you completely, and this is the beginning of growing in a personal relationship with Him.</p>
+                <p>We would love to connect with you and support you on this journey.</p>
+                <p>Please complete the form below.</p>
               </CardDescription>
             </CardHeader>
             <CardContent>
