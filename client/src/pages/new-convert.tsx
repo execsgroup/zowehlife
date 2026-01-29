@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,11 @@ const convertFormSchema = z.object({
   address: z.string().optional(),
   dateOfBirth: z.string().optional(),
   summaryNotes: z.string().optional(),
+  wantsContact: z.enum(["Yes", "No"]).optional(),
+  gender: z.enum(["Male", "Female"]).optional(),
+  ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
+  isChurchMember: z.enum(["Yes", "No"]).optional(),
+  prayerRequest: z.string().optional(),
 });
 
 type ConvertFormData = z.infer<typeof convertFormSchema>;
@@ -54,6 +60,11 @@ export default function NewConvert() {
       address: "",
       dateOfBirth: "",
       summaryNotes: "",
+      wantsContact: undefined,
+      gender: undefined,
+      ageGroup: undefined,
+      isChurchMember: undefined,
+      prayerRequest: "",
     },
   });
 
@@ -252,6 +263,119 @@ export default function NewConvert() {
                         <FormLabel>Date of Birth</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} data-testid="input-dob" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="wantsContact"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Would you like us to contact you?</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-wants-contact">
+                                <SelectValue placeholder="Select an option" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Yes">Yes</SelectItem>
+                              <SelectItem value="No">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gender</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-gender">
+                                <SelectValue placeholder="Select gender" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Male">Male</SelectItem>
+                              <SelectItem value="Female">Female</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="ageGroup"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Age Group</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-age-group">
+                                <SelectValue placeholder="Select age group" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Under 18">Under 18</SelectItem>
+                              <SelectItem value="18-24">18-24</SelectItem>
+                              <SelectItem value="25-34">25-34</SelectItem>
+                              <SelectItem value="35 and Above">35 and Above</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="isChurchMember"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Are you a member of any Church?</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-church-member">
+                                <SelectValue placeholder="Select an option" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Yes">Yes</SelectItem>
+                              <SelectItem value="No">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="prayerRequest"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prayer Request</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Share any prayer requests you may have..."
+                            className="resize-none"
+                            {...field}
+                            data-testid="input-prayer-request"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

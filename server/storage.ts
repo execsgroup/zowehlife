@@ -57,6 +57,11 @@ export interface IStorage {
     address?: string;
     dateOfBirth?: string;
     summaryNotes?: string;
+    wantsContact?: string;
+    gender?: string;
+    ageGroup?: string;
+    isChurchMember?: string;
+    prayerRequest?: string;
   }): Promise<Convert>;
   updateConvert(id: string, convert: Partial<InsertConvert>): Promise<Convert>;
 
@@ -289,6 +294,11 @@ export class DatabaseStorage implements IStorage {
     address?: string;
     dateOfBirth?: string;
     summaryNotes?: string;
+    wantsContact?: string;
+    gender?: string;
+    ageGroup?: string;
+    isChurchMember?: string;
+    prayerRequest?: string;
   }): Promise<Convert> {
     const [convert] = await db.insert(converts).values({
       churchId,
@@ -299,6 +309,11 @@ export class DatabaseStorage implements IStorage {
       address: data.address || null,
       dateOfBirth: data.dateOfBirth || null,
       summaryNotes: data.summaryNotes || null,
+      wantsContact: data.wantsContact || null,
+      gender: data.gender || null,
+      ageGroup: data.ageGroup || null,
+      isChurchMember: data.isChurchMember || null,
+      prayerRequest: data.prayerRequest || null,
       selfSubmitted: "true",
       createdByUserId: null,
     }).returning();

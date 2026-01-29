@@ -336,6 +336,11 @@ export async function registerRoutes(
         address: data.address,
         dateOfBirth: data.dateOfBirth,
         summaryNotes: data.summaryNotes,
+        wantsContact: data.wantsContact,
+        gender: data.gender,
+        ageGroup: data.ageGroup,
+        isChurchMember: data.isChurchMember,
+        prayerRequest: data.prayerRequest,
       });
       
       res.status(201).json({ 

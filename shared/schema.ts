@@ -43,6 +43,11 @@ export const converts = pgTable("converts", {
   summaryNotes: text("summary_notes"),
   status: convertStatusEnum("status").notNull().default("NEW"),
   selfSubmitted: text("self_submitted").default("false"),
+  wantsContact: text("wants_contact"),
+  gender: text("gender"),
+  ageGroup: text("age_group"),
+  isChurchMember: text("is_church_member"),
+  prayerRequest: text("prayer_request"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -187,6 +192,11 @@ export const publicConvertSubmissionSchema = z.object({
   address: z.string().optional(),
   dateOfBirth: z.string().optional(),
   summaryNotes: z.string().optional(),
+  wantsContact: z.enum(["Yes", "No"]).optional(),
+  gender: z.enum(["Male", "Female"]).optional(),
+  ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
+  isChurchMember: z.enum(["Yes", "No"]).optional(),
+  prayerRequest: z.string().optional(),
 });
 
 export type PublicConvertSubmission = z.infer<typeof publicConvertSubmissionSchema>;
