@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
@@ -6,7 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Church, UserPlus, Calendar, ArrowRight, Clock, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Church, UserPlus, Calendar, ArrowRight, Clock, User, LinkIcon, Copy, Check } from "lucide-react";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
 interface LeaderStats {
@@ -22,12 +25,40 @@ interface LeaderStats {
   }>;
 }
 
+interface ChurchInfo {
+  id: string;
+  name: string;
+  publicToken: string;
+}
+
 export default function LeaderDashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
 
   const { data: stats, isLoading } = useQuery<LeaderStats>({
     queryKey: ["/api/leader/stats"],
   });
+
+  const { data: church } = useQuery<ChurchInfo>({
+    queryKey: ["/api/leader/church"],
+  });
+
+  const convertFormLink = church?.publicToken
+    ? `${window.location.origin}/connect/${church.publicToken}`
+    : "";
+
+  const copyLink = async () => {
+    if (convertFormLink) {
+      await navigator.clipboard.writeText(convertFormLink);
+      setCopied(true);
+      toast({
+        title: "Link Copied",
+        description: "The convert form link has been copied to your clipboard.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const getFollowupBadge = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -119,6 +150,53 @@ export default function LeaderDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Share Convert Form Link */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle>Share Convert Form Link</CardTitle>
+                <CardDescription>
+                  Share this link with new converts to submit their information directly
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {church?.publicToken ? (
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={convertFormLink}
+                  className="font-mono text-sm"
+                  data-testid="input-convert-form-link"
+                />
+                <Button
+                  onClick={copyLink}
+                  variant="outline"
+                  className="shrink-0 gap-2"
+                  data-testid="button-copy-link"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <Skeleton className="h-10 w-full" />
+            )}
+          </CardContent>
+        </Card>
 
         {/* Follow-ups Due */}
         <Card>
