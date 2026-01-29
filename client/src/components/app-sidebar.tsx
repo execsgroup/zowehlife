@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +14,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +37,12 @@ import {
   Settings,
 } from "lucide-react";
 
+interface ChurchData {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+}
+
 const adminNavItems = [
   { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
   { title: "Churches", url: "/admin/churches", icon: Church },
@@ -56,6 +63,11 @@ export function AppSidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
 
+  const { data: church } = useQuery<ChurchData>({
+    queryKey: ["/api/leader/church"],
+    enabled: user?.role === "LEADER",
+  });
+
   const navItems = user?.role === "ADMIN" ? adminNavItems : leaderNavItems;
   const initials = user?.fullName
     ?.split(" ")
@@ -64,15 +76,28 @@ export function AppSidebar() {
     .toUpperCase()
     .slice(0, 2) || "U";
 
+  const showChurchLogo = user?.role === "LEADER" && church?.logoUrl;
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-sidebar-primary">
-            <Heart className="h-5 w-5 text-sidebar-primary-foreground" />
-          </div>
+          {showChurchLogo ? (
+            <Avatar className="h-9 w-9 rounded-full">
+              <AvatarImage src={church.logoUrl!} alt={church.name} className="object-cover" />
+              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
+                <Heart className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-sidebar-primary">
+              <Heart className="h-5 w-5 text-sidebar-primary-foreground" />
+            </div>
+          )}
           <div className="flex flex-col">
-            <span className="font-semibold text-sm">Zoweh Life</span>
+            <span className="font-semibold text-sm">
+              {user?.role === "LEADER" && church?.name ? church.name : "Zoweh Life"}
+            </span>
           </div>
         </Link>
       </SidebarHeader>
