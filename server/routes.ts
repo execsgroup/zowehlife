@@ -398,10 +398,16 @@ export async function registerRoutes(
       const churchList = await storage.getChurches();
       const churchesWithCounts = await Promise.all(
         churchList.map(async (church) => {
+          // Ensure church has a public token
+          let currentChurch = church;
+          if (!church.publicToken) {
+            currentChurch = await storage.generateTokenForChurch(church.id);
+          }
+          
           const leaders = await storage.getLeadersByChurch(church.id);
           const convertsList = await storage.getConvertsByChurch(church.id);
           return {
-            ...church,
+            ...currentChurch,
             leaderCount: leaders.length,
             convertCount: convertsList.length,
           };
