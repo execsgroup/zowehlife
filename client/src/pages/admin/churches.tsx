@@ -14,7 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertChurchSchema, type Church } from "@shared/schema";
-import { Plus, MapPin, Users, UserPlus, Loader2, Pencil, Church as ChurchIcon } from "lucide-react";
+import { Plus, MapPin, Users, UserPlus, Loader2, Pencil, Church as ChurchIcon, Link2, Copy, Check } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 
 const churchFormSchema = insertChurchSchema.extend({
@@ -33,6 +34,35 @@ export default function AdminChurches() {
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingChurch, setEditingChurch] = useState<Church | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyChurchLink = async (church: Church) => {
+    if (!church.publicToken) {
+      toast({
+        title: "Error",
+        description: "This church doesn't have a public link yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const link = `${window.location.origin}/connect/${church.publicToken}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedId(church.id);
+      toast({
+        title: "Link Copied!",
+        description: "Share this link with new converts to register directly to this church.",
+      });
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      toast({
+        title: "Copy Failed",
+        description: "Unable to copy link to clipboard.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const { data: churches, isLoading } = useQuery<ChurchWithCounts[]>({
     queryKey: ["/api/admin/churches"],
@@ -234,14 +264,42 @@ export default function AdminChurches() {
                         {format(new Date(church.createdAt), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(church)}
-                          data-testid={`button-edit-church-${church.id}`}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => copyChurchLink(church)}
+                                data-testid={`button-copy-link-${church.id}`}
+                              >
+                                {copiedId === church.id ? (
+                                  <Check className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <Link2 className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copy public convert link</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditDialog(church)}
+                                data-testid={`button-edit-church-${church.id}`}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Edit church</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

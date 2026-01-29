@@ -14,6 +14,7 @@ export const churches = pgTable("churches", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   location: text("location"),
+  publicToken: text("public_token").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -32,7 +33,7 @@ export const users = pgTable("users", {
 export const converts = pgTable("converts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   churchId: varchar("church_id").notNull().references(() => churches.id),
-  createdByUserId: varchar("created_by_user_id").notNull().references(() => users.id),
+  createdByUserId: varchar("created_by_user_id").references(() => users.id),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   dateOfBirth: date("date_of_birth"),
@@ -41,6 +42,7 @@ export const converts = pgTable("converts", {
   address: text("address"),
   summaryNotes: text("summary_notes"),
   status: convertStatusEnum("status").notNull().default("NEW"),
+  selfSubmitted: text("self_submitted").default("false"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -175,6 +177,19 @@ export const insertAccountRequestSchema = createInsertSchema(accountRequests).om
   reviewedAt: true,
   createdAt: true,
 });
+
+// Public convert submission schema (for self-submissions via church link)
+export const publicConvertSubmissionSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phone: z.string().optional(),
+  email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+  address: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  summaryNotes: z.string().optional(),
+});
+
+export type PublicConvertSubmission = z.infer<typeof publicConvertSubmissionSchema>;
 
 // Login schema
 export const loginSchema = z.object({

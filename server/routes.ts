@@ -10,6 +10,7 @@ import {
   insertAccountRequestSchema,
   loginSchema,
   adminSetupSchema,
+  publicConvertSubmissionSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -296,6 +297,56 @@ export async function registerRoutes(
       res.json(churchList.map(c => ({ id: c.id, name: c.name })));
     } catch (error) {
       res.status(500).json({ message: "Failed to get churches" });
+    }
+  });
+
+  // Get church info by public token (for public convert form)
+  app.get("/api/public/church/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const church = await storage.getChurchByToken(token);
+      
+      if (!church) {
+        return res.status(404).json({ message: "Church not found" });
+      }
+      
+      res.json({ id: church.id, name: church.name });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get church info" });
+    }
+  });
+
+  // Submit convert via public church link
+  app.post("/api/public/church/:token/converts", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const church = await storage.getChurchByToken(token);
+      
+      if (!church) {
+        return res.status(404).json({ message: "Church not found" });
+      }
+      
+      const data = publicConvertSubmissionSchema.parse(req.body);
+      
+      const convert = await storage.createPublicConvert(church.id, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        dateOfBirth: data.dateOfBirth,
+        summaryNotes: data.summaryNotes,
+      });
+      
+      res.status(201).json({ 
+        message: "Thank you! Your information has been submitted successfully.",
+        convertId: convert.id 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to submit convert information" });
     }
   });
 

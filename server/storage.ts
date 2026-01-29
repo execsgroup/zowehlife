@@ -37,16 +37,27 @@ export interface IStorage {
   // Churches
   getChurch(id: string): Promise<Church | undefined>;
   getChurchByName(name: string): Promise<Church | undefined>;
+  getChurchByToken(token: string): Promise<Church | undefined>;
   getChurches(): Promise<Church[]>;
   createChurch(church: InsertChurch): Promise<Church>;
   findOrCreateChurch(name: string): Promise<{ church: Church; created: boolean }>;
   updateChurch(id: string, church: Partial<InsertChurch>): Promise<Church>;
+  generateTokenForChurch(id: string): Promise<Church>;
 
   // Converts
   getConvert(id: string): Promise<Convert | undefined>;
   getConverts(): Promise<Convert[]>;
   getConvertsByChurch(churchId: string): Promise<Convert[]>;
   createConvert(convert: InsertConvert): Promise<Convert>;
+  createPublicConvert(churchId: string, data: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    dateOfBirth?: string;
+    summaryNotes?: string;
+  }): Promise<Convert>;
   updateConvert(id: string, convert: Partial<InsertConvert>): Promise<Convert>;
 
   // Checkins
@@ -164,13 +175,46 @@ export class DatabaseStorage implements IStorage {
     return church || undefined;
   }
 
+  async getChurchByToken(token: string): Promise<Church | undefined> {
+    const [church] = await db.select().from(churches).where(eq(churches.publicToken, token));
+    return church || undefined;
+  }
+
   async getChurches(): Promise<Church[]> {
     return db.select().from(churches).orderBy(desc(churches.createdAt));
   }
 
   async createChurch(insertChurch: InsertChurch): Promise<Church> {
-    const [church] = await db.insert(churches).values(insertChurch).returning();
-    return church;
+    // Generate a unique token for the church with retry logic
+    const maxRetries = 5;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const token = this.generateRandomToken();
+        const [church] = await db.insert(churches).values({ ...insertChurch, publicToken: token }).returning();
+        return church;
+      } catch (error: any) {
+        // Check if it's a unique constraint violation
+        if (error?.code === '23505' && error?.constraint?.includes('public_token')) {
+          lastError = error;
+          continue; // Retry with a new token
+        }
+        throw error; // Re-throw other errors
+      }
+    }
+    
+    throw new Error(`Failed to generate unique token after ${maxRetries} attempts`);
+  }
+
+  private generateRandomToken(): string {
+    // Generate a random 12-character alphanumeric token
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let token = '';
+    for (let i = 0; i < 12; i++) {
+      token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return token;
   }
 
   async findOrCreateChurch(name: string): Promise<{ church: Church; created: boolean }> {
@@ -189,6 +233,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(churches.id, id))
       .returning();
     return church;
+  }
+
+  async generateTokenForChurch(id: string): Promise<Church> {
+    const maxRetries = 5;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const token = this.generateRandomToken();
+        const [church] = await db
+          .update(churches)
+          .set({ publicToken: token })
+          .where(eq(churches.id, id))
+          .returning();
+        return church;
+      } catch (error: any) {
+        if (error?.code === '23505' && error?.constraint?.includes('public_token')) {
+          continue;
+        }
+        throw error;
+      }
+    }
+    
+    throw new Error(`Failed to generate unique token after ${maxRetries} attempts`);
   }
 
   // Converts
@@ -211,6 +278,30 @@ export class DatabaseStorage implements IStorage {
 
   async createConvert(insertConvert: InsertConvert): Promise<Convert> {
     const [convert] = await db.insert(converts).values(insertConvert).returning();
+    return convert;
+  }
+
+  async createPublicConvert(churchId: string, data: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    dateOfBirth?: string;
+    summaryNotes?: string;
+  }): Promise<Convert> {
+    const [convert] = await db.insert(converts).values({
+      churchId,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone || null,
+      email: data.email || null,
+      address: data.address || null,
+      dateOfBirth: data.dateOfBirth || null,
+      summaryNotes: data.summaryNotes || null,
+      selfSubmitted: "true",
+      createdByUserId: null,
+    }).returning();
     return convert;
   }
 

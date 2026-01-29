@@ -53,16 +53,25 @@ A church organization web application for tracking new converts across multiple 
 - **Routing**: wouter for client-side routing
 
 ## Database Schema
-- **churches**: id, name, location, created_at
+- **churches**: id, name, location, public_token (unique link token), created_at
 - **users**: id, role (ADMIN/LEADER), full_name, email, password_hash, church_id
-- **converts**: id, church_id, created_by_user_id, first_name, last_name, phone, email, address, date_of_birth, summary_notes, status
+- **converts**: id, church_id, created_by_user_id (nullable), first_name, last_name, phone, email, address, date_of_birth, summary_notes, status, self_submitted
 - **checkins**: id, convert_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date
 - **prayer_requests**: id, name, phone, email, message, church_preference
 - **account_requests**: id, full_name, email, phone, church_name (free text), reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 - **audit_log**: id, actor_user_id, action, entity_type, entity_id
 
+## Public Church Convert Links
+Each church has a unique public token that generates a shareable link (e.g., `/connect/{token}`). Anyone with this link can submit their information as a new convert directly to that church. This enables:
+- Church leaders to share a link with new converts at events
+- Self-registration without requiring leader accounts
+- Automatic association with the correct church
+- Converts marked as "self_submitted" in the database
+
+Admin can copy the link from the Churches page using the link icon button.
+
 ## Leader Account Request Flow
-1. Prospective leaders submit request via public form with free-text church name
+1. Prospective leaders submit request via public form with church selection (dropdown of existing churches or free-text if not listed)
 2. Admin reviews pending requests and can edit all fields before approval
 3. On approval: edits are persisted, church is auto-created if it doesn't exist, leader account is created
 4. Approval email is sent with temporary password
@@ -70,6 +79,8 @@ A church organization web application for tracking new converts across multiple 
 ## API Routes
 ### Public
 - `GET /api/public/churches` - Get list of churches for form dropdowns
+- `GET /api/public/church/:token` - Get church info by public token
+- `POST /api/public/church/:token/converts` - Submit new convert via public link
 - `POST /api/prayer-requests` - Submit prayer request
 - `POST /api/account-requests` - Submit leader account request
 

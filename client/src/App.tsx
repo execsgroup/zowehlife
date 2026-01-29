@@ -23,6 +23,7 @@ import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
 import LeaderFollowups from "@/pages/leader/followups";
 import ConvertDetail from "@/pages/leader/convert-detail";
+import NewConvert from "@/pages/new-convert";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -83,6 +84,7 @@ function Router() {
       <Route path="/salvation" component={Salvation} />
       <Route path="/journey" component={Journey} />
       <Route path="/contact" component={Contact} />
+      <Route path="/connect/:token" component={NewConvert} />
       
       {/* Auth routes */}
       <Route path="/login" component={AuthRedirect} />
