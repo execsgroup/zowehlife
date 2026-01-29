@@ -850,10 +850,16 @@ export async function registerRoutes(
   app.get("/api/leader/church", requireLeader, async (req, res) => {
     try {
       const user = (req as any).user;
-      const church = await storage.getChurch(user.churchId);
+      let church = await storage.getChurch(user.churchId);
       if (!church) {
         return res.status(404).json({ message: "Church not found" });
       }
+      
+      // Generate a public token if one doesn't exist
+      if (!church.publicToken) {
+        church = await storage.generateTokenForChurch(church.id);
+      }
+      
       res.json(church);
     } catch (error) {
       res.status(500).json({ message: "Failed to get church info" });
