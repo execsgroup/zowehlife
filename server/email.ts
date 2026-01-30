@@ -46,6 +46,8 @@ interface FollowUpEmailData {
   churchName: string;
   followUpDate: string;
   notes?: string;
+  customLeaderMessage?: string;
+  customConvertMessage?: string;
 }
 
 export async function sendFollowUpNotification(data: FollowUpEmailData) {
@@ -61,36 +63,63 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
 
     const emailsToSend: Promise<any>[] = [];
 
-    emailsToSend.push(
-      client.emails.send({
-        from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
-        to: data.leaderEmail,
-        subject: `Follow-up Reminder: ${data.convertName} on ${formattedDate}`,
-        html: `
+    // Build leader email content - use custom message if provided
+    const leaderEmailContent = data.customLeaderMessage 
+      ? `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Follow-up Reminder</h2>
+            <p>Hello ${data.leaderName},</p>
+            <div style="white-space: pre-wrap; margin: 20px 0;">${data.customLeaderMessage}</div>
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>Convert:</strong> ${data.convertName}</p>
+              <p><strong>Ministry:</strong> ${data.churchName}</p>
+              <p><strong>Follow-up Date:</strong> ${formattedDate}</p>
+              ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
+            </div>
+            <p>Blessings,<br>Zoweh Life</p>
+          </div>
+        `
+      : `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #333;">Follow-up Reminder</h2>
             <p>Hello ${data.leaderName},</p>
             <p>This is a reminder that you have a scheduled follow-up:</p>
             <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p><strong>Convert:</strong> ${data.convertName}</p>
-              <p><strong>Church:</strong> ${data.churchName}</p>
+              <p><strong>Ministry:</strong> ${data.churchName}</p>
               <p><strong>Follow-up Date:</strong> ${formattedDate}</p>
               ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
             </div>
             <p>Please ensure to reach out and connect with ${data.convertName} on the scheduled date.</p>
             <p>Blessings,<br>Zoweh Life</p>
           </div>
-        `
+        `;
+
+    emailsToSend.push(
+      client.emails.send({
+        from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
+        to: data.leaderEmail,
+        subject: `Follow-up Reminder: ${data.convertName} on ${formattedDate}`,
+        html: leaderEmailContent
       })
     );
 
     if (data.convertEmail) {
-      emailsToSend.push(
-        client.emails.send({
-          from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
-          to: data.convertEmail,
-          subject: `We'd love to connect with you - ${data.churchName}`,
-          html: `
+      // Build convert email content - use custom message if provided
+      const convertEmailContent = data.customConvertMessage
+        ? `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">We're Here For You</h2>
+              <p>Hello ${data.convertName},</p>
+              <div style="white-space: pre-wrap; margin: 20px 0;">${data.customConvertMessage}</div>
+              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Expected Contact Date:</strong> ${formattedDate}</p>
+                <p><strong>Your Contact:</strong> ${data.leaderName}</p>
+              </div>
+              <p>Blessings,<br>${data.churchName}</p>
+            </div>
+          `
+        : `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #333;">We're Here For You</h2>
               <p>Hello ${data.convertName},</p>
@@ -102,7 +131,14 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
               <p>Blessings,<br>${data.churchName}</p>
             </div>
-          `
+          `;
+
+      emailsToSend.push(
+        client.emails.send({
+          from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
+          to: data.convertEmail,
+          subject: `We'd love to connect with you - ${data.churchName}`,
+          html: convertEmailContent
         })
       );
     }

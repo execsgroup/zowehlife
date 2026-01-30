@@ -45,6 +45,8 @@ const checkinFormSchema = z.object({
   notes: z.string().optional(),
   outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
   nextFollowupDate: z.string().optional(),
+  customLeaderMessage: z.string().optional(),
+  customConvertMessage: z.string().optional(),
 });
 
 const updateConvertSchema = z.object({
@@ -128,8 +130,12 @@ export default function ConvertDetail() {
       notes: "",
       outcome: "CONNECTED",
       nextFollowupDate: "",
+      customLeaderMessage: "",
+      customConvertMessage: "",
     },
   });
+
+  const watchNextFollowupDate = checkinForm.watch("nextFollowupDate");
 
   const editForm = useForm<UpdateConvertData>({
     resolver: zodResolver(updateConvertSchema),
@@ -191,6 +197,8 @@ export default function ConvertDetail() {
         notes: "",
         outcome: "CONNECTED",
         nextFollowupDate: "",
+        customLeaderMessage: "",
+        customConvertMessage: "",
       });
     },
     onError: (error: Error) => {
@@ -563,6 +571,54 @@ END:VCALENDAR`;
                           </FormItem>
                         )}
                       />
+
+                      {watchNextFollowupDate && (
+                        <div className="space-y-4 border-t pt-4 mt-4">
+                          <p className="text-sm text-muted-foreground">
+                            Customize the email notifications that will be sent (leave blank for default message):
+                          </p>
+                          
+                          <FormField
+                            control={checkinForm.control}
+                            name="customLeaderMessage"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Your Reminder Message (to yourself)</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Leave blank for default reminder, or write a custom message to remind yourself about this follow-up..."
+                                    className="resize-none min-h-[80px]"
+                                    {...field}
+                                    data-testid="input-custom-leader-message"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          {convert?.email && (
+                            <FormField
+                              control={checkinForm.control}
+                              name="customConvertMessage"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Message to {convert.firstName} (initial email)</FormLabel>
+                                  <FormControl>
+                                    <Textarea
+                                      placeholder="Leave blank for default message, or write a personalized message to let them know you'll be reaching out..."
+                                      className="resize-none min-h-[80px]"
+                                      {...field}
+                                      data-testid="input-custom-convert-message"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </div>
+                      )}
 
                       <div className="flex justify-end gap-2 pt-2">
                         <Button

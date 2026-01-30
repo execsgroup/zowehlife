@@ -656,6 +656,8 @@ export async function registerRoutes(
         outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
         notes: z.string().optional(),
         nextFollowupDate: z.string().optional(),
+        customLeaderMessage: z.string().optional(),
+        customConvertMessage: z.string().optional(),
       });
 
       const data = schema.parse(req.body);
@@ -681,6 +683,8 @@ export async function registerRoutes(
           churchName: church?.name || "Ministry",
           followUpDate: data.nextFollowupDate,
           notes: data.notes || undefined,
+          customLeaderMessage: data.customLeaderMessage || undefined,
+          customConvertMessage: data.customConvertMessage || undefined,
         }).catch(err => console.error("Email notification failed:", err));
       }
 
@@ -1307,6 +1311,8 @@ export async function registerRoutes(
         notes: z.string().optional(),
         outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
         nextFollowupDate: z.string().optional(),
+        customLeaderMessage: z.string().optional(),
+        customConvertMessage: z.string().optional(),
       });
 
       const data = schema.parse(req.body);
@@ -1335,9 +1341,11 @@ export async function registerRoutes(
           convertEmail: convert.email || undefined,
           leaderName: user.fullName,
           leaderEmail: user.email,
-          churchName: church?.name || "Church",
+          churchName: church?.name || "Ministry",
           followUpDate: data.nextFollowupDate,
           notes: data.notes || undefined,
+          customLeaderMessage: data.customLeaderMessage || undefined,
+          customConvertMessage: data.customConvertMessage || undefined,
         }).catch(err => console.error("Email notification failed:", err));
       }
 
