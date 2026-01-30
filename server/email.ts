@@ -106,28 +106,20 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
             <h2 style="color: #333;">Follow-up Reminder</h2>
             <p>Hello ${data.leaderName},</p>
             <div style="white-space: pre-wrap; margin: 20px 0;">${data.customLeaderMessage}</div>
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Convert:</strong> ${data.convertName}</p>
-              <p><strong>Ministry:</strong> ${data.churchName}</p>
-              <p><strong>Follow-up Date:</strong> ${formattedDate}</p>
-            </div>
+            <p style="margin: 20px 0;"><strong>Follow-up Date:</strong> ${formattedDate}</p>
             ${videoCallSection}
-            <p>Blessings,<br>Zoweh Life</p>
+            <p>Blessings,<br>${data.churchName}</p>
           </div>
         `
       : `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #333;">Follow-up Reminder</h2>
             <p>Hello ${data.leaderName},</p>
-            <p>This is a reminder that you have a scheduled follow-up:</p>
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Convert:</strong> ${data.convertName}</p>
-              <p><strong>Ministry:</strong> ${data.churchName}</p>
-              <p><strong>Follow-up Date:</strong> ${formattedDate}</p>
-            </div>
+            <p>This is a reminder that you have a scheduled follow-up with ${data.convertName}.</p>
+            <p style="margin: 20px 0;"><strong>Follow-up Date:</strong> ${formattedDate}</p>
             ${videoCallSection}
-            <p>Please ensure to reach out and connect with ${data.convertName} on the scheduled date.</p>
-            <p>Blessings,<br>Zoweh Life</p>
+            <p>Please ensure to reach out and connect on the scheduled date.</p>
+            <p>Blessings,<br>${data.churchName}</p>
           </div>
         `;
 
@@ -163,10 +155,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <h2 style="color: #333;">We're Here For You</h2>
               <p>Hello ${data.convertName},</p>
               <div style="white-space: pre-wrap; margin: 20px 0;">${data.customConvertMessage}</div>
-              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p><strong>Expected Contact Date:</strong> ${formattedDate}</p>
-                <p><strong>Your Contact:</strong> ${data.leaderName}</p>
-              </div>
+              <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
               ${videoCallSection}
               <p>Blessings,<br>${data.churchName}</p>
             </div>
@@ -176,10 +165,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <h2 style="color: #333;">We're Here For You</h2>
               <p>Hello ${data.convertName},</p>
               <p>We hope you're doing well on your faith journey! Someone from ${data.churchName} will be reaching out to you soon to check in and see how you're doing.</p>
-              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p><strong>Expected Contact Date:</strong> ${formattedDate}</p>
-                <p><strong>Your Contact:</strong> ${data.leaderName}</p>
-              </div>
+              <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
               ${videoCallSection}
               <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
               <p>Blessings,<br>${data.churchName}</p>
@@ -294,10 +280,7 @@ export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
           <h2 style="color: #333;">Just a Friendly Reminder</h2>
           <p>Hello ${data.convertName},</p>
           <p>We wanted to let you know that someone from ${data.churchName} will be reaching out to you tomorrow to check in and see how you're doing on your faith journey.</p>
-          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p><strong>Expected Contact Date:</strong> ${formattedDate}</p>
-            <p><strong>Your Contact:</strong> ${data.leaderName}</p>
-          </div>
+          <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
           <p>We're here to support you every step of the way. If you have any prayer requests or need anything before then, please don't hesitate to let us know.</p>
           <p>Blessings,<br>${data.churchName}</p>
         </div>
