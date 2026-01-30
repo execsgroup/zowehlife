@@ -35,6 +35,7 @@ import {
   Home,
   CalendarClock,
   Settings,
+  MessageSquare,
 } from "lucide-react";
 
 interface ChurchData {
@@ -57,6 +58,7 @@ const leaderNavItems = [
   { title: "My Converts", url: "/leader/converts", icon: UserPlus },
   { title: "Follow-ups", url: "/leader/followups", icon: CalendarClock },
   { title: "Prayer Requests", url: "/leader/prayer-requests", icon: HandHeart },
+  { title: "Contact Requests", url: "/leader/contact-requests", icon: MessageSquare },
   { title: "Ministry Settings", url: "/leader/settings", icon: Settings },
 ];
 

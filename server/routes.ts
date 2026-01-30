@@ -9,6 +9,7 @@ import { registerObjectStorageRoutes } from "./replit_integrations/object_storag
 import {
   insertChurchSchema,
   insertPrayerRequestSchema,
+  insertContactRequestSchema,
   insertAccountRequestSchema,
   loginSchema,
   adminSetupSchema,
@@ -326,6 +327,20 @@ export async function registerRoutes(
         return res.status(400).json({ message: error.errors[0].message });
       }
       res.status(500).json({ message: "Failed to submit prayer request" });
+    }
+  });
+
+  // Submit a contact request (public)
+  app.post("/api/contact-requests", async (req, res) => {
+    try {
+      const data = insertContactRequestSchema.parse(req.body);
+      const request = await storage.createContactRequest(data);
+      res.status(201).json({ message: "Contact request submitted" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to submit contact request" });
     }
   });
 
@@ -1110,6 +1125,21 @@ export async function registerRoutes(
       res.json(requests);
     } catch (error) {
       res.status(500).json({ message: "Failed to get prayer requests" });
+    }
+  });
+
+  // Get contact requests for leader's church
+  app.get("/api/leader/contact-requests", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Church not found" });
+      }
+      const requests = await storage.getContactRequestsByChurch(church.name);
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get contact requests" });
     }
   });
 

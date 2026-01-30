@@ -10,6 +10,7 @@ import Home from "@/pages/home";
 import Salvation from "@/pages/salvation";
 import Journey from "@/pages/journey";
 import Contact from "@/pages/contact";
+import ContactUs from "@/pages/contact-us";
 import Login from "@/pages/login";
 import Setup from "@/pages/setup";
 import AdminReset from "@/pages/admin-reset";
@@ -24,6 +25,7 @@ import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
 import LeaderFollowups from "@/pages/leader/followups";
 import LeaderPrayerRequests from "@/pages/leader/prayer-requests";
+import LeaderContactRequests from "@/pages/leader/contact-requests";
 import LeaderSettings from "@/pages/leader/settings";
 import ConvertDetail from "@/pages/leader/convert-detail";
 import NewConvert from "@/pages/new-convert";
@@ -87,6 +89,7 @@ function Router() {
       <Route path="/salvation" component={Salvation} />
       <Route path="/journey" component={Journey} />
       <Route path="/contact" component={Contact} />
+      <Route path="/contact-us" component={ContactUs} />
       <Route path="/connect/:token" component={NewConvert} />
       
       {/* Auth routes */}
@@ -138,6 +141,9 @@ function Router() {
       </Route>
       <Route path="/leader/prayer-requests">
         <ProtectedRoute component={LeaderPrayerRequests} allowedRoles={["LEADER"]} />
+      </Route>
+      <Route path="/leader/contact-requests">
+        <ProtectedRoute component={LeaderContactRequests} allowedRoles={["LEADER"]} />
       </Route>
       <Route path="/leader/settings">
         <ProtectedRoute component={LeaderSettings} allowedRoles={["LEADER"]} />

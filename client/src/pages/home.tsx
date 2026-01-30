@@ -124,7 +124,7 @@ export default function Home() {
                     <HandHeart className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Link href="/contact">
+                <Link href="/contact-us">
                   <Button 
                     size="lg" 
                     variant="outline" 
