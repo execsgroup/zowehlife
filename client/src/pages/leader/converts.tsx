@@ -812,48 +812,9 @@ export default function LeaderConverts() {
                   Customize the email notifications (leave blank for defaults):
                 </p>
                 
-                <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm font-medium">Your Reminder Email</p>
-                  <FormField
-                    control={scheduleForm.control}
-                    name="customLeaderSubject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject Line</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Leave blank for default subject..."
-                            {...field}
-                            data-testid="input-leader-subject"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={scheduleForm.control}
-                    name="customLeaderMessage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message Body</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Leave blank for default message..."
-                            className="resize-none min-h-[80px]"
-                            {...field}
-                            data-testid="input-leader-message"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
                 {selectedConvert?.email && (
                   <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">Email to {selectedConvert.firstName}</p>
+                    <p className="text-sm font-medium">Email to {selectedConvert.firstName} {selectedConvert.lastName}</p>
                     <FormField
                       control={scheduleForm.control}
                       name="customConvertSubject"
@@ -891,6 +852,50 @@ export default function LeaderConverts() {
                     />
                   </div>
                 )}
+
+                <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm font-medium">
+                    Your Reminder Email{" "}
+                    <span className="italic text-muted-foreground font-normal">
+                      (Email will be sent to {selectedConvert?.firstName} {selectedConvert?.lastName} a day before the scheduled follow up)
+                    </span>
+                  </p>
+                  <FormField
+                    control={scheduleForm.control}
+                    name="customLeaderSubject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject Line</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Leave blank for default subject..."
+                            {...field}
+                            data-testid="input-leader-subject"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={scheduleForm.control}
+                    name="customLeaderMessage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Message Body</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Leave blank for default message..."
+                            className="resize-none min-h-[80px]"
+                            {...field}
+                            data-testid="input-leader-message"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
