@@ -112,7 +112,7 @@ export default function Contact() {
                 <HandHeart className="h-8 w-8 text-chart-3" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Contact Us & Prayer Requests
+                Prayer Requests
               </h1>
               <p className="text-lg text-muted-foreground">
                 We would love to hear from you. Whether you need prayer, want to share a decision
@@ -128,7 +128,7 @@ export default function Contact() {
             <div className="max-w-2xl mx-auto">
               <Card>
                 <CardHeader>
-                  <CardTitle>Send Us a Message</CardTitle>
+                  <CardTitle>Send us your Prayer Request</CardTitle>
                   <CardDescription>
                     Fill out the form below and we'll get back to you as soon as possible.
                   </CardDescription>
@@ -207,7 +207,7 @@ export default function Contact() {
                         name="churchPreference"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Ministry Preference (Optional)</FormLabel>
+                            <FormLabel>Ministry Preference</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-church-preference">

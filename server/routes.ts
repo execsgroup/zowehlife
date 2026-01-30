@@ -1098,6 +1098,21 @@ export async function registerRoutes(
     }
   });
 
+  // Get prayer requests for leader's church
+  app.get("/api/leader/prayer-requests", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Church not found" });
+      }
+      const requests = await storage.getPrayerRequestsByChurch(church.name);
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get prayer requests" });
+    }
+  });
+
   // Get leader's church info
   app.get("/api/leader/church", requireLeader, async (req, res) => {
     try {

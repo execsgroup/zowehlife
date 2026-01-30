@@ -23,6 +23,7 @@ import AdminAccountRequests from "@/pages/admin/account-requests";
 import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
 import LeaderFollowups from "@/pages/leader/followups";
+import LeaderPrayerRequests from "@/pages/leader/prayer-requests";
 import LeaderSettings from "@/pages/leader/settings";
 import ConvertDetail from "@/pages/leader/convert-detail";
 import NewConvert from "@/pages/new-convert";
@@ -134,6 +135,9 @@ function Router() {
       </Route>
       <Route path="/leader/followups">
         <ProtectedRoute component={LeaderFollowups} allowedRoles={["LEADER"]} />
+      </Route>
+      <Route path="/leader/prayer-requests">
+        <ProtectedRoute component={LeaderPrayerRequests} allowedRoles={["LEADER"]} />
       </Route>
       <Route path="/leader/settings">
         <ProtectedRoute component={LeaderSettings} allowedRoles={["LEADER"]} />

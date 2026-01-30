@@ -86,6 +86,7 @@ export interface IStorage {
 
   // Prayer Requests
   getPrayerRequests(): Promise<PrayerRequest[]>;
+  getPrayerRequestsByChurch(churchName: string): Promise<PrayerRequest[]>;
   createPrayerRequest(request: InsertPrayerRequest): Promise<PrayerRequest>;
 
   // Audit Log
@@ -427,6 +428,12 @@ export class DatabaseStorage implements IStorage {
   // Prayer Requests
   async getPrayerRequests(): Promise<PrayerRequest[]> {
     return db.select().from(prayerRequests).orderBy(desc(prayerRequests.createdAt));
+  }
+
+  async getPrayerRequestsByChurch(churchName: string): Promise<PrayerRequest[]> {
+    return db.select().from(prayerRequests)
+      .where(eq(prayerRequests.churchPreference, churchName))
+      .orderBy(desc(prayerRequests.createdAt));
   }
 
   async createPrayerRequest(insertRequest: InsertPrayerRequest): Promise<PrayerRequest> {
