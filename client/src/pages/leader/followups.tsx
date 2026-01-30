@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Eye, History } from "lucide-react";
+import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Eye, Video } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 import { Link } from "wouter";
@@ -42,6 +42,10 @@ type FollowUpNotesData = z.infer<typeof followUpNotesSchema>;
 
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+  customLeaderSubject: z.string().optional(),
+  customLeaderMessage: z.string().optional(),
+  customConvertSubject: z.string().optional(),
+  customConvertMessage: z.string().optional(),
   includeVideoLink: z.boolean().optional(),
 });
 
@@ -85,6 +89,10 @@ export default function LeaderFollowups() {
     resolver: zodResolver(scheduleFollowUpSchema),
     defaultValues: {
       nextFollowupDate: "",
+      customLeaderSubject: "",
+      customLeaderMessage: "",
+      customConvertSubject: "",
+      customConvertMessage: "",
       includeVideoLink: true,
     },
   });
@@ -163,6 +171,10 @@ export default function LeaderFollowups() {
     setSelectedFollowUp(followup);
     scheduleForm.reset({
       nextFollowupDate: "",
+      customLeaderSubject: "",
+      customLeaderMessage: "",
+      customConvertSubject: "",
+      customConvertMessage: "",
       includeVideoLink: true,
     });
     setScheduleDialogOpen(true);
@@ -310,16 +322,6 @@ export default function LeaderFollowups() {
                             </TooltipTrigger>
                             <TooltipContent>View Convert Details</TooltipContent>
                           </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link href={`/leader/converts/${followup.convertId}#timeline`}>
-                                <Button variant="outline" size="icon" data-testid={`button-timeline-${followup.id}`}>
-                                  <History className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>Follow Up Timeline</TooltipContent>
-                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -433,12 +435,12 @@ export default function LeaderFollowups() {
 
       {/* Schedule Next Follow Up Dialog */}
       <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Schedule Next Follow Up</DialogTitle>
             <DialogDescription>
               {selectedFollowUp && (
-                <>Schedule a new follow-up for {selectedFollowUp.convertFirstName} {selectedFollowUp.convertLastName}</>
+                <>Schedule a follow-up with {selectedFollowUp.convertFirstName} {selectedFollowUp.convertLastName} and send email notifications</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -452,7 +454,7 @@ export default function LeaderFollowups() {
                 name="nextFollowupDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Follow-up Date</FormLabel>
+                    <FormLabel>Follow-up Date *</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
@@ -464,11 +466,12 @@ export default function LeaderFollowups() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={scheduleForm.control}
                 name="includeVideoLink"
                 render={({ field }) => (
-                  <FormItem className="flex items-center gap-2">
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
@@ -476,10 +479,110 @@ export default function LeaderFollowups() {
                         data-testid="checkbox-include-video"
                       />
                     </FormControl>
-                    <FormLabel className="!mt-0">Include video call link</FormLabel>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="flex items-center gap-2">
+                        <Video className="h-4 w-4" />
+                        Include video call link
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Add a free Jitsi Meet video call link to the email
+                      </p>
+                    </div>
                   </FormItem>
                 )}
               />
+
+              <div className="space-y-4 border-t pt-4">
+                <p className="text-sm text-muted-foreground">
+                  Customize the email notifications (leave blank for defaults):
+                </p>
+                
+                {selectedFollowUp?.convertEmail && (
+                  <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm font-medium">Email to {selectedFollowUp.convertFirstName} {selectedFollowUp.convertLastName}</p>
+                    <FormField
+                      control={scheduleForm.control}
+                      name="customConvertSubject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subject Line</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Leave blank for default subject..."
+                              {...field}
+                              data-testid="input-convert-subject"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={scheduleForm.control}
+                      name="customConvertMessage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Message Body</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Leave blank for default message..."
+                              className="resize-none min-h-[80px]"
+                              {...field}
+                              data-testid="input-convert-message"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm font-medium">
+                    Your Reminder Email{" "}
+                    <span className="italic text-muted-foreground font-normal">
+                      (Email will be sent to {selectedFollowUp?.convertFirstName} {selectedFollowUp?.convertLastName} a day before the scheduled follow up)
+                    </span>
+                  </p>
+                  <FormField
+                    control={scheduleForm.control}
+                    name="customLeaderSubject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject Line</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Leave blank for default subject..."
+                            {...field}
+                            data-testid="input-leader-subject"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={scheduleForm.control}
+                    name="customLeaderMessage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Message Body</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Leave blank for default message..."
+                            className="resize-none min-h-[80px]"
+                            {...field}
+                            data-testid="input-leader-message"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <Button
                   type="button"
@@ -499,7 +602,7 @@ export default function LeaderFollowups() {
                       Scheduling...
                     </>
                   ) : (
-                    "Schedule"
+                    "Schedule Follow Up"
                   )}
                 </Button>
               </div>

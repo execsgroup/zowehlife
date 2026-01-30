@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, History } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, Video } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
@@ -731,20 +731,6 @@ export default function LeaderConverts() {
                               </Link>
                             </TooltipTrigger>
                             <TooltipContent>View Convert Details</TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link href={`/leader/converts/${convert.id}#timeline`}>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  data-testid={`button-timeline-${convert.id}`}
-                                >
-                                  <History className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>Follow Up Timeline</TooltipContent>
                           </Tooltip>
                         </div>
                       </TableCell>
