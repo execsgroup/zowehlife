@@ -115,6 +115,40 @@ export async function registerRoutes(
   // Register object storage routes
   registerObjectStorageRoutes(app);
 
+  // ==================== TEST EMAIL ROUTE ====================
+  // Debug endpoint to test email sending
+  app.post("/api/test-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email address required" });
+      }
+      
+      console.log("[Test Email] Attempting to send test email to:", email);
+      
+      const result = await sendFollowUpNotification({
+        convertName: "Test Convert",
+        convertEmail: undefined, // Don't send to convert for this test
+        leaderName: "Test Leader",
+        leaderEmail: email,
+        churchName: "Test Ministry",
+        followUpDate: new Date().toISOString().split('T')[0],
+        notes: "This is a test email to verify email sending works",
+      });
+      
+      console.log("[Test Email] Result:", result);
+      
+      if (result.success) {
+        res.json({ success: true, message: "Test email sent successfully! Check your inbox." });
+      } else {
+        res.status(500).json({ success: false, message: "Email sending failed", error: result.error });
+      }
+    } catch (error: any) {
+      console.error("[Test Email] Error:", error);
+      res.status(500).json({ success: false, message: error.message || "Unknown error" });
+    }
+  });
+
   // ==================== AUTH ROUTES ====================
 
   // Admin password reset (using setup key)
