@@ -36,6 +36,11 @@ export function PublicFooter() {
                   Prayer Request
                 </Link>
               </li>
+              <li>
+                <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Contact Us
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -48,8 +53,8 @@ export function PublicFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/setup" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Admin Setup
+                <Link href="/?becomeLeader=true" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Become a Leader
                 </Link>
               </li>
             </ul>

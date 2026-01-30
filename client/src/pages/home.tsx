@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useSearch } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,6 +34,15 @@ export default function Home() {
   const [showChurchList, setShowChurchList] = useState(false);
   const [selectedChurchId, setSelectedChurchId] = useState<string>("");
   const { toast } = useToast();
+  const searchString = useSearch();
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    if (params.get("becomeLeader") === "true") {
+      setDialogOpen(true);
+      window.history.replaceState({}, "", "/");
+    }
+  }, [searchString]);
 
   const { data: churches } = useQuery<ChurchType[]>({
     queryKey: ["/api/public/churches"],
@@ -115,16 +124,17 @@ export default function Home() {
                     <HandHeart className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="gap-2" 
-                  onClick={() => setDialogOpen(true)}
-                  data-testid="button-become-leader-hero"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Become a Leader
-                </Button>
+                <Link href="/contact">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="gap-2" 
+                    data-testid="button-contact-hero"
+                  >
+                    <Users className="h-4 w-4" />
+                    Contact Us
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
