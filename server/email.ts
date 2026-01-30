@@ -133,9 +133,22 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
 
     const leaderSubject = data.customLeaderSubject || `Follow-up Reminder: ${data.convertName} on ${formattedDate}`;
     
+    // Build dynamic from address with ministry name as display name
+    const getFromWithMinistry = (ministryName: string, email: string) => {
+      // Extract just the email address if it contains a display name already
+      const emailMatch = email.match(/<([^>]+)>/) || email.match(/([^\s<>]+@[^\s<>]+)/);
+      const emailAddress = emailMatch ? emailMatch[1] : email;
+      // Sanitize ministry name for email header (remove special characters that could break it)
+      const safeName = ministryName.replace(/[<>"]/g, '').trim();
+      return `${safeName} <${emailAddress}>`;
+    };
+
+    const fromWithMinistry = getFromWithMinistry(data.churchName, fromEmail || 'noreply@resend.dev');
+    console.log('[Email] Using from address:', fromWithMinistry);
+
     emailsToSend.push(
       client.emails.send({
-        from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
+        from: fromWithMinistry,
         to: data.leaderEmail,
         subject: leaderSubject,
         html: leaderEmailContent
@@ -177,7 +190,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
       
       emailsToSend.push(
         client.emails.send({
-          from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
+          from: fromWithMinistry,
           to: data.convertEmail,
           subject: convertSubject,
           html: convertEmailContent
@@ -262,8 +275,18 @@ export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
       day: 'numeric'
     });
 
+    // Build dynamic from address with ministry name
+    const getFromWithMinistry = (ministryName: string, email: string) => {
+      const emailMatch = email.match(/<([^>]+)>/) || email.match(/([^\s<>]+@[^\s<>]+)/);
+      const emailAddress = emailMatch ? emailMatch[1] : email;
+      const safeName = ministryName.replace(/[<>"]/g, '').trim();
+      return `${safeName} <${emailAddress}>`;
+    };
+
+    const fromWithMinistry = getFromWithMinistry(data.churchName, fromEmail || 'noreply@resend.dev');
+
     await client.emails.send({
-      from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
+      from: fromWithMinistry,
       to: data.convertEmail,
       subject: `Reminder: We're reaching out tomorrow - ${data.churchName}`,
       html: `
