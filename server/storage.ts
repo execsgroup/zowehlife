@@ -146,6 +146,7 @@ export interface IStorage {
       convertId: string;
       convertName: string;
       nextFollowupDate: string;
+      videoLink: string | null;
     }>;
   }>;
 }
@@ -583,6 +584,7 @@ export class DatabaseStorage implements IStorage {
         id: checkins.id,
         convertId: checkins.convertId,
         nextFollowupDate: checkins.nextFollowupDate,
+        videoLink: checkins.videoLink,
         firstName: converts.firstName,
         lastName: converts.lastName,
       })
@@ -601,6 +603,7 @@ export class DatabaseStorage implements IStorage {
         convertId: f.convertId,
         convertName: `${f.firstName} ${f.lastName}`,
         nextFollowupDate: f.nextFollowupDate || "",
+        videoLink: f.videoLink || null,
       })),
     };
   }

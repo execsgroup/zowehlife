@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Church, UserPlus, Calendar, ArrowRight, Clock, User, LinkIcon, Copy, Check } from "lucide-react";
+import { Church, UserPlus, Calendar, ArrowRight, Clock, User, LinkIcon, Copy, Check, Video } from "lucide-react";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
 interface LeaderStats {
@@ -22,6 +22,7 @@ interface LeaderStats {
     convertId: string;
     convertName: string;
     nextFollowupDate: string;
+    videoLink: string | null;
   }>;
 }
 
@@ -226,26 +227,41 @@ export default function LeaderDashboard() {
             ) : stats?.followupsDue && stats.followupsDue.length > 0 ? (
               <div className="space-y-3">
                 {stats.followupsDue.slice(0, 5).map((followup) => (
-                  <Link
+                  <div
                     key={followup.id}
-                    href={`/leader/converts/${followup.convertId}`}
+                    className="flex items-center justify-between p-3 rounded-lg border hover-elevate"
                   >
-                    <div className="flex items-center justify-between p-3 rounded-lg border hover-elevate cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                          <User className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{followup.convertName}</p>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {format(new Date(followup.nextFollowupDate), "EEEE, MMM d")}
-                          </p>
-                        </div>
+                    <Link href={`/leader/converts/${followup.convertId}`} className="flex items-center gap-3 flex-1 cursor-pointer">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                        <User className="h-5 w-5 text-muted-foreground" />
                       </div>
+                      <div>
+                        <p className="font-medium">{followup.convertName}</p>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {format(new Date(followup.nextFollowupDate), "EEEE, MMM d")}
+                        </p>
+                      </div>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                      {followup.videoLink && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(followup.videoLink!, "_blank");
+                          }}
+                          data-testid={`button-join-meeting-${followup.id}`}
+                        >
+                          <Video className="h-3 w-3" />
+                          Join Meeting
+                        </Button>
+                      )}
                       {getFollowupBadge(followup.nextFollowupDate)}
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             ) : (
