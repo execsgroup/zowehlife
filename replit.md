@@ -79,10 +79,31 @@ Admin can copy the link from the Churches page using the link icon button.
 3. On approval: edits are persisted, church is auto-created if it doesn't exist, leader account is created
 4. Approval email is sent with temporary password
 
-## Follow-Up Email Notifications
-When a leader or admin creates a check-in with a scheduled follow-up date, the system automatically sends email notifications:
+## Follow-Up System
+The system separates follow-up actions into two distinct flows:
+
+### Schedule Follow Up (Converts Page)
+Leaders use "Schedule Follow Up" button to plan future contact with converts:
+- Set a follow-up date
+- Optional: Include auto-generated Jitsi Meet video call link (unique per scheduling)
+- Customize email subject and message for both leader reminder and convert notification
+- Emails are sent immediately when scheduling
+
+### Follow Up Notes (Followups Page)
+Leaders record outcomes of completed follow-ups via "Follow Up Notes" button:
+- Select outcome (Connected, No Response, Needs Prayer, etc.)
+- Add notes about the interaction
+- No emails are sent - this is purely for record-keeping
+
+### Automated Email Reminders
 1. **Initial Email**: Sent immediately when a follow-up is scheduled - notifies both the leader and the convert (if they have an email) about the upcoming contact
 2. **Reminder Email**: Sent one day before the scheduled follow-up date - reminds the convert that someone from the ministry will be reaching out
+
+### Video Call Links
+When scheduling a follow-up, leaders can include an auto-generated Jitsi Meet video call link:
+- No account or API key required
+- Unique room name per scheduling: `zoweh-{firstName}-{lastName}-{timestamp}`
+- Link included in both leader and convert emails
 
 The email reminder scheduler runs hourly to check for follow-ups scheduled for the next day and sends reminder emails. Sent reminders are tracked in the `email_reminders` table to prevent duplicates.
 
@@ -118,7 +139,8 @@ The email reminder scheduler runs hourly to check for follow-ups scheduled for t
 - `GET /api/leader/stats` - Dashboard statistics
 - `GET/POST /api/leader/converts` - List/create converts
 - `GET/PATCH /api/leader/converts/:id` - Get/update convert
-- `POST /api/leader/converts/:convertId/checkins` - Create check-in
+- `POST /api/leader/converts/:convertId/checkins` - Create check-in (for recording follow-up notes)
+- `POST /api/leader/converts/:convertId/schedule-followup` - Schedule a follow-up with email notifications and optional video call link
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection (auto-provided by Replit)
