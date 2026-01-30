@@ -3,7 +3,10 @@ import { Resend } from 'resend';
 let connectionSettings: any;
 
 async function getCredentials() {
+  console.log('[Email] getCredentials called');
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  console.log('[Email] REPLIT_CONNECTORS_HOSTNAME:', hostname ? 'set' : 'NOT SET');
+  
   const xReplitToken = process.env.REPL_IDENTITY 
     ? 'repl ' + process.env.REPL_IDENTITY 
     : process.env.WEB_REPL_RENEWAL 
@@ -11,23 +14,35 @@ async function getCredentials() {
     : null;
 
   if (!xReplitToken) {
+    console.error('[Email] X_REPLIT_TOKEN not found for repl/depl');
     throw new Error('X_REPLIT_TOKEN not found for repl/depl');
   }
+  console.log('[Email] Token type:', xReplitToken.startsWith('repl ') ? 'repl' : 'depl');
 
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
+  try {
+    const response = await fetch(
+      'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
+      {
+        headers: {
+          'Accept': 'application/json',
+          'X_REPLIT_TOKEN': xReplitToken
+        }
       }
-    }
-  ).then(res => res.json()).then(data => data.items?.[0]);
+    );
+    const data = await response.json();
+    console.log('[Email] Connector response status:', response.status);
+    connectionSettings = data.items?.[0];
 
-  if (!connectionSettings || (!connectionSettings.settings.api_key)) {
-    throw new Error('Resend not connected');
+    if (!connectionSettings || (!connectionSettings.settings?.api_key)) {
+      console.error('[Email] Resend not connected - no api_key in settings');
+      throw new Error('Resend not connected');
+    }
+    console.log('[Email] Resend connected, from_email:', connectionSettings.settings.from_email || 'default');
+    return { apiKey: connectionSettings.settings.api_key, fromEmail: connectionSettings.settings.from_email };
+  } catch (error: any) {
+    console.error('[Email] Failed to get credentials:', error?.message || error);
+    throw error;
   }
-  return { apiKey: connectionSettings.settings.api_key, fromEmail: connectionSettings.settings.from_email };
 }
 
 async function getUncachableResendClient() {
