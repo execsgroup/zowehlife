@@ -24,7 +24,7 @@ const leaderRequestSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
   churchName: z.string().min(2, "Ministry name must be at least 2 characters"),
-  reason: z.string().optional(),
+  reason: z.string().min(1, "Please tell us about your ministry"),
 });
 
 type LeaderRequestFormData = z.infer<typeof leaderRequestSchema>;
@@ -389,10 +389,10 @@ export default function Home() {
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Why do you want to become a leader? (Optional)</FormLabel>
+                    <FormLabel>Please tell us about your Ministry</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Tell us about your role in the ministry..."
+                        placeholder="Tell us about your ministry, your role, and how we can help..."
                         className="resize-none"
                         {...field}
                         data-testid="input-leader-reason"
