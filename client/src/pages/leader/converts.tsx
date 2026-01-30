@@ -58,17 +58,35 @@ const convertFormSchema = z.object({
   prayerRequest: z.string().optional(),
   address: z.string().optional(),
   summaryNotes: z.string().optional(),
-  status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]),
+  status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
 });
 
 type ConvertFormData = z.infer<typeof convertFormSchema>;
 
 const statusColors: Record<string, string> = {
   NEW: "bg-chart-1/10 text-chart-1 border-chart-1/20",
+  SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  CONNECTED: "bg-chart-4/10 text-chart-4 border-chart-4/20",
+  NO_RESPONSE: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+  NEEDS_PRAYER: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+  REFERRED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  NOT_COMPLETED: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
   ACTIVE: "bg-chart-3/10 text-chart-3 border-chart-3/20",
   IN_PROGRESS: "bg-chart-2/10 text-chart-2 border-chart-2/20",
-  CONNECTED: "bg-chart-4/10 text-chart-4 border-chart-4/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
+};
+
+const statusLabels: Record<string, string> = {
+  NEW: "New",
+  SCHEDULED: "Scheduled",
+  CONNECTED: "Connected",
+  NO_RESPONSE: "No Response",
+  NEEDS_PRAYER: "Needs Prayer",
+  REFERRED: "Referred",
+  NOT_COMPLETED: "Not Completed",
+  ACTIVE: "Active",
+  IN_PROGRESS: "In Progress",
+  INACTIVE: "Inactive",
 };
 
 const scheduleFollowUpSchema = z.object({
@@ -572,10 +590,12 @@ export default function LeaderConverts() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="NEW">New</SelectItem>
-                            <SelectItem value="ACTIVE">Active</SelectItem>
-                            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                            <SelectItem value="SCHEDULED">Scheduled</SelectItem>
                             <SelectItem value="CONNECTED">Connected</SelectItem>
-                            <SelectItem value="INACTIVE">Inactive</SelectItem>
+                            <SelectItem value="NO_RESPONSE">No Response</SelectItem>
+                            <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
+                            <SelectItem value="REFERRED">Referred</SelectItem>
+                            <SelectItem value="NOT_COMPLETED">Not Completed</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -635,10 +655,12 @@ export default function LeaderConverts() {
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="NEW">New</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                  <SelectItem value="SCHEDULED">Scheduled</SelectItem>
                   <SelectItem value="CONNECTED">Connected</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="NO_RESPONSE">No Response</SelectItem>
+                  <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
+                  <SelectItem value="REFERRED">Referred</SelectItem>
+                  <SelectItem value="NOT_COMPLETED">Not Completed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -697,7 +719,7 @@ export default function LeaderConverts() {
                       </TableCell>
                       <TableCell>
                         <Badge className={statusColors[convert.status] || ""}>
-                          {convert.status.replace("_", " ")}
+                          {statusLabels[convert.status] || convert.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">

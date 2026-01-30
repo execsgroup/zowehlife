@@ -1455,6 +1455,9 @@ export async function registerRoutes(
         videoLink: videoCallLink || null,
       });
 
+      // Update convert status to SCHEDULED
+      await storage.updateConvert(convertId, { status: "SCHEDULED" });
+
       await storage.createAuditLog({
         actorUserId: user.id,
         action: "CREATE",
@@ -1529,6 +1532,18 @@ export async function registerRoutes(
         outcome: data.outcome,
         nextFollowupDate: data.nextFollowupDate || null,
       });
+
+      // Update convert status based on outcome (excluding SCHEDULED_VISIT and OTHER which don't map directly)
+      const outcomeToStatus: Record<string, string> = {
+        "CONNECTED": "CONNECTED",
+        "NO_RESPONSE": "NO_RESPONSE",
+        "NEEDS_PRAYER": "NEEDS_PRAYER",
+        "REFERRED": "REFERRED",
+        "NOT_COMPLETED": "NOT_COMPLETED",
+      };
+      if (outcomeToStatus[data.outcome]) {
+        await storage.updateConvert(convertId, { status: outcomeToStatus[data.outcome] as any });
+      }
 
       await storage.createAuditLog({
         actorUserId: user.id,
