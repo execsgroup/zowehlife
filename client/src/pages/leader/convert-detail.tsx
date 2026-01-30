@@ -37,6 +37,7 @@ import {
   MessageSquare,
   Church,
   Cake,
+  Video,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -721,7 +722,7 @@ END:VCALENDAR`;
                           </p>
                         )}
                         {checkin.nextFollowupDate && (
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center gap-2 text-sm flex-wrap">
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <span className="text-muted-foreground">
                               Next follow-up:{" "}
@@ -730,13 +731,30 @@ END:VCALENDAR`;
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-6 px-2 gap-1"
+                              className="gap-1"
                               onClick={() => downloadICS(checkin)}
                               data-testid={`button-download-ics-${checkin.id}`}
                             >
                               <Download className="h-3 w-3" />
                               .ics
                             </Button>
+                            {checkin.videoLink && (
+                              <a
+                                href={checkin.videoLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="gap-1"
+                                  data-testid={`button-join-meeting-${checkin.id}`}
+                                >
+                                  <Video className="h-3 w-3" />
+                                  Join Meeting
+                                </Button>
+                              </a>
+                            )}
                           </div>
                         )}
                       </div>

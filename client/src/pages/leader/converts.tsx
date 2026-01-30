@@ -18,7 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, MessageSquarePlus, Video } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, History } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 
@@ -703,26 +704,48 @@ export default function LeaderConverts() {
                         {format(new Date(convert.createdAt), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="gap-1"
-                            onClick={() => handleScheduleFollowUp(convert)}
-                            data-testid={`button-schedule-followup-${convert.id}`}
-                          >
-                            <MessageSquarePlus className="h-3 w-3" />
-                            Schedule Follow Up
-                          </Button>
-                          <Link href={`/leader/converts/${convert.id}`}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              data-testid={`button-view-convert-${convert.id}`}
-                            >
-                              View
-                            </Button>
-                          </Link>
+                        <div className="flex items-center justify-end gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="default"
+                                size="icon"
+                                onClick={() => handleScheduleFollowUp(convert)}
+                                data-testid={`button-schedule-followup-${convert.id}`}
+                              >
+                                <CalendarPlus className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Schedule Follow Up</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link href={`/leader/converts/${convert.id}`}>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  data-testid={`button-view-convert-${convert.id}`}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>View Convert Details</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link href={`/leader/converts/${convert.id}#timeline`}>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  data-testid={`button-timeline-${convert.id}`}
+                                >
+                                  <History className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>Follow Up Timeline</TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>

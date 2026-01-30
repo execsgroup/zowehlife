@@ -67,6 +67,7 @@ export const checkins = pgTable("checkins", {
   notes: text("notes"),
   outcome: checkinOutcomeEnum("outcome").notNull(),
   nextFollowupDate: date("next_followup_date"),
+  videoLink: text("video_link"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

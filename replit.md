@@ -59,7 +59,7 @@ A church organization web application for tracking new converts across multiple 
 
 ## Church Logo Upload
 Leaders can upload a church logo from the "Church Settings" page in their dashboard. The logo will be displayed on the public Salvation Form for new converts. Logos are stored in Replit's Object Storage and can be up to 5MB in size (images only).
-- **checkins**: id, convert_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date
+- **checkins**: id, convert_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date, video_link
 - **prayer_requests**: id, name, phone, email, message, church_preference
 - **account_requests**: id, full_name, email, phone, church_name (free text), reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 - **audit_log**: id, actor_user_id, action, entity_type, entity_id
@@ -104,6 +104,13 @@ When scheduling a follow-up, leaders can include an auto-generated Jitsi Meet vi
 - No account or API key required
 - Unique room name per scheduling: `{ministryName}-{firstName}-{lastName}-{timestamp}`
 - Link included in both leader and convert emails
+- Video link is stored in the checkin record
+- "Join Meeting" button appears in the Follow-up Timeline when a video link is available
+
+## Action Icons
+The application uses icon buttons with hover tooltips for common actions:
+- **Follow-ups Page**: Follow Up Note, Schedule Next Follow Up, View Convert Details, Follow Up Timeline
+- **Converts Page**: Schedule Follow Up, View Convert Details, Follow Up Timeline
 
 The email reminder scheduler runs hourly to:
 1. Check for follow-ups scheduled for the next day and send reminder emails (tracked in `email_reminders` table to prevent duplicates)

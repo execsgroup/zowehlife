@@ -1370,9 +1370,10 @@ export async function registerRoutes(
         churchId: user.churchId,
         createdByUserId: user.id,
         checkinDate: new Date().toISOString().split('T')[0],
-        notes: `Follow-up scheduled for ${data.nextFollowupDate}${videoCallLink ? ` - Video call: ${videoCallLink}` : ''}`,
+        notes: `Follow-up scheduled for ${data.nextFollowupDate}`,
         outcome: "SCHEDULED_VISIT",
         nextFollowupDate: data.nextFollowupDate,
+        videoLink: videoCallLink || null,
       });
 
       await storage.createAuditLog({

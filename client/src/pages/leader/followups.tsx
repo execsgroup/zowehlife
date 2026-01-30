@@ -12,8 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet } from "lucide-react";
+import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Eye, History } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +40,13 @@ const followUpNotesSchema = z.object({
 
 type FollowUpNotesData = z.infer<typeof followUpNotesSchema>;
 
+const scheduleFollowUpSchema = z.object({
+  nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+  includeVideoLink: z.boolean().optional(),
+});
+
+type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
+
 function getDateBadge(dateStr: string, id: string) {
   const date = new Date(dateStr);
   const daysUntil = differenceInDays(date, new Date());
@@ -56,6 +66,7 @@ function getDateBadge(dateStr: string, id: string) {
 export default function LeaderFollowups() {
   const { toast } = useToast();
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null);
 
   const { data: followups, isLoading } = useQuery<FollowUp[]>({
@@ -67,6 +78,14 @@ export default function LeaderFollowups() {
     defaultValues: {
       outcome: "CONNECTED",
       notes: "",
+    },
+  });
+
+  const scheduleForm = useForm<ScheduleFollowUpData>({
+    resolver: zodResolver(scheduleFollowUpSchema),
+    defaultValues: {
+      nextFollowupDate: "",
+      includeVideoLink: true,
     },
   });
 
@@ -103,6 +122,34 @@ export default function LeaderFollowups() {
     },
   });
 
+  const scheduleMutation = useMutation({
+    mutationFn: async (data: ScheduleFollowUpData) => {
+      if (!selectedFollowUp) return;
+      await apiRequest("POST", `/api/leader/converts/${selectedFollowUp.convertId}/schedule-followup`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Follow-up scheduled",
+        description: "The next follow-up has been scheduled.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      setScheduleDialogOpen(false);
+      setSelectedFollowUp(null);
+      scheduleForm.reset({
+        nextFollowupDate: "",
+        includeVideoLink: true,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to schedule follow-up",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAddNotes = (followup: FollowUp) => {
     setSelectedFollowUp(followup);
     notesForm.reset({
@@ -110,6 +157,15 @@ export default function LeaderFollowups() {
       notes: "",
     });
     setNotesDialogOpen(true);
+  };
+
+  const handleScheduleFollowUp = (followup: FollowUp) => {
+    setSelectedFollowUp(followup);
+    scheduleForm.reset({
+      nextFollowupDate: "",
+      includeVideoLink: true,
+    });
+    setScheduleDialogOpen(true);
   };
 
   const handleExportExcel = async () => {
@@ -217,22 +273,53 @@ export default function LeaderFollowups() {
                         </p>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="gap-1"
-                            onClick={() => handleAddNotes(followup)}
-                            data-testid={`button-followup-notes-${followup.id}`}
-                          >
-                            <FileText className="h-3 w-3" />
-                            Follow Up Notes
-                          </Button>
-                          <Link href={`/leader/converts/${followup.convertId}`}>
-                            <Button variant="outline" size="sm" data-testid={`button-view-convert-${followup.id}`}>
-                              View
-                            </Button>
-                          </Link>
+                        <div className="flex items-center justify-end gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="default"
+                                size="icon"
+                                onClick={() => handleAddNotes(followup)}
+                                data-testid={`button-followup-notes-${followup.id}`}
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Follow Up Note</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleScheduleFollowUp(followup)}
+                                data-testid={`button-schedule-followup-${followup.id}`}
+                              >
+                                <CalendarPlus className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Schedule Next Follow Up</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link href={`/leader/converts/${followup.convertId}`}>
+                                <Button variant="outline" size="icon" data-testid={`button-view-convert-${followup.id}`}>
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>View Convert Details</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link href={`/leader/converts/${followup.convertId}#timeline`}>
+                                <Button variant="outline" size="icon" data-testid={`button-timeline-${followup.id}`}>
+                                  <History className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>Follow Up Timeline</TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -336,6 +423,83 @@ export default function LeaderFollowups() {
                     </>
                   ) : (
                     "Save Notes"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Next Follow Up Dialog */}
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Schedule Next Follow Up</DialogTitle>
+            <DialogDescription>
+              {selectedFollowUp && (
+                <>Schedule a new follow-up for {selectedFollowUp.convertFirstName} {selectedFollowUp.convertLastName}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...scheduleForm}>
+            <form
+              onSubmit={scheduleForm.handleSubmit((data) => scheduleMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <FormField
+                control={scheduleForm.control}
+                name="nextFollowupDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Follow-up Date</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        data-testid="input-schedule-date"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={scheduleForm.control}
+                name="includeVideoLink"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-include-video"
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0">Include video call link</FormLabel>
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setScheduleDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={scheduleMutation.isPending}
+                  data-testid="button-schedule-submit"
+                >
+                  {scheduleMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Scheduling...
+                    </>
+                  ) : (
+                    "Schedule"
                   )}
                 </Button>
               </div>
