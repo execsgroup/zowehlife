@@ -164,6 +164,52 @@ export async function sendAccountApprovalEmail(data: AccountApprovalEmailData) {
   }
 }
 
+interface ReminderEmailData {
+  convertName: string;
+  convertEmail: string;
+  leaderName: string;
+  churchName: string;
+  followUpDate: string;
+}
+
+export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
+  try {
+    const { client, fromEmail } = await getUncachableResendClient();
+    
+    const formattedDate = new Date(data.followUpDate).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    await client.emails.send({
+      from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
+      to: data.convertEmail,
+      subject: `Reminder: We're reaching out tomorrow - ${data.churchName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Just a Friendly Reminder</h2>
+          <p>Hello ${data.convertName},</p>
+          <p>We wanted to let you know that someone from ${data.churchName} will be reaching out to you tomorrow to check in and see how you're doing on your faith journey.</p>
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Expected Contact Date:</strong> ${formattedDate}</p>
+            <p><strong>Your Contact:</strong> ${data.leaderName}</p>
+          </div>
+          <p>We're here to support you every step of the way. If you have any prayer requests or need anything before then, please don't hesitate to let us know.</p>
+          <p>Blessings,<br>${data.churchName}</p>
+        </div>
+      `
+    });
+
+    console.log(`Reminder email sent to ${data.convertEmail} for follow-up on ${data.followUpDate}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to send reminder email:', error);
+    return { success: false, error };
+  }
+}
+
 interface AccountDenialEmailData {
   applicantName: string;
   applicantEmail: string;

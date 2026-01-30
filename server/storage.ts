@@ -6,6 +6,7 @@ import {
   prayerRequests,
   auditLog,
   accountRequests,
+  emailReminders,
   type Church,
   type InsertChurch,
   type User,
@@ -97,6 +98,21 @@ export interface IStorage {
   createAccountRequest(request: InsertAccountRequest): Promise<AccountRequest>;
   updateAccountRequest(id: string, data: Partial<InsertAccountRequest>): Promise<AccountRequest>;
   updateAccountRequestStatus(id: string, status: "APPROVED" | "DENIED", reviewedByUserId: string): Promise<AccountRequest>;
+
+  // Email Reminders
+  hasReminderBeenSent(checkinId: string, reminderType: string): Promise<boolean>;
+  recordReminderSent(checkinId: string, reminderType: string): Promise<void>;
+  getCheckinsWithUpcomingFollowups(): Promise<Array<{
+    checkinId: string;
+    convertId: string;
+    convertFirstName: string;
+    convertLastName: string;
+    convertEmail: string | null;
+    leaderName: string;
+    leaderEmail: string;
+    churchName: string;
+    nextFollowupDate: string;
+  }>>;
 
   // Stats
   getAdminStats(): Promise<{
@@ -553,6 +569,66 @@ export class DatabaseStorage implements IStorage {
         nextFollowupDate: f.nextFollowupDate || "",
       })),
     };
+  }
+
+  // Email Reminders
+  async hasReminderBeenSent(checkinId: string, reminderType: string): Promise<boolean> {
+    const result = await db
+      .select()
+      .from(emailReminders)
+      .where(
+        and(
+          eq(emailReminders.checkinId, checkinId),
+          eq(emailReminders.reminderType, reminderType)
+        )
+      );
+    return result.length > 0;
+  }
+
+  async recordReminderSent(checkinId: string, reminderType: string): Promise<void> {
+    await db.insert(emailReminders).values({
+      checkinId,
+      reminderType,
+    });
+  }
+
+  async getCheckinsWithUpcomingFollowups(): Promise<Array<{
+    checkinId: string;
+    convertId: string;
+    convertFirstName: string;
+    convertLastName: string;
+    convertEmail: string | null;
+    leaderName: string;
+    leaderEmail: string;
+    churchName: string;
+    nextFollowupDate: string;
+  }>> {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split("T")[0];
+
+    const results = await db
+      .select({
+        checkinId: checkins.id,
+        convertId: checkins.convertId,
+        convertFirstName: converts.firstName,
+        convertLastName: converts.lastName,
+        convertEmail: converts.email,
+        leaderName: users.fullName,
+        leaderEmail: users.email,
+        churchName: churches.name,
+        nextFollowupDate: checkins.nextFollowupDate,
+      })
+      .from(checkins)
+      .innerJoin(converts, eq(checkins.convertId, converts.id))
+      .innerJoin(users, eq(checkins.createdByUserId, users.id))
+      .innerJoin(churches, eq(checkins.churchId, churches.id))
+      .where(eq(checkins.nextFollowupDate, tomorrowStr));
+
+    return results.map(r => ({
+      ...r,
+      nextFollowupDate: r.nextFollowupDate || "",
+    }));
   }
 }
 

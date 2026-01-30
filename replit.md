@@ -79,6 +79,13 @@ Admin can copy the link from the Churches page using the link icon button.
 3. On approval: edits are persisted, church is auto-created if it doesn't exist, leader account is created
 4. Approval email is sent with temporary password
 
+## Follow-Up Email Notifications
+When a leader or admin creates a check-in with a scheduled follow-up date, the system automatically sends email notifications:
+1. **Initial Email**: Sent immediately when a follow-up is scheduled - notifies both the leader and the convert (if they have an email) about the upcoming contact
+2. **Reminder Email**: Sent one day before the scheduled follow-up date - reminds the convert that someone from the ministry will be reaching out
+
+The email reminder scheduler runs hourly to check for follow-ups scheduled for the next day and sends reminder emails. Sent reminders are tracked in the `email_reminders` table to prevent duplicates.
+
 ## API Routes
 ### Public
 - `GET /api/public/churches` - Get list of churches for form dropdowns

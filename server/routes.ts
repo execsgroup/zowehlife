@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
-import { sendFollowUpNotification, sendAccountApprovalEmail, sendAccountDenialEmail } from "./email";
+import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendAccountDenialEmail } from "./email";
+import { startReminderScheduler } from "./scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import {
   insertChurchSchema,
@@ -668,6 +669,20 @@ export async function registerRoutes(
         notes: data.notes || null,
         nextFollowupDate: data.nextFollowupDate || null,
       });
+
+      // Send follow-up notification email if a next follow-up date is set
+      if (data.nextFollowupDate) {
+        const church = await storage.getChurch(convert.churchId);
+        sendFollowUpNotification({
+          convertName: `${convert.firstName} ${convert.lastName}`,
+          convertEmail: convert.email || undefined,
+          leaderName: user.fullName,
+          leaderEmail: user.email,
+          churchName: church?.name || "Ministry",
+          followUpDate: data.nextFollowupDate,
+          notes: data.notes || undefined,
+        }).catch(err => console.error("Email notification failed:", err));
+      }
 
       res.status(201).json(checkin);
     } catch (error) {
@@ -1334,6 +1349,9 @@ export async function registerRoutes(
       res.status(500).json({ message: "Failed to create checkin" });
     }
   });
+
+  // Start the reminder email scheduler
+  startReminderScheduler();
 
   return httpServer;
 }
