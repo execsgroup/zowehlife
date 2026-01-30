@@ -102,7 +102,7 @@ Leaders record outcomes of completed follow-ups via "Follow Up Notes" button:
 ### Video Call Links
 When scheduling a follow-up, leaders can include an auto-generated Jitsi Meet video call link:
 - No account or API key required
-- Unique room name per scheduling: `zoweh-{firstName}-{lastName}-{timestamp}`
+- Unique room name per scheduling: `{ministryName}-{firstName}-{lastName}-{timestamp}`
 - Link included in both leader and convert emails
 
 The email reminder scheduler runs hourly to check for follow-ups scheduled for the next day and sends reminder emails. Sent reminders are tracked in the `email_reminders` table to prevent duplicates.

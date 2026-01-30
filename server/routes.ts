@@ -1323,7 +1323,8 @@ export async function registerRoutes(
       // Generate video call link if requested
       let videoCallLink: string | undefined;
       if (data.includeVideoLink) {
-        const roomName = `zoweh-${convert.firstName.toLowerCase()}-${convert.lastName.toLowerCase()}-${Date.now()}`.replace(/[^a-z0-9-]/g, '');
+        const sanitizedMinistry = (church?.name || 'zoweh').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const roomName = `${sanitizedMinistry}-${convert.firstName.toLowerCase()}-${convert.lastName.toLowerCase()}-${Date.now()}`.replace(/[^a-z0-9-]/g, '');
         videoCallLink = `https://meet.jit.si/${roomName}`;
       }
 
