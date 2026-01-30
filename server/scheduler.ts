@@ -22,6 +22,20 @@ async function processExpiredFollowups() {
   }
 }
 
+async function processNeverContactedConverts() {
+  try {
+    console.log("[Scheduler] Checking for converts with no follow-up after 30 days...");
+    
+    const count = await storage.markConvertsAsNeverContacted();
+    
+    if (count > 0) {
+      console.log(`[Scheduler] Marked ${count} converts as NEVER_CONTACTED (30+ days with no follow-up)`);
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error processing never contacted converts:", error);
+  }
+}
+
 async function processUpcomingFollowUpReminders() {
   try {
     console.log("[Scheduler] Checking for upcoming follow-ups to send reminders...");
@@ -70,10 +84,12 @@ export function startReminderScheduler() {
   // Run immediately on startup
   processUpcomingFollowUpReminders();
   processExpiredFollowups();
+  processNeverContactedConverts();
   
   // Then run periodically
   setInterval(() => {
     processUpcomingFollowUpReminders();
     processExpiredFollowups();
+    processNeverContactedConverts();
   }, REMINDER_CHECK_INTERVAL);
 }

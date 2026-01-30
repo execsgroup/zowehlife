@@ -25,7 +25,7 @@ import {
   type InsertContactRequest,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, sql, desc, lte, gte, isNotNull } from "drizzle-orm";
+import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -124,6 +124,7 @@ export interface IStorage {
   }>>;
   getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>>;
   updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void>;
+  markConvertsAsNeverContacted(): Promise<number>;
 
   // Stats
   getAdminStats(): Promise<{
@@ -692,6 +693,25 @@ export class DatabaseStorage implements IStorage {
 
   async updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void> {
     await db.update(checkins).set({ outcome }).where(eq(checkins.id, id));
+  }
+
+  async markConvertsAsNeverContacted(): Promise<number> {
+    // Find converts that are still "NEW" and created more than 30 days ago
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const result = await db
+      .update(converts)
+      .set({ status: "NEVER_CONTACTED" })
+      .where(
+        and(
+          eq(converts.status, "NEW"),
+          lt(converts.createdAt, thirtyDaysAgo)
+        )
+      )
+      .returning({ id: converts.id });
+
+    return result.length;
   }
 }
 
