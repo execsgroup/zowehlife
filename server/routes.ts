@@ -1320,6 +1320,9 @@ export async function registerRoutes(
 
       const data = schema.parse(req.body);
 
+      // Fetch church info for video link and email
+      const church = await storage.getChurch(user.churchId);
+
       // Generate video call link if requested
       let videoCallLink: string | undefined;
       if (data.includeVideoLink) {
@@ -1347,7 +1350,6 @@ export async function registerRoutes(
       });
 
       // Send follow-up notification emails
-      const church = await storage.getChurch(user.churchId);
       sendFollowUpNotification({
         convertName: `${convert.firstName} ${convert.lastName}`,
         convertEmail: convert.email || undefined,

@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, Eye, FileSpreadsheet, MessageSquarePlus, Video } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, MessageSquarePlus, Video } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 
@@ -662,15 +662,15 @@ export default function LeaderConverts() {
                     <TableHead>Contact</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Added</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredConverts.map((convert) => (
                     <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
-                      <TableCell className="font-medium">
+                      <TableCell>
                         <Link href={`/leader/converts/${convert.id}`}>
-                          <span className="hover:underline cursor-pointer text-primary" data-testid={`link-convert-name-${convert.id}`}>
+                          <span className="font-medium hover:underline cursor-pointer" data-testid={`link-convert-name-${convert.id}`}>
                             {convert.firstName} {convert.lastName}
                           </span>
                         </Link>
@@ -702,21 +702,10 @@ export default function LeaderConverts() {
                       <TableCell className="text-muted-foreground">
                         {format(new Date(convert.createdAt), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Link href={`/leader/converts/${convert.id}`}>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="gap-1"
-                              data-testid={`button-view-convert-${convert.id}`}
-                            >
-                              <Eye className="h-3 w-3" />
-                              View
-                            </Button>
-                          </Link>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
                           <Button
-                            variant="ghost"
+                            variant="default"
                             size="sm"
                             className="gap-1"
                             onClick={() => handleScheduleFollowUp(convert)}
@@ -725,6 +714,15 @@ export default function LeaderConverts() {
                             <MessageSquarePlus className="h-3 w-3" />
                             Schedule Follow Up
                           </Button>
+                          <Link href={`/leader/converts/${convert.id}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              data-testid={`button-view-convert-${convert.id}`}
+                            >
+                              View
+                            </Button>
+                          </Link>
                         </div>
                       </TableCell>
                     </TableRow>
