@@ -30,7 +30,7 @@ const contactSchema = z.object({
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   phone: z.string().optional(),
   message: z.string().min(10, "Message must be at least 10 characters"),
-  churchPreference: z.string().optional(),
+  churchPreference: z.string().min(1, "Please select a ministry"),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -115,8 +115,7 @@ export default function Contact() {
                 Prayer Requests
               </h1>
               <p className="text-lg text-muted-foreground">
-                We would love to hear from you. Whether you need prayer, want to share a decision
-                for Christ, or just want to connect, we're here for you.
+                We would love to pray with you. If you have a prayer request, please share it with us—we are here to stand with you in prayer.
               </p>
             </div>
           </div>
@@ -130,7 +129,7 @@ export default function Contact() {
                 <CardHeader>
                   <CardTitle>Send us your Prayer Request</CardTitle>
                   <CardDescription>
-                    Fill out the form below and we'll get back to you as soon as possible.
+                    Fill out the form below so we can pray along with you.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -207,7 +206,7 @@ export default function Contact() {
                         name="churchPreference"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Ministry Preference</FormLabel>
+                            <FormLabel>Ministry Preference *</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-church-preference">
@@ -232,7 +231,7 @@ export default function Contact() {
                         name="message"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Your Message / Prayer Request *</FormLabel>
+                            <FormLabel>Prayer Request *</FormLabel>
                             <FormControl>
                               <Textarea
                                 placeholder="Share your prayer request, question, or let us know about your decision for Christ..."

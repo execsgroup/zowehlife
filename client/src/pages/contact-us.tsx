@@ -22,7 +22,7 @@ const contactUsSchema = z.object({
   phone: z.string().optional(),
   subject: z.string().min(3, "Subject must be at least 3 characters"),
   message: z.string().min(10, "Message must be at least 10 characters"),
-  churchPreference: z.string().optional(),
+  churchPreference: z.string().min(1, "Please select a ministry"),
 });
 
 type ContactUsFormData = z.infer<typeof contactUsSchema>;
@@ -202,11 +202,11 @@ export default function ContactUs() {
                         name="churchPreference"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Ministry Preference</FormLabel>
+                            <FormLabel>Ministry Preference *</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-contact-ministry">
-                                  <SelectValue placeholder="Select a ministry (optional)" />
+                                  <SelectValue placeholder="Select a ministry" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
