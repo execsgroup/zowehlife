@@ -203,7 +203,7 @@ export default function LeaderDashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Upcoming Follow-ups</CardTitle>
+                <CardTitle>Follow-ups</CardTitle>
                 <CardDescription>
                   Converts that need to be checked in on
                 </CardDescription>

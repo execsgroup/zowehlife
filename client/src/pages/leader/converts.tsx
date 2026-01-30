@@ -661,7 +661,7 @@ export default function LeaderConverts() {
                     <TableHead>Date of Birth</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Added</TableHead>
+                    <TableHead>Convert Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>

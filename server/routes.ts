@@ -1170,6 +1170,39 @@ export async function registerRoutes(
     }
   });
 
+  // Export leader's follow-ups as Excel
+  app.get("/api/leader/followups/export-excel", requireLeader, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const user = (req as any).user;
+
+      // Use the same data source as the follow-ups page
+      const followupsWithDetails = await storage.getUpcomingFollowups(user.churchId);
+
+      // Build data for Excel
+      const data = followupsWithDetails.map((f) => ({
+        "Convert Name": `${f.convertFirstName} ${f.convertLastName}`,
+        "Phone": f.convertPhone || "",
+        "Email": f.convertEmail || "",
+        "Follow-up Date": f.nextFollowupDate || "",
+        "Notes": f.notes || "",
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Follow-ups");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=followups.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
+      res.status(500).json({ message: "Failed to export follow-ups" });
+    }
+  });
+
   // Get single convert with checkins
   app.get("/api/leader/converts/:id", requireLeader, async (req, res) => {
     try {

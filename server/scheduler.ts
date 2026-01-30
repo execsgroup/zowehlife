@@ -3,6 +3,25 @@ import { sendFollowUpReminderEmail } from "./email";
 
 const REMINDER_CHECK_INTERVAL = 60 * 60 * 1000; // Check every hour
 
+async function processExpiredFollowups() {
+  try {
+    console.log("[Scheduler] Checking for expired follow-ups to mark as NOT_COMPLETED...");
+    
+    const expiredFollowups = await storage.getExpiredScheduledFollowups();
+    
+    for (const followup of expiredFollowups) {
+      await storage.updateCheckinOutcome(followup.id, "NOT_COMPLETED");
+      console.log(`[Scheduler] Marked follow-up ${followup.id} as NOT_COMPLETED (was scheduled for ${followup.nextFollowupDate})`);
+    }
+    
+    if (expiredFollowups.length > 0) {
+      console.log(`[Scheduler] Marked ${expiredFollowups.length} expired follow-ups as NOT_COMPLETED`);
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error processing expired follow-ups:", error);
+  }
+}
+
 async function processUpcomingFollowUpReminders() {
   try {
     console.log("[Scheduler] Checking for upcoming follow-ups to send reminders...");
@@ -50,7 +69,11 @@ export function startReminderScheduler() {
   
   // Run immediately on startup
   processUpcomingFollowUpReminders();
+  processExpiredFollowups();
   
   // Then run periodically
-  setInterval(processUpcomingFollowUpReminders, REMINDER_CHECK_INTERVAL);
+  setInterval(() => {
+    processUpcomingFollowUpReminders();
+    processExpiredFollowups();
+  }, REMINDER_CHECK_INTERVAL);
 }

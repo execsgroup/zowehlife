@@ -210,7 +210,7 @@ export default function AdminConvertDetail() {
                   {convert.firstName} {convert.lastName}
                 </CardTitle>
                 <CardDescription>
-                  Added on {format(new Date(convert.createdAt), "MMMM d, yyyy")}
+                  Convert Date: {format(new Date(convert.createdAt), "MMMM d, yyyy")}
                   {convert.church && (
                     <span> • Ministry: <strong>{convert.church.name}</strong></span>
                   )}

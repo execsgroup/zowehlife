@@ -105,7 +105,9 @@ When scheduling a follow-up, leaders can include an auto-generated Jitsi Meet vi
 - Unique room name per scheduling: `{ministryName}-{firstName}-{lastName}-{timestamp}`
 - Link included in both leader and convert emails
 
-The email reminder scheduler runs hourly to check for follow-ups scheduled for the next day and sends reminder emails. Sent reminders are tracked in the `email_reminders` table to prevent duplicates.
+The email reminder scheduler runs hourly to:
+1. Check for follow-ups scheduled for the next day and send reminder emails (tracked in `email_reminders` table to prevent duplicates)
+2. Mark SCHEDULED_VISIT follow-ups as NOT_COMPLETED if they are more than 5 days past their scheduled date without a follow-up note being recorded
 
 ## API Routes
 ### Public

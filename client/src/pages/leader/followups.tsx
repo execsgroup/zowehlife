@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Phone, Mail, User, Clock, FileText, Loader2 } from "lucide-react";
+import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet } from "lucide-react";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -112,14 +112,42 @@ export default function LeaderFollowups() {
     setNotesDialogOpen(true);
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const response = await fetch("/api/leader/followups/export-excel");
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `followups-export-${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Export failed",
+        description: "Unable to export follow-ups. Please try again.",
+      });
+    }
+  };
+
   return (
-    <DashboardLayout title="Upcoming Follow-ups">
+    <DashboardLayout title="Follow-ups">
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Upcoming Follow-ups</h2>
-          <p className="text-muted-foreground" data-testid="text-page-description">
-            Your scheduled follow-ups with new converts
-          </p>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Follow-ups</h2>
+            <p className="text-muted-foreground" data-testid="text-page-description">
+              Your scheduled follow-ups with new converts
+            </p>
+          </div>
+          <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
+            <FileSpreadsheet className="h-4 w-4" />
+            Export Excel
+          </Button>
         </div>
 
         <Card>

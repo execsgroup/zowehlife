@@ -22,7 +22,7 @@ import {
   type InsertAccountRequest,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, sql, desc, lte, gte } from "drizzle-orm";
+import { eq, and, sql, desc, lte, gte, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -113,6 +113,8 @@ export interface IStorage {
     churchName: string;
     nextFollowupDate: string;
   }>>;
+  getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>>;
+  updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void>;
 
   // Stats
   getAdminStats(): Promise<{
@@ -629,6 +631,36 @@ export class DatabaseStorage implements IStorage {
       ...r,
       nextFollowupDate: r.nextFollowupDate || "",
     }));
+  }
+
+  async getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>> {
+    // Get follow-ups that are SCHEDULED_VISIT and more than 5 days past their scheduled date
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    const fiveDaysAgoStr = fiveDaysAgo.toISOString().split("T")[0];
+
+    const results = await db
+      .select({
+        id: checkins.id,
+        nextFollowupDate: checkins.nextFollowupDate,
+      })
+      .from(checkins)
+      .where(
+        and(
+          eq(checkins.outcome, "SCHEDULED_VISIT"),
+          isNotNull(checkins.nextFollowupDate),
+          lte(checkins.nextFollowupDate, fiveDaysAgoStr)
+        )
+      );
+
+    return results.map(r => ({
+      id: r.id,
+      nextFollowupDate: r.nextFollowupDate || "",
+    }));
+  }
+
+  async updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void> {
+    await db.update(checkins).set({ outcome }).where(eq(checkins.id, id));
   }
 }
 
