@@ -18,7 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, Eye, FileSpreadsheet, MessageSquarePlus } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, Eye, FileSpreadsheet, MessageSquarePlus, Video } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
 
 const countries = [
@@ -69,14 +70,16 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const checkinFormSchema = z.object({
-  checkinDate: z.string().min(1, "Date is required"),
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
-  notes: z.string().optional(),
-  nextFollowupDate: z.string().optional(),
+const scheduleFollowUpSchema = z.object({
+  nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+  customLeaderSubject: z.string().optional(),
+  customLeaderMessage: z.string().optional(),
+  customConvertSubject: z.string().optional(),
+  customConvertMessage: z.string().optional(),
+  includeVideoLink: z.boolean().optional(),
 });
 
-type CheckinFormData = z.infer<typeof checkinFormSchema>;
+type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
 
 export default function LeaderConverts() {
   const { toast } = useToast();
@@ -112,13 +115,15 @@ export default function LeaderConverts() {
     },
   });
 
-  const checkinForm = useForm<CheckinFormData>({
-    resolver: zodResolver(checkinFormSchema),
+  const scheduleForm = useForm<ScheduleFollowUpData>({
+    resolver: zodResolver(scheduleFollowUpSchema),
     defaultValues: {
-      checkinDate: format(new Date(), "yyyy-MM-dd"),
-      outcome: "CONNECTED",
-      notes: "",
       nextFollowupDate: "",
+      customLeaderSubject: "",
+      customLeaderMessage: "",
+      customConvertSubject: "",
+      customConvertMessage: "",
+      includeVideoLink: true,
     },
   });
 
@@ -129,42 +134,47 @@ export default function LeaderConverts() {
     }
   }, [location]);
 
-  const checkinMutation = useMutation({
-    mutationFn: async (data: CheckinFormData) => {
+  const scheduleFollowUpMutation = useMutation({
+    mutationFn: async (data: ScheduleFollowUpData) => {
       if (!selectedConvert) return;
-      await apiRequest("POST", `/api/leader/converts/${selectedConvert.id}/checkins`, data);
+      await apiRequest("POST", `/api/leader/converts/${selectedConvert.id}/schedule-followup`, data);
     },
     onSuccess: () => {
       toast({
-        title: "Check-in recorded",
-        description: "The follow-up check-in has been saved successfully.",
+        title: "Follow-up scheduled",
+        description: "The follow-up has been scheduled and email notifications will be sent.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
       setFollowUpDialogOpen(false);
       setSelectedConvert(null);
-      checkinForm.reset({
-        checkinDate: format(new Date(), "yyyy-MM-dd"),
-        outcome: "CONNECTED",
-        notes: "",
+      scheduleForm.reset({
         nextFollowupDate: "",
+        customLeaderSubject: "",
+        customLeaderMessage: "",
+        customConvertSubject: "",
+        customConvertMessage: "",
+        includeVideoLink: true,
       });
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to record check-in",
+        description: error.message || "Failed to schedule follow-up",
         variant: "destructive",
       });
     },
   });
 
-  const handleFollowUp = (convert: Convert) => {
+  const handleScheduleFollowUp = (convert: Convert) => {
     setSelectedConvert(convert);
-    checkinForm.reset({
-      checkinDate: format(new Date(), "yyyy-MM-dd"),
-      outcome: "CONNECTED",
-      notes: "",
+    scheduleForm.reset({
       nextFollowupDate: "",
+      customLeaderSubject: "",
+      customLeaderMessage: "",
+      customConvertSubject: "",
+      customConvertMessage: "",
+      includeVideoLink: true,
     });
     setFollowUpDialogOpen(true);
   };
@@ -709,11 +719,11 @@ export default function LeaderConverts() {
                             variant="ghost"
                             size="sm"
                             className="gap-1"
-                            onClick={() => handleFollowUp(convert)}
-                            data-testid={`button-followup-convert-${convert.id}`}
+                            onClick={() => handleScheduleFollowUp(convert)}
+                            data-testid={`button-schedule-followup-${convert.id}`}
                           >
                             <MessageSquarePlus className="h-3 w-3" />
-                            Follow Up
+                            Schedule Follow Up
                           </Button>
                         </div>
                       </TableCell>
@@ -742,90 +752,147 @@ export default function LeaderConverts() {
         </Card>
       </div>
 
-      {/* Follow Up Check-in Dialog */}
+      {/* Schedule Follow Up Dialog */}
       <Dialog open={followUpDialogOpen} onOpenChange={setFollowUpDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Record Follow-Up</DialogTitle>
+            <DialogTitle>Schedule Follow Up</DialogTitle>
             <DialogDescription>
               {selectedConvert && (
-                <>Record a check-in for {selectedConvert.firstName} {selectedConvert.lastName}</>
+                <>Schedule a follow-up with {selectedConvert.firstName} {selectedConvert.lastName} and send email notifications</>
               )}
             </DialogDescription>
           </DialogHeader>
-          <Form {...checkinForm}>
+          <Form {...scheduleForm}>
             <form
-              onSubmit={checkinForm.handleSubmit((data) => checkinMutation.mutate(data))}
+              onSubmit={scheduleForm.handleSubmit((data) => scheduleFollowUpMutation.mutate(data))}
               className="space-y-4"
             >
               <FormField
-                control={checkinForm.control}
-                name="checkinDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Check-in Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} data-testid="input-followup-date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={checkinForm.control}
-                name="outcome"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Outcome</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-followup-outcome">
-                          <SelectValue placeholder="Select outcome" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="CONNECTED">Connected</SelectItem>
-                        <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                        <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                        <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                        <SelectItem value="REFERRED">Referred</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={checkinForm.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Add any notes about this check-in..."
-                        {...field}
-                        data-testid="input-followup-notes"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={checkinForm.control}
+                control={scheduleForm.control}
                 name="nextFollowupDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Next Follow-up Date (optional)</FormLabel>
+                    <FormLabel>Follow-up Date *</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} data-testid="input-next-followup-date" />
+                      <Input type="date" {...field} data-testid="input-schedule-followup-date" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={scheduleForm.control}
+                name="includeVideoLink"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-include-video-link"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="flex items-center gap-2">
+                        <Video className="h-4 w-4" />
+                        Include video call link
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Add a free Jitsi Meet video call link to the email
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-4 border-t pt-4">
+                <p className="text-sm text-muted-foreground">
+                  Customize the email notifications (leave blank for defaults):
+                </p>
+                
+                <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm font-medium">Your Reminder Email</p>
+                  <FormField
+                    control={scheduleForm.control}
+                    name="customLeaderSubject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subject Line</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Leave blank for default subject..."
+                            {...field}
+                            data-testid="input-leader-subject"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={scheduleForm.control}
+                    name="customLeaderMessage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Message Body</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Leave blank for default message..."
+                            className="resize-none min-h-[80px]"
+                            {...field}
+                            data-testid="input-leader-message"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {selectedConvert?.email && (
+                  <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm font-medium">Email to {selectedConvert.firstName}</p>
+                    <FormField
+                      control={scheduleForm.control}
+                      name="customConvertSubject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subject Line</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Leave blank for default subject..."
+                              {...field}
+                              data-testid="input-convert-subject"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={scheduleForm.control}
+                      name="customConvertMessage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Message Body</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Leave blank for default message..."
+                              className="resize-none min-h-[80px]"
+                              {...field}
+                              data-testid="input-convert-message"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <Button
                   type="button"
@@ -836,16 +903,16 @@ export default function LeaderConverts() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={checkinMutation.isPending}
-                  data-testid="button-save-followup"
+                  disabled={scheduleFollowUpMutation.isPending}
+                  data-testid="button-schedule-followup"
                 >
-                  {checkinMutation.isPending ? (
+                  {scheduleFollowUpMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Saving...
+                      Scheduling...
                     </>
                   ) : (
-                    "Save Check-in"
+                    "Schedule Follow Up"
                   )}
                 </Button>
               </div>

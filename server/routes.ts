@@ -1294,6 +1294,84 @@ export async function registerRoutes(
     }
   });
 
+  // Schedule follow-up (dedicated endpoint for scheduling with email notifications)
+  app.post("/api/leader/converts/:convertId/schedule-followup", requireLeader, async (req, res) => {
+    try {
+      const { convertId } = req.params;
+      const user = (req as any).user;
+
+      const convert = await storage.getConvert(convertId);
+      if (!convert) {
+        return res.status(404).json({ message: "Convert not found" });
+      }
+
+      if (convert.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const schema = z.object({
+        nextFollowupDate: z.string().min(1),
+        customLeaderSubject: z.string().optional(),
+        customLeaderMessage: z.string().optional(),
+        customConvertSubject: z.string().optional(),
+        customConvertMessage: z.string().optional(),
+        includeVideoLink: z.boolean().optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      // Generate video call link if requested
+      let videoCallLink: string | undefined;
+      if (data.includeVideoLink) {
+        const roomName = `zoweh-${convert.firstName.toLowerCase()}-${convert.lastName.toLowerCase()}-${Date.now()}`.replace(/[^a-z0-9-]/g, '');
+        videoCallLink = `https://meet.jit.si/${roomName}`;
+      }
+
+      // Create a checkin record to track the scheduled follow-up
+      const checkin = await storage.createCheckin({
+        convertId,
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        checkinDate: new Date().toISOString().split('T')[0],
+        notes: `Follow-up scheduled for ${data.nextFollowupDate}${videoCallLink ? ` - Video call: ${videoCallLink}` : ''}`,
+        outcome: "SCHEDULED_VISIT",
+        nextFollowupDate: data.nextFollowupDate,
+      });
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "CREATE",
+        entityType: "CHECKIN",
+        entityId: checkin.id,
+      });
+
+      // Send follow-up notification emails
+      const church = await storage.getChurch(user.churchId);
+      sendFollowUpNotification({
+        convertName: `${convert.firstName} ${convert.lastName}`,
+        convertEmail: convert.email || undefined,
+        leaderName: user.fullName,
+        leaderEmail: user.email,
+        churchName: church?.name || "Ministry",
+        followUpDate: data.nextFollowupDate,
+        notes: videoCallLink ? `Video Call Link: ${videoCallLink}` : undefined,
+        customLeaderMessage: data.customLeaderMessage || undefined,
+        customConvertMessage: data.customConvertMessage || undefined,
+        customLeaderSubject: data.customLeaderSubject || undefined,
+        customConvertSubject: data.customConvertSubject || undefined,
+        videoCallLink,
+      }).catch(err => console.error("Email notification failed:", err));
+
+      res.status(201).json({ ...checkin, videoCallLink });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error scheduling follow-up:", error);
+      res.status(500).json({ message: "Failed to schedule follow-up" });
+    }
+  });
+
   // Create checkin
   app.post("/api/leader/converts/:convertId/checkins", requireLeader, async (req, res) => {
     try {

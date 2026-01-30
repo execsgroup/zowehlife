@@ -1,13 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Phone, Mail, User, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, Phone, Mail, User, Clock, FileText, Loader2 } from "lucide-react";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface FollowUp {
   id: string;
@@ -19,6 +29,13 @@ interface FollowUp {
   nextFollowupDate: string;
   notes: string | null;
 }
+
+const followUpNotesSchema = z.object({
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  notes: z.string().optional(),
+});
+
+type FollowUpNotesData = z.infer<typeof followUpNotesSchema>;
 
 function getDateBadge(dateStr: string, id: string) {
   const date = new Date(dateStr);
@@ -37,9 +54,63 @@ function getDateBadge(dateStr: string, id: string) {
 }
 
 export default function LeaderFollowups() {
+  const { toast } = useToast();
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null);
+
   const { data: followups, isLoading } = useQuery<FollowUp[]>({
     queryKey: ["/api/leader/followups"],
   });
+
+  const notesForm = useForm<FollowUpNotesData>({
+    resolver: zodResolver(followUpNotesSchema),
+    defaultValues: {
+      outcome: "CONNECTED",
+      notes: "",
+    },
+  });
+
+  const notesMutation = useMutation({
+    mutationFn: async (data: FollowUpNotesData) => {
+      if (!selectedFollowUp) return;
+      await apiRequest("POST", `/api/leader/converts/${selectedFollowUp.convertId}/checkins`, {
+        checkinDate: format(new Date(), "yyyy-MM-dd"),
+        outcome: data.outcome,
+        notes: data.notes || "",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Notes recorded",
+        description: "Your follow-up notes have been saved.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
+      setNotesDialogOpen(false);
+      setSelectedFollowUp(null);
+      notesForm.reset({
+        outcome: "CONNECTED",
+        notes: "",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save notes",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddNotes = (followup: FollowUp) => {
+    setSelectedFollowUp(followup);
+    notesForm.reset({
+      outcome: "CONNECTED",
+      notes: "",
+    });
+    setNotesDialogOpen(true);
+  };
 
   return (
     <DashboardLayout title="Upcoming Follow-ups">
@@ -118,11 +189,23 @@ export default function LeaderFollowups() {
                         </p>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Link href={`/leader/converts/${followup.convertId}`}>
-                          <Button variant="outline" data-testid={`button-view-convert-${followup.id}`}>
-                            View Convert
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => handleAddNotes(followup)}
+                            data-testid={`button-followup-notes-${followup.id}`}
+                          >
+                            <FileText className="h-3 w-3" />
+                            Follow Up Notes
                           </Button>
-                        </Link>
+                          <Link href={`/leader/converts/${followup.convertId}`}>
+                            <Button variant="outline" size="sm" data-testid={`button-view-convert-${followup.id}`}>
+                              View
+                            </Button>
+                          </Link>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -145,6 +228,93 @@ export default function LeaderFollowups() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Follow Up Notes Dialog */}
+      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Follow Up Notes</DialogTitle>
+            <DialogDescription>
+              {selectedFollowUp && (
+                <>Record what happened during your follow-up with {selectedFollowUp.convertFirstName} {selectedFollowUp.convertLastName}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...notesForm}>
+            <form
+              onSubmit={notesForm.handleSubmit((data) => notesMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <FormField
+                control={notesForm.control}
+                name="outcome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Outcome</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-notes-outcome">
+                          <SelectValue placeholder="Select outcome" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="CONNECTED">Connected</SelectItem>
+                        <SelectItem value="NO_RESPONSE">No Response</SelectItem>
+                        <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
+                        <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
+                        <SelectItem value="REFERRED">Referred</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={notesForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="What happened during this follow-up? Any prayer requests or next steps?"
+                        className="resize-none min-h-[120px]"
+                        {...field}
+                        data-testid="input-notes-content"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setNotesDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={notesMutation.isPending}
+                  data-testid="button-save-notes"
+                >
+                  {notesMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Notes"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

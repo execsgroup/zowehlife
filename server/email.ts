@@ -50,6 +50,7 @@ interface FollowUpEmailData {
   customConvertMessage?: string;
   customLeaderSubject?: string;
   customConvertSubject?: string;
+  videoCallLink?: string;
 }
 
 export async function sendFollowUpNotification(data: FollowUpEmailData) {
@@ -65,6 +66,15 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
 
     const emailsToSend: Promise<any>[] = [];
 
+    // Video call section HTML
+    const videoCallSection = data.videoCallLink 
+      ? `<div style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196F3;">
+          <p style="margin: 0 0 10px 0;"><strong>Video Call Link:</strong></p>
+          <a href="${data.videoCallLink}" style="color: #2196F3; text-decoration: none; word-break: break-all;">${data.videoCallLink}</a>
+          <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">Click to join the video call - no account required</p>
+        </div>`
+      : '';
+
     // Build leader email content - use custom message if provided
     const leaderEmailContent = data.customLeaderMessage 
       ? `
@@ -76,8 +86,8 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <p><strong>Convert:</strong> ${data.convertName}</p>
               <p><strong>Ministry:</strong> ${data.churchName}</p>
               <p><strong>Follow-up Date:</strong> ${formattedDate}</p>
-              ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
             </div>
+            ${videoCallSection}
             <p>Blessings,<br>Zoweh Life</p>
           </div>
         `
@@ -90,8 +100,8 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <p><strong>Convert:</strong> ${data.convertName}</p>
               <p><strong>Ministry:</strong> ${data.churchName}</p>
               <p><strong>Follow-up Date:</strong> ${formattedDate}</p>
-              ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
             </div>
+            ${videoCallSection}
             <p>Please ensure to reach out and connect with ${data.convertName} on the scheduled date.</p>
             <p>Blessings,<br>Zoweh Life</p>
           </div>
@@ -120,6 +130,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
                 <p><strong>Expected Contact Date:</strong> ${formattedDate}</p>
                 <p><strong>Your Contact:</strong> ${data.leaderName}</p>
               </div>
+              ${videoCallSection}
               <p>Blessings,<br>${data.churchName}</p>
             </div>
           `
@@ -132,6 +143,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
                 <p><strong>Expected Contact Date:</strong> ${formattedDate}</p>
                 <p><strong>Your Contact:</strong> ${data.leaderName}</p>
               </div>
+              ${videoCallSection}
               <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
               <p>Blessings,<br>${data.churchName}</p>
             </div>
