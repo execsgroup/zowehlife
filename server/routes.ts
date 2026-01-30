@@ -658,6 +658,8 @@ export async function registerRoutes(
         nextFollowupDate: z.string().optional(),
         customLeaderMessage: z.string().optional(),
         customConvertMessage: z.string().optional(),
+        customLeaderSubject: z.string().optional(),
+        customConvertSubject: z.string().optional(),
       });
 
       const data = schema.parse(req.body);
@@ -685,6 +687,8 @@ export async function registerRoutes(
           notes: data.notes || undefined,
           customLeaderMessage: data.customLeaderMessage || undefined,
           customConvertMessage: data.customConvertMessage || undefined,
+          customLeaderSubject: data.customLeaderSubject || undefined,
+          customConvertSubject: data.customConvertSubject || undefined,
         }).catch(err => console.error("Email notification failed:", err));
       }
 
@@ -1313,6 +1317,8 @@ export async function registerRoutes(
         nextFollowupDate: z.string().optional(),
         customLeaderMessage: z.string().optional(),
         customConvertMessage: z.string().optional(),
+        customLeaderSubject: z.string().optional(),
+        customConvertSubject: z.string().optional(),
       });
 
       const data = schema.parse(req.body);
@@ -1346,6 +1352,8 @@ export async function registerRoutes(
           notes: data.notes || undefined,
           customLeaderMessage: data.customLeaderMessage || undefined,
           customConvertMessage: data.customConvertMessage || undefined,
+          customLeaderSubject: data.customLeaderSubject || undefined,
+          customConvertSubject: data.customConvertSubject || undefined,
         }).catch(err => console.error("Email notification failed:", err));
       }
 

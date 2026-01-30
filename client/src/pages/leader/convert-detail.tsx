@@ -47,6 +47,8 @@ const checkinFormSchema = z.object({
   nextFollowupDate: z.string().optional(),
   customLeaderMessage: z.string().optional(),
   customConvertMessage: z.string().optional(),
+  customLeaderSubject: z.string().optional(),
+  customConvertSubject: z.string().optional(),
 });
 
 const updateConvertSchema = z.object({
@@ -132,6 +134,8 @@ export default function ConvertDetail() {
       nextFollowupDate: "",
       customLeaderMessage: "",
       customConvertMessage: "",
+      customLeaderSubject: "",
+      customConvertSubject: "",
     },
   });
 
@@ -199,6 +203,8 @@ export default function ConvertDetail() {
         nextFollowupDate: "",
         customLeaderMessage: "",
         customConvertMessage: "",
+        customLeaderSubject: "",
+        customConvertSubject: "",
       });
     },
     onError: (error: Error) => {
@@ -575,47 +581,87 @@ END:VCALENDAR`;
                       {watchNextFollowupDate && (
                         <div className="space-y-4 border-t pt-4 mt-4">
                           <p className="text-sm text-muted-foreground">
-                            Customize the email notifications that will be sent (leave blank for default message):
+                            Customize the email notifications that will be sent (leave blank for defaults):
                           </p>
                           
-                          <FormField
-                            control={checkinForm.control}
-                            name="customLeaderMessage"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Your Reminder Message (to yourself)</FormLabel>
-                                <FormControl>
-                                  <Textarea
-                                    placeholder="Leave blank for default reminder, or write a custom message to remind yourself about this follow-up..."
-                                    className="resize-none min-h-[80px]"
-                                    {...field}
-                                    data-testid="input-custom-leader-message"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          {convert?.email && (
+                          <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                            <p className="text-sm font-medium">Your Reminder Email</p>
                             <FormField
                               control={checkinForm.control}
-                              name="customConvertMessage"
+                              name="customLeaderSubject"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Message to {convert.firstName} (initial email)</FormLabel>
+                                  <FormLabel>Subject Line</FormLabel>
                                   <FormControl>
-                                    <Textarea
-                                      placeholder="Leave blank for default message, or write a personalized message to let them know you'll be reaching out..."
-                                      className="resize-none min-h-[80px]"
+                                    <Input
+                                      placeholder="Leave blank for default subject..."
                                       {...field}
-                                      data-testid="input-custom-convert-message"
+                                      data-testid="input-custom-leader-subject"
                                     />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
+                            <FormField
+                              control={checkinForm.control}
+                              name="customLeaderMessage"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Message Body</FormLabel>
+                                  <FormControl>
+                                    <Textarea
+                                      placeholder="Leave blank for default message..."
+                                      className="resize-none min-h-[80px]"
+                                      {...field}
+                                      data-testid="input-custom-leader-message"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          {convert?.email && (
+                            <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                              <p className="text-sm font-medium">Email to {convert.firstName}</p>
+                              <FormField
+                                control={checkinForm.control}
+                                name="customConvertSubject"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Subject Line</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Leave blank for default subject..."
+                                        {...field}
+                                        data-testid="input-custom-convert-subject"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={checkinForm.control}
+                                name="customConvertMessage"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Message Body</FormLabel>
+                                    <FormControl>
+                                      <Textarea
+                                        placeholder="Leave blank for default message..."
+                                        className="resize-none min-h-[80px]"
+                                        {...field}
+                                        data-testid="input-custom-convert-message"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
                           )}
                         </div>
                       )}

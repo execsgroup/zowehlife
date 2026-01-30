@@ -48,6 +48,8 @@ interface FollowUpEmailData {
   notes?: string;
   customLeaderMessage?: string;
   customConvertMessage?: string;
+  customLeaderSubject?: string;
+  customConvertSubject?: string;
 }
 
 export async function sendFollowUpNotification(data: FollowUpEmailData) {
@@ -95,11 +97,13 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
           </div>
         `;
 
+    const leaderSubject = data.customLeaderSubject || `Follow-up Reminder: ${data.convertName} on ${formattedDate}`;
+    
     emailsToSend.push(
       client.emails.send({
         from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
         to: data.leaderEmail,
-        subject: `Follow-up Reminder: ${data.convertName} on ${formattedDate}`,
+        subject: leaderSubject,
         html: leaderEmailContent
       })
     );
@@ -133,11 +137,13 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
             </div>
           `;
 
+      const convertSubject = data.customConvertSubject || `We'd love to connect with you - ${data.churchName}`;
+      
       emailsToSend.push(
         client.emails.send({
           from: fromEmail || 'Zoweh Life <noreply@resend.dev>',
           to: data.convertEmail,
-          subject: `We'd love to connect with you - ${data.churchName}`,
+          subject: convertSubject,
           html: convertEmailContent
         })
       );
