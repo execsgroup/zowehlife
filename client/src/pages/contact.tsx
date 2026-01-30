@@ -234,7 +234,7 @@ export default function Contact() {
                             <FormLabel>Prayer Request *</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Share your prayer request, question, or let us know about your decision for Christ..."
+                                placeholder="Please share your prayer request here. Our prayer team will faithfully pray with you."
                                 className="min-h-[150px] resize-none"
                                 {...field}
                                 data-testid="input-message"
