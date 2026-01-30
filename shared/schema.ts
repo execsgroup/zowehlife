@@ -157,6 +157,18 @@ export const emailReminders = pgTable("email_reminders", {
   sentAt: timestamp("sent_at").defaultNow().notNull(),
 });
 
+// Contact requests table
+export const contactRequests = pgTable("contact_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  churchPreference: text("church_preference"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertChurchSchema = createInsertSchema(churches).omit({
   id: true,
@@ -194,6 +206,11 @@ export const insertAccountRequestSchema = createInsertSchema(accountRequests).om
   status: true,
   reviewedByUserId: true,
   reviewedAt: true,
+  createdAt: true,
+});
+
+export const insertContactRequestSchema = createInsertSchema(contactRequests).omit({
+  id: true,
   createdAt: true,
 });
 
@@ -250,6 +267,9 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 
 export type AccountRequest = typeof accountRequests.$inferSelect;
 export type InsertAccountRequest = z.infer<typeof insertAccountRequestSchema>;
+
+export type ContactRequest = typeof contactRequests.$inferSelect;
+export type InsertContactRequest = z.infer<typeof insertContactRequestSchema>;
 
 export type LoginData = z.infer<typeof loginSchema>;
 export type AdminSetupData = z.infer<typeof adminSetupSchema>;

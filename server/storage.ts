@@ -7,6 +7,7 @@ import {
   auditLog,
   accountRequests,
   emailReminders,
+  contactRequests,
   type Church,
   type InsertChurch,
   type User,
@@ -20,6 +21,8 @@ import {
   type InsertAuditLog,
   type AccountRequest,
   type InsertAccountRequest,
+  type ContactRequest,
+  type InsertContactRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, isNotNull } from "drizzle-orm";
@@ -88,6 +91,11 @@ export interface IStorage {
   getPrayerRequests(): Promise<PrayerRequest[]>;
   getPrayerRequestsByChurch(churchName: string): Promise<PrayerRequest[]>;
   createPrayerRequest(request: InsertPrayerRequest): Promise<PrayerRequest>;
+
+  // Contact Requests
+  getContactRequests(): Promise<ContactRequest[]>;
+  getContactRequestsByChurch(churchName: string): Promise<ContactRequest[]>;
+  createContactRequest(request: InsertContactRequest): Promise<ContactRequest>;
 
   // Audit Log
   createAuditLog(log: InsertAuditLog): Promise<void>;
@@ -438,6 +446,22 @@ export class DatabaseStorage implements IStorage {
 
   async createPrayerRequest(insertRequest: InsertPrayerRequest): Promise<PrayerRequest> {
     const [request] = await db.insert(prayerRequests).values(insertRequest).returning();
+    return request;
+  }
+
+  // Contact Requests
+  async getContactRequests(): Promise<ContactRequest[]> {
+    return db.select().from(contactRequests).orderBy(desc(contactRequests.createdAt));
+  }
+
+  async getContactRequestsByChurch(churchName: string): Promise<ContactRequest[]> {
+    return db.select().from(contactRequests)
+      .where(eq(contactRequests.churchPreference, churchName))
+      .orderBy(desc(contactRequests.createdAt));
+  }
+
+  async createContactRequest(insertRequest: InsertContactRequest): Promise<ContactRequest> {
+    const [request] = await db.insert(contactRequests).values(insertRequest).returning();
     return request;
   }
 
