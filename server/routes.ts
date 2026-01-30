@@ -1384,6 +1384,7 @@ export async function registerRoutes(
       });
 
       // Send follow-up notification emails
+      console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
       sendFollowUpNotification({
         convertName: `${convert.firstName} ${convert.lastName}`,
         convertEmail: convert.email || undefined,
@@ -1397,6 +1398,8 @@ export async function registerRoutes(
         customLeaderSubject: data.customLeaderSubject || undefined,
         customConvertSubject: data.customConvertSubject || undefined,
         videoCallLink,
+      }).then(result => {
+        console.log(`Follow-up email result:`, result);
       }).catch(err => console.error("Email notification failed:", err));
 
       res.status(201).json({ ...checkin, videoCallLink });

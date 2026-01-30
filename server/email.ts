@@ -54,8 +54,17 @@ interface FollowUpEmailData {
 }
 
 export async function sendFollowUpNotification(data: FollowUpEmailData) {
+  console.log('[Email] sendFollowUpNotification called with:', {
+    convertName: data.convertName,
+    convertEmail: data.convertEmail || 'N/A',
+    leaderEmail: data.leaderEmail,
+    churchName: data.churchName,
+    followUpDate: data.followUpDate
+  });
   try {
+    console.log('[Email] Getting Resend client...');
     const { client, fromEmail } = await getUncachableResendClient();
+    console.log('[Email] Got Resend client, fromEmail:', fromEmail);
     
     const formattedDate = new Date(data.followUpDate).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -162,10 +171,11 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
     }
 
     await Promise.all(emailsToSend);
-    console.log(`Follow-up emails sent for ${data.convertName}`);
+    console.log(`[Email] Follow-up emails sent successfully for ${data.convertName}`);
     return { success: true };
-  } catch (error) {
-    console.error('Failed to send follow-up notification:', error);
+  } catch (error: any) {
+    console.error('[Email] Failed to send follow-up notification:', error?.message || error);
+    console.error('[Email] Full error:', JSON.stringify(error, null, 2));
     return { success: false, error };
   }
 }
