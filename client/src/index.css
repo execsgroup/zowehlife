@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - Church-appropriate warm, inviting colors */
+/* LIGHT MODE - Premium Zoweh Life color scheme */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
@@ -14,50 +14,60 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 40 33% 98%;
-  --foreground: 240 10% 10%;
+  /* Background: Warm Stone #F4F3EF */
+  --background: 45 20% 95%;
+  /* Text Primary: #1C1C1C */
+  --foreground: 0 0% 11%;
 
-  --border: 40 20% 88%;
+  --border: 40 15% 85%;
 
   --card: 0 0% 100%;
-  --card-foreground: 240 10% 10%;
-  --card-border: 40 20% 90%;
+  --card-foreground: 0 0% 11%;
+  --card-border: 40 15% 88%;
 
-  --sidebar: 240 15% 15%;
-  --sidebar-foreground: 40 20% 95%;
-  --sidebar-border: 240 10% 22%;
-  --sidebar-primary: 38 92% 50%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 10% 22%;
-  --sidebar-accent-foreground: 40 20% 95%;
-  --sidebar-ring: 38 92% 50%;
+  /* Sidebar: Deep Covenant Navy #0F1C2E */
+  --sidebar: 215 52% 12%;
+  --sidebar-foreground: 45 20% 95%;
+  --sidebar-border: 215 40% 18%;
+  /* Sidebar primary: Antique Gold #C6A45A */
+  --sidebar-primary: 42 53% 56%;
+  --sidebar-primary-foreground: 215 52% 12%;
+  --sidebar-accent: 215 40% 20%;
+  --sidebar-accent-foreground: 45 20% 95%;
+  --sidebar-ring: 42 53% 56%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 10%;
-  --popover-border: 40 20% 88%;
+  --popover-foreground: 0 0% 11%;
+  --popover-border: 40 15% 85%;
 
-  --primary: 38 92% 50%;
-  --primary-foreground: 0 0% 100%;
+  /* Primary: Deep Covenant Navy #0F1C2E */
+  --primary: 215 52% 12%;
+  --primary-foreground: 45 20% 95%;
 
-  --secondary: 40 20% 94%;
-  --secondary-foreground: 240 10% 25%;
+  --secondary: 40 15% 92%;
+  /* Text Secondary: #5E6A75 */
+  --secondary-foreground: 210 11% 41%;
 
-  --muted: 40 15% 92%;
-  --muted-foreground: 240 5% 45%;
+  --muted: 40 12% 90%;
+  /* Muted/Disabled: #9AA4AE */
+  --muted-foreground: 210 11% 50%;
 
-  --accent: 215 70% 50%;
-  --accent-foreground: 0 0% 100%;
+  /* Accent: Antique Gold #C6A45A */
+  --accent: 42 53% 56%;
+  --accent-foreground: 215 52% 12%;
 
-  --destructive: 0 72% 51%;
+  /* Destructive: Deep Wine #7A2E2E */
+  --destructive: 0 45% 33%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 40 20% 85%;
-  --ring: 38 92% 50%;
-  --chart-1: 38 92% 50%;
-  --chart-2: 215 70% 50%;
-  --chart-3: 160 60% 45%;
-  --chart-4: 280 65% 55%;
-  --chart-5: 350 70% 55%;
+  --input: 40 15% 82%;
+  --ring: 42 53% 56%;
+  /* Chart colors using premium palette */
+  --chart-1: 42 53% 56%; /* Antique Gold */
+  --chart-2: 215 52% 25%; /* Navy lighter */
+  --chart-3: 105 14% 44%; /* Success Olive #6B7F62 */
+  --chart-4: 30 64% 47%; /* Warning Burnt Amber #C47A2C */
+  --chart-5: 0 45% 33%; /* Deep Wine */
 
   --font-sans: 'Inter', sans-serif;
   --font-serif: Georgia, serif;
@@ -97,6 +107,7 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
+/* DARK MODE - Premium Zoweh Life color scheme */
 .dark {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
@@ -107,50 +118,58 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 240 12% 8%;
-  --foreground: 40 15% 95%;
+  /* Background: #0B1220 */
+  --background: 216 50% 8%;
+  --foreground: 45 20% 95%;
 
-  --border: 240 10% 18%;
+  --border: 216 40% 18%;
 
-  --card: 240 12% 12%;
-  --card-foreground: 40 15% 95%;
-  --card-border: 240 10% 20%;
+  /* Card/Surface: #121C2E */
+  --card: 216 47% 13%;
+  --card-foreground: 45 20% 95%;
+  --card-border: 216 40% 20%;
 
-  --sidebar: 240 15% 10%;
-  --sidebar-foreground: 40 20% 95%;
-  --sidebar-border: 240 10% 18%;
-  --sidebar-primary: 38 92% 50%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 10% 18%;
-  --sidebar-accent-foreground: 40 20% 95%;
-  --sidebar-ring: 38 92% 50%;
+  /* Sidebar: Darker navy */
+  --sidebar: 216 50% 6%;
+  --sidebar-foreground: 45 20% 95%;
+  --sidebar-border: 216 40% 15%;
+  /* Sidebar primary: Antique Gold #C6A45A */
+  --sidebar-primary: 42 53% 56%;
+  --sidebar-primary-foreground: 216 50% 8%;
+  --sidebar-accent: 216 40% 15%;
+  --sidebar-accent-foreground: 45 20% 95%;
+  --sidebar-ring: 42 53% 56%;
 
-  --popover: 240 12% 12%;
-  --popover-foreground: 40 15% 95%;
-  --popover-border: 240 10% 20%;
+  --popover: 216 47% 13%;
+  --popover-foreground: 45 20% 95%;
+  --popover-border: 216 40% 20%;
 
-  --primary: 38 92% 50%;
-  --primary-foreground: 0 0% 100%;
+  /* Primary: Antique Gold for better visibility in dark mode */
+  --primary: 42 53% 56%;
+  --primary-foreground: 216 50% 8%;
 
-  --secondary: 240 10% 18%;
-  --secondary-foreground: 40 15% 90%;
+  --secondary: 216 40% 18%;
+  --secondary-foreground: 45 15% 85%;
 
-  --muted: 240 10% 15%;
-  --muted-foreground: 40 10% 55%;
+  --muted: 216 35% 15%;
+  --muted-foreground: 210 11% 60%;
 
-  --accent: 215 70% 55%;
-  --accent-foreground: 0 0% 100%;
+  /* Accent: Antique Gold #C6A45A */
+  --accent: 42 53% 56%;
+  --accent-foreground: 216 50% 8%;
 
-  --destructive: 0 72% 55%;
+  /* Destructive: Deep Wine lighter for dark mode */
+  --destructive: 0 50% 45%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 240 10% 22%;
-  --ring: 38 92% 50%;
-  --chart-1: 38 92% 50%;
-  --chart-2: 215 70% 55%;
-  --chart-3: 160 60% 50%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 350 70% 60%;
+  --input: 216 40% 20%;
+  --ring: 42 53% 56%;
+  /* Chart colors for dark mode */
+  --chart-1: 42 53% 60%; /* Antique Gold lighter */
+  --chart-2: 215 52% 40%; /* Navy lighter */
+  --chart-3: 105 20% 50%; /* Olive lighter */
+  --chart-4: 30 64% 55%; /* Burnt Amber lighter */
+  --chart-5: 0 50% 45%; /* Deep Wine lighter */
 
   --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.15);
   --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.20);

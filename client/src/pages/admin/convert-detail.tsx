@@ -76,10 +76,10 @@ const countries = [
 type UpdateConvertData = z.infer<typeof updateConvertSchema>;
 
 const statusColors: Record<string, string> = {
-  NEW: "bg-chart-1/10 text-chart-1 border-chart-1/20",
+  NEW: "bg-accent/10 text-accent border-accent/20",
   ACTIVE: "bg-chart-3/10 text-chart-3 border-chart-3/20",
   IN_PROGRESS: "bg-chart-2/10 text-chart-2 border-chart-2/20",
-  CONNECTED: "bg-chart-4/10 text-chart-4 border-chart-4/20",
+  CONNECTED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 

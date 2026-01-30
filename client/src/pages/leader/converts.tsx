@@ -64,14 +64,14 @@ const convertFormSchema = z.object({
 type ConvertFormData = z.infer<typeof convertFormSchema>;
 
 const statusColors: Record<string, string> = {
-  NEW: "bg-chart-1/10 text-chart-1 border-chart-1/20",
+  NEW: "bg-accent/10 text-accent border-accent/20",
   SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
-  CONNECTED: "bg-chart-4/10 text-chart-4 border-chart-4/20",
-  NO_RESPONSE: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
-  NEEDS_PRAYER: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-  REFERRED: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  NOT_COMPLETED: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
-  NEVER_CONTACTED: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  CONNECTED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  NO_RESPONSE: "bg-chart-4/10 text-chart-4 border-chart-4/20",
+  NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
+  REFERRED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  NOT_COMPLETED: "bg-destructive/10 text-destructive border-destructive/20",
+  NEVER_CONTACTED: "bg-chart-4/10 text-chart-4 border-chart-4/20",
   ACTIVE: "bg-chart-3/10 text-chart-3 border-chart-3/20",
   IN_PROGRESS: "bg-chart-2/10 text-chart-2 border-chart-2/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",

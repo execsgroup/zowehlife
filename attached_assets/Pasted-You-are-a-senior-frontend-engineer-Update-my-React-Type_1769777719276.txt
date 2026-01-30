@@ -1,0 +1,34 @@
+You are a senior frontend engineer. Update my React + TypeScript + TailwindCSS + shadcn/ui app (“Zoweh Life”) to adopt a premium color scheme:
+
+Palette (Light Mode)
+- Primary (Deep Covenant Navy): #0F1C2E
+- Accent (Antique Gold): #C6A45A
+- Background (Warm Stone): #F4F3EF
+- Text Primary: #1C1C1C
+- Text Secondary: #5E6A75
+- Muted/Disabled: #9AA4AE
+- Success (Olive): #6B7F62
+- Warning (Burnt Amber): #C47A2C
+- Destructive (Deep Wine): #7A2E2E
+
+Palette (Dark Mode)
+- Background: #0B1220
+- Card/Surface: #121C2E
+- Primary stays navy tone but adjust tokens for readability
+- Accent stays Antique Gold (#C6A45A)
+
+Requirements
+1) Implement the palette using shadcn/ui theming via CSS variables in src/index.css (or your global styles file) under :root and .dark. Use HSL variables in the standard shadcn format (e.g., --background, --foreground, --primary, --primary-foreground, --secondary, --accent, --muted, --border, --ring, --card, --popover, --destructive, etc.).
+2) Ensure Tailwind is configured to use the CSS variables (standard shadcn approach). If tailwind.config.ts already includes the shadcn color mapping to hsl(var(--...)), keep it and only adjust variables. If not, add the proper mapping.
+3) Update primary buttons, links, focus rings, and active sidebar nav styles to use:
+   - Primary = Deep Covenant Navy
+   - Accent highlights and badges = Antique Gold
+   - Backgrounds = Warm Stone
+4) Keep contrast accessible (WCAG-friendly). Make sure primary text is readable on warm stone and dark surfaces. Ensure primary-foreground is readable on primary.
+5) Replace any hardcoded blues/teals/purples in components with semantic tokens (primary/accent/muted/destructive).
+6) Do not change layout or component structure; only adjust styling/theme tokens and any obvious hardcoded color classes.
+7) After changes, provide:
+   - List of files edited
+   - Quick instructions to verify light/dark mode visually
+
+Proceed now by scanning the repo for theme files (index.css/globals.css, tailwind config, shadcn components), then implement the changes.
