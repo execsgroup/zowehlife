@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, date, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, date, pgEnum, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -245,6 +245,19 @@ export const contactRequests = pgTable("contact_requests", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Archived ministries table (backup for deleted ministries)
+export const archivedMinistries = pgTable("archived_ministries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  originalChurchId: varchar("original_church_id").notNull(),
+  churchName: text("church_name").notNull(),
+  churchLocation: text("church_location"),
+  churchLogoUrl: text("church_logo_url"),
+  deletedByUserId: varchar("deleted_by_user_id"),
+  deletedByRole: text("deleted_by_role").notNull(), // 'ADMIN' or 'MINISTRY_ADMIN'
+  backupData: jsonb("backup_data").notNull(), // Contains all ministry data
+  archivedAt: timestamp("archived_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertChurchSchema = createInsertSchema(churches).omit({
   id: true,
@@ -296,6 +309,11 @@ export const insertMinistryRequestSchema = createInsertSchema(ministryRequests).
 export const insertContactRequestSchema = createInsertSchema(contactRequests).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertArchivedMinistrySchema = createInsertSchema(archivedMinistries).omit({
+  id: true,
+  archivedAt: true,
 });
 
 export const insertNewMemberSchema = createInsertSchema(newMembers).omit({
@@ -419,3 +437,6 @@ export type InsertNewMemberCheckin = z.infer<typeof insertNewMemberCheckinSchema
 
 export type Member = typeof members.$inferSelect;
 export type InsertMember = z.infer<typeof insertMemberSchema>;
+
+export type ArchivedMinistry = typeof archivedMinistries.$inferSelect;
+export type InsertArchivedMinistry = z.infer<typeof insertArchivedMinistrySchema>;
