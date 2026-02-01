@@ -243,7 +243,7 @@ export default function LeaderDashboard() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Generate a link from the <Link href="/leader/new-members" className="underline text-primary">New Members</Link> page
+                  Generate a link from the <Link href="/leader/new-members" className="underline text-foreground hover:text-muted-foreground" data-testid="link-new-members">New Members</Link> page
                 </p>
               )}
             </div>
@@ -280,7 +280,7 @@ export default function LeaderDashboard() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Generate a link from the <Link href="/leader/members" className="underline text-primary">Members</Link> page
+                  Generate a link from the <Link href="/leader/members" className="underline text-foreground hover:text-muted-foreground" data-testid="link-members">Members</Link> page
                 </p>
               )}
             </div>
@@ -290,7 +290,7 @@ export default function LeaderDashboard() {
         {/* Follow-ups Due */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <div>
                 <CardTitle>Follow-ups</CardTitle>
                 <CardDescription>

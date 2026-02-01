@@ -3,7 +3,6 @@ import { useRoute } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -15,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Loader2, CheckCircle2, Church } from "lucide-react";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
+import { publicMemberSubmissionSchema, type PublicMemberSubmission } from "@shared/schema";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -36,20 +36,7 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-const formSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  phone: z.string().optional(),
-  email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
-  dateOfBirth: z.string().optional(),
-  address: z.string().optional(),
-  country: z.string().optional(),
-  gender: z.enum(["Male", "Female"]).optional(),
-  memberSince: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type FormData = z.infer<typeof formSchema>;
+type FormData = PublicMemberSubmission;
 
 export default function MemberForm() {
   const [, params] = useRoute("/member/:token");
@@ -75,7 +62,7 @@ export default function MemberForm() {
   });
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(publicMemberSubmissionSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
