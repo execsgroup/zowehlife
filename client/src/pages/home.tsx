@@ -19,7 +19,8 @@ import { Heart, BookOpen, Users, ArrowRight, Sparkles, HandHeart, Church, UserPl
 import type { Church as ChurchType } from "@shared/schema";
 
 const leaderRequestSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
   churchId: z.string().min(1, "Please select a ministry"),
@@ -32,7 +33,8 @@ type LeaderRequestFormData = z.infer<typeof leaderRequestSchema>;
 const ministryRequestSchema = z.object({
   ministryName: z.string().min(2, "Ministry name must be at least 2 characters"),
   location: z.string().optional(),
-  adminFullName: z.string().min(2, "Name must be at least 2 characters"),
+  adminFirstName: z.string().min(1, "First name is required"),
+  adminLastName: z.string().min(1, "Last name is required"),
   adminEmail: z.string().email("Please enter a valid email"),
   adminPhone: z.string().optional(),
   description: z.string().optional(),
@@ -66,7 +68,8 @@ export default function Home() {
   const leaderForm = useForm<LeaderRequestFormData>({
     resolver: zodResolver(leaderRequestSchema),
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phone: "",
       churchId: "",
@@ -80,7 +83,8 @@ export default function Home() {
     defaultValues: {
       ministryName: "",
       location: "",
-      adminFullName: "",
+      adminFirstName: "",
+      adminLastName: "",
       adminEmail: "",
       adminPhone: "",
       description: "",
@@ -315,19 +319,34 @@ export default function Home() {
           </DialogHeader>
           <Form {...leaderForm}>
             <form onSubmit={leaderForm.handleSubmit(onLeaderSubmit)} className="space-y-4">
-              <FormField
-                control={leaderForm.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} data-testid="input-leader-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={leaderForm.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John" {...field} data-testid="input-leader-first-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={leaderForm.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Doe" {...field} data-testid="input-leader-last-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={leaderForm.control}
                 name="email"
@@ -475,19 +494,34 @@ export default function Home() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={ministryForm.control}
-                name="adminFullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Your Name (Ministry Admin) *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} data-testid="input-ministry-admin-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={ministryForm.control}
+                  name="adminFirstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John" {...field} data-testid="input-ministry-admin-first-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={ministryForm.control}
+                  name="adminLastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Doe" {...field} data-testid="input-ministry-admin-last-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={ministryForm.control}
                 name="adminEmail"
