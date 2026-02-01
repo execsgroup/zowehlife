@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
@@ -93,7 +94,7 @@ export function AITextHelper({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-6 px-1.5"
+          className="h-6 px-1.5 absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm hover-elevate"
           data-testid="button-ai-helper"
         >
           <Sparkles className="h-3.5 w-3.5" />
@@ -162,5 +163,49 @@ export function AITextHelper({
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+interface AITextareaProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  context?: string;
+  aiPlaceholder?: string;
+  rows?: number;
+  className?: string;
+  disabled?: boolean;
+  "data-testid"?: string;
+}
+
+export function AITextarea({
+  value,
+  onChange,
+  placeholder,
+  context,
+  aiPlaceholder,
+  rows = 4,
+  className = "",
+  disabled = false,
+  "data-testid": dataTestId,
+}: AITextareaProps) {
+  return (
+    <div className="relative">
+      <Textarea
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={rows}
+        className={`pr-10 pb-8 ${className}`}
+        disabled={disabled}
+        data-testid={dataTestId}
+      />
+      <AITextHelper
+        currentValue={value}
+        onTextGenerated={onChange}
+        context={context}
+        placeholder={aiPlaceholder}
+      />
+    </div>
   );
 }

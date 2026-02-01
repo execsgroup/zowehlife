@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
-import { AITextHelper } from "@/components/ai-text-helper";
+import { AITextarea } from "@/components/ai-text-helper";
 
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
@@ -173,20 +172,15 @@ export function ConvertScheduleFollowUpDialog({
                     name="customConvertMessage"
                     render={({ field }) => (
                       <FormItem>
-                        <div className="flex items-center justify-between">
-                          <FormLabel>Message Body</FormLabel>
-                          <AITextHelper
-                            currentValue={field.value || ""}
-                            onTextGenerated={(text) => form.setValue("customConvertMessage", text)}
-                            context={`Writing an initial follow-up email to a new convert named ${convert?.firstName} ${convert?.lastName} from a church ministry.`}
-                            placeholder="e.g., Write a warm welcome message..."
-                          />
-                        </div>
+                        <FormLabel>Message Body</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <AITextarea
+                            value={field.value || ""}
+                            onChange={(text) => form.setValue("customConvertMessage", text)}
                             placeholder="Leave blank for default message..."
-                            className="resize-none min-h-[80px]"
-                            {...field}
+                            context={`Writing an initial follow-up email to a new convert named ${convert?.firstName} ${convert?.lastName} from a church ministry.`}
+                            aiPlaceholder="e.g., Write a warm welcome message..."
+                            rows={4}
                             data-testid="input-convert-message"
                           />
                         </FormControl>
@@ -226,20 +220,15 @@ export function ConvertScheduleFollowUpDialog({
                   name="customLeaderMessage"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>Message Body</FormLabel>
-                        <AITextHelper
-                          currentValue={field.value || ""}
-                          onTextGenerated={(text) => form.setValue("customLeaderMessage", text)}
-                          context={`Writing a reminder email to ${convert?.firstName} ${convert?.lastName} about an upcoming follow-up meeting from a church ministry.`}
-                          placeholder="e.g., Write a friendly reminder..."
-                        />
-                      </div>
+                      <FormLabel>Message Body</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <AITextarea
+                          value={field.value || ""}
+                          onChange={(text) => form.setValue("customLeaderMessage", text)}
                           placeholder="Leave blank for default message..."
-                          className="resize-none min-h-[80px]"
-                          {...field}
+                          context={`Writing a reminder email to ${convert?.firstName} ${convert?.lastName} about an upcoming follow-up meeting from a church ministry.`}
+                          aiPlaceholder="e.g., Write a friendly reminder..."
+                          rows={4}
                           data-testid="input-leader-message"
                         />
                       </FormControl>

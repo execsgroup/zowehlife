@@ -5,13 +5,12 @@ import { useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
-import { AITextHelper } from "@/components/ai-text-helper";
+import { AITextarea } from "@/components/ai-text-helper";
 
 export const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
@@ -157,17 +156,17 @@ export function NewMemberScheduleFollowUpDialog({
                 name="customConvertMessage"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Message</FormLabel>
-                      <AITextHelper
-                        currentValue={field.value || ""}
-                        onTextGenerated={(text) => form.setValue("customConvertMessage", text)}
-                        context={`Writing an initial follow-up email to a new church member named ${newMemberFirstName} ${newMemberLastName}.`}
-                        placeholder="e.g., Write a warm welcome message..."
-                      />
-                    </div>
+                    <FormLabel>Message</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Custom message for initial email" {...field} data-testid="input-initial-email-message" />
+                      <AITextarea
+                        value={field.value || ""}
+                        onChange={(text) => form.setValue("customConvertMessage", text)}
+                        placeholder="Custom message for initial email"
+                        context={`Writing an initial follow-up email to a new church member named ${newMemberFirstName} ${newMemberLastName}.`}
+                        aiPlaceholder="e.g., Write a warm welcome message..."
+                        rows={4}
+                        data-testid="input-initial-email-message"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -198,17 +197,17 @@ export function NewMemberScheduleFollowUpDialog({
                 name="customReminderMessage"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Message</FormLabel>
-                      <AITextHelper
-                        currentValue={field.value || ""}
-                        onTextGenerated={(text) => form.setValue("customReminderMessage", text)}
-                        context={`Writing a reminder email to ${newMemberFirstName} ${newMemberLastName} about an upcoming follow-up meeting from a church ministry.`}
-                        placeholder="e.g., Write a friendly reminder..."
-                      />
-                    </div>
+                    <FormLabel>Message</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Custom message for reminder email" {...field} data-testid="input-reminder-email-message" />
+                      <AITextarea
+                        value={field.value || ""}
+                        onChange={(text) => form.setValue("customReminderMessage", text)}
+                        placeholder="Custom message for reminder email"
+                        context={`Writing a reminder email to ${newMemberFirstName} ${newMemberLastName} about an upcoming follow-up meeting from a church ministry.`}
+                        aiPlaceholder="e.g., Write a friendly reminder..."
+                        rows={4}
+                        data-testid="input-reminder-email-message"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
