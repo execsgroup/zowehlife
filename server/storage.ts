@@ -49,6 +49,7 @@ export interface IStorage {
   getAdminCount(): Promise<number>;
   getLeaders(): Promise<User[]>;
   getLeadersByChurch(churchId: string): Promise<User[]>;
+  getUsersByChurch(churchId: string): Promise<User[]>;
 
   // Churches
   getChurch(id: string): Promise<Church | undefined>;
@@ -283,6 +284,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(users)
       .where(and(eq(users.role, "LEADER"), eq(users.churchId, churchId)));
+  }
+
+  async getUsersByChurch(churchId: string): Promise<User[]> {
+    return db
+      .select()
+      .from(users)
+      .where(eq(users.churchId, churchId))
+      .orderBy(desc(users.createdAt));
   }
 
   // Churches

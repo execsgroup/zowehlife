@@ -14,7 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertChurchSchema, type Church } from "@shared/schema";
-import { Plus, MapPin, Users, UserPlus, Loader2, Pencil, Church as ChurchIcon, Link2, Copy, Check } from "lucide-react";
+import { Plus, MapPin, Users, Loader2, Pencil, Church as ChurchIcon, Eye } from "lucide-react";
+import { useLocation } from "wouter";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 
@@ -32,37 +33,9 @@ interface ChurchWithCounts extends Church {
 
 export default function AdminChurches() {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingChurch, setEditingChurch] = useState<Church | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  const copyChurchLink = async (church: Church) => {
-    if (!church.publicToken) {
-      toast({
-        title: "Error",
-        description: "This ministry doesn't have a public link yet.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const link = `${window.location.origin}/connect/${church.publicToken}`;
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopiedId(church.id);
-      toast({
-        title: "Link Copied!",
-        description: "Share this link with new converts to register directly to this ministry.",
-      });
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch (err) {
-      toast({
-        title: "Copy Failed",
-        description: "Unable to copy link to clipboard.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const { data: churches, isLoading } = useQuery<ChurchWithCounts[]>({
     queryKey: ["/api/admin/churches"],
@@ -110,7 +83,7 @@ export default function AdminChurches() {
     setEditingChurch(church);
     form.reset({
       name: church.name,
-      location: church.location,
+      location: church.location || "",
     });
     setDialogOpen(true);
   };
@@ -233,7 +206,6 @@ export default function AdminChurches() {
                     <TableHead>Ministry Name</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead className="text-center">Leaders</TableHead>
-                    <TableHead className="text-center">Converts</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -254,12 +226,6 @@ export default function AdminChurches() {
                           {church.leaderCount}
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <UserPlus className="h-3 w-3 text-muted-foreground" />
-                          {church.convertCount}
-                        </div>
-                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(church.createdAt), "MMM d, yyyy")}
                       </TableCell>
@@ -270,18 +236,14 @@ export default function AdminChurches() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => copyChurchLink(church)}
-                                data-testid={`button-copy-link-${church.id}`}
+                                onClick={() => navigate(`/admin/ministry/${church.id}`)}
+                                data-testid={`button-view-ministry-${church.id}`}
                               >
-                                {copiedId === church.id ? (
-                                  <Check className="h-4 w-4 text-green-500" />
-                                ) : (
-                                  <Link2 className="h-4 w-4" />
-                                )}
+                                <Eye className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Copy public registration link</p>
+                              <p>View ministry profile</p>
                             </TooltipContent>
                           </Tooltip>
                           <Tooltip>

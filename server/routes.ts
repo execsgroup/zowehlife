@@ -574,6 +574,100 @@ export async function registerRoutes(
     }
   });
 
+  // Get ministry profile with full details
+  app.get("/api/admin/ministry/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const church = await storage.getChurch(id);
+      
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+
+      // Get all users for this ministry (leaders and ministry admin)
+      const ministryUsers = await storage.getUsersByChurch(id);
+      const leaders = ministryUsers.map(({ passwordHash, createdAt, ...user }) => ({
+        ...user,
+        createdAt: new Date(createdAt).toISOString(),
+      }));
+      const ministryAdmin = leaders.find(l => l.role === "MINISTRY_ADMIN") || null;
+
+      // Get converts for this ministry
+      const converts = await storage.getConvertsByChurch(id);
+
+      // Get new members for this ministry
+      const newMembers = await storage.getNewMembersByChurch(id);
+
+      // Get members for this ministry
+      const members = await storage.getMembersByChurch(id);
+
+      // Calculate stats
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const convertsThisMonth = converts.filter(c => new Date(c.createdAt) >= startOfMonth).length;
+      const newMembersThisMonth = newMembers.filter(nm => new Date(nm.createdAt) >= startOfMonth).length;
+      const membersThisMonth = members.filter(m => new Date(m.createdAt) >= startOfMonth).length;
+
+      const stats = {
+        totalConverts: converts.length,
+        totalNewMembers: newMembers.length,
+        totalMembers: members.length,
+        totalLeaders: leaders.length,
+        convertsThisMonth,
+        newMembersThisMonth,
+        membersThisMonth,
+      };
+
+      // Build recent activity from converts, new members, and members
+      const recentActivity: Array<{ type: string; description: string; date: string }> = [];
+      
+      // Add recent converts
+      converts.slice(0, 5).forEach(c => {
+        recentActivity.push({
+          type: "Convert",
+          description: `${c.firstName} ${c.lastName} made a salvation decision`,
+          date: new Date(c.createdAt).toISOString(),
+        });
+      });
+
+      // Add recent new members
+      newMembers.slice(0, 5).forEach(nm => {
+        recentActivity.push({
+          type: "New Member",
+          description: `${nm.firstName} ${nm.lastName} joined as a new member`,
+          date: new Date(nm.createdAt).toISOString(),
+        });
+      });
+
+      // Add recent members
+      members.slice(0, 5).forEach(m => {
+        recentActivity.push({
+          type: "Member",
+          description: `${m.firstName} ${m.lastName} registered as a member`,
+          date: new Date(m.createdAt).toISOString(),
+        });
+      });
+
+      // Sort by date descending
+      recentActivity.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      res.json({
+        church,
+        leaders,
+        ministryAdmin,
+        converts,
+        newMembers,
+        members,
+        stats,
+        recentActivity: recentActivity.slice(0, 10),
+      });
+    } catch (error) {
+      console.error("Failed to get ministry profile:", error);
+      res.status(500).json({ message: "Failed to get ministry profile" });
+    }
+  });
+
   // Get leaders with church info
   app.get("/api/admin/leaders", requireAdmin, async (req, res) => {
     try {
