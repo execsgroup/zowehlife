@@ -58,6 +58,10 @@ async function processUpcomingFollowUpReminders() {
         continue;
       }
 
+      // Build contact URL using Replit environment
+      const replitDomain = process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS?.split(',')[0];
+      const contactUrl = replitDomain ? `https://${replitDomain}/contact` : undefined;
+      
       // Send reminder email
       const result = await sendFollowUpReminderEmail({
         convertName: `${followup.convertFirstName} ${followup.convertLastName}`,
@@ -65,6 +69,7 @@ async function processUpcomingFollowUpReminders() {
         leaderName: followup.leaderName,
         churchName: followup.churchName,
         followUpDate: followup.nextFollowupDate,
+        contactUrl,
       });
 
       if (result.success) {

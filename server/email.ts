@@ -313,6 +313,7 @@ interface ReminderEmailData {
   leaderName: string;
   churchName: string;
   followUpDate: string;
+  contactUrl?: string;
 }
 
 export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
@@ -336,6 +337,13 @@ export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
 
     const fromWithMinistry = getFromWithMinistry(data.churchName, fromEmail || 'noreply@resend.dev');
 
+    // Contact button HTML
+    const contactButtonSection = data.contactUrl
+      ? `<div style="margin: 25px 0; text-align: center;">
+          <a href="${data.contactUrl}" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600;">Contact Us</a>
+        </div>`
+      : '';
+
     await client.emails.send({
       from: fromWithMinistry,
       to: data.convertEmail,
@@ -347,6 +355,7 @@ export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
           <p>We wanted to let you know that someone from ${data.churchName} will be reaching out to you tomorrow to check in and see how you're doing on your faith journey.</p>
           <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
           <p>We're here to support you every step of the way. If you have any prayer requests or need anything before then, please don't hesitate to let us know.</p>
+          ${contactButtonSection}
           <p>Blessings,<br>${data.churchName}</p>
         </div>
       `
