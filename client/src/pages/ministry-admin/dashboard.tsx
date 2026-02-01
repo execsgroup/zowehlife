@@ -171,7 +171,7 @@ export default function MinistryAdminDashboard() {
                       </code>
                       <Button
                         size="icon"
-                        variant="outline"
+                        variant="default"
                         onClick={() => copyToClipboard(url, form.title)}
                         data-testid={`button-copy-${form.path}`}
                       >
@@ -179,7 +179,7 @@ export default function MinistryAdminDashboard() {
                       </Button>
                       <Button
                         size="icon"
-                        variant="outline"
+                        variant="default"
                         onClick={() => window.open(url, "_blank")}
                         data-testid={`button-open-${form.path}`}
                       >

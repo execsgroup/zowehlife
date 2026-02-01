@@ -400,7 +400,7 @@ export default function LeaderFollowups() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  variant="outline"
+                                  variant="default"
                                   size="icon"
                                   onClick={() => handleScheduleConvertFollowUp(followup)}
                                   data-testid={`button-convert-schedule-${followup.id}`}
@@ -531,7 +531,7 @@ export default function LeaderFollowups() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  variant="outline"
+                                  variant="default"
                                   size="icon"
                                   onClick={() => handleScheduleNewMemberFollowUp(followup)}
                                   data-testid={`button-newmember-schedule-${followup.id}`}

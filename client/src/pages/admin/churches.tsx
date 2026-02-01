@@ -286,7 +286,7 @@ export default function AdminChurches() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="ghost"
+                                variant="default"
                                 size="icon"
                                 onClick={() => navigate(`/admin/ministry/${church.id}`)}
                                 data-testid={`button-view-ministry-${church.id}`}
@@ -301,7 +301,7 @@ export default function AdminChurches() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="ghost"
+                                variant="default"
                                 size="icon"
                                 onClick={() => openEditDialog(church)}
                                 data-testid={`button-edit-church-${church.id}`}
@@ -316,11 +316,10 @@ export default function AdminChurches() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="ghost"
+                                variant="destructive"
                                 size="icon"
                                 onClick={() => openDeleteDialog(church)}
                                 data-testid={`button-delete-church-${church.id}`}
-                                className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

@@ -668,7 +668,7 @@ export default function LeaderNewMembers() {
                               <TooltipTrigger asChild>
                                 <Button
                                   size="icon"
-                                  variant="ghost"
+                                  variant="default"
                                   onClick={() => handleScheduleFollowUp(nm)}
                                   data-testid={`button-schedule-followup-${nm.id}`}
                                 >
@@ -681,7 +681,7 @@ export default function LeaderNewMembers() {
                               <TooltipTrigger asChild>
                                 <Button
                                   size="icon"
-                                  variant="ghost"
+                                  variant="default"
                                   onClick={() => handleFollowUpNote(nm)}
                                   data-testid={`button-followup-note-${nm.id}`}
                                 >
@@ -694,7 +694,7 @@ export default function LeaderNewMembers() {
                               <TooltipTrigger asChild>
                                 <Button
                                   size="icon"
-                                  variant="ghost"
+                                  variant="default"
                                   onClick={() => handleViewTimeline(nm)}
                                   data-testid={`button-view-timeline-${nm.id}`}
                                 >
@@ -707,7 +707,7 @@ export default function LeaderNewMembers() {
                               <TooltipTrigger asChild>
                                 <Button
                                   size="icon"
-                                  variant="ghost"
+                                  variant="default"
                                   onClick={() => handleConvertToMember(nm)}
                                   data-testid={`button-move-to-member-${nm.id}`}
                                 >
@@ -720,7 +720,7 @@ export default function LeaderNewMembers() {
                               <TooltipTrigger asChild>
                                 <Button
                                   size="icon"
-                                  variant="ghost"
+                                  variant="default"
                                   onClick={() => handleConvertToGuest(nm)}
                                   data-testid={`button-move-to-guest-${nm.id}`}
                                 >

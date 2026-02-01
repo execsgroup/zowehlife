@@ -687,7 +687,7 @@ export default function LeaderConverts() {
                             <TooltipTrigger asChild>
                               <Link href={`${basePath}/converts/${convert.id}`}>
                                 <Button
-                                  variant="outline"
+                                  variant="default"
                                   size="icon"
                                   data-testid={`button-view-convert-${convert.id}`}
                                 >

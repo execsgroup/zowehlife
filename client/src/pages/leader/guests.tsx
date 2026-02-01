@@ -518,7 +518,7 @@ export default function LeaderGuests() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  variant="ghost"
+                                  variant="default"
                                   size="icon"
                                   onClick={() => handleEdit(g)}
                                   data-testid={`button-edit-guest-${g.id}`}
@@ -531,12 +531,12 @@ export default function LeaderGuests() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  variant="ghost"
+                                  variant="destructive"
                                   size="icon"
                                   onClick={() => handleDelete(g)}
                                   data-testid={`button-delete-guest-${g.id}`}
                                 >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>Remove Guest</TooltipContent>

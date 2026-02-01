@@ -213,7 +213,7 @@ export default function DeletedAccounts() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  variant="ghost"
+                                  variant="default"
                                   size="icon"
                                   onClick={() => openViewDetails(archive)}
                                   data-testid={`button-view-archive-${archive.id}`}
@@ -228,11 +228,11 @@ export default function DeletedAccounts() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  variant="ghost"
+                                  variant="default"
                                   size="icon"
                                   onClick={() => openReinstateDialog(archive)}
                                   data-testid={`button-reinstate-${archive.id}`}
-                                  className="text-green-600 hover:text-green-600"
+                                  className="bg-green-600 hover:bg-green-700"
                                 >
                                   <RotateCcw className="h-4 w-4" />
                                 </Button>
@@ -244,11 +244,10 @@ export default function DeletedAccounts() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
-                                  variant="ghost"
+                                  variant="destructive"
                                   size="icon"
                                   onClick={() => openDeleteDialog(archive)}
                                   data-testid={`button-permanent-delete-${archive.id}`}
-                                  className="text-destructive hover:text-destructive"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
