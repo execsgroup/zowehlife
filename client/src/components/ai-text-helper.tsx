@@ -92,12 +92,13 @@ export function AITextHelper({
       <PopoverTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
+          variant="secondary"
           size="sm"
-          className="h-6 px-1.5 absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm hover-elevate"
+          className="h-7 px-2 shadow-sm"
           data-testid="button-ai-helper"
         >
-          <Sparkles className="h-3.5 w-3.5" />
+          <Sparkles className="h-3.5 w-3.5 mr-1" />
+          <span className="text-xs">AI</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">
@@ -196,16 +197,18 @@ export function AITextarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        className={`pr-10 pb-8 ${className}`}
+        className={`pr-10 pb-10 resize-none ${className}`}
         disabled={disabled}
         data-testid={dataTestId}
       />
-      <AITextHelper
-        currentValue={value}
-        onTextGenerated={onChange}
-        context={context}
-        placeholder={aiPlaceholder}
-      />
+      <div className="absolute bottom-3 right-3">
+        <AITextHelper
+          currentValue={value}
+          onTextGenerated={onChange}
+          context={context}
+          placeholder={aiPlaceholder}
+        />
+      </div>
     </div>
   );
 }
