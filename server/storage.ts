@@ -12,6 +12,7 @@ import {
   newMembers,
   newMemberCheckins,
   members,
+  archivedMinistries,
   type Church,
   type InsertChurch,
   type User,
@@ -35,6 +36,8 @@ import {
   type InsertNewMemberCheckin,
   type Member,
   type InsertMember,
+  type ArchivedMinistry,
+  type InsertArchivedMinistry,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -148,6 +151,13 @@ export interface IStorage {
   getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>>;
   updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void>;
   markConvertsAsNeverContacted(): Promise<number>;
+
+  // Archived Ministries
+  getArchivedMinistries(): Promise<ArchivedMinistry[]>;
+  getArchivedMinistry(id: string): Promise<ArchivedMinistry | undefined>;
+  archiveMinistry(churchId: string, deletedByUserId: string, deletedByRole: string): Promise<ArchivedMinistry>;
+  reinstateMinistry(archivedId: string): Promise<Church>;
+  deleteArchivedMinistry(id: string): Promise<void>;
 
   // Stats
   getAdminStats(): Promise<{
@@ -1147,6 +1157,297 @@ export class DatabaseStorage implements IStorage {
     }
     
     throw new Error(`Failed to generate unique member token after ${maxRetries} attempts`);
+  }
+
+  // Archived Ministries
+  async getArchivedMinistries(): Promise<ArchivedMinistry[]> {
+    return db.select().from(archivedMinistries).orderBy(desc(archivedMinistries.archivedAt));
+  }
+
+  async getArchivedMinistry(id: string): Promise<ArchivedMinistry | undefined> {
+    const [archived] = await db.select().from(archivedMinistries).where(eq(archivedMinistries.id, id));
+    return archived || undefined;
+  }
+
+  async archiveMinistry(churchId: string, deletedByUserId: string, deletedByRole: string): Promise<ArchivedMinistry> {
+    // Get the church data
+    const church = await this.getChurch(churchId);
+    if (!church) {
+      throw new Error("Church not found");
+    }
+
+    // Get all ministry users (ministry admins and leaders)
+    const ministryUsers = await this.getUsersByChurch(churchId);
+    const safeUsers = ministryUsers.map(({ passwordHash, ...user }) => user);
+
+    // Get all converts and their check-ins
+    const ministryConverts = await this.getConvertsByChurch(churchId);
+    const convertCheckins: Checkin[] = [];
+    for (const convert of ministryConverts) {
+      const checkinList = await db.select().from(checkins).where(eq(checkins.convertId, convert.id));
+      convertCheckins.push(...checkinList);
+    }
+
+    // Get all new members and their check-ins
+    const ministryNewMembers = await this.getNewMembersByChurch(churchId);
+    const newMemberCheckinsList: NewMemberCheckin[] = [];
+    for (const newMember of ministryNewMembers) {
+      const checkinList = await db.select().from(newMemberCheckins).where(eq(newMemberCheckins.newMemberId, newMember.id));
+      newMemberCheckinsList.push(...checkinList);
+    }
+
+    // Get all members
+    const ministryMembers = await this.getMembersByChurch(churchId);
+
+    // Create backup data object
+    const backupData = {
+      church: {
+        id: church.id,
+        name: church.name,
+        location: church.location,
+        logoUrl: church.logoUrl,
+        publicToken: church.publicToken,
+        newMemberToken: church.newMemberToken,
+        memberToken: church.memberToken,
+        createdAt: church.createdAt,
+      },
+      users: safeUsers,
+      converts: ministryConverts,
+      checkins: convertCheckins,
+      newMembers: ministryNewMembers,
+      newMemberCheckins: newMemberCheckinsList,
+      members: ministryMembers,
+    };
+
+    // Create the archived ministry record
+    const [archived] = await db
+      .insert(archivedMinistries)
+      .values({
+        originalChurchId: churchId,
+        churchName: church.name,
+        churchLocation: church.location,
+        churchLogoUrl: church.logoUrl,
+        deletedByUserId,
+        deletedByRole,
+        backupData,
+      })
+      .returning();
+
+    // Delete all related data in reverse order of dependencies
+    // 1. Delete email reminders for checkins
+    for (const checkin of convertCheckins) {
+      await db.delete(emailReminders).where(eq(emailReminders.checkinId, checkin.id));
+    }
+
+    // 2. Delete checkins
+    await db.delete(checkins).where(eq(checkins.churchId, churchId));
+
+    // 3. Delete new member checkins
+    await db.delete(newMemberCheckins).where(eq(newMemberCheckins.churchId, churchId));
+
+    // 4. Delete converts
+    await db.delete(converts).where(eq(converts.churchId, churchId));
+
+    // 5. Delete new members
+    await db.delete(newMembers).where(eq(newMembers.churchId, churchId));
+
+    // 6. Delete members
+    await db.delete(members).where(eq(members.churchId, churchId));
+
+    // 7. Delete account requests for this church
+    await db.delete(accountRequests).where(eq(accountRequests.churchId, churchId));
+
+    // 8. Delete users (leaders and ministry admin)
+    await db.delete(users).where(eq(users.churchId, churchId));
+
+    // 9. Delete the church
+    await db.delete(churches).where(eq(churches.id, churchId));
+
+    return archived;
+  }
+
+  async reinstateMinistry(archivedId: string): Promise<Church> {
+    const archived = await this.getArchivedMinistry(archivedId);
+    if (!archived) {
+      throw new Error("Archived ministry not found");
+    }
+
+    const backupData = archived.backupData as {
+      church: Church;
+      users: Omit<User, 'passwordHash'>[];
+      converts: Convert[];
+      checkins: Checkin[];
+      newMembers: NewMember[];
+      newMemberCheckins: NewMemberCheckin[];
+      members: Member[];
+    };
+
+    // Recreate the church with a new ID but same data
+    const [restoredChurch] = await db
+      .insert(churches)
+      .values({
+        name: backupData.church.name,
+        location: backupData.church.location,
+        logoUrl: backupData.church.logoUrl,
+        publicToken: backupData.church.publicToken,
+        newMemberToken: backupData.church.newMemberToken,
+        memberToken: backupData.church.memberToken,
+      })
+      .returning();
+
+    // ID mapping from old IDs to new IDs
+    const userIdMap = new Map<string, string>();
+    const convertIdMap = new Map<string, string>();
+    const newMemberIdMap = new Map<string, string>();
+
+    // Recreate users with new IDs (need to generate new temporary passwords)
+    for (const user of backupData.users) {
+      const bcrypt = await import("bcrypt");
+      const tempPassword = `restored_${Math.random().toString(36).substring(2, 10)}`;
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+      
+      const [restoredUser] = await db
+        .insert(users)
+        .values({
+          role: user.role,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          passwordHash,
+          churchId: restoredChurch.id,
+        })
+        .returning();
+      
+      userIdMap.set(user.id, restoredUser.id);
+    }
+
+    // Recreate converts with new IDs
+    for (const convert of backupData.converts) {
+      const createdByUserId = convert.createdByUserId ? userIdMap.get(convert.createdByUserId) : null;
+      
+      const [restoredConvert] = await db
+        .insert(converts)
+        .values({
+          churchId: restoredChurch.id,
+          createdByUserId: createdByUserId || null,
+          firstName: convert.firstName,
+          lastName: convert.lastName,
+          dateOfBirth: convert.dateOfBirth,
+          birthDay: convert.birthDay,
+          birthMonth: convert.birthMonth,
+          phone: convert.phone,
+          email: convert.email,
+          address: convert.address,
+          country: convert.country,
+          salvationDecision: convert.salvationDecision,
+          summaryNotes: convert.summaryNotes,
+          status: convert.status,
+          selfSubmitted: convert.selfSubmitted,
+          wantsContact: convert.wantsContact,
+          gender: convert.gender,
+          ageGroup: convert.ageGroup,
+          isChurchMember: convert.isChurchMember,
+          prayerRequest: convert.prayerRequest,
+        })
+        .returning();
+      
+      convertIdMap.set(convert.id, restoredConvert.id);
+    }
+
+    // Recreate checkins with new IDs
+    for (const checkin of backupData.checkins) {
+      const convertId = convertIdMap.get(checkin.convertId);
+      const createdByUserId = userIdMap.get(checkin.createdByUserId);
+      
+      if (convertId && createdByUserId) {
+        await db.insert(checkins).values({
+          convertId,
+          churchId: restoredChurch.id,
+          createdByUserId,
+          checkinDate: checkin.checkinDate,
+          notes: checkin.notes,
+          outcome: checkin.outcome,
+          nextFollowupDate: checkin.nextFollowupDate,
+          videoLink: checkin.videoLink,
+        });
+      }
+    }
+
+    // Recreate new members with new IDs
+    for (const newMember of backupData.newMembers) {
+      const createdByUserId = newMember.createdByUserId ? userIdMap.get(newMember.createdByUserId) : null;
+      
+      const [restoredNewMember] = await db
+        .insert(newMembers)
+        .values({
+          churchId: restoredChurch.id,
+          createdByUserId: createdByUserId || null,
+          firstName: newMember.firstName,
+          lastName: newMember.lastName,
+          dateOfBirth: newMember.dateOfBirth,
+          phone: newMember.phone,
+          email: newMember.email,
+          address: newMember.address,
+          country: newMember.country,
+          gender: newMember.gender,
+          ageGroup: newMember.ageGroup,
+          notes: newMember.notes,
+          status: newMember.status,
+          selfSubmitted: newMember.selfSubmitted,
+        })
+        .returning();
+      
+      newMemberIdMap.set(newMember.id, restoredNewMember.id);
+    }
+
+    // Recreate new member checkins
+    for (const checkin of backupData.newMemberCheckins) {
+      const newMemberId = newMemberIdMap.get(checkin.newMemberId);
+      const createdByUserId = userIdMap.get(checkin.createdByUserId);
+      
+      if (newMemberId && createdByUserId) {
+        await db.insert(newMemberCheckins).values({
+          newMemberId,
+          churchId: restoredChurch.id,
+          createdByUserId,
+          checkinDate: checkin.checkinDate,
+          notes: checkin.notes,
+          outcome: checkin.outcome,
+          nextFollowupDate: checkin.nextFollowupDate,
+          videoLink: checkin.videoLink,
+        });
+      }
+    }
+
+    // Recreate members
+    for (const member of backupData.members) {
+      const createdByUserId = member.createdByUserId ? userIdMap.get(member.createdByUserId) : null;
+      
+      await db.insert(members).values({
+        churchId: restoredChurch.id,
+        createdByUserId: createdByUserId || null,
+        firstName: member.firstName,
+        lastName: member.lastName,
+        dateOfBirth: member.dateOfBirth,
+        phone: member.phone,
+        email: member.email,
+        address: member.address,
+        country: member.country,
+        gender: member.gender,
+        memberSince: member.memberSince,
+        notes: member.notes,
+        selfSubmitted: member.selfSubmitted,
+      });
+    }
+
+    // Delete the archived ministry record
+    await db.delete(archivedMinistries).where(eq(archivedMinistries.id, archivedId));
+
+    return restoredChurch;
+  }
+
+  async deleteArchivedMinistry(id: string): Promise<void> {
+    await db.delete(archivedMinistries).where(eq(archivedMinistries.id, id));
   }
 }
 
