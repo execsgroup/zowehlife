@@ -49,14 +49,14 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// Middleware to check leader role
+// Middleware to check leader role (also allows Ministry Admin)
 async function requireLeader(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   const user = await storage.getUser(req.session.userId);
-  if (!user || user.role !== "LEADER") {
+  if (!user || (user.role !== "LEADER" && user.role !== "MINISTRY_ADMIN")) {
     return res.status(403).json({ message: "Forbidden - Leader access required" });
   }
 
