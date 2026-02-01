@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - Premium Zoweh Life color scheme */
+/* LIGHT MODE - Confident Authority color scheme */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
@@ -14,60 +14,65 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Background: Warm Stone #F4F3EF */
-  --background: 45 20% 95%;
-  /* Text Primary: #1C1C1C */
-  --foreground: 0 0% 11%;
+  /* Background: Soft Pearl #F5F7FB */
+  --background: 220 43% 97%;
+  /* Text Primary: Ink Black #0F172A */
+  --foreground: 222 47% 11%;
 
-  --border: 40 15% 85%;
+  /* Border/Divider: #D9DEE7 */
+  --border: 220 24% 88%;
 
+  /* Card/Surface: #FFFFFF */
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 11%;
-  --card-border: 40 15% 88%;
+  --card-foreground: 222 47% 11%;
+  --card-border: 220 24% 90%;
 
-  /* Sidebar: Deep Covenant Navy #0F1C2E */
-  --sidebar: 215 52% 12%;
-  --sidebar-foreground: 45 20% 95%;
-  --sidebar-border: 215 40% 18%;
-  /* Sidebar primary: Antique Gold #C6A45A */
-  --sidebar-primary: 42 53% 56%;
-  --sidebar-primary-foreground: 215 52% 12%;
-  --sidebar-accent: 215 40% 20%;
-  --sidebar-accent-foreground: 45 20% 95%;
-  --sidebar-ring: 42 53% 56%;
+  /* Sidebar: Midnight Blue #0D1B2A */
+  --sidebar: 210 52% 11%;
+  --sidebar-foreground: 220 14% 96%;
+  --sidebar-border: 210 40% 18%;
+  /* Sidebar primary: Electric Indigo #3F5BFF */
+  --sidebar-primary: 231 100% 62%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 40% 18%;
+  --sidebar-accent-foreground: 220 14% 96%;
+  --sidebar-ring: 231 100% 62%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 11%;
-  --popover-border: 40 15% 85%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 220 24% 88%;
 
-  /* Primary: Deep Covenant Navy #0F1C2E */
-  --primary: 215 52% 12%;
-  --primary-foreground: 45 20% 95%;
+  /* Primary: Midnight Blue #0D1B2A */
+  --primary: 210 52% 11%;
+  --primary-foreground: 220 14% 96%;
 
-  --secondary: 40 15% 92%;
-  /* Text Secondary: #5E6A75 */
-  --secondary-foreground: 210 11% 41%;
+  /* Secondary: light gray */
+  --secondary: 220 20% 94%;
+  /* Text Secondary: Steel Gray #475569 */
+  --secondary-foreground: 215 19% 35%;
 
-  --muted: 40 12% 90%;
-  /* Muted/Disabled: #9AA4AE */
-  --muted-foreground: 210 11% 50%;
+  /* Muted */
+  --muted: 220 16% 92%;
+  /* Muted/Metadata: #94A3B8 */
+  --muted-foreground: 215 16% 47%;
 
-  /* Accent: Antique Gold #C6A45A */
-  --accent: 42 53% 56%;
-  --accent-foreground: 215 52% 12%;
+  /* Accent: Electric Indigo #3F5BFF */
+  --accent: 231 100% 62%;
+  --accent-foreground: 0 0% 100%;
 
-  /* Destructive: Deep Wine #7A2E2E */
-  --destructive: 0 45% 33%;
+  /* Destructive: #DC2626 */
+  --destructive: 0 84% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 40 15% 82%;
-  --ring: 42 53% 56%;
-  /* Chart colors using premium palette */
-  --chart-1: 42 53% 56%; /* Antique Gold */
-  --chart-2: 215 52% 25%; /* Navy lighter */
-  --chart-3: 105 14% 44%; /* Success Olive #6B7F62 */
-  --chart-4: 30 64% 47%; /* Warning Burnt Amber #C47A2C */
-  --chart-5: 0 45% 33%; /* Deep Wine */
+  --input: 220 24% 85%;
+  --ring: 231 100% 62%;
+
+  /* Chart colors using Confident Authority palette */
+  --chart-1: 231 100% 62%; /* Electric Indigo */
+  --chart-2: 182 56% 43%; /* Teal Slate */
+  --chart-3: 142 76% 36%; /* Success Green */
+  --chart-4: 32 95% 44%; /* Warning Amber */
+  --chart-5: 0 84% 50%; /* Destructive Red */
 
   --font-sans: 'Inter', sans-serif;
   --font-serif: Georgia, serif;
@@ -107,7 +112,7 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-/* DARK MODE - Premium Zoweh Life color scheme */
+/* DARK MODE - Confident Authority color scheme */
 .dark {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
@@ -119,57 +124,62 @@
   --elevate-2: rgba(255,255,255, .09);
 
   /* Background: #0B1220 */
-  --background: 216 50% 8%;
-  --foreground: 45 20% 95%;
+  --background: 216 48% 8%;
+  /* Text Primary: #E5E7EB */
+  --foreground: 220 14% 91%;
 
-  --border: 216 40% 18%;
+  /* Border: #1F2937 */
+  --border: 216 28% 17%;
 
-  /* Card/Surface: #121C2E */
-  --card: 216 47% 13%;
-  --card-foreground: 45 20% 95%;
-  --card-border: 216 40% 20%;
+  /* Card/Surface: #111827 */
+  --card: 221 39% 11%;
+  --card-foreground: 220 14% 91%;
+  --card-border: 216 28% 20%;
 
-  /* Sidebar: Darker navy */
+  /* Sidebar: Darker background */
   --sidebar: 216 50% 6%;
-  --sidebar-foreground: 45 20% 95%;
-  --sidebar-border: 216 40% 15%;
-  /* Sidebar primary: Antique Gold #C6A45A */
-  --sidebar-primary: 42 53% 56%;
+  --sidebar-foreground: 220 14% 91%;
+  --sidebar-border: 216 28% 15%;
+  /* Sidebar primary: Electric Indigo lighter #5B7CFF */
+  --sidebar-primary: 229 100% 68%;
   --sidebar-primary-foreground: 216 50% 8%;
-  --sidebar-accent: 216 40% 15%;
-  --sidebar-accent-foreground: 45 20% 95%;
-  --sidebar-ring: 42 53% 56%;
+  --sidebar-accent: 216 28% 15%;
+  --sidebar-accent-foreground: 220 14% 91%;
+  --sidebar-ring: 229 100% 68%;
 
-  --popover: 216 47% 13%;
-  --popover-foreground: 45 20% 95%;
-  --popover-border: 216 40% 20%;
+  --popover: 221 39% 11%;
+  --popover-foreground: 220 14% 91%;
+  --popover-border: 216 28% 20%;
 
-  /* Primary: Antique Gold for better visibility in dark mode */
-  --primary: 42 53% 56%;
+  /* Primary: Electric Indigo for better visibility in dark mode */
+  --primary: 229 100% 68%;
   --primary-foreground: 216 50% 8%;
 
-  --secondary: 216 40% 18%;
-  --secondary-foreground: 45 15% 85%;
+  /* Secondary */
+  --secondary: 216 28% 17%;
+  --secondary-foreground: 215 16% 75%;
 
-  --muted: 216 35% 15%;
-  --muted-foreground: 210 11% 60%;
+  /* Muted */
+  --muted: 216 25% 14%;
+  --muted-foreground: 215 16% 55%;
 
-  /* Accent: Antique Gold #C6A45A */
-  --accent: 42 53% 56%;
+  /* Accent: Electric Indigo lighter #5B7CFF */
+  --accent: 229 100% 68%;
   --accent-foreground: 216 50% 8%;
 
-  /* Destructive: Deep Wine lighter for dark mode */
-  --destructive: 0 50% 45%;
+  /* Destructive: lighter for dark mode */
+  --destructive: 0 72% 55%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 216 40% 20%;
-  --ring: 42 53% 56%;
+  --input: 216 28% 20%;
+  --ring: 229 100% 68%;
+
   /* Chart colors for dark mode */
-  --chart-1: 42 53% 60%; /* Antique Gold lighter */
-  --chart-2: 215 52% 40%; /* Navy lighter */
-  --chart-3: 105 20% 50%; /* Olive lighter */
-  --chart-4: 30 64% 55%; /* Burnt Amber lighter */
-  --chart-5: 0 50% 45%; /* Deep Wine lighter */
+  --chart-1: 229 100% 68%; /* Electric Indigo lighter */
+  --chart-2: 177 51% 46%; /* Teal lighter */
+  --chart-3: 142 70% 45%; /* Success Green lighter */
+  --chart-4: 32 90% 55%; /* Warning Amber lighter */
+  --chart-5: 0 72% 55%; /* Destructive Red lighter */
 
   --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.15);
   --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.20);

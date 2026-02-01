@@ -1,0 +1,82 @@
+You are a senior frontend engineer. Update my React + TypeScript + TailwindCSS + shadcn/ui app (“Zoweh Life”) to a bold, modern, professional color scheme called “Confident Authority”. Do NOT change layout or component structure—only theme tokens and obvious hardcoded color classes.
+
+PALETTE (LIGHT MODE)
+- Primary (Midnight Blue): #0D1B2A
+- Accent (Electric Indigo): #3F5BFF
+- Secondary Accent (Teal Slate): #2FA4A9
+- Background (Soft Pearl): #F5F7FB
+- Card/Surface: #FFFFFF
+- Border/Divider: #D9DEE7
+- Text Primary (Ink Black): #0F172A
+- Text Secondary (Steel Gray): #475569
+- Muted/Metadata: #94A3B8
+- Success: #16A34A
+- Warning: #D97706
+- Destructive: #DC2626
+
+PALETTE (DARK MODE)
+- Background: #0B1220
+- Surface/Card: #111827
+- Border: #1F2937
+- Text Primary: #E5E7EB
+- Text Secondary: #94A3B8
+- Accent Indigo: #5B7CFF (slightly lighter than light-mode accent for contrast)
+- Secondary Accent Teal: #38B2AC
+
+REQUIREMENTS (SHADCN/Tailwind THEME)
+1) Implement the palette using shadcn/ui theming via CSS variables in the global stylesheet (src/index.css or src/styles/globals.css). Define tokens under :root (light) and .dark (dark) using the standard shadcn variable names:
+   --background, --foreground,
+   --card, --card-foreground,
+   --popover, --popover-foreground,
+   --primary, --primary-foreground,
+   --secondary, --secondary-foreground,
+   --muted, --muted-foreground,
+   --accent, --accent-foreground,
+   --destructive, --destructive-foreground,
+   --border, --input, --ring,
+   --radius.
+   Use HSL values (convert from hex) as shadcn expects: e.g. --primary: <h s% l%>.
+   Ensure --ring uses Accent Indigo (indigo) in both modes.
+
+2) Ensure tailwind.config.ts maps color utilities to the CSS variables (standard shadcn approach), e.g.:
+   colors: {
+     background: "hsl(var(--background))",
+     foreground: "hsl(var(--foreground))",
+     primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
+     accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
+     muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" },
+     destructive: { DEFAULT: "hsl(var(--destructive))", foreground: "hsl(var(--destructive-foreground))" },
+     border: "hsl(var(--border))",
+     input: "hsl(var(--input))",
+     ring: "hsl(var(--ring))",
+     card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
+     popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))" },
+     secondary: { DEFAULT: "hsl(var(--secondary))", foreground: "hsl(var(--secondary-foreground))" },
+   }
+
+3) Replace any hardcoded blues/navies/golds/teals (e.g., bg-blue-*, text-blue-*, ring-blue-*, border-blue-*) with semantic shadcn tokens:
+   - Primary buttons -> primary
+   - Links/active states/focus ring -> accent (Electric Indigo)
+   - Secondary actions -> secondary or outline/ghost
+   - Success/warning/destructive -> semantic alert styles, not random colors
+
+4) Apply “bold but restrained” UI rules:
+   - Sidebar/topbar may use Primary (Midnight Blue) background with readable text (primary-foreground).
+   - Active nav item should not be a bright fill; use subtle background + left border or indicator in Accent Indigo.
+   - Only ONE strong accent per component. Do not mix Indigo and Teal in the same card/button group.
+   - Tables/forms should rely on borders and muted backgrounds, not heavy fills.
+
+5) Make sure accessibility is solid:
+   - Primary-foreground must be readable on primary
+   - Accent-foreground must be readable on accent
+   - Focus states visible in both modes (ring color = accent)
+
+6) Keep existing dark/light toggle working. No new dependencies.
+
+OUTPUT
+After changes, return:
+- List of files edited
+- Where the theme variables live
+- Quick visual checklist to verify (buttons, sidebar, forms, tables, dark mode, focus ring)
+
+Proceed now: scan the repo for theme files (globals.css/index.css, tailwind config, shadcn components). Implement updates accordingly.
