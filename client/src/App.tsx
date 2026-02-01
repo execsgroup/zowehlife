@@ -31,6 +31,7 @@ import MinistryAdminConverts from "@/pages/ministry-admin/converts";
 import MinistryAdminFollowups from "@/pages/ministry-admin/followups";
 import MinistryAdminNewMembers from "@/pages/ministry-admin/new-members";
 import MinistryAdminMembers from "@/pages/ministry-admin/members";
+import MinistryAdminGuests from "@/pages/ministry-admin/guests";
 import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
 import LeaderFollowups from "@/pages/leader/followups";
@@ -193,6 +194,9 @@ function Router() {
       </Route>
       <Route path="/ministry-admin/members/:id">
         <ProtectedRoute component={MinistryAdminMemberDetail} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/guests">
+        <ProtectedRoute component={MinistryAdminGuests} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       
       {/* Leader routes */}

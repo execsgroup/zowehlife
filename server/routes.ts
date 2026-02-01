@@ -1861,6 +1861,17 @@ export async function registerRoutes(
     }
   });
 
+  // Get guests for ministry admin's ministry
+  app.get("/api/ministry-admin/guests", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const guests = await storage.getGuestsByChurch(user.churchId);
+      res.json(guests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get guests" });
+    }
+  });
+
   // ==================== LEADER ROUTES ====================
 
   // Leader stats

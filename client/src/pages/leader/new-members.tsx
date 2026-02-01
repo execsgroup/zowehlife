@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type NewMember } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, Video, ClipboardCheck, Clock } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, Video, ClipboardCheck, Clock, Church, Users2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
@@ -86,6 +86,30 @@ const statusLabels: Record<string, string> = {
   INACTIVE: "Inactive",
 };
 
+const followUpStageLabels: Record<string, string> = {
+  NEW: "Not Started",
+  SCHEDULED: "1st Scheduled",
+  FIRST_COMPLETED: "1st Completed",
+  INITIATE_SECOND: "Ready for 2nd",
+  SECOND_SCHEDULED: "2nd Scheduled",
+  SECOND_COMPLETED: "2nd Completed",
+  INITIATE_FINAL: "Ready for Final",
+  FINAL_SCHEDULED: "Final Scheduled",
+  FINAL_COMPLETED: "Completed",
+};
+
+const followUpStageColors: Record<string, string> = {
+  NEW: "bg-muted text-muted-foreground border-muted",
+  SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  FIRST_COMPLETED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  INITIATE_SECOND: "bg-accent/10 text-accent border-accent/20",
+  SECOND_SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  SECOND_COMPLETED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  INITIATE_FINAL: "bg-accent/10 text-accent border-accent/20",
+  FINAL_SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  FINAL_COMPLETED: "bg-primary/10 text-primary border-primary/20",
+};
+
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
   notes: z.string().optional(),
@@ -116,6 +140,8 @@ export default function LeaderNewMembers() {
   const [followUpNoteDialogOpen, setFollowUpNoteDialogOpen] = useState(false);
   const [selectedNewMember, setSelectedNewMember] = useState<NewMember | null>(null);
   const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
+  const [convertToMemberDialogOpen, setConvertToMemberDialogOpen] = useState(false);
+  const [convertToGuestDialogOpen, setConvertToGuestDialogOpen] = useState(false);
 
   const { data: newMembers, isLoading } = useQuery<NewMember[]>({
     queryKey: ["/api/leader/new-members"],
@@ -268,6 +294,62 @@ export default function LeaderNewMembers() {
       });
     },
   });
+
+  const convertToMemberMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("POST", `/api/leader/new-members/${id}/convert-to-member`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Moved to Members",
+        description: "The person has been moved to the Members List.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
+      setConvertToMemberDialogOpen(false);
+      setSelectedNewMember(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to move to members",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const convertToGuestMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("POST", `/api/leader/new-members/${id}/convert-to-guest`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Moved to Guest List",
+        description: "The person has been moved to the Guest List.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/guests"] });
+      setConvertToGuestDialogOpen(false);
+      setSelectedNewMember(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to move to guest list",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleConvertToMember = (nm: NewMember) => {
+    setSelectedNewMember(nm);
+    setConvertToMemberDialogOpen(true);
+  };
+
+  const handleConvertToGuest = (nm: NewMember) => {
+    setSelectedNewMember(nm);
+    setConvertToGuestDialogOpen(true);
+  };
 
   const filteredNewMembers = newMembers?.filter((nm) => {
     const matchesSearch =
@@ -585,6 +667,7 @@ export default function LeaderNewMembers() {
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender</TableHead>
+                      <TableHead>Follow-up Stage</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -613,6 +696,11 @@ export default function LeaderNewMembers() {
                           </div>
                         </TableCell>
                         <TableCell>{nm.gender || "-"}</TableCell>
+                        <TableCell>
+                          <Badge className={followUpStageColors[nm.followUpStage] || followUpStageColors.NEW}>
+                            {followUpStageLabels[nm.followUpStage] || "Not Started"}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge className={statusColors[nm.status]}>
                             {statusLabels[nm.status]}
@@ -675,6 +763,32 @@ export default function LeaderNewMembers() {
                               </TooltipTrigger>
                               <TooltipContent>Follow Up Timeline</TooltipContent>
                             </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleConvertToMember(nm)}
+                                  data-testid={`button-move-to-member-${nm.id}`}
+                                >
+                                  <Church className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Move to Members</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => handleConvertToGuest(nm)}
+                                  data-testid={`button-move-to-guest-${nm.id}`}
+                                >
+                                  <Users2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Move to Guest List</TooltipContent>
+                            </Tooltip>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -686,6 +800,68 @@ export default function LeaderNewMembers() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Convert to Member Confirmation Dialog */}
+      <Dialog open={convertToMemberDialogOpen} onOpenChange={setConvertToMemberDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Move to Members List</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to move {selectedNewMember?.firstName} {selectedNewMember?.lastName} to the Members List? This will remove them from the New Members list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setConvertToMemberDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => selectedNewMember && convertToMemberMutation.mutate(selectedNewMember.id)}
+              disabled={convertToMemberMutation.isPending}
+              data-testid="button-confirm-move-to-member"
+            >
+              {convertToMemberMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Moving...
+                </>
+              ) : (
+                "Move to Members"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Convert to Guest Confirmation Dialog */}
+      <Dialog open={convertToGuestDialogOpen} onOpenChange={setConvertToGuestDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Move to Guest List</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to move {selectedNewMember?.firstName} {selectedNewMember?.lastName} to the Guest List? This indicates they won't be becoming a member.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setConvertToGuestDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => selectedNewMember && convertToGuestMutation.mutate(selectedNewMember.id)}
+              disabled={convertToGuestMutation.isPending}
+              data-testid="button-confirm-move-to-guest"
+            >
+              {convertToGuestMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Moving...
+                </>
+              ) : (
+                "Move to Guest List"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Schedule Follow Up Dialog */}
       <Dialog open={followUpDialogOpen} onOpenChange={setFollowUpDialogOpen}>
