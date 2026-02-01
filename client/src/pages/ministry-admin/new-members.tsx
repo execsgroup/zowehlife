@@ -24,6 +24,7 @@ interface NewMember {
   gender: string | null;
   ageGroup: string | null;
   status: string;
+  followUpStage: string;
   notes: string | null;
   selfSubmitted: boolean;
   createdAt: string;
@@ -34,6 +35,30 @@ const statusColors: Record<string, string> = {
   CONTACTED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
   ACTIVE: "bg-chart-3/10 text-chart-3 border-chart-3/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
+};
+
+const followUpStageLabels: Record<string, string> = {
+  NEW: "Not Started",
+  SCHEDULED: "1st Scheduled",
+  FIRST_COMPLETED: "1st Completed",
+  INITIATE_SECOND: "Ready for 2nd",
+  SECOND_SCHEDULED: "2nd Scheduled",
+  SECOND_COMPLETED: "2nd Completed",
+  INITIATE_FINAL: "Ready for Final",
+  FINAL_SCHEDULED: "Final Scheduled",
+  FINAL_COMPLETED: "Completed",
+};
+
+const followUpStageColors: Record<string, string> = {
+  NEW: "bg-muted text-muted-foreground border-muted",
+  SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  FIRST_COMPLETED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  INITIATE_SECOND: "bg-accent/10 text-accent border-accent/20",
+  SECOND_SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  SECOND_COMPLETED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  INITIATE_FINAL: "bg-accent/10 text-accent border-accent/20",
+  FINAL_SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  FINAL_COMPLETED: "bg-primary/10 text-primary border-primary/20",
 };
 
 export default function MinistryAdminNewMembers() {
@@ -93,6 +118,7 @@ export default function MinistryAdminNewMembers() {
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender / Age</TableHead>
+                      <TableHead>Follow-up Stage</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead>Actions</TableHead>
@@ -129,6 +155,11 @@ export default function MinistryAdminNewMembers() {
                           <div className="text-sm">
                             {member.gender || "—"} / {member.ageGroup || "—"}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={followUpStageColors[member.followUpStage] || followUpStageColors.NEW}>
+                            {followUpStageLabels[member.followUpStage] || "Not Started"}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge className={statusColors[member.status] || ""}>
