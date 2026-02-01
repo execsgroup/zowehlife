@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
 import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2 } from "lucide-react";
@@ -59,6 +60,7 @@ type MemberFormData = z.infer<typeof memberFormSchema>;
 
 export default function LeaderMembers() {
   const { toast } = useToast();
+  const basePath = useBasePath();
   const [, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -88,7 +90,7 @@ export default function LeaderMembers() {
   });
 
   const handleViewDetails = (member: Member) => {
-    setLocation(`/leader/members/${member.id}`);
+    setLocation(`${basePath}/members/${member.id}`);
   };
 
   const createMutation = useMutation({

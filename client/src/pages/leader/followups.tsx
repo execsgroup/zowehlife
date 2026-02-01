@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface FollowUp {
@@ -69,6 +70,7 @@ function getDateBadge(dateStr: string, id: string) {
 
 export default function LeaderFollowups() {
   const { toast } = useToast();
+  const basePath = useBasePath();
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null);
@@ -314,7 +316,7 @@ export default function LeaderFollowups() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Link href={`/leader/converts/${followup.convertId}`}>
+                              <Link href={`${basePath}/converts/${followup.convertId}`}>
                                 <Button variant="outline" size="icon" data-testid={`button-view-convert-${followup.id}`}>
                                   <Eye className="h-4 w-4" />
                                 </Button>
@@ -335,7 +337,7 @@ export default function LeaderFollowups() {
                 <p className="text-muted-foreground mb-4">
                   When you schedule follow-ups with your converts, they'll appear here
                 </p>
-                <Link href="/leader/converts">
+                <Link href={`${basePath}/converts`}>
                   <Button data-testid="button-view-converts">
                     View Your Converts
                   </Button>

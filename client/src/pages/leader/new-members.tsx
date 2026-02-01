@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type NewMember } from "@shared/schema";
 import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, Video, ClipboardCheck, Clock, Church, Users2, Users, UserMinus } from "lucide-react";
@@ -133,6 +134,7 @@ type FollowUpNoteData = z.infer<typeof followUpNoteSchema>;
 
 export default function LeaderNewMembers() {
   const { toast } = useToast();
+  const basePath = useBasePath();
   const [location, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -272,7 +274,7 @@ export default function LeaderNewMembers() {
   };
 
   const handleViewDetails = (newMember: NewMember) => {
-    setLocation(`/leader/new-members/${newMember.id}`);
+    setLocation(`${basePath}/new-members/${newMember.id}`);
   };
 
   const handleViewTimeline = (newMember: NewMember) => {

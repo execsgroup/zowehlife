@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Guest } from "@shared/schema";
 import { Plus, Search, Users2, Phone, Mail, Loader2, Eye, Trash2, Edit } from "lucide-react";
@@ -59,6 +60,7 @@ type GuestFormData = z.infer<typeof guestFormSchema>;
 
 export default function LeaderGuests() {
   const { toast } = useToast();
+  const basePath = useBasePath();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

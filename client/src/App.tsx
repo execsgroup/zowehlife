@@ -27,11 +27,6 @@ import AdminDeletedAccounts from "@/pages/admin/deleted-accounts";
 import MinistryAdminDashboard from "@/pages/ministry-admin/dashboard";
 import MinistryAdminAccountRequests from "@/pages/ministry-admin/account-requests";
 import MinistryAdminSettings from "@/pages/ministry-admin/settings";
-import MinistryAdminConverts from "@/pages/ministry-admin/converts";
-import MinistryAdminFollowups from "@/pages/ministry-admin/followups";
-import MinistryAdminNewMembers from "@/pages/ministry-admin/new-members";
-import MinistryAdminMembers from "@/pages/ministry-admin/members";
-import MinistryAdminGuests from "@/pages/ministry-admin/guests";
 import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
 import LeaderFollowups from "@/pages/leader/followups";
@@ -44,8 +39,6 @@ import LeaderGuests from "@/pages/leader/guests";
 import ConvertDetail from "@/pages/leader/convert-detail";
 import NewMemberDetail from "@/pages/leader/new-member-detail";
 import MemberDetail from "@/pages/leader/member-detail";
-import MinistryAdminNewMemberDetail from "@/pages/ministry-admin/new-member-detail";
-import MinistryAdminMemberDetail from "@/pages/ministry-admin/member-detail";
 import NewConvert from "@/pages/new-convert";
 import NewMemberForm from "@/pages/new-member-form";
 import MemberForm from "@/pages/member-form";
@@ -178,25 +171,34 @@ function Router() {
         <ProtectedRoute component={MinistryAdminSettings} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       <Route path="/ministry-admin/converts">
-        <ProtectedRoute component={MinistryAdminConverts} allowedRoles={["MINISTRY_ADMIN"]} />
+        <ProtectedRoute component={LeaderConverts} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/converts/:id">
+        <ProtectedRoute component={ConvertDetail} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       <Route path="/ministry-admin/followups">
-        <ProtectedRoute component={MinistryAdminFollowups} allowedRoles={["MINISTRY_ADMIN"]} />
+        <ProtectedRoute component={LeaderFollowups} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       <Route path="/ministry-admin/new-members">
-        <ProtectedRoute component={MinistryAdminNewMembers} allowedRoles={["MINISTRY_ADMIN"]} />
+        <ProtectedRoute component={LeaderNewMembers} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       <Route path="/ministry-admin/new-members/:id">
-        <ProtectedRoute component={MinistryAdminNewMemberDetail} allowedRoles={["MINISTRY_ADMIN"]} />
+        <ProtectedRoute component={NewMemberDetail} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       <Route path="/ministry-admin/members">
-        <ProtectedRoute component={MinistryAdminMembers} allowedRoles={["MINISTRY_ADMIN"]} />
+        <ProtectedRoute component={LeaderMembers} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       <Route path="/ministry-admin/members/:id">
-        <ProtectedRoute component={MinistryAdminMemberDetail} allowedRoles={["MINISTRY_ADMIN"]} />
+        <ProtectedRoute component={MemberDetail} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       <Route path="/ministry-admin/guests">
-        <ProtectedRoute component={MinistryAdminGuests} allowedRoles={["MINISTRY_ADMIN"]} />
+        <ProtectedRoute component={LeaderGuests} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/prayer-requests">
+        <ProtectedRoute component={LeaderPrayerRequests} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/contact-requests">
+        <ProtectedRoute component={LeaderContactRequests} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       
       {/* Leader routes */}

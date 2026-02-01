@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
 import {
@@ -58,8 +59,9 @@ type UpdateMemberData = z.infer<typeof updateMemberSchema>;
 
 export default function MemberDetail() {
   const { toast } = useToast();
-  const [, params] = useRoute("/leader/members/:id");
-  const memberId = params?.id;
+  const basePath = useBasePath();
+  const [location] = useLocation();
+  const memberId = location.split('/').pop();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -146,7 +148,7 @@ export default function MemberDetail() {
             <p className="text-muted-foreground mb-4">
               The member you're looking for doesn't exist or you don't have access.
             </p>
-            <Link href="/leader/members">
+            <Link href={`${basePath}/members`}>
               <Button>Back to Members</Button>
             </Link>
           </CardContent>
@@ -158,7 +160,7 @@ export default function MemberDetail() {
   return (
     <DashboardLayout title="Member Details">
       <div className="space-y-6">
-        <Link href="/leader/members">
+        <Link href={`${basePath}/members`}>
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
             Back to Members

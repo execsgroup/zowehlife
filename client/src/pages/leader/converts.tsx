@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
 import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, Video } from "lucide-react";
@@ -104,6 +105,7 @@ type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
 
 export default function LeaderConverts() {
   const { toast } = useToast();
+  const basePath = useBasePath();
   const [location] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -696,7 +698,7 @@ export default function LeaderConverts() {
                   {filteredConverts.map((convert) => (
                     <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
                       <TableCell>
-                        <Link href={`/leader/converts/${convert.id}`}>
+                        <Link href={`${basePath}/converts/${convert.id}`}>
                           <span className="font-medium hover:underline cursor-pointer" data-testid={`link-convert-name-${convert.id}`}>
                             {convert.firstName} {convert.lastName}
                           </span>
@@ -746,7 +748,7 @@ export default function LeaderConverts() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Link href={`/leader/converts/${convert.id}`}>
+                              <Link href={`${basePath}/converts/${convert.id}`}>
                                 <Button
                                   variant="outline"
                                   size="icon"

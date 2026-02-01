@@ -61,10 +61,12 @@ const adminNavItems = [
 const ministryAdminNavItems = [
   { title: "Dashboard", url: "/ministry-admin/dashboard", icon: LayoutDashboard },
   { title: "Converts", url: "/ministry-admin/converts", icon: UserPlus },
-  { title: "Follow-ups", url: "/ministry-admin/followups", icon: CalendarClock },
   { title: "New Members", url: "/ministry-admin/new-members", icon: Users },
   { title: "Members", url: "/ministry-admin/members", icon: Church },
   { title: "Guest List", url: "/ministry-admin/guests", icon: Users2 },
+  { title: "Follow-ups", url: "/ministry-admin/followups", icon: CalendarClock },
+  { title: "Prayer Requests", url: "/ministry-admin/prayer-requests", icon: HandHeart },
+  { title: "Contact Requests", url: "/ministry-admin/contact-requests", icon: MessageSquare },
   { title: "Leader Requests", url: "/ministry-admin/account-requests", icon: ClipboardList },
   { title: "Settings", url: "/ministry-admin/settings", icon: Settings },
 ];

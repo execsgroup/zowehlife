@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert, type Checkin } from "@shared/schema";
 import {
@@ -115,8 +116,9 @@ interface ConvertWithCheckins extends Convert {
 
 export default function ConvertDetail() {
   const { toast } = useToast();
-  const [, params] = useRoute("/leader/converts/:id");
-  const convertId = params?.id;
+  const basePath = useBasePath();
+  const [location] = useLocation();
+  const convertId = location.split('/').pop();
 
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -285,7 +287,7 @@ END:VCALENDAR`;
             <p className="text-muted-foreground mb-4">
               The convert you're looking for doesn't exist or you don't have access.
             </p>
-            <Link href="/leader/converts">
+            <Link href={`${basePath}/converts`}>
               <Button>Back to Converts</Button>
             </Link>
           </CardContent>
@@ -298,7 +300,7 @@ END:VCALENDAR`;
     <DashboardLayout title="Convert Details">
       <div className="space-y-6">
         {/* Back button */}
-        <Link href="/leader/converts">
+        <Link href={`${basePath}/converts`}>
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
             Back to Converts
