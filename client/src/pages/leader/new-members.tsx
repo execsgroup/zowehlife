@@ -667,7 +667,6 @@ export default function LeaderNewMembers() {
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender</TableHead>
-                      <TableHead>Follow-up Stage</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -696,11 +695,6 @@ export default function LeaderNewMembers() {
                           </div>
                         </TableCell>
                         <TableCell>{nm.gender || "-"}</TableCell>
-                        <TableCell>
-                          <Badge className={followUpStageColors[nm.followUpStage] || followUpStageColors.NEW}>
-                            {followUpStageLabels[nm.followUpStage] || "Not Started"}
-                          </Badge>
-                        </TableCell>
                         <TableCell>
                           <Badge className={statusColors[nm.status]}>
                             {statusLabels[nm.status]}
