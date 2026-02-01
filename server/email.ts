@@ -270,7 +270,7 @@ export async function sendAccountApprovalEmail(data: AccountApprovalEmailData) {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">Welcome to Zoweh Life!</h2>
           <p>Hello ${data.leaderName},</p>
-          <p>Great news! Your leader account request has been approved. You can now log in and start managing converts for <strong>${data.churchName}</strong>.</p>
+          <p>Great news! Your leader account request has been approved. You can now log in and start managing Members and New Converts for <strong>${data.churchName}</strong>.</p>
           <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <p><strong>Your Login Details:</strong></p>
             <p><strong>Email:</strong> ${data.leaderEmail}</p>

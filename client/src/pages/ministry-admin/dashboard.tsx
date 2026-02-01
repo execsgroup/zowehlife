@@ -3,13 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useAuth } from "@/lib/auth";
-import { Users, UserPlus, ClipboardList, Heart } from "lucide-react";
+import { Users, UserPlus, ClipboardList, Heart, UserCheck, UsersRound } from "lucide-react";
 
 interface Stats {
   totalConverts: number;
   newConverts: number;
   totalLeaders: number;
   pendingAccountRequests: number;
+  totalNewMembers: number;
+  totalMembers: number;
 }
 
 interface Church {
@@ -38,10 +40,22 @@ export default function MinistryAdminDashboard() {
       icon: Heart,
     },
     {
-      title: "New This Month",
+      title: "New Converts",
       value: stats?.newConverts || 0,
       description: "Converts added this month",
       icon: UserPlus,
+    },
+    {
+      title: "New Members",
+      value: stats?.totalNewMembers || 0,
+      description: "New members in your ministry",
+      icon: UserCheck,
+    },
+    {
+      title: "Members",
+      value: stats?.totalMembers || 0,
+      description: "Existing members in your ministry",
+      icon: UsersRound,
     },
     {
       title: "Leaders",
@@ -69,7 +83,7 @@ export default function MinistryAdminDashboard() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {statCards.map((stat, index) => (
             <Card key={index}>
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
@@ -91,33 +105,6 @@ export default function MinistryAdminDashboard() {
             </Card>
           ))}
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Ministry Overview</CardTitle>
-            <CardDescription>
-              As a Ministry Admin, you can approve leader account requests and view all converts and activity within your ministry.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-2">Approve Leaders</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Review and approve requests from people who want to become leaders in your ministry.
-                  </p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-medium mb-2">View Converts</h3>
-                  <p className="text-sm text-muted-foreground">
-                    See all converts registered in your ministry and their follow-up status.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </DashboardLayout>
   );

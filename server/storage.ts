@@ -187,6 +187,8 @@ export interface IStorage {
     totalConverts: number;
     newConverts: number;
     totalLeaders: number;
+    totalNewMembers: number;
+    totalMembers: number;
   }>;
 
   // New Members
@@ -789,10 +791,22 @@ export class DatabaseStorage implements IStorage {
       .from(users)
       .where(and(eq(users.churchId, churchId), eq(users.role, "LEADER")));
 
+    const [newMemberCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(newMembers)
+      .where(eq(newMembers.churchId, churchId));
+
+    const [memberCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(members)
+      .where(eq(members.churchId, churchId));
+
     return {
       totalConverts: Number(totalCount?.count || 0),
       newConverts: Number(newCount?.count || 0),
       totalLeaders: Number(leaderCount?.count || 0),
+      totalNewMembers: Number(newMemberCount?.count || 0),
+      totalMembers: Number(memberCount?.count || 0),
     };
   }
 
