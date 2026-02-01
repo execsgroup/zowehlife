@@ -678,7 +678,7 @@ export default function LeaderNewMembers() {
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender</TableHead>
                       <TableHead>Follow Up Status</TableHead>
-                      <TableHead>Joined</TableHead>
+                      <TableHead>Visit Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>

@@ -122,7 +122,7 @@ export default function MinistryAdminNewMembers() {
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender / Age</TableHead>
                       <TableHead>Follow Up Status</TableHead>
-                      <TableHead>Joined</TableHead>
+                      <TableHead>Visit Date</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>

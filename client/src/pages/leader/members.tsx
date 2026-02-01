@@ -467,7 +467,6 @@ export default function LeaderMembers() {
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender</TableHead>
                       <TableHead>Member Since</TableHead>
-                      <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -496,9 +495,6 @@ export default function LeaderMembers() {
                         <TableCell>{m.gender || "-"}</TableCell>
                         <TableCell>
                           {m.memberSince ? format(new Date(m.memberSince), "MMM d, yyyy") : "-"}
-                        </TableCell>
-                        <TableCell>
-                          {m.createdAt ? format(new Date(m.createdAt), "MMM d, yyyy") : "-"}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-1">
