@@ -231,7 +231,9 @@ export async function registerRoutes(
       }
 
       // Verify setup key
-      if (data.setupKey !== process.env.ADMIN_SETUP_KEY) {
+      const envKey = process.env.ADMIN_SETUP_KEY;
+      console.log("[Setup] ADMIN_SETUP_KEY exists:", !!envKey, "length:", envKey?.length);
+      if (data.setupKey !== envKey) {
         return res.status(401).json({ message: "Invalid setup key" });
       }
 
