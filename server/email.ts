@@ -174,7 +174,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #333;">We're Here For You</h2>
               <p>Hello ${data.convertName},</p>
-              <p>We hope you're doing well on your faith journey! Someone from ${data.churchName} will be reaching out to you soon to check in and see how you're doing.</p>
+              <p>Thank you for worshiping and fellowshipping with us. We're grateful you joined us and pray your faith journey continues to grow stronger. Someone from ${data.churchName} will be reaching out soon to connect with you and see how we can support you.</p>
               <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
               ${videoCallSection}
               <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
