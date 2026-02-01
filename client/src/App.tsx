@@ -23,6 +23,7 @@ import AdminPrayerRequests from "@/pages/admin/prayer-requests";
 import AdminAccountRequests from "@/pages/admin/account-requests";
 import AdminMinistryRequests from "@/pages/admin/ministry-requests";
 import AdminMinistryProfile from "@/pages/admin/ministry-profile";
+import AdminDeletedAccounts from "@/pages/admin/deleted-accounts";
 import MinistryAdminDashboard from "@/pages/ministry-admin/dashboard";
 import MinistryAdminAccountRequests from "@/pages/ministry-admin/account-requests";
 import LeaderDashboard from "@/pages/leader/dashboard";
@@ -147,6 +148,9 @@ function Router() {
       </Route>
       <Route path="/admin/ministry/:id">
         <ProtectedRoute component={AdminMinistryProfile} allowedRoles={["ADMIN"]} />
+      </Route>
+      <Route path="/admin/deleted-accounts">
+        <ProtectedRoute component={AdminDeletedAccounts} allowedRoles={["ADMIN"]} />
       </Route>
       
       {/* Ministry Admin routes */}

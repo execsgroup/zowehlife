@@ -37,6 +37,7 @@ import {
   CalendarClock,
   Settings,
   MessageSquare,
+  Archive,
 } from "lucide-react";
 
 interface ChurchData {
@@ -53,6 +54,7 @@ const adminNavItems = [
   { title: "Prayer Requests", url: "/admin/prayer-requests", icon: HandHeart },
   { title: "Ministry Requests", url: "/admin/ministry-requests", icon: Building2 },
   { title: "Leader Requests", url: "/admin/account-requests", icon: ClipboardList },
+  { title: "Deleted Accounts", url: "/admin/deleted-accounts", icon: Archive },
 ];
 
 const ministryAdminNavItems = [
