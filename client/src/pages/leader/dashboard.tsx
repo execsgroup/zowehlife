@@ -30,12 +30,14 @@ interface ChurchInfo {
   id: string;
   name: string;
   publicToken: string;
+  newMemberToken: string | null;
+  memberToken: string | null;
 }
 
 export default function LeaderDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   const { data: stats, isLoading } = useQuery<LeaderStats>({
     queryKey: ["/api/leader/stats"],
@@ -49,15 +51,23 @@ export default function LeaderDashboard() {
     ? `${window.location.origin}/connect/${church.publicToken}`
     : "";
 
-  const copyLink = async () => {
-    if (convertFormLink) {
-      await navigator.clipboard.writeText(convertFormLink);
-      setCopied(true);
+  const newMemberFormLink = church?.newMemberToken
+    ? `${window.location.origin}/new-member/${church.newMemberToken}`
+    : "";
+
+  const memberFormLink = church?.memberToken
+    ? `${window.location.origin}/member/${church.memberToken}`
+    : "";
+
+  const copyLink = async (link: string, linkType: string) => {
+    if (link) {
+      await navigator.clipboard.writeText(link);
+      setCopiedLink(linkType);
       toast({
         title: "Link Copied",
-        description: "The convert form link has been copied to your clipboard.",
+        description: `The ${linkType} link has been copied to your clipboard.`,
       });
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopiedLink(null), 2000);
     }
   };
 
@@ -152,50 +162,128 @@ export default function LeaderDashboard() {
           </Card>
         </div>
 
-        {/* Share Convert Form Link */}
+        {/* Shareable Links Section */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <LinkIcon className="h-5 w-5 text-primary" />
               <div>
-                <CardTitle>Share Convert Form Link</CardTitle>
+                <CardTitle>Shareable Registration Links</CardTitle>
                 <CardDescription>
-                  Share this link with new converts to submit their information directly
+                  Share these links for self-registration forms
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            {church?.publicToken ? (
-              <div className="flex gap-2">
-                <Input
-                  readOnly
-                  value={convertFormLink}
-                  className="font-mono text-sm"
-                  data-testid="input-convert-form-link"
-                />
-                <Button
-                  onClick={copyLink}
-                  variant="outline"
-                  className="shrink-0 gap-2"
-                  data-testid="button-copy-link"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="h-4 w-4" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4" />
-                      Copy
-                    </>
-                  )}
-                </Button>
-              </div>
-            ) : (
-              <Skeleton className="h-10 w-full" />
-            )}
+          <CardContent className="space-y-4">
+            {/* Convert Form Link */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Salvation Form (Converts)</p>
+              {church?.publicToken ? (
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={convertFormLink}
+                    className="font-mono text-sm"
+                    data-testid="input-convert-form-link"
+                  />
+                  <Button
+                    onClick={() => copyLink(convertFormLink, "convert form")}
+                    variant="outline"
+                    className="shrink-0 gap-2"
+                    data-testid="button-copy-convert-link"
+                  >
+                    {copiedLink === "convert form" ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <Skeleton className="h-10 w-full" />
+              )}
+            </div>
+
+            {/* New Member Form Link */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">New Member Form</p>
+              {church?.newMemberToken ? (
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={newMemberFormLink}
+                    className="font-mono text-sm"
+                    data-testid="input-new-member-form-link"
+                  />
+                  <Button
+                    onClick={() => copyLink(newMemberFormLink, "new member form")}
+                    variant="outline"
+                    className="shrink-0 gap-2"
+                    data-testid="button-copy-new-member-link"
+                  >
+                    {copiedLink === "new member form" ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Generate a link from the <Link href="/leader/new-members" className="underline text-primary">New Members</Link> page
+                </p>
+              )}
+            </div>
+
+            {/* Member Form Link */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Member Form</p>
+              {church?.memberToken ? (
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={memberFormLink}
+                    className="font-mono text-sm"
+                    data-testid="input-member-form-link"
+                  />
+                  <Button
+                    onClick={() => copyLink(memberFormLink, "member form")}
+                    variant="outline"
+                    className="shrink-0 gap-2"
+                    data-testid="button-copy-member-link"
+                  >
+                    {copiedLink === "member form" ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Generate a link from the <Link href="/leader/members" className="underline text-primary">Members</Link> page
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
 
