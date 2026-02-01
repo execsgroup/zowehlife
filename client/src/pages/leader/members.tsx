@@ -476,9 +476,6 @@ export default function LeaderMembers() {
                       <TableRow key={m.id} data-testid={`row-member-${m.id}`}>
                         <TableCell>
                           <div className="font-medium">{m.firstName} {m.lastName}</div>
-                          {m.selfSubmitted === "true" && (
-                            <Badge variant="outline" className="text-xs">Self Registered</Badge>
-                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">

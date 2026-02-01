@@ -595,9 +595,6 @@ export default function LeaderNewMembers() {
                       <TableRow key={nm.id} data-testid={`row-new-member-${nm.id}`}>
                         <TableCell>
                           <div className="font-medium">{nm.firstName} {nm.lastName}</div>
-                          {nm.selfSubmitted === "true" && (
-                            <Badge variant="outline" className="text-xs">Self Registered</Badge>
-                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
