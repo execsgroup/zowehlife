@@ -201,6 +201,60 @@ interface AccountApprovalEmailData {
   temporaryPassword: string;
 }
 
+interface MinistryAdminApprovalEmailData {
+  adminName: string;
+  adminEmail: string;
+  ministryName: string;
+  temporaryPassword: string;
+}
+
+export async function sendMinistryAdminApprovalEmail(data: MinistryAdminApprovalEmailData) {
+  try {
+    const { client, fromEmail } = await getUncachableResendClient();
+    
+    const actualFromEmail = fromEmail || 'Zoweh Life <onboarding@resend.dev>';
+    console.log(`Attempting to send ministry admin approval email from: ${actualFromEmail} to: ${data.adminEmail}`);
+
+    const result = await client.emails.send({
+      from: actualFromEmail,
+      to: data.adminEmail,
+      subject: 'Your Ministry Admin Account Has Been Approved - Zoweh Life',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Welcome to Zoweh Life!</h2>
+          <p>Hello ${data.adminName},</p>
+          <p>Great news! Your ministry registration has been approved. You are now the Ministry Admin for <strong>${data.ministryName}</strong>.</p>
+          <p>As a Ministry Admin, you can:</p>
+          <ul>
+            <li>Approve leader account requests for your ministry</li>
+            <li>View and manage all converts, new members, and members</li>
+            <li>Access ministry statistics and reports</li>
+          </ul>
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Your Login Details:</strong></p>
+            <p><strong>Email:</strong> ${data.adminEmail}</p>
+            <p><strong>Temporary Password:</strong> ${data.temporaryPassword}</p>
+          </div>
+          <p style="color: #666; font-size: 14px;"><em>Please change your password after your first login for security purposes.</em></p>
+          <p>We're excited to have you on board. If you have any questions, please reach out to our support team.</p>
+          <p>Blessings,<br>Zoweh Life Team</p>
+        </div>
+      `
+    });
+
+    if (result.error) {
+      console.error('Resend API returned error:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    console.log(`Ministry admin approval email sent successfully to ${data.adminEmail}, id: ${result.data?.id}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to send ministry admin approval email:', error?.message || error);
+    return { success: false, error };
+  }
+}
+
 export async function sendAccountApprovalEmail(data: AccountApprovalEmailData) {
   try {
     const { client, fromEmail } = await getUncachableResendClient();

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
-import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendAccountDenialEmail } from "./email";
+import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail } from "./email";
 import { startReminderScheduler } from "./scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import {
@@ -1270,11 +1270,11 @@ export async function registerRoutes(
         entityId: newMinistryAdmin.id,
       });
 
-      // Send approval email (reuse account approval email for now)
-      const emailResult = await sendAccountApprovalEmail({
-        leaderName: `${finalAdminFirstName} ${finalAdminLastName}`,
-        leaderEmail: finalAdminEmail,
-        churchName: church.name,
+      // Send ministry admin approval email
+      const emailResult = await sendMinistryAdminApprovalEmail({
+        adminName: `${finalAdminFirstName} ${finalAdminLastName}`,
+        adminEmail: finalAdminEmail,
+        ministryName: church.name,
         temporaryPassword: tempPassword,
       });
 
