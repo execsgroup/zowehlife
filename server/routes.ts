@@ -230,10 +230,10 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Admin account already exists" });
       }
 
-      // Verify setup key
-      const envKey = process.env.ADMIN_SETUP_KEY;
-      console.log("[Setup] ADMIN_SETUP_KEY exists:", !!envKey, "length:", envKey?.length);
-      if (data.setupKey !== envKey) {
+      // Verify setup key (trim to handle accidental whitespace)
+      const envKey = process.env.ADMIN_SETUP_KEY?.trim();
+      const userKey = data.setupKey?.trim();
+      if (userKey !== envKey) {
         return res.status(401).json({ message: "Invalid setup key" });
       }
 
