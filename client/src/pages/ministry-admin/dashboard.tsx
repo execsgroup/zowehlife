@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { useAuth } from "@/lib/auth";
 import { Users, UserPlus, ClipboardList, Heart } from "lucide-react";
 
@@ -57,7 +58,7 @@ export default function MinistryAdminDashboard() {
   ];
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold" data-testid="text-page-title">
@@ -118,6 +119,6 @@ export default function MinistryAdminDashboard() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

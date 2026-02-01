@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { UserPlus, Check, X, Mail, Phone, Calendar, Loader2, FileText, Edit } from "lucide-react";
@@ -148,7 +149,7 @@ export default function MinistryAdminAccountRequests() {
   const processedRequests = requests?.filter(r => r.status !== "PENDING") || [];
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold" data-testid="text-page-title">Leader Requests</h1>
@@ -405,6 +406,6 @@ export default function MinistryAdminAccountRequests() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }

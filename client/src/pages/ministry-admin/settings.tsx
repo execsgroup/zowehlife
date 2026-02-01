@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
@@ -86,17 +87,17 @@ export default function MinistryAdminSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 overflow-auto p-6">
+      <DashboardLayout>
         <div className="max-w-4xl mx-auto space-y-6">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-64 w-full" />
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
@@ -246,6 +247,6 @@ export default function MinistryAdminSettings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }
