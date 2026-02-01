@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Eye, Video } from "lucide-react";
+import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Video } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 import { Link } from "wouter";
@@ -23,13 +23,25 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
-interface FollowUp {
+interface ConvertFollowUp {
   id: string;
   convertId: string;
   convertFirstName: string;
   convertLastName: string;
   convertPhone: string | null;
   convertEmail: string | null;
+  nextFollowupDate: string;
+  notes: string | null;
+  videoLink: string | null;
+}
+
+interface NewMemberFollowUp {
+  id: string;
+  newMemberId: string;
+  newMemberFirstName: string;
+  newMemberLastName: string;
+  newMemberPhone: string | null;
+  newMemberEmail: string | null;
   nextFollowupDate: string;
   notes: string | null;
   videoLink: string | null;
@@ -69,16 +81,33 @@ function getDateBadge(dateStr: string, id: string) {
   return <Badge variant="outline" data-testid={`badge-status-${id}`}>Upcoming</Badge>;
 }
 
+type FollowUpType = "convert" | "newMember";
+
+interface SelectedFollowUp {
+  type: FollowUpType;
+  id: string;
+  entityId: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+}
+
 export default function LeaderFollowups() {
   const { toast } = useToast();
   const basePath = useBasePath();
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [selectedFollowUp, setSelectedFollowUp] = useState<FollowUp | null>(null);
+  const [selectedFollowUp, setSelectedFollowUp] = useState<SelectedFollowUp | null>(null);
 
-  const { data: followups, isLoading } = useQuery<FollowUp[]>({
+  const { data: convertFollowups, isLoading: isLoadingConverts } = useQuery<ConvertFollowUp[]>({
     queryKey: ["/api/leader/followups"],
   });
+
+  const { data: newMemberFollowups, isLoading: isLoadingNewMembers } = useQuery<NewMemberFollowUp[]>({
+    queryKey: ["/api/leader/new-member-followups"],
+  });
+
+  const isLoading = isLoadingConverts || isLoadingNewMembers;
 
   const notesForm = useForm<FollowUpNotesData>({
     resolver: zodResolver(followUpNotesSchema),
@@ -103,7 +132,10 @@ export default function LeaderFollowups() {
   const notesMutation = useMutation({
     mutationFn: async (data: FollowUpNotesData) => {
       if (!selectedFollowUp) return;
-      await apiRequest("POST", `/api/leader/converts/${selectedFollowUp.convertId}/checkins`, {
+      const endpoint = selectedFollowUp.type === "convert"
+        ? `/api/leader/converts/${selectedFollowUp.entityId}/checkins`
+        : `/api/leader/new-members/${selectedFollowUp.entityId}/checkins`;
+      await apiRequest("POST", endpoint, {
         checkinDate: format(new Date(), "yyyy-MM-dd"),
         outcome: data.outcome,
         notes: data.notes || "",
@@ -115,7 +147,9 @@ export default function LeaderFollowups() {
         description: "Your follow-up notes have been saved.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
       setNotesDialogOpen(false);
       setSelectedFollowUp(null);
@@ -136,7 +170,10 @@ export default function LeaderFollowups() {
   const scheduleMutation = useMutation({
     mutationFn: async (data: ScheduleFollowUpData) => {
       if (!selectedFollowUp) return;
-      await apiRequest("POST", `/api/leader/converts/${selectedFollowUp.convertId}/schedule-followup`, data);
+      const endpoint = selectedFollowUp.type === "convert"
+        ? `/api/leader/converts/${selectedFollowUp.entityId}/schedule-followup`
+        : `/api/leader/new-members/${selectedFollowUp.entityId}/schedule-followup`;
+      await apiRequest("POST", endpoint, data);
     },
     onSuccess: () => {
       toast({
@@ -144,7 +181,9 @@ export default function LeaderFollowups() {
         description: "The next follow-up has been scheduled.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
       setScheduleDialogOpen(false);
       setSelectedFollowUp(null);
       scheduleForm.reset({
@@ -161,8 +200,15 @@ export default function LeaderFollowups() {
     },
   });
 
-  const handleAddNotes = (followup: FollowUp) => {
-    setSelectedFollowUp(followup);
+  const handleAddConvertNotes = (followup: ConvertFollowUp) => {
+    setSelectedFollowUp({
+      type: "convert",
+      id: followup.id,
+      entityId: followup.convertId,
+      firstName: followup.convertFirstName,
+      lastName: followup.convertLastName,
+      email: followup.convertEmail,
+    });
     notesForm.reset({
       outcome: "CONNECTED",
       notes: "",
@@ -170,8 +216,51 @@ export default function LeaderFollowups() {
     setNotesDialogOpen(true);
   };
 
-  const handleScheduleFollowUp = (followup: FollowUp) => {
-    setSelectedFollowUp(followup);
+  const handleAddNewMemberNotes = (followup: NewMemberFollowUp) => {
+    setSelectedFollowUp({
+      type: "newMember",
+      id: followup.id,
+      entityId: followup.newMemberId,
+      firstName: followup.newMemberFirstName,
+      lastName: followup.newMemberLastName,
+      email: followup.newMemberEmail,
+    });
+    notesForm.reset({
+      outcome: "CONNECTED",
+      notes: "",
+    });
+    setNotesDialogOpen(true);
+  };
+
+  const handleScheduleConvertFollowUp = (followup: ConvertFollowUp) => {
+    setSelectedFollowUp({
+      type: "convert",
+      id: followup.id,
+      entityId: followup.convertId,
+      firstName: followup.convertFirstName,
+      lastName: followup.convertLastName,
+      email: followup.convertEmail,
+    });
+    scheduleForm.reset({
+      nextFollowupDate: "",
+      customLeaderSubject: "",
+      customLeaderMessage: "",
+      customConvertSubject: "",
+      customConvertMessage: "",
+      includeVideoLink: true,
+    });
+    setScheduleDialogOpen(true);
+  };
+
+  const handleScheduleNewMemberFollowUp = (followup: NewMemberFollowUp) => {
+    setSelectedFollowUp({
+      type: "newMember",
+      id: followup.id,
+      entityId: followup.newMemberId,
+      firstName: followup.newMemberFirstName,
+      lastName: followup.newMemberLastName,
+      email: followup.newMemberEmail,
+    });
     scheduleForm.reset({
       nextFollowupDate: "",
       customLeaderSubject: "",
@@ -212,7 +301,7 @@ export default function LeaderFollowups() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Follow-ups</h2>
             <p className="text-muted-foreground" data-testid="text-page-description">
-              Your scheduled follow-ups with new converts
+              Your scheduled follow-ups with converts and new members
             </p>
           </div>
           <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
@@ -221,140 +310,267 @@ export default function LeaderFollowups() {
           </Button>
         </div>
 
-        <Card>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-6 space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : followups && followups.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Convert</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Follow-up Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Notes</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {followups.map((followup) => (
-                    <TableRow key={followup.id} data-testid={`row-followup-${followup.id}`}>
-                      <TableCell>
-                        <Link href={`${basePath}/converts/${followup.convertId}`}>
-                          <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium" data-testid={`text-convert-name-${followup.id}`}>
-                              {followup.convertFirstName} {followup.convertLastName}
+        {/* Convert Follow-ups Section */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold" data-testid="text-convert-section-title">Convert Follow-ups</h3>
+          <Card>
+            <CardContent className="p-0">
+              {isLoadingConverts ? (
+                <div className="p-6 space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : convertFollowups && convertFollowups.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Convert</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Follow-up Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {convertFollowups.map((followup) => (
+                      <TableRow key={followup.id} data-testid={`row-convert-followup-${followup.id}`}>
+                        <TableCell>
+                          <Link href={`${basePath}/converts/${followup.convertId}`}>
+                            <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium" data-testid={`text-convert-name-${followup.id}`}>
+                                {followup.convertFirstName} {followup.convertLastName}
+                              </span>
+                            </div>
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {followup.convertPhone && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                {followup.convertPhone}
+                              </div>
+                            )}
+                            {followup.convertEmail && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                {followup.convertEmail}
+                              </div>
+                            )}
+                            {!followup.convertPhone && !followup.convertEmail && (
+                              <span className="text-sm text-muted-foreground">No contact info</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span data-testid={`text-followup-date-${followup.id}`}>
+                              {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
                             </span>
                           </div>
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          {followup.convertPhone && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Phone className="h-3 w-3" />
-                              {followup.convertPhone}
-                            </div>
-                          )}
-                          {followup.convertEmail && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Mail className="h-3 w-3" />
-                              {followup.convertEmail}
-                            </div>
-                          )}
-                          {!followup.convertPhone && !followup.convertEmail && (
-                            <span className="text-sm text-muted-foreground">No contact info</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span data-testid={`text-followup-date-${followup.id}`}>
-                            {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {getDateBadge(followup.nextFollowupDate, followup.id)}
-                      </TableCell>
-                      <TableCell className="max-w-[200px]">
-                        <p className="text-sm text-muted-foreground truncate">
-                          {followup.notes || "—"}
-                        </p>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="default"
-                                size="icon"
-                                onClick={() => handleAddNotes(followup)}
-                                data-testid={`button-followup-notes-${followup.id}`}
-                              >
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Follow Up Note</TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleScheduleFollowUp(followup)}
-                                data-testid={`button-schedule-followup-${followup.id}`}
-                              >
-                                <CalendarPlus className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Schedule Next Follow Up</TooltipContent>
-                          </Tooltip>
-                          {followup.videoLink && (
+                        </TableCell>
+                        <TableCell>
+                          {getDateBadge(followup.nextFollowupDate, followup.id)}
+                        </TableCell>
+                        <TableCell className="max-w-[200px]">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {followup.notes || "—"}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <a
-                                  href={followup.videoLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                <Button
+                                  variant="default"
+                                  size="icon"
+                                  onClick={() => handleAddConvertNotes(followup)}
+                                  data-testid={`button-convert-notes-${followup.id}`}
                                 >
-                                  <Button variant="default" size="icon" data-testid={`button-join-meeting-${followup.id}`}>
-                                    <Video className="h-4 w-4" />
-                                  </Button>
-                                </a>
+                                  <FileText className="h-4 w-4" />
+                                </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Join Meeting</TooltipContent>
+                              <TooltipContent>Follow Up Note</TooltipContent>
                             </Tooltip>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleScheduleConvertFollowUp(followup)}
+                                  data-testid={`button-convert-schedule-${followup.id}`}
+                                >
+                                  <CalendarPlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Schedule Next Follow Up</TooltipContent>
+                            </Tooltip>
+                            {followup.videoLink && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={followup.videoLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Button variant="default" size="icon" data-testid={`button-convert-meeting-${followup.id}`}>
+                                      <Video className="h-4 w-4" />
+                                    </Button>
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>Join Meeting</TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="p-8 text-center">
+                  <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-muted-foreground">No upcoming convert follow-ups</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* New Member Follow-ups Section */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold" data-testid="text-new-member-section-title">New Member Follow-ups</h3>
+          <Card>
+            <CardContent className="p-0">
+              {isLoadingNewMembers ? (
+                <div className="p-6 space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
                   ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="p-12 text-center">
-                <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No upcoming follow-ups</h3>
-                <p className="text-muted-foreground mb-4">
-                  When you schedule follow-ups with your converts, they'll appear here
-                </p>
-                <Link href={`${basePath}/converts`}>
-                  <Button data-testid="button-view-converts">
-                    View Your Converts
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              ) : newMemberFollowups && newMemberFollowups.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>New Member</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Follow-up Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {newMemberFollowups.map((followup) => (
+                      <TableRow key={followup.id} data-testid={`row-newmember-followup-${followup.id}`}>
+                        <TableCell>
+                          <Link href={`${basePath}/new-members/${followup.newMemberId}`}>
+                            <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium" data-testid={`text-newmember-name-${followup.id}`}>
+                                {followup.newMemberFirstName} {followup.newMemberLastName}
+                              </span>
+                            </div>
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {followup.newMemberPhone && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                {followup.newMemberPhone}
+                              </div>
+                            )}
+                            {followup.newMemberEmail && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                {followup.newMemberEmail}
+                              </div>
+                            )}
+                            {!followup.newMemberPhone && !followup.newMemberEmail && (
+                              <span className="text-sm text-muted-foreground">No contact info</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span data-testid={`text-newmember-date-${followup.id}`}>
+                              {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getDateBadge(followup.nextFollowupDate, followup.id)}
+                        </TableCell>
+                        <TableCell className="max-w-[200px]">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {followup.notes || "—"}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="icon"
+                                  onClick={() => handleAddNewMemberNotes(followup)}
+                                  data-testid={`button-newmember-notes-${followup.id}`}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Follow Up Note</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleScheduleNewMemberFollowUp(followup)}
+                                  data-testid={`button-newmember-schedule-${followup.id}`}
+                                >
+                                  <CalendarPlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Schedule Next Follow Up</TooltipContent>
+                            </Tooltip>
+                            {followup.videoLink && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={followup.videoLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Button variant="default" size="icon" data-testid={`button-newmember-meeting-${followup.id}`}>
+                                      <Video className="h-4 w-4" />
+                                    </Button>
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>Join Meeting</TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="p-8 text-center">
+                  <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-muted-foreground">No upcoming new member follow-ups</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Follow Up Notes Dialog */}
@@ -364,7 +580,7 @@ export default function LeaderFollowups() {
             <DialogTitle>Follow Up Notes</DialogTitle>
             <DialogDescription>
               {selectedFollowUp && (
-                <>Record what happened during your follow-up with {selectedFollowUp.convertFirstName} {selectedFollowUp.convertLastName}</>
+                <>Record what happened during your follow-up with {selectedFollowUp.firstName} {selectedFollowUp.lastName}</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -451,7 +667,7 @@ export default function LeaderFollowups() {
             <DialogTitle>Schedule Next Follow Up</DialogTitle>
             <DialogDescription>
               {selectedFollowUp && (
-                <>Schedule a follow-up with {selectedFollowUp.convertFirstName} {selectedFollowUp.convertLastName} and send email notifications</>
+                <>Schedule a follow-up with {selectedFollowUp.firstName} {selectedFollowUp.lastName} and send email notifications</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -508,9 +724,9 @@ export default function LeaderFollowups() {
                   Customize the email notifications (leave blank for defaults):
                 </p>
                 
-                {selectedFollowUp?.convertEmail && (
+                {selectedFollowUp?.email && (
                   <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">Email to {selectedFollowUp.convertFirstName} {selectedFollowUp.convertLastName}</p>
+                    <p className="text-sm font-medium">Email to {selectedFollowUp.firstName} {selectedFollowUp.lastName}</p>
                     <FormField
                       control={scheduleForm.control}
                       name="customConvertSubject"
@@ -553,7 +769,7 @@ export default function LeaderFollowups() {
                   <p className="text-sm font-medium">
                     Your Reminder Email{" "}
                     <span className="italic text-muted-foreground font-normal">
-                      (Email will be sent to {selectedFollowUp?.convertFirstName} {selectedFollowUp?.convertLastName} a day before the scheduled follow up)
+                      (Email will be sent to {selectedFollowUp?.firstName} {selectedFollowUp?.lastName} a day before the scheduled follow up)
                     </span>
                   </p>
                   <FormField

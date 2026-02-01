@@ -240,7 +240,10 @@ export interface IStorage {
     newMemberId: string;
     newMemberFirstName: string;
     newMemberLastName: string;
+    newMemberPhone: string | null;
+    newMemberEmail: string | null;
     nextFollowupDate: string;
+    notes: string | null;
     videoLink: string | null;
   }>>;
 
@@ -1128,7 +1131,10 @@ export class DatabaseStorage implements IStorage {
     newMemberId: string;
     newMemberFirstName: string;
     newMemberLastName: string;
+    newMemberPhone: string | null;
+    newMemberEmail: string | null;
     nextFollowupDate: string;
+    notes: string | null;
     videoLink: string | null;
   }>> {
     const today = new Date().toISOString().split("T")[0];
@@ -1138,7 +1144,10 @@ export class DatabaseStorage implements IStorage {
         newMemberId: newMemberCheckins.newMemberId,
         newMemberFirstName: newMembers.firstName,
         newMemberLastName: newMembers.lastName,
+        newMemberPhone: newMembers.phone,
+        newMemberEmail: newMembers.email,
         nextFollowupDate: newMemberCheckins.nextFollowupDate,
+        notes: newMemberCheckins.notes,
         videoLink: newMemberCheckins.videoLink,
       })
       .from(newMemberCheckins)
@@ -1156,7 +1165,10 @@ export class DatabaseStorage implements IStorage {
       newMemberId: r.newMemberId,
       newMemberFirstName: r.newMemberFirstName,
       newMemberLastName: r.newMemberLastName,
+      newMemberPhone: r.newMemberPhone,
+      newMemberEmail: r.newMemberEmail,
       nextFollowupDate: r.nextFollowupDate || "",
+      notes: r.notes,
       videoLink: r.videoLink,
     }));
   }
