@@ -427,38 +427,44 @@ END:VCALENDAR`;
         {/* Follow-up Timeline Section */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-start justify-between flex-wrap gap-4">
               <div>
                 <CardTitle>Follow-up Timeline</CardTitle>
                 <CardDescription>
-                  Record and track check-ins with this convert
+                  Record and track follow-ups with this convert
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   className="gap-2"
-                  onClick={() => setNoteDialogOpen(true)}
-                  data-testid="button-add-note"
-                >
-                  <FileText className="h-4 w-4" />
-                  Add Note
-                </Button>
-                <Button
-                  className="gap-2"
                   onClick={() => setScheduleDialogOpen(true)}
                   data-testid="button-schedule-followup"
                 >
-                  <CalendarPlus className="h-4 w-4" />
-                  Schedule Follow Up
+                  <Calendar className="h-4 w-4" />
+                  Schedule Follow-up
                 </Button>
+                {/* Only show Add Note when there's an active scheduled follow-up */}
+                {convert.checkins && convert.checkins.some(c => 
+                  c.outcome === "SCHEDULED_VISIT" || 
+                  (c.nextFollowupDate && new Date(c.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))
+                ) && (
+                  <Button
+                    className="gap-2"
+                    onClick={() => setNoteDialogOpen(true)}
+                    data-testid="button-add-note"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Note
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
           <CardContent>
             {convert.checkins && convert.checkins.length > 0 ? (
               <div className="space-y-4">
-                {convert.checkins.map((checkin, index) => (
+                {convert.checkins.map((checkin) => (
                   <div
                     key={checkin.id}
                     className="relative pl-6 pb-4 border-l-2 border-muted last:pb-0"
@@ -466,8 +472,8 @@ END:VCALENDAR`;
                   >
                     <div className="absolute left-[-9px] top-0 h-4 w-4 rounded-full bg-primary border-2 border-background" />
                     <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="font-medium">
                             {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
                           </span>
@@ -497,23 +503,27 @@ END:VCALENDAR`;
                               <Download className="h-3 w-3" />
                               .ics
                             </Button>
-                            {checkin.videoLink && (
-                              <a
-                                href={checkin.videoLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                          </div>
+                        )}
+                        {/* Join Meeting button for active scheduled follow-ups with video links */}
+                        {checkin.videoLink && (checkin.outcome === "SCHEDULED_VISIT" || 
+                          (checkin.nextFollowupDate && new Date(checkin.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))) && (
+                          <div className="mt-2">
+                            <a
+                              href={checkin.videoLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="gap-2"
+                                data-testid={`button-join-meeting-${checkin.id}`}
                               >
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="gap-1"
-                                  data-testid={`button-join-meeting-${checkin.id}`}
-                                >
-                                  <Video className="h-3 w-3" />
-                                  Join Meeting
-                                </Button>
-                              </a>
-                            )}
+                                <Video className="h-4 w-4" />
+                                Join Meeting
+                              </Button>
+                            </a>
                           </div>
                         )}
                       </div>
@@ -523,27 +533,8 @@ END:VCALENDAR`;
               </div>
             ) : (
               <div className="text-center py-8">
-                <Calendar className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground mb-4">No follow-ups recorded yet</p>
-                <div className="flex items-center justify-center gap-2">
-                  <Button
-                    onClick={() => setNoteDialogOpen(true)}
-                    variant="outline"
-                    className="gap-2"
-                    data-testid="button-add-first-note"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Add Note
-                  </Button>
-                  <Button
-                    onClick={() => setScheduleDialogOpen(true)}
-                    className="gap-2"
-                    data-testid="button-schedule-first-followup"
-                  >
-                    <CalendarPlus className="h-4 w-4" />
-                    Schedule Follow Up
-                  </Button>
-                </div>
+                <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">No follow-up notes yet</p>
               </div>
             )}
           </CardContent>
