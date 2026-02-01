@@ -14,7 +14,8 @@ A ministry management web application with a three-tier role system for tracking
 │   │   │   ├── public-nav.tsx
 │   │   │   ├── public-footer.tsx
 │   │   │   ├── theme-provider.tsx
-│   │   │   └── theme-toggle.tsx
+│   │   │   ├── theme-toggle.tsx
+│   │   │   └── new-member-schedule-followup-dialog.tsx  # Reusable follow-up scheduling
 │   │   ├── pages/          # Page components
 │   │   │   ├── admin/      # Platform Admin dashboard pages
 │   │   │   ├── ministry-admin/  # Ministry Admin dashboard pages

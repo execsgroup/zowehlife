@@ -19,10 +19,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type NewMember } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, Video, ClipboardCheck, Clock, Church, Users2, Users, UserMinus } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, ClipboardCheck, Clock, Church, Users2, Users, UserMinus, Video } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
+import { NewMemberScheduleFollowUpDialog } from "@/components/new-member-schedule-followup-dialog";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -113,17 +113,6 @@ const followUpStageColors: Record<string, string> = {
   FINAL_COMPLETED: "bg-primary/10 text-primary border-primary/20",
 };
 
-const scheduleFollowUpSchema = z.object({
-  nextFollowupDate: z.string().min(1, "Follow-up date is required"),
-  customConvertSubject: z.string().optional(),
-  customConvertMessage: z.string().optional(),
-  customReminderSubject: z.string().optional(),
-  customReminderMessage: z.string().optional(),
-  includeVideoLink: z.boolean().optional(),
-});
-
-type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
-
 const followUpNoteSchema = z.object({
   checkinDate: z.string().min(1, "Date is required"),
   notes: z.string().optional(),
@@ -167,18 +156,6 @@ export default function LeaderNewMembers() {
     },
   });
 
-  const scheduleForm = useForm<ScheduleFollowUpData>({
-    resolver: zodResolver(scheduleFollowUpSchema),
-    defaultValues: {
-      nextFollowupDate: "",
-      customConvertSubject: "",
-      customConvertMessage: "",
-      customReminderSubject: "",
-      customReminderMessage: "",
-      includeVideoLink: true,
-    },
-  });
-
   const followUpNoteForm = useForm<FollowUpNoteData>({
     resolver: zodResolver(followUpNoteSchema),
     defaultValues: {
@@ -193,31 +170,6 @@ export default function LeaderNewMembers() {
       setDialogOpen(true);
     }
   }, [location]);
-
-  const scheduleFollowUpMutation = useMutation({
-    mutationFn: async (data: ScheduleFollowUpData) => {
-      if (!selectedNewMember) return;
-      await apiRequest("POST", `/api/leader/new-members/${selectedNewMember.id}/schedule-followup`, data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Follow-up scheduled",
-        description: "The follow-up has been scheduled and email notifications will be sent.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
-      setFollowUpDialogOpen(false);
-      setSelectedNewMember(null);
-      scheduleForm.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to schedule follow-up",
-        variant: "destructive",
-      });
-    },
-  });
 
   const followUpNoteMutation = useMutation({
     mutationFn: async (data: FollowUpNoteData) => {
@@ -252,14 +204,6 @@ export default function LeaderNewMembers() {
 
   const handleScheduleFollowUp = (newMember: NewMember) => {
     setSelectedNewMember(newMember);
-    scheduleForm.reset({
-      nextFollowupDate: "",
-      customConvertSubject: "",
-      customConvertMessage: "",
-      customReminderSubject: "",
-      customReminderMessage: "",
-      includeVideoLink: true,
-    });
     setFollowUpDialogOpen(true);
   };
 
@@ -909,148 +853,18 @@ export default function LeaderNewMembers() {
       </Dialog>
 
       {/* Schedule Follow Up Dialog */}
-      <Dialog open={followUpDialogOpen} onOpenChange={setFollowUpDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Schedule Follow Up</DialogTitle>
-            <DialogDescription>
-              Schedule a follow-up with {selectedNewMember?.firstName} {selectedNewMember?.lastName}
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...scheduleForm}>
-            <form
-              onSubmit={scheduleForm.handleSubmit((data) => scheduleFollowUpMutation.mutate(data))}
-              className="space-y-4"
-            >
-              <FormField
-                control={scheduleForm.control}
-                name="nextFollowupDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Follow-up Date *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        min={new Date().toISOString().split("T")[0]}
-                        data-testid="input-followup-date"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={scheduleForm.control}
-                name="includeVideoLink"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-include-video"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="flex items-center gap-2">
-                        <Video className="h-4 w-4" />
-                        Include Video Call Link
-                      </FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Generate a Jitsi Meet link for video calls
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-4 pt-4 border-t">
-                <h4 className="font-medium text-sm">Initial Email to New Member (Optional)</h4>
-                <p className="text-xs text-muted-foreground">Sent immediately when scheduling the follow-up</p>
-                
-                <FormField
-                  control={scheduleForm.control}
-                  name="customConvertSubject"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subject</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Custom subject for initial email" {...field} data-testid="input-initial-email-subject" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={scheduleForm.control}
-                  name="customConvertMessage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Message</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Custom message for initial email" {...field} data-testid="input-initial-email-message" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <h4 className="font-medium text-sm">Day-Before Reminder (Optional)</h4>
-                <p className="text-xs text-muted-foreground">Sent one day before the scheduled follow-up</p>
-                
-                <FormField
-                  control={scheduleForm.control}
-                  name="customReminderSubject"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subject</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Custom subject for reminder email" {...field} data-testid="input-reminder-email-subject" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={scheduleForm.control}
-                  name="customReminderMessage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Message</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Custom message for reminder email" {...field} data-testid="input-reminder-email-message" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={scheduleFollowUpMutation.isPending}
-                data-testid="button-confirm-schedule"
-              >
-                {scheduleFollowUpMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Scheduling...
-                  </>
-                ) : (
-                  "Schedule Follow Up"
-                )}
-              </Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      {selectedNewMember && (
+        <NewMemberScheduleFollowUpDialog
+          open={followUpDialogOpen}
+          onOpenChange={(open) => {
+            setFollowUpDialogOpen(open);
+            if (!open) setSelectedNewMember(null);
+          }}
+          newMemberId={selectedNewMember.id}
+          newMemberFirstName={selectedNewMember.firstName}
+          newMemberLastName={selectedNewMember.lastName}
+        />
+      )}
 
       {/* Follow Up Note Dialog */}
       <Dialog open={followUpNoteDialogOpen} onOpenChange={setFollowUpNoteDialogOpen}>

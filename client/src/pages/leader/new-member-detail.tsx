@@ -15,11 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type NewMember } from "@shared/schema";
+import { NewMemberScheduleFollowUpDialog } from "@/components/new-member-schedule-followup-dialog";
 import {
   ArrowLeft,
   Phone,
@@ -66,16 +66,6 @@ const updateNewMemberSchema = z.object({
   status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
 });
 
-const scheduleFollowUpSchema = z.object({
-  nextFollowupDate: z.string().min(1, "Follow-up date is required"),
-  notes: z.string().optional(),
-  customLeaderSubject: z.string().optional(),
-  customLeaderMessage: z.string().optional(),
-  customConvertSubject: z.string().optional(),
-  customConvertMessage: z.string().optional(),
-  includeVideoLink: z.boolean().optional(),
-});
-
 const checkinFormSchema = z.object({
   checkinDate: z.string().min(1, "Date is required"),
   notes: z.string().optional(),
@@ -89,7 +79,6 @@ const countries = [
 ];
 
 type UpdateNewMemberData = z.infer<typeof updateNewMemberSchema>;
-type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
 type CheckinFormData = z.infer<typeof checkinFormSchema>;
 
 const statusColors: Record<string, string> = {
@@ -133,19 +122,6 @@ export default function NewMemberDetail() {
       checkinDate: format(new Date(), "yyyy-MM-dd"),
       notes: "",
       outcome: "CONNECTED",
-    },
-  });
-
-  const scheduleForm = useForm<ScheduleFollowUpData>({
-    resolver: zodResolver(scheduleFollowUpSchema),
-    defaultValues: {
-      nextFollowupDate: "",
-      notes: "",
-      customLeaderSubject: "",
-      customLeaderMessage: "",
-      customConvertSubject: "",
-      customConvertMessage: "",
-      includeVideoLink: true,
     },
   });
 
@@ -202,28 +178,6 @@ export default function NewMemberDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to save check-in",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const scheduleFollowUpMutation = useMutation({
-    mutationFn: async (data: ScheduleFollowUpData) => {
-      await apiRequest("POST", `/api/leader/new-members/${newMemberId}/schedule-followup`, data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Follow-up scheduled",
-        description: "The follow-up has been scheduled and notifications sent.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members", newMemberId] });
-      setScheduleDialogOpen(false);
-      scheduleForm.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to schedule follow-up",
         variant: "destructive",
       });
     },
@@ -416,90 +370,22 @@ export default function NewMemberDetail() {
                 </CardDescription>
               </div>
               <div className="flex gap-2">
-                <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="gap-2" data-testid="button-schedule-followup">
-                      <Calendar className="h-4 w-4" />
-                      Schedule Follow-up
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Schedule Follow-up</DialogTitle>
-                      <DialogDescription>
-                        Schedule a follow-up with {newMember.firstName}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <Form {...scheduleForm}>
-                      <form
-                        onSubmit={scheduleForm.handleSubmit((data) => scheduleFollowUpMutation.mutate(data))}
-                        className="space-y-4"
-                      >
-                        <FormField
-                          control={scheduleForm.control}
-                          name="nextFollowupDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Follow-up Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} data-testid="input-schedule-date" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={scheduleForm.control}
-                          name="includeVideoLink"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>Include video call link</FormLabel>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={scheduleForm.control}
-                          name="notes"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Notes (optional)</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Notes for this follow-up..."
-                                  className="resize-none"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button
-                          type="submit"
-                          className="w-full"
-                          disabled={scheduleFollowUpMutation.isPending}
-                        >
-                          {scheduleFollowUpMutation.isPending ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                              Scheduling...
-                            </>
-                          ) : (
-                            "Schedule Follow-up"
-                          )}
-                        </Button>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
+                <Button 
+                  variant="outline" 
+                  className="gap-2" 
+                  onClick={() => setScheduleDialogOpen(true)}
+                  data-testid="button-schedule-followup"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Schedule Follow-up
+                </Button>
+                <NewMemberScheduleFollowUpDialog
+                  open={scheduleDialogOpen}
+                  onOpenChange={setScheduleDialogOpen}
+                  newMemberId={newMemberId || ""}
+                  newMemberFirstName={newMember.firstName}
+                  newMemberLastName={newMember.lastName}
+                />
                 <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="gap-2" data-testid="button-add-checkin">
