@@ -328,7 +328,7 @@ export default function NewMemberForm() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Additional Notes</FormLabel>
+                      <FormLabel>Additional Notes and Prayer Requests</FormLabel>
                       <FormControl>
                         <Textarea placeholder="Any additional information..." {...field} data-testid="input-notes" />
                       </FormControl>
