@@ -6,7 +6,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Search, Church, Phone, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Search, Church, Phone, Mail, Eye, MapPin, Calendar } from "lucide-react";
 import { format } from "date-fns";
 
 interface Member {
@@ -19,6 +22,7 @@ interface Member {
   dateOfBirth: string | null;
   country: string | null;
   gender: string | null;
+  ageGroup: string | null;
   memberSince: string | null;
   status: string;
   notes: string | null;
@@ -33,6 +37,8 @@ const statusColors: Record<string, string> = {
 
 export default function MinistryAdminMembers() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const { data: members, isLoading } = useQuery<Member[]>({
     queryKey: ["/api/ministry-admin/members"],
@@ -47,6 +53,11 @@ export default function MinistryAdminMembers() {
       member.phone?.toLowerCase().includes(query)
     );
   });
+
+  const openDetails = (member: Member) => {
+    setSelectedMember(member);
+    setDetailsOpen(true);
+  };
 
   return (
     <DashboardLayout>
@@ -87,10 +98,10 @@ export default function MinistryAdminMembers() {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
-                      <TableHead>Gender</TableHead>
+                      <TableHead>Gender / Age</TableHead>
                       <TableHead>Member Since</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Source</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -122,7 +133,7 @@ export default function MinistryAdminMembers() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            {member.gender || "—"}
+                            {member.gender || "—"} / {member.ageGroup || "—"}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -139,9 +150,21 @@ export default function MinistryAdminMembers() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">
-                            {member.selfSubmitted ? "Self-registered" : "Added by leader"}
-                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => openDetails(member)}
+                                  data-testid={`button-view-${member.id}`}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View Details</TooltipContent>
+                            </Tooltip>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -160,6 +183,88 @@ export default function MinistryAdminMembers() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Member Details</DialogTitle>
+          </DialogHeader>
+          {selectedMember && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">
+                  {selectedMember.firstName} {selectedMember.lastName}
+                </h3>
+                <Badge className={statusColors[selectedMember.status] || ""}>
+                  {selectedMember.status}
+                </Badge>
+              </div>
+
+              <div className="space-y-2">
+                {selectedMember.phone && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    {selectedMember.phone}
+                  </div>
+                )}
+                {selectedMember.email && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    {selectedMember.email}
+                  </div>
+                )}
+                {selectedMember.address && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    {selectedMember.address}
+                  </div>
+                )}
+                {selectedMember.country && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    {selectedMember.country}
+                  </div>
+                )}
+                {selectedMember.dateOfBirth && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    Born: {format(new Date(selectedMember.dateOfBirth), "MMM d, yyyy")}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Gender:</span>{" "}
+                  {selectedMember.gender || "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Age Group:</span>{" "}
+                  {selectedMember.ageGroup || "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Member Since:</span>{" "}
+                  {selectedMember.memberSince 
+                    ? format(new Date(selectedMember.memberSince), "MMM d, yyyy")
+                    : "—"
+                  }
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Source:</span>{" "}
+                  {selectedMember.selfSubmitted ? "Self-registered" : "Added by leader"}
+                </div>
+              </div>
+
+              {selectedMember.notes && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Notes:</span>
+                  <p className="text-sm mt-1 p-2 bg-muted rounded">{selectedMember.notes}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

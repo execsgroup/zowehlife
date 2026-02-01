@@ -122,6 +122,7 @@ export const members = pgTable("members", {
   address: text("address"),
   country: text("country"),
   gender: text("gender"),
+  ageGroup: text("age_group"),
   memberSince: date("member_since"),
   notes: text("notes"),
   selfSubmitted: text("self_submitted").default("false"),
@@ -377,6 +378,7 @@ export const publicMemberSubmissionSchema = z.object({
   address: z.string().optional(),
   country: z.string().optional(),
   gender: z.enum(["Male", "Female"]).optional(),
+  ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
   memberSince: z.string().optional(),
   notes: z.string().optional(),
 });
