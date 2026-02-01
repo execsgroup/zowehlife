@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Phone, Mail, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Calendar, Phone, Mail, Clock, Video, User, Eye } from "lucide-react";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 
 interface FollowUp {
@@ -16,6 +19,7 @@ interface FollowUp {
   convertEmail: string | null;
   nextFollowupDate: string;
   notes: string | null;
+  videoLink: string | null;
 }
 
 function getDateBadge(dateStr: string, id: string) {
@@ -68,29 +72,38 @@ export default function MinistryAdminFollowups() {
                       <TableHead>Scheduled Date</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Notes</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {followups.map((followup) => (
                       <TableRow key={followup.id} data-testid={`row-followup-${followup.id}`}>
                         <TableCell>
-                          <div className="font-medium">
-                            {followup.convertFirstName} {followup.convertLastName}
-                          </div>
+                          <Link href={`/ministry-admin/converts/${followup.convertId}`}>
+                            <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium" data-testid={`text-convert-name-${followup.id}`}>
+                                {followup.convertFirstName} {followup.convertLastName}
+                              </span>
+                            </div>
+                          </Link>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             {followup.convertPhone && (
-                              <div className="flex items-center gap-1 text-sm">
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Phone className="h-3 w-3" />
                                 {followup.convertPhone}
                               </div>
                             )}
                             {followup.convertEmail && (
-                              <div className="flex items-center gap-1 text-sm">
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Mail className="h-3 w-3" />
                                 {followup.convertEmail}
                               </div>
+                            )}
+                            {!followup.convertPhone && !followup.convertEmail && (
+                              <span className="text-sm text-muted-foreground">No contact info</span>
                             )}
                           </div>
                         </TableCell>
@@ -106,6 +119,36 @@ export default function MinistryAdminFollowups() {
                         <TableCell>
                           <div className="text-sm text-muted-foreground max-w-xs truncate">
                             {followup.notes || "—"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Link href={`/ministry-admin/converts/${followup.convertId}`}>
+                                  <Button variant="outline" size="icon" data-testid={`button-view-convert-${followup.id}`}>
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              </TooltipTrigger>
+                              <TooltipContent>View Convert Details</TooltipContent>
+                            </Tooltip>
+                            {followup.videoLink && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={followup.videoLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Button variant="default" size="icon" data-testid={`button-join-meeting-${followup.id}`}>
+                                      <Video className="h-4 w-4" />
+                                    </Button>
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>Join Meeting</TooltipContent>
+                              </Tooltip>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

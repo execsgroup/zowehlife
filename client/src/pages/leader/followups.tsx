@@ -32,6 +32,7 @@ interface FollowUp {
   convertEmail: string | null;
   nextFollowupDate: string;
   notes: string | null;
+  videoLink: string | null;
 }
 
 const followUpNotesSchema = z.object({
@@ -244,12 +245,14 @@ export default function LeaderFollowups() {
                   {followups.map((followup) => (
                     <TableRow key={followup.id} data-testid={`row-followup-${followup.id}`}>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium" data-testid={`text-convert-name-${followup.id}`}>
-                            {followup.convertFirstName} {followup.convertLastName}
-                          </span>
-                        </div>
+                        <Link href={`${basePath}/converts/${followup.convertId}`}>
+                          <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium" data-testid={`text-convert-name-${followup.id}`}>
+                              {followup.convertFirstName} {followup.convertLastName}
+                            </span>
+                          </div>
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
@@ -324,6 +327,22 @@ export default function LeaderFollowups() {
                             </TooltipTrigger>
                             <TooltipContent>View Convert Details</TooltipContent>
                           </Tooltip>
+                          {followup.videoLink && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <a
+                                  href={followup.videoLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <Button variant="default" size="icon" data-testid={`button-join-meeting-${followup.id}`}>
+                                    <Video className="h-4 w-4" />
+                                  </Button>
+                                </a>
+                              </TooltipTrigger>
+                              <TooltipContent>Join Meeting</TooltipContent>
+                            </Tooltip>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

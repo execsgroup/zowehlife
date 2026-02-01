@@ -107,6 +107,7 @@ export interface IStorage {
     convertEmail: string | null;
     nextFollowupDate: string;
     notes: string | null;
+    videoLink: string | null;
   }>>;
 
   // Prayer Requests
@@ -578,6 +579,7 @@ export class DatabaseStorage implements IStorage {
         convertEmail: converts.email,
         nextFollowupDate: checkins.nextFollowupDate,
         notes: checkins.notes,
+        videoLink: checkins.videoLink,
       })
       .from(checkins)
       .innerJoin(converts, eq(checkins.convertId, converts.id))
