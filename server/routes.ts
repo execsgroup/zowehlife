@@ -668,6 +668,112 @@ export async function registerRoutes(
     }
   });
 
+  // Archive (cancel) a ministry - Platform Admin
+  app.delete("/api/admin/churches/:id/archive", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const church = await storage.getChurch(id);
+      
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+
+      const archived = await storage.archiveMinistry(id, (req as any).user.id, "ADMIN");
+
+      await storage.createAuditLog({
+        actorUserId: (req as any).user.id,
+        action: "ARCHIVE",
+        entityType: "CHURCH",
+        entityId: id,
+      });
+
+      res.json({ message: "Ministry account cancelled and backed up successfully", archived });
+    } catch (error) {
+      console.error("Failed to archive ministry:", error);
+      res.status(500).json({ message: "Failed to cancel ministry account" });
+    }
+  });
+
+  // Get all archived ministries - Platform Admin
+  app.get("/api/admin/archived-ministries", requireAdmin, async (req, res) => {
+    try {
+      const archivedMinistries = await storage.getArchivedMinistries();
+      res.json(archivedMinistries);
+    } catch (error) {
+      console.error("Failed to get archived ministries:", error);
+      res.status(500).json({ message: "Failed to get archived ministries" });
+    }
+  });
+
+  // Get a specific archived ministry - Platform Admin
+  app.get("/api/admin/archived-ministries/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const archived = await storage.getArchivedMinistry(id);
+      
+      if (!archived) {
+        return res.status(404).json({ message: "Archived ministry not found" });
+      }
+
+      res.json(archived);
+    } catch (error) {
+      console.error("Failed to get archived ministry:", error);
+      res.status(500).json({ message: "Failed to get archived ministry" });
+    }
+  });
+
+  // Reinstate an archived ministry - Platform Admin
+  app.post("/api/admin/archived-ministries/:id/reinstate", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const archived = await storage.getArchivedMinistry(id);
+      
+      if (!archived) {
+        return res.status(404).json({ message: "Archived ministry not found" });
+      }
+
+      const restoredChurch = await storage.reinstateMinistry(id);
+
+      await storage.createAuditLog({
+        actorUserId: (req as any).user.id,
+        action: "REINSTATE",
+        entityType: "CHURCH",
+        entityId: restoredChurch.id,
+      });
+
+      res.json({ message: "Ministry account reinstated successfully", church: restoredChurch });
+    } catch (error) {
+      console.error("Failed to reinstate ministry:", error);
+      res.status(500).json({ message: "Failed to reinstate ministry account" });
+    }
+  });
+
+  // Permanently delete an archived ministry - Platform Admin
+  app.delete("/api/admin/archived-ministries/:id", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const archived = await storage.getArchivedMinistry(id);
+      
+      if (!archived) {
+        return res.status(404).json({ message: "Archived ministry not found" });
+      }
+
+      await storage.deleteArchivedMinistry(id);
+
+      await storage.createAuditLog({
+        actorUserId: (req as any).user.id,
+        action: "PERMANENT_DELETE",
+        entityType: "ARCHIVED_CHURCH",
+        entityId: id,
+      });
+
+      res.json({ message: "Archived ministry permanently deleted" });
+    } catch (error) {
+      console.error("Failed to delete archived ministry:", error);
+      res.status(500).json({ message: "Failed to delete archived ministry" });
+    }
+  });
+
   // Get leaders with church info
   app.get("/api/admin/leaders", requireAdmin, async (req, res) => {
     try {
@@ -1650,6 +1756,32 @@ export async function registerRoutes(
       res.json(converts);
     } catch (error) {
       res.status(500).json({ message: "Failed to get converts" });
+    }
+  });
+
+  // Cancel (archive) ministry account - Ministry Admin
+  app.delete("/api/ministry-admin/church/cancel", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+
+      const archived = await storage.archiveMinistry(user.churchId, user.id, "MINISTRY_ADMIN");
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "SELF_ARCHIVE",
+        entityType: "CHURCH",
+        entityId: user.churchId,
+      });
+
+      res.json({ message: "Ministry account cancelled and backed up successfully", archived });
+    } catch (error) {
+      console.error("Failed to cancel ministry:", error);
+      res.status(500).json({ message: "Failed to cancel ministry account" });
     }
   });
 
