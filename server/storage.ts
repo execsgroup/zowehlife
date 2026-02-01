@@ -9,6 +9,9 @@ import {
   emailReminders,
   contactRequests,
   ministryRequests,
+  newMembers,
+  newMemberCheckins,
+  members,
   type Church,
   type InsertChurch,
   type User,
@@ -26,6 +29,12 @@ import {
   type InsertContactRequest,
   type MinistryRequest,
   type InsertMinistryRequest,
+  type NewMember,
+  type InsertNewMember,
+  type NewMemberCheckin,
+  type InsertNewMemberCheckin,
+  type Member,
+  type InsertMember,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -168,6 +177,64 @@ export interface IStorage {
     newConverts: number;
     totalLeaders: number;
   }>;
+
+  // New Members
+  getNewMember(id: string): Promise<NewMember | undefined>;
+  getNewMembers(): Promise<NewMember[]>;
+  getNewMembersByChurch(churchId: string): Promise<NewMember[]>;
+  createNewMember(newMember: InsertNewMember): Promise<NewMember>;
+  createPublicNewMember(churchId: string, data: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    email?: string;
+    dateOfBirth?: string;
+    address?: string;
+    country?: string;
+    gender?: string;
+    ageGroup?: string;
+    notes?: string;
+  }): Promise<NewMember>;
+  updateNewMember(id: string, data: Partial<InsertNewMember>): Promise<NewMember>;
+
+  // New Member Checkins
+  getNewMemberCheckin(id: string): Promise<NewMemberCheckin | undefined>;
+  getNewMemberCheckinsByNewMember(newMemberId: string): Promise<NewMemberCheckin[]>;
+  getNewMemberCheckinsByChurch(churchId: string): Promise<NewMemberCheckin[]>;
+  createNewMemberCheckin(checkin: InsertNewMemberCheckin): Promise<NewMemberCheckin>;
+  getNewMemberFollowupsDue(churchId: string): Promise<Array<{
+    id: string;
+    newMemberId: string;
+    newMemberFirstName: string;
+    newMemberLastName: string;
+    nextFollowupDate: string;
+    videoLink: string | null;
+  }>>;
+
+  // Members
+  getMember(id: string): Promise<Member | undefined>;
+  getMembers(): Promise<Member[]>;
+  getMembersByChurch(churchId: string): Promise<Member[]>;
+  createMember(member: InsertMember): Promise<Member>;
+  createPublicMember(churchId: string, data: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    email?: string;
+    dateOfBirth?: string;
+    address?: string;
+    country?: string;
+    gender?: string;
+    memberSince?: string;
+    notes?: string;
+  }): Promise<Member>;
+  updateMember(id: string, data: Partial<InsertMember>): Promise<Member>;
+
+  // Church Token Methods
+  getChurchByNewMemberToken(token: string): Promise<Church | undefined>;
+  getChurchByMemberToken(token: string): Promise<Church | undefined>;
+  generateNewMemberTokenForChurch(id: string): Promise<Church>;
+  generateMemberTokenForChurch(id: string): Promise<Church>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -825,6 +892,252 @@ export class DatabaseStorage implements IStorage {
       .returning({ id: converts.id });
 
     return result.length;
+  }
+
+  // New Members
+  async getNewMember(id: string): Promise<NewMember | undefined> {
+    const [newMember] = await db.select().from(newMembers).where(eq(newMembers.id, id));
+    return newMember || undefined;
+  }
+
+  async getNewMembers(): Promise<NewMember[]> {
+    return db.select().from(newMembers).orderBy(desc(newMembers.createdAt));
+  }
+
+  async getNewMembersByChurch(churchId: string): Promise<NewMember[]> {
+    return db
+      .select()
+      .from(newMembers)
+      .where(eq(newMembers.churchId, churchId))
+      .orderBy(desc(newMembers.createdAt));
+  }
+
+  async createNewMember(insertNewMember: InsertNewMember): Promise<NewMember> {
+    const [newMember] = await db.insert(newMembers).values(insertNewMember).returning();
+    return newMember;
+  }
+
+  async createPublicNewMember(churchId: string, data: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    email?: string;
+    dateOfBirth?: string;
+    address?: string;
+    country?: string;
+    gender?: string;
+    ageGroup?: string;
+    notes?: string;
+  }): Promise<NewMember> {
+    const [newMember] = await db.insert(newMembers).values({
+      churchId,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone || null,
+      email: data.email || null,
+      dateOfBirth: data.dateOfBirth || null,
+      address: data.address || null,
+      country: data.country || null,
+      gender: data.gender || null,
+      ageGroup: data.ageGroup || null,
+      notes: data.notes || null,
+      selfSubmitted: "true",
+      createdByUserId: null,
+    }).returning();
+    return newMember;
+  }
+
+  async updateNewMember(id: string, updateData: Partial<InsertNewMember>): Promise<NewMember> {
+    const [newMember] = await db
+      .update(newMembers)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(newMembers.id, id))
+      .returning();
+    return newMember;
+  }
+
+  // New Member Checkins
+  async getNewMemberCheckin(id: string): Promise<NewMemberCheckin | undefined> {
+    const [checkin] = await db.select().from(newMemberCheckins).where(eq(newMemberCheckins.id, id));
+    return checkin || undefined;
+  }
+
+  async getNewMemberCheckinsByNewMember(newMemberId: string): Promise<NewMemberCheckin[]> {
+    return db
+      .select()
+      .from(newMemberCheckins)
+      .where(eq(newMemberCheckins.newMemberId, newMemberId))
+      .orderBy(desc(newMemberCheckins.checkinDate));
+  }
+
+  async getNewMemberCheckinsByChurch(churchId: string): Promise<NewMemberCheckin[]> {
+    return db
+      .select()
+      .from(newMemberCheckins)
+      .where(eq(newMemberCheckins.churchId, churchId))
+      .orderBy(desc(newMemberCheckins.checkinDate));
+  }
+
+  async createNewMemberCheckin(insertCheckin: InsertNewMemberCheckin): Promise<NewMemberCheckin> {
+    const [checkin] = await db.insert(newMemberCheckins).values(insertCheckin).returning();
+    return checkin;
+  }
+
+  async getNewMemberFollowupsDue(churchId: string): Promise<Array<{
+    id: string;
+    newMemberId: string;
+    newMemberFirstName: string;
+    newMemberLastName: string;
+    nextFollowupDate: string;
+    videoLink: string | null;
+  }>> {
+    const today = new Date().toISOString().split("T")[0];
+    const results = await db
+      .select({
+        id: newMemberCheckins.id,
+        newMemberId: newMemberCheckins.newMemberId,
+        newMemberFirstName: newMembers.firstName,
+        newMemberLastName: newMembers.lastName,
+        nextFollowupDate: newMemberCheckins.nextFollowupDate,
+        videoLink: newMemberCheckins.videoLink,
+      })
+      .from(newMemberCheckins)
+      .innerJoin(newMembers, eq(newMemberCheckins.newMemberId, newMembers.id))
+      .where(
+        and(
+          gte(newMemberCheckins.nextFollowupDate, today),
+          eq(newMemberCheckins.churchId, churchId)
+        )
+      )
+      .orderBy(newMemberCheckins.nextFollowupDate);
+
+    return results.map(r => ({
+      id: r.id,
+      newMemberId: r.newMemberId,
+      newMemberFirstName: r.newMemberFirstName,
+      newMemberLastName: r.newMemberLastName,
+      nextFollowupDate: r.nextFollowupDate || "",
+      videoLink: r.videoLink,
+    }));
+  }
+
+  // Members
+  async getMember(id: string): Promise<Member | undefined> {
+    const [member] = await db.select().from(members).where(eq(members.id, id));
+    return member || undefined;
+  }
+
+  async getMembers(): Promise<Member[]> {
+    return db.select().from(members).orderBy(desc(members.createdAt));
+  }
+
+  async getMembersByChurch(churchId: string): Promise<Member[]> {
+    return db
+      .select()
+      .from(members)
+      .where(eq(members.churchId, churchId))
+      .orderBy(desc(members.createdAt));
+  }
+
+  async createMember(insertMember: InsertMember): Promise<Member> {
+    const [member] = await db.insert(members).values(insertMember).returning();
+    return member;
+  }
+
+  async createPublicMember(churchId: string, data: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    email?: string;
+    dateOfBirth?: string;
+    address?: string;
+    country?: string;
+    gender?: string;
+    memberSince?: string;
+    notes?: string;
+  }): Promise<Member> {
+    const [member] = await db.insert(members).values({
+      churchId,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone || null,
+      email: data.email || null,
+      dateOfBirth: data.dateOfBirth || null,
+      address: data.address || null,
+      country: data.country || null,
+      gender: data.gender || null,
+      memberSince: data.memberSince || null,
+      notes: data.notes || null,
+      selfSubmitted: "true",
+      createdByUserId: null,
+    }).returning();
+    return member;
+  }
+
+  async updateMember(id: string, updateData: Partial<InsertMember>): Promise<Member> {
+    const [member] = await db
+      .update(members)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(members.id, id))
+      .returning();
+    return member;
+  }
+
+  // Church Token Methods
+  async getChurchByNewMemberToken(token: string): Promise<Church | undefined> {
+    const [church] = await db.select().from(churches).where(eq(churches.newMemberToken, token));
+    return church || undefined;
+  }
+
+  async getChurchByMemberToken(token: string): Promise<Church | undefined> {
+    const [church] = await db.select().from(churches).where(eq(churches.memberToken, token));
+    return church || undefined;
+  }
+
+  async generateNewMemberTokenForChurch(id: string): Promise<Church> {
+    const maxRetries = 5;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const token = this.generateRandomToken();
+        const [church] = await db
+          .update(churches)
+          .set({ newMemberToken: token })
+          .where(eq(churches.id, id))
+          .returning();
+        return church;
+      } catch (error: any) {
+        if (error?.code === '23505' && error?.constraint?.includes('new_member_token')) {
+          continue;
+        }
+        throw error;
+      }
+    }
+    
+    throw new Error(`Failed to generate unique new member token after ${maxRetries} attempts`);
+  }
+
+  async generateMemberTokenForChurch(id: string): Promise<Church> {
+    const maxRetries = 5;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const token = this.generateRandomToken();
+        const [church] = await db
+          .update(churches)
+          .set({ memberToken: token })
+          .where(eq(churches.id, id))
+          .returning();
+        return church;
+      } catch (error: any) {
+        if (error?.code === '23505' && error?.constraint?.includes('member_token')) {
+          continue;
+        }
+        throw error;
+      }
+    }
+    
+    throw new Error(`Failed to generate unique member token after ${maxRetries} attempts`);
   }
 }
 
