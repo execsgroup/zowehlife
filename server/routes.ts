@@ -11,6 +11,7 @@ import {
   insertPrayerRequestSchema,
   insertContactRequestSchema,
   insertAccountRequestSchema,
+  insertMinistryRequestSchema,
   loginSchema,
   adminSetupSchema,
   publicConvertSubmissionSchema,
@@ -59,6 +60,25 @@ async function requireLeader(req: Request, res: Response, next: NextFunction) {
 
   if (!user.churchId) {
     return res.status(403).json({ message: "Leader not assigned to a church" });
+  }
+
+  (req as any).user = user;
+  next();
+}
+
+// Middleware to check ministry admin role
+async function requireMinistryAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = await storage.getUser(req.session.userId);
+  if (!user || user.role !== "MINISTRY_ADMIN") {
+    return res.status(403).json({ message: "Forbidden - Ministry Admin access required" });
+  }
+
+  if (!user.churchId) {
+    return res.status(403).json({ message: "Ministry Admin not assigned to a ministry" });
   }
 
   (req as any).user = user;
@@ -420,6 +440,14 @@ export async function registerRoutes(
         return res.status(400).json({ message: "An account with this email already exists" });
       }
 
+      // Verify the church exists if churchId is provided
+      if (data.churchId) {
+        const church = await storage.getChurch(data.churchId);
+        if (!church) {
+          return res.status(400).json({ message: "Selected ministry does not exist" });
+        }
+      }
+
       const request = await storage.createAccountRequest(data);
       res.status(201).json({ message: "Account request submitted successfully. You will be notified once reviewed." });
     } catch (error) {
@@ -427,6 +455,33 @@ export async function registerRoutes(
         return res.status(400).json({ message: error.errors[0].message });
       }
       res.status(500).json({ message: "Failed to submit account request" });
+    }
+  });
+
+  // Submit ministry registration request
+  app.post("/api/ministry-requests", async (req, res) => {
+    try {
+      const data = insertMinistryRequestSchema.parse(req.body);
+
+      // Check if admin email already exists
+      const existingUser = await storage.getUserByEmail(data.adminEmail);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      // Check if ministry name already exists
+      const existingChurch = await storage.getChurchByName(data.ministryName);
+      if (existingChurch) {
+        return res.status(400).json({ message: "A ministry with this name already exists" });
+      }
+
+      const request = await storage.createMinistryRequest(data);
+      res.status(201).json({ message: "Ministry registration request submitted successfully. You will be notified once reviewed." });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to submit ministry request" });
     }
   });
 
@@ -1097,6 +1152,394 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to deny account request:", error);
       res.status(500).json({ message: "Failed to deny account request" });
+    }
+  });
+
+  // Get ministry requests
+  app.get("/api/admin/ministry-requests", requireAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getMinistryRequests();
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get ministry requests" });
+    }
+  });
+
+  // Approve ministry request
+  app.post("/api/admin/ministry-requests/:id/approve", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const adminUser = (req as any).user;
+
+      // Validate the edited data
+      const editedData = insertMinistryRequestSchema.parse(req.body);
+
+      const request = await storage.getMinistryRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Ministry request not found" });
+      }
+
+      if (request.status !== "PENDING") {
+        return res.status(400).json({ message: "This request has already been processed" });
+      }
+
+      // Use edited data
+      const finalMinistryName = editedData.ministryName;
+      const finalLocation = editedData.location;
+      const finalAdminFullName = editedData.adminFullName;
+      const finalAdminEmail = editedData.adminEmail;
+      const finalAdminPhone = editedData.adminPhone;
+      const finalDescription = editedData.description;
+
+      // Check if admin email already taken (could have been created since request)
+      const existingUser = await storage.getUserByEmail(finalAdminEmail);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      // Check if ministry name already taken
+      const existingChurch = await storage.getChurchByName(finalMinistryName);
+      if (existingChurch) {
+        return res.status(400).json({ message: "A ministry with this name already exists" });
+      }
+
+      // Persist edited fields to the ministry request record
+      await storage.updateMinistryRequest(id, {
+        ministryName: finalMinistryName,
+        location: finalLocation,
+        adminFullName: finalAdminFullName,
+        adminEmail: finalAdminEmail,
+        adminPhone: finalAdminPhone,
+        description: finalDescription,
+      });
+
+      // Create the church/ministry
+      const church = await storage.createChurch({
+        name: finalMinistryName,
+        location: finalLocation,
+      });
+
+      // Generate temporary password
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+      // Create the ministry admin account
+      const newMinistryAdmin = await storage.createUser({
+        role: "MINISTRY_ADMIN",
+        fullName: finalAdminFullName,
+        email: finalAdminEmail,
+        passwordHash,
+        churchId: church.id,
+      });
+
+      // Update request status
+      await storage.updateMinistryRequestStatus(id, "APPROVED", adminUser.id);
+
+      // Log the actions
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "APPROVE_MINISTRY_REQUEST",
+        entityType: "MINISTRY_REQUEST",
+        entityId: id,
+      });
+
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "CREATE",
+        entityType: "CHURCH",
+        entityId: church.id,
+      });
+
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "CREATE",
+        entityType: "USER",
+        entityId: newMinistryAdmin.id,
+      });
+
+      // Send approval email (reuse account approval email for now)
+      const emailResult = await sendAccountApprovalEmail({
+        leaderName: finalAdminName,
+        leaderEmail: finalAdminEmail,
+        churchName: church.name,
+        temporaryPassword: tempPassword,
+      });
+
+      if (!emailResult.success) {
+        console.error("Failed to send approval email:", emailResult.error);
+        return res.json({ 
+          message: "Ministry and admin account created but email notification failed. Please manually share the login credentials.",
+          credentials: {
+            email: finalAdminEmail,
+            temporaryPassword: tempPassword
+          }
+        });
+      }
+
+      res.json({ message: "Ministry registration approved, ministry created, and admin account created" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data provided", errors: error.errors });
+      }
+      console.error("Failed to approve ministry request:", error);
+      res.status(500).json({ message: "Failed to approve ministry request" });
+    }
+  });
+
+  // Deny ministry request
+  app.post("/api/admin/ministry-requests/:id/deny", requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const adminUser = (req as any).user;
+
+      const request = await storage.getMinistryRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Ministry request not found" });
+      }
+
+      if (request.status !== "PENDING") {
+        return res.status(400).json({ message: "This request has already been processed" });
+      }
+
+      // Update request status
+      await storage.updateMinistryRequestStatus(id, "DENIED", adminUser.id);
+
+      // Log the action
+      await storage.createAuditLog({
+        actorUserId: adminUser.id,
+        action: "DENY_MINISTRY_REQUEST",
+        entityType: "MINISTRY_REQUEST",
+        entityId: id,
+      });
+
+      // Send denial email
+      await sendAccountDenialEmail({
+        applicantName: request.adminFullName,
+        applicantEmail: request.adminEmail,
+      });
+
+      res.json({ message: "Ministry request denied" });
+    } catch (error) {
+      console.error("Failed to deny ministry request:", error);
+      res.status(500).json({ message: "Failed to deny ministry request" });
+    }
+  });
+
+  // ==================== MINISTRY ADMIN ROUTES ====================
+
+  // Ministry Admin stats
+  app.get("/api/ministry-admin/stats", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const stats = await storage.getMinistryAdminStats(user.churchId);
+      // Add pending account requests count for this ministry
+      const pendingRequests = await storage.getPendingAccountRequestsByChurch(user.churchId);
+      res.json({
+        ...stats,
+        pendingAccountRequests: pendingRequests.length,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get stats" });
+    }
+  });
+
+  // Get account requests for ministry admin's ministry
+  app.get("/api/ministry-admin/account-requests", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const requests = await storage.getAccountRequestsByChurch(user.churchId);
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get account requests" });
+    }
+  });
+
+  // Approve account request (by ministry admin)
+  app.post("/api/ministry-admin/account-requests/:id/approve", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const ministryAdmin = (req as any).user;
+
+      // Validate the edited data
+      const editedData = insertAccountRequestSchema.parse(req.body);
+
+      const request = await storage.getAccountRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Account request not found" });
+      }
+
+      if (request.status !== "PENDING") {
+        return res.status(400).json({ message: "This request has already been processed" });
+      }
+
+      // Verify this request is for the ministry admin's ministry
+      if (request.churchId !== ministryAdmin.churchId) {
+        return res.status(403).json({ message: "You can only approve requests for your ministry" });
+      }
+
+      // Use edited data
+      const finalName = editedData.fullName;
+      const finalEmail = editedData.email;
+      const finalPhone = editedData.phone;
+      const finalReason = editedData.reason;
+
+      // Check if email already taken
+      const existingUser = await storage.getUserByEmail(finalEmail);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      // Persist edited fields to the account request record
+      await storage.updateAccountRequest(id, {
+        fullName: finalName,
+        email: finalEmail,
+        phone: finalPhone,
+        reason: finalReason,
+      });
+
+      // Get the church (ministry admin's church)
+      const church = await storage.getChurch(ministryAdmin.churchId);
+      if (!church) {
+        return res.status(500).json({ message: "Ministry not found" });
+      }
+
+      // Generate temporary password
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+      // Create the leader account
+      const newLeader = await storage.createUser({
+        role: "LEADER",
+        fullName: finalName,
+        email: finalEmail,
+        passwordHash,
+        churchId: ministryAdmin.churchId,
+      });
+
+      // Update request status
+      await storage.updateAccountRequestStatus(id, "APPROVED", ministryAdmin.id);
+
+      // Log the actions
+      await storage.createAuditLog({
+        actorUserId: ministryAdmin.id,
+        action: "APPROVE_ACCOUNT_REQUEST",
+        entityType: "ACCOUNT_REQUEST",
+        entityId: id,
+      });
+
+      await storage.createAuditLog({
+        actorUserId: ministryAdmin.id,
+        action: "CREATE",
+        entityType: "USER",
+        entityId: newLeader.id,
+      });
+
+      // Send approval email
+      const emailResult = await sendAccountApprovalEmail({
+        leaderName: finalName,
+        leaderEmail: finalEmail,
+        churchName: church.name,
+        temporaryPassword: tempPassword,
+      });
+
+      if (!emailResult.success) {
+        console.error("Failed to send approval email:", emailResult.error);
+        return res.json({ 
+          message: "Account created but email notification failed. Please manually share the login credentials.",
+          credentials: {
+            email: finalEmail,
+            temporaryPassword: tempPassword
+          }
+        });
+      }
+
+      res.json({ message: "Account request approved and leader account created" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data provided", errors: error.errors });
+      }
+      console.error("Failed to approve account request:", error);
+      res.status(500).json({ message: "Failed to approve account request" });
+    }
+  });
+
+  // Deny account request (by ministry admin)
+  app.post("/api/ministry-admin/account-requests/:id/deny", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const ministryAdmin = (req as any).user;
+
+      const request = await storage.getAccountRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Account request not found" });
+      }
+
+      if (request.status !== "PENDING") {
+        return res.status(400).json({ message: "This request has already been processed" });
+      }
+
+      // Verify this request is for the ministry admin's ministry
+      if (request.churchId !== ministryAdmin.churchId) {
+        return res.status(403).json({ message: "You can only deny requests for your ministry" });
+      }
+
+      // Update request status
+      await storage.updateAccountRequestStatus(id, "DENIED", ministryAdmin.id);
+
+      // Log the action
+      await storage.createAuditLog({
+        actorUserId: ministryAdmin.id,
+        action: "DENY_ACCOUNT_REQUEST",
+        entityType: "ACCOUNT_REQUEST",
+        entityId: id,
+      });
+
+      // Send denial email
+      await sendAccountDenialEmail({
+        applicantName: request.fullName,
+        applicantEmail: request.email,
+      });
+
+      res.json({ message: "Account request denied" });
+    } catch (error) {
+      console.error("Failed to deny account request:", error);
+      res.status(500).json({ message: "Failed to deny account request" });
+    }
+  });
+
+  // Get ministry info for ministry admin
+  app.get("/api/ministry-admin/church", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+      res.json(church);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get ministry info" });
+    }
+  });
+
+  // Get leaders for ministry admin's ministry
+  app.get("/api/ministry-admin/leaders", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const leaders = await storage.getLeadersByChurch(user.churchId);
+      res.json(leaders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get leaders" });
+    }
+  });
+
+  // Get converts for ministry admin's ministry
+  app.get("/api/ministry-admin/converts", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const converts = await storage.getConvertsByChurch(user.churchId);
+      res.json(converts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get converts" });
     }
   });
 

@@ -45,7 +45,7 @@ export function PublicFooter() {
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3">For Leaders</h4>
+            <h4 className="font-semibold mb-3">For Ministries</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -55,6 +55,11 @@ export function PublicFooter() {
               <li>
                 <Link href="/?becomeLeader=true" className="text-muted-foreground hover:text-foreground transition-colors">
                   Become a Leader
+                </Link>
+              </li>
+              <li>
+                <Link href="/?registerMinistry=true" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Register a Ministry
                 </Link>
               </li>
             </ul>

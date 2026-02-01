@@ -1,7 +1,7 @@
 # Zoweh Life
 
 ## Overview
-A church organization web application for tracking new converts across multiple churches. Leaders log in, add converts to their church, and record follow-up check-ins. Admin manages churches and leaders.
+A ministry management web application with a three-tier role system for tracking new converts across multiple ministries. Platform Admin manages the entire platform, Ministry Admins manage their specific ministry and approve leaders, and Leaders manage converts within their ministry.
 
 ## Project Structure
 ```
@@ -16,7 +16,8 @@ A church organization web application for tracking new converts across multiple 
 │   │   │   ├── theme-provider.tsx
 │   │   │   └── theme-toggle.tsx
 │   │   ├── pages/          # Page components
-│   │   │   ├── admin/      # Admin dashboard pages
+│   │   │   ├── admin/      # Platform Admin dashboard pages
+│   │   │   ├── ministry-admin/  # Ministry Admin dashboard pages
 │   │   │   ├── leader/     # Leader dashboard pages
 │   │   │   ├── home.tsx    # Public home page
 │   │   │   ├── salvation.tsx
@@ -47,15 +48,19 @@ A church organization web application for tracking new converts across multiple 
 
 ## Key Architecture Decisions
 - **Auth**: Session-based authentication with bcrypt password hashing
-- **Roles**: ADMIN (manages all) and LEADER (manages own church's converts)
+- **Roles**: Three-tier role system
+  - **ADMIN (Platform Admin)**: Manages entire platform, approves ministry registrations
+  - **MINISTRY_ADMIN**: Manages their ministry, approves leader requests for their ministry
+  - **LEADER**: Manages converts within their ministry
 - **Database**: PostgreSQL with Drizzle ORM
 - **Frontend**: React + TailwindCSS + shadcn/ui components
 - **Routing**: wouter for client-side routing
 
 ## Database Schema
-- **churches**: id, name, location, public_token (unique link token), created_at
-- **users**: id, role (ADMIN/LEADER), full_name, email, password_hash, church_id
+- **churches**: id, name, location, public_token (unique link token), logo_url, created_at
+- **users**: id, role (ADMIN/MINISTRY_ADMIN/LEADER), full_name, email, password_hash, church_id
 - **converts**: id, church_id, created_by_user_id (nullable), first_name, last_name, phone, email, address, date_of_birth, birth_day, birth_month, country, salvation_decision, summary_notes, status, self_submitted, wants_contact, gender, age_group, is_church_member, prayer_request
+- **ministry_requests**: id, ministry_name, location, admin_name, admin_email, admin_phone, description, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 
 ## Church Logo Upload
 Leaders can upload a church logo from the "Church Settings" page in their dashboard. The logo will be displayed on the public Salvation Form for new converts. Logos are stored in Replit's Object Storage and can be up to 5MB in size (images only).
@@ -73,11 +78,25 @@ Each church has a unique public token that generates a shareable link (e.g., `/c
 
 Admin can copy the link from the Churches page using the link icon button.
 
-## Leader Account Request Flow
-1. Prospective leaders submit request via public form with church selection (dropdown of existing churches or free-text if not listed)
-2. Admin reviews pending requests and can edit all fields before approval
-3. On approval: edits are persisted, church is auto-created if it doesn't exist, leader account is created
+## Ministry Registration Flow (Three-Tier System)
+The system uses a three-tier role hierarchy:
+
+### 1. Ministry Registration (Platform Admin approves)
+1. Organization submits registration via "Register a Ministry" form (accessible from footer link)
+2. Platform Admin reviews pending ministry registrations at /admin/ministry-requests
+3. On approval: ministry is created, Ministry Admin account is created with temporary password
+4. Approval email is sent with login credentials
+
+### 2. Leader Account Request Flow (Ministry Admin approves)
+1. Prospective leaders submit request via "Become a Leader" form, selecting from existing ministries
+2. Ministry Admin for that ministry reviews pending requests at /ministry-admin/account-requests
+3. On approval: leader account is created with the ministry association
 4. Approval email is sent with temporary password
+
+### Role Capabilities
+- **Platform Admin (ADMIN)**: Approves ministry registrations, manages all ministries/leaders/converts, views platform-wide stats
+- **Ministry Admin (MINISTRY_ADMIN)**: Approves leader requests for their ministry, views ministry stats and converts
+- **Leader (LEADER)**: Manages converts, schedules follow-ups, records check-ins for their ministry
 
 ## Follow-Up System
 The system separates follow-up actions into two distinct flows:

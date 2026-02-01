@@ -21,6 +21,9 @@ import AdminConverts from "@/pages/admin/converts";
 import AdminConvertDetail from "@/pages/admin/convert-detail";
 import AdminPrayerRequests from "@/pages/admin/prayer-requests";
 import AdminAccountRequests from "@/pages/admin/account-requests";
+import AdminMinistryRequests from "@/pages/admin/ministry-requests";
+import MinistryAdminDashboard from "@/pages/ministry-admin/dashboard";
+import MinistryAdminAccountRequests from "@/pages/ministry-admin/account-requests";
 import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
 import LeaderFollowups from "@/pages/leader/followups";
@@ -55,7 +58,12 @@ function ProtectedRoute({
   }
 
   if (!allowedRoles.includes(user.role)) {
-    const redirectPath = user.role === "ADMIN" ? "/admin/dashboard" : "/leader/dashboard";
+    let redirectPath = "/leader/dashboard";
+    if (user.role === "ADMIN") {
+      redirectPath = "/admin/dashboard";
+    } else if (user.role === "MINISTRY_ADMIN") {
+      redirectPath = "/ministry-admin/dashboard";
+    }
     return <Redirect to={redirectPath} />;
   }
 
@@ -74,7 +82,12 @@ function AuthRedirect() {
   }
 
   if (user) {
-    const redirectPath = user.role === "ADMIN" ? "/admin/dashboard" : "/leader/dashboard";
+    let redirectPath = "/leader/dashboard";
+    if (user.role === "ADMIN") {
+      redirectPath = "/admin/dashboard";
+    } else if (user.role === "MINISTRY_ADMIN") {
+      redirectPath = "/ministry-admin/dashboard";
+    }
     return <Redirect to={redirectPath} />;
   }
 
@@ -121,6 +134,20 @@ function Router() {
       </Route>
       <Route path="/admin/account-requests">
         <ProtectedRoute component={AdminAccountRequests} allowedRoles={["ADMIN"]} />
+      </Route>
+      <Route path="/admin/ministry-requests">
+        <ProtectedRoute component={AdminMinistryRequests} allowedRoles={["ADMIN"]} />
+      </Route>
+      
+      {/* Ministry Admin routes */}
+      <Route path="/ministry-admin">
+        <ProtectedRoute component={MinistryAdminDashboard} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/dashboard">
+        <ProtectedRoute component={MinistryAdminDashboard} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/account-requests">
+        <ProtectedRoute component={MinistryAdminAccountRequests} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       
       {/* Leader routes */}

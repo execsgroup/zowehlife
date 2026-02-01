@@ -8,6 +8,7 @@ import {
   accountRequests,
   emailReminders,
   contactRequests,
+  ministryRequests,
   type Church,
   type InsertChurch,
   type User,
@@ -23,6 +24,8 @@ import {
   type InsertAccountRequest,
   type ContactRequest,
   type InsertContactRequest,
+  type MinistryRequest,
+  type InsertMinistryRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -102,11 +105,21 @@ export interface IStorage {
 
   // Account Requests
   getAccountRequests(): Promise<AccountRequest[]>;
+  getAccountRequestsByChurch(churchId: string): Promise<AccountRequest[]>;
   getPendingAccountRequests(): Promise<AccountRequest[]>;
+  getPendingAccountRequestsByChurch(churchId: string): Promise<AccountRequest[]>;
   getAccountRequest(id: string): Promise<AccountRequest | undefined>;
   createAccountRequest(request: InsertAccountRequest): Promise<AccountRequest>;
   updateAccountRequest(id: string, data: Partial<InsertAccountRequest>): Promise<AccountRequest>;
   updateAccountRequestStatus(id: string, status: "APPROVED" | "DENIED", reviewedByUserId: string): Promise<AccountRequest>;
+
+  // Ministry Requests
+  getMinistryRequests(): Promise<MinistryRequest[]>;
+  getPendingMinistryRequests(): Promise<MinistryRequest[]>;
+  getMinistryRequest(id: string): Promise<MinistryRequest | undefined>;
+  createMinistryRequest(request: InsertMinistryRequest): Promise<MinistryRequest>;
+  updateMinistryRequest(id: string, data: Partial<InsertMinistryRequest>): Promise<MinistryRequest>;
+  updateMinistryRequestStatus(id: string, status: "APPROVED" | "DENIED", reviewedByUserId: string): Promise<MinistryRequest>;
 
   // Email Reminders
   hasReminderBeenSent(checkinId: string, reminderType: string): Promise<boolean>;
@@ -148,6 +161,12 @@ export interface IStorage {
       nextFollowupDate: string;
       videoLink: string | null;
     }>;
+  }>;
+
+  getMinistryAdminStats(churchId: string): Promise<{
+    totalConverts: number;
+    newConverts: number;
+    totalLeaders: number;
   }>;
 }
 
@@ -477,11 +496,27 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(accountRequests).orderBy(desc(accountRequests.createdAt));
   }
 
+  async getAccountRequestsByChurch(churchId: string): Promise<AccountRequest[]> {
+    return db
+      .select()
+      .from(accountRequests)
+      .where(eq(accountRequests.churchId, churchId))
+      .orderBy(desc(accountRequests.createdAt));
+  }
+
   async getPendingAccountRequests(): Promise<AccountRequest[]> {
     return db
       .select()
       .from(accountRequests)
       .where(eq(accountRequests.status, "PENDING"))
+      .orderBy(desc(accountRequests.createdAt));
+  }
+
+  async getPendingAccountRequestsByChurch(churchId: string): Promise<AccountRequest[]> {
+    return db
+      .select()
+      .from(accountRequests)
+      .where(and(eq(accountRequests.status, "PENDING"), eq(accountRequests.churchId, churchId)))
       .orderBy(desc(accountRequests.createdAt));
   }
 
@@ -509,6 +544,47 @@ export class DatabaseStorage implements IStorage {
       .update(accountRequests)
       .set({ status, reviewedByUserId, reviewedAt: new Date() })
       .where(eq(accountRequests.id, id))
+      .returning();
+    return request;
+  }
+
+  // Ministry Requests
+  async getMinistryRequests(): Promise<MinistryRequest[]> {
+    return db.select().from(ministryRequests).orderBy(desc(ministryRequests.createdAt));
+  }
+
+  async getPendingMinistryRequests(): Promise<MinistryRequest[]> {
+    return db
+      .select()
+      .from(ministryRequests)
+      .where(eq(ministryRequests.status, "PENDING"))
+      .orderBy(desc(ministryRequests.createdAt));
+  }
+
+  async getMinistryRequest(id: string): Promise<MinistryRequest | undefined> {
+    const [request] = await db.select().from(ministryRequests).where(eq(ministryRequests.id, id));
+    return request || undefined;
+  }
+
+  async createMinistryRequest(insertRequest: InsertMinistryRequest): Promise<MinistryRequest> {
+    const [request] = await db.insert(ministryRequests).values(insertRequest).returning();
+    return request;
+  }
+
+  async updateMinistryRequest(id: string, data: Partial<InsertMinistryRequest>): Promise<MinistryRequest> {
+    const [request] = await db
+      .update(ministryRequests)
+      .set(data)
+      .where(eq(ministryRequests.id, id))
+      .returning();
+    return request;
+  }
+
+  async updateMinistryRequestStatus(id: string, status: "APPROVED" | "DENIED", reviewedByUserId: string): Promise<MinistryRequest> {
+    const [request] = await db
+      .update(ministryRequests)
+      .set({ status, reviewedByUserId, reviewedAt: new Date() })
+      .where(eq(ministryRequests.id, id))
       .returning();
     return request;
   }
@@ -605,6 +681,32 @@ export class DatabaseStorage implements IStorage {
         nextFollowupDate: f.nextFollowupDate || "",
         videoLink: f.videoLink || null,
       })),
+    };
+  }
+
+  async getMinistryAdminStats(churchId: string) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [totalCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(converts)
+      .where(eq(converts.churchId, churchId));
+
+    const [newCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(converts)
+      .where(and(eq(converts.churchId, churchId), gte(converts.createdAt, thirtyDaysAgo)));
+
+    const [leaderCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(and(eq(users.churchId, churchId), eq(users.role, "LEADER")));
+
+    return {
+      totalConverts: Number(totalCount?.count || 0),
+      newConverts: Number(newCount?.count || 0),
+      totalLeaders: Number(leaderCount?.count || 0),
     };
   }
 

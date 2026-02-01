@@ -30,6 +30,7 @@ import {
   UserPlus,
   HandHeart,
   ClipboardList,
+  Building2,
   LogOut,
   ChevronUp,
   Home,
@@ -50,7 +51,13 @@ const adminNavItems = [
   { title: "Leaders", url: "/admin/leaders", icon: Users },
   { title: "All Converts", url: "/admin/converts", icon: UserPlus },
   { title: "Prayer Requests", url: "/admin/prayer-requests", icon: HandHeart },
-  { title: "Account Requests", url: "/admin/account-requests", icon: ClipboardList },
+  { title: "Ministry Requests", url: "/admin/ministry-requests", icon: Building2 },
+  { title: "Leader Requests", url: "/admin/account-requests", icon: ClipboardList },
+];
+
+const ministryAdminNavItems = [
+  { title: "Dashboard", url: "/ministry-admin/dashboard", icon: LayoutDashboard },
+  { title: "Leader Requests", url: "/ministry-admin/account-requests", icon: ClipboardList },
 ];
 
 const leaderNavItems = [
@@ -71,7 +78,17 @@ export function AppSidebar() {
     enabled: user?.role === "LEADER",
   });
 
-  const navItems = user?.role === "ADMIN" ? adminNavItems : leaderNavItems;
+  const { data: ministryAdminChurch } = useQuery<ChurchData>({
+    queryKey: ["/api/ministry-admin/church"],
+    enabled: user?.role === "MINISTRY_ADMIN",
+  });
+
+  const getNavItems = () => {
+    if (user?.role === "ADMIN") return adminNavItems;
+    if (user?.role === "MINISTRY_ADMIN") return ministryAdminNavItems;
+    return leaderNavItems;
+  };
+  const navItems = getNavItems();
   const initials = user?.fullName
     ?.split(" ")
     .map((n) => n[0])
@@ -79,7 +96,20 @@ export function AppSidebar() {
     .toUpperCase()
     .slice(0, 2) || "U";
 
-  const showChurchLogo = user?.role === "LEADER" && church?.logoUrl;
+  const currentChurch = user?.role === "LEADER" ? church : user?.role === "MINISTRY_ADMIN" ? ministryAdminChurch : null;
+  const showChurchLogo = currentChurch?.logoUrl;
+
+  const getSidebarTitle = () => {
+    if (user?.role === "LEADER" && church?.name) return church.name;
+    if (user?.role === "MINISTRY_ADMIN" && ministryAdminChurch?.name) return ministryAdminChurch.name;
+    return "Zoweh Life";
+  };
+
+  const getRoleLabel = () => {
+    if (user?.role === "ADMIN") return "Platform Administrator";
+    if (user?.role === "MINISTRY_ADMIN") return "Ministry Administrator";
+    return "Ministry Leader";
+  };
 
   return (
     <Sidebar>
@@ -87,7 +117,7 @@ export function AppSidebar() {
         <Link href="/" className="flex items-center gap-3">
           {showChurchLogo ? (
             <Avatar className="h-9 w-9 rounded-full">
-              <AvatarImage src={church.logoUrl!} alt={church.name} className="object-cover" />
+              <AvatarImage src={currentChurch.logoUrl!} alt={currentChurch.name} className="object-cover" />
               <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
                 <Heart className="h-5 w-5" />
               </AvatarFallback>
@@ -99,7 +129,7 @@ export function AppSidebar() {
           )}
           <div className="flex flex-col">
             <span className="font-semibold text-sm">
-              {user?.role === "LEADER" && church?.name ? church.name : "Zoweh Life"}
+              {getSidebarTitle()}
             </span>
           </div>
         </Link>
@@ -157,7 +187,7 @@ export function AppSidebar() {
               <div className="flex flex-col items-start text-left flex-1 min-w-0">
                 <span className="text-sm font-medium truncate w-full">{user?.fullName}</span>
                 <span className="text-xs text-sidebar-foreground/70 truncate w-full">
-                  {user?.role === "ADMIN" ? "Administrator" : "Ministry Leader"}
+                  {getRoleLabel()}
                 </span>
               </div>
               <ChevronUp className="h-4 w-4 text-sidebar-foreground/70" />

@@ -4,7 +4,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Enums
-export const userRoleEnum = pgEnum("user_role", ["ADMIN", "LEADER"]);
+export const userRoleEnum = pgEnum("user_role", ["ADMIN", "MINISTRY_ADMIN", "LEADER"]);
 export const convertStatusEnum = pgEnum("convert_status", ["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]);
 export const checkinOutcomeEnum = pgEnum("checkin_outcome", ["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER", "NOT_COMPLETED"]);
 export const accountRequestStatusEnum = pgEnum("account_request_status", ["PENDING", "APPROVED", "DENIED"]);
@@ -98,8 +98,24 @@ export const accountRequests = pgTable("account_requests", {
   fullName: text("full_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
+  churchId: varchar("church_id").references(() => churches.id),
   churchName: text("church_name").notNull(),
   reason: text("reason"),
+  status: accountRequestStatusEnum("status").notNull().default("PENDING"),
+  reviewedByUserId: varchar("reviewed_by_user_id").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Ministry requests table (for prospective ministries to register)
+export const ministryRequests = pgTable("ministry_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ministryName: text("ministry_name").notNull(),
+  location: text("location"),
+  adminFullName: text("admin_full_name").notNull(),
+  adminEmail: text("admin_email").notNull(),
+  adminPhone: text("admin_phone"),
+  description: text("description"),
   status: accountRequestStatusEnum("status").notNull().default("PENDING"),
   reviewedByUserId: varchar("reviewed_by_user_id").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),
@@ -209,6 +225,14 @@ export const insertAccountRequestSchema = createInsertSchema(accountRequests).om
   createdAt: true,
 });
 
+export const insertMinistryRequestSchema = createInsertSchema(ministryRequests).omit({
+  id: true,
+  status: true,
+  reviewedByUserId: true,
+  reviewedAt: true,
+  createdAt: true,
+});
+
 export const insertContactRequestSchema = createInsertSchema(contactRequests).omit({
   id: true,
   createdAt: true,
@@ -267,6 +291,9 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 
 export type AccountRequest = typeof accountRequests.$inferSelect;
 export type InsertAccountRequest = z.infer<typeof insertAccountRequestSchema>;
+
+export type MinistryRequest = typeof ministryRequests.$inferSelect;
+export type InsertMinistryRequest = z.infer<typeof insertMinistryRequestSchema>;
 
 export type ContactRequest = typeof contactRequests.$inferSelect;
 export type InsertContactRequest = z.infer<typeof insertContactRequestSchema>;
