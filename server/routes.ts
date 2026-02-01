@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail } from "./email";
 import { startReminderScheduler } from "./scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import OpenAI from "openai";
 import {
   insertChurchSchema,
   insertPrayerRequestSchema,
@@ -3496,6 +3497,83 @@ export async function registerRoutes(
       }
       console.error("Error updating follow-up stage:", error);
       res.status(500).json({ message: "Failed to update follow-up stage" });
+    }
+  });
+
+  // AI Text Generation endpoint
+  const openai = new OpenAI({
+    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  });
+
+  const aiTextGenerationSchema = z.object({
+    prompt: z.string().max(500).optional(),
+    existingText: z.string().max(2000).optional(),
+    context: z.string().max(500).optional(),
+  }).refine(data => data.prompt || data.existingText, {
+    message: "Either prompt or existingText is required"
+  });
+
+  app.post("/api/ai/generate-text", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const validationResult = aiTextGenerationSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ message: validationResult.error.errors[0].message });
+      }
+      
+      const { prompt, existingText, context } = validationResult.data;
+
+      let systemPrompt = `You are a helpful assistant for a ministry management application. 
+You help leaders write warm, professional, and compassionate messages for follow-up communications with new converts and members.
+Keep messages concise but heartfelt. Use a friendly, encouraging tone appropriate for a church ministry context.
+Do not use emojis unless specifically requested.`;
+
+      let userPrompt = "";
+      
+      if (existingText && prompt) {
+        // Modify existing text based on prompt
+        userPrompt = `Please modify the following text based on this instruction: "${prompt}"
+
+Original text:
+"${existingText}"
+
+${context ? `Context: ${context}` : ""}
+
+Provide only the modified text, without any explanations or quotes.`;
+      } else if (existingText) {
+        // Improve existing text
+        userPrompt = `Please improve the following text to make it more warm, professional, and engaging while keeping the same meaning:
+
+"${existingText}"
+
+${context ? `Context: ${context}` : ""}
+
+Provide only the improved text, without any explanations or quotes.`;
+      } else {
+        // Generate new text from prompt
+        userPrompt = `Please write a message based on this instruction: "${prompt}"
+
+${context ? `Context: ${context}` : ""}
+
+Provide only the message text, without any explanations or quotes.`;
+      }
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5.2",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+
+      const generatedText = completion.choices[0]?.message?.content?.trim() || "";
+      
+      res.json({ text: generatedText });
+    } catch (error) {
+      console.error("Error generating AI text:", error);
+      res.status(500).json({ message: "Failed to generate text" });
     }
   });
 

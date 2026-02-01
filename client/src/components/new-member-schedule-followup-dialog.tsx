@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
+import { AITextHelper } from "@/components/ai-text-helper";
 
 export const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
@@ -156,7 +157,15 @@ export function NewMemberScheduleFollowUpDialog({
                 name="customConvertMessage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Message</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Message</FormLabel>
+                      <AITextHelper
+                        currentValue={field.value || ""}
+                        onTextGenerated={(text) => form.setValue("customConvertMessage", text)}
+                        context={`Writing an initial follow-up email to a new church member named ${newMemberFirstName} ${newMemberLastName}.`}
+                        placeholder="e.g., Write a warm welcome message..."
+                      />
+                    </div>
                     <FormControl>
                       <Textarea placeholder="Custom message for initial email" {...field} data-testid="input-initial-email-message" />
                     </FormControl>
@@ -189,7 +198,15 @@ export function NewMemberScheduleFollowUpDialog({
                 name="customReminderMessage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Message</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Message</FormLabel>
+                      <AITextHelper
+                        currentValue={field.value || ""}
+                        onTextGenerated={(text) => form.setValue("customReminderMessage", text)}
+                        context={`Writing a reminder email to ${newMemberFirstName} ${newMemberLastName} about an upcoming follow-up meeting from a church ministry.`}
+                        placeholder="e.g., Write a friendly reminder..."
+                      />
+                    </div>
                     <FormControl>
                       <Textarea placeholder="Custom message for reminder email" {...field} data-testid="input-reminder-email-message" />
                     </FormControl>

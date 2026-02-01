@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
+import { AITextHelper } from "@/components/ai-text-helper";
 
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
@@ -172,7 +173,15 @@ export function ConvertScheduleFollowUpDialog({
                     name="customConvertMessage"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Message Body</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Message Body</FormLabel>
+                          <AITextHelper
+                            currentValue={field.value || ""}
+                            onTextGenerated={(text) => form.setValue("customConvertMessage", text)}
+                            context={`Writing an initial follow-up email to a new convert named ${convert?.firstName} ${convert?.lastName} from a church ministry.`}
+                            placeholder="e.g., Write a warm welcome message..."
+                          />
+                        </div>
                         <FormControl>
                           <Textarea
                             placeholder="Leave blank for default message..."
@@ -217,7 +226,15 @@ export function ConvertScheduleFollowUpDialog({
                   name="customLeaderMessage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Message Body</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Message Body</FormLabel>
+                        <AITextHelper
+                          currentValue={field.value || ""}
+                          onTextGenerated={(text) => form.setValue("customLeaderMessage", text)}
+                          context={`Writing a reminder email to ${convert?.firstName} ${convert?.lastName} about an upcoming follow-up meeting from a church ministry.`}
+                          placeholder="e.g., Write a friendly reminder..."
+                        />
+                      </div>
                       <FormControl>
                         <Textarea
                           placeholder="Leave blank for default message..."

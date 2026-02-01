@@ -22,6 +22,7 @@ import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { AITextHelper } from "@/components/ai-text-helper";
 
 interface ConvertFollowUp {
   id: string;
@@ -749,7 +750,15 @@ export default function LeaderFollowups() {
                       name="customConvertMessage"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Message Body</FormLabel>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Message Body</FormLabel>
+                            <AITextHelper
+                              currentValue={field.value || ""}
+                              onTextGenerated={(text) => scheduleForm.setValue("customConvertMessage", text)}
+                              context={`Writing an initial follow-up email to ${selectedFollowUp?.firstName} ${selectedFollowUp?.lastName} from a church ministry.`}
+                              placeholder="e.g., Write a warm welcome message..."
+                            />
+                          </div>
                           <FormControl>
                             <Textarea
                               placeholder="Leave blank for default message..."
@@ -794,7 +803,15 @@ export default function LeaderFollowups() {
                     name="customLeaderMessage"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Message Body</FormLabel>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Message Body</FormLabel>
+                          <AITextHelper
+                            currentValue={field.value || ""}
+                            onTextGenerated={(text) => scheduleForm.setValue("customLeaderMessage", text)}
+                            context={`Writing a reminder email to ${selectedFollowUp?.firstName} ${selectedFollowUp?.lastName} about an upcoming follow-up meeting from a church ministry.`}
+                            placeholder="e.g., Write a friendly reminder..."
+                          />
+                        </div>
                         <FormControl>
                           <Textarea
                             placeholder="Leave blank for default message..."
