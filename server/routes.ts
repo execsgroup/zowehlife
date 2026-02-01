@@ -2655,6 +2655,27 @@ export async function registerRoutes(
         await storage.updateNewMember(newMemberId, { status: outcomeToStatus[data.outcome] as any });
       }
       
+      // Progress follow-up stage when a follow-up is completed (CONNECTED outcome)
+      // This tracks the workflow progression through first, second, and final follow-ups
+      let promptMoveToList = false;
+      if (data.outcome === "CONNECTED") {
+        const currentStage = newMember.followUpStage || "NEW";
+        let newFollowUpStage = currentStage;
+        
+        if (currentStage === "SCHEDULED" || currentStage === "NEW" || currentStage === "CONTACT_NEW_MEMBER") {
+          newFollowUpStage = "FIRST_COMPLETED";
+        } else if (currentStage === "SECOND_SCHEDULED" || currentStage === "INITIATE_SECOND") {
+          newFollowUpStage = "SECOND_COMPLETED";
+        } else if (currentStage === "FINAL_SCHEDULED" || currentStage === "INITIATE_FINAL") {
+          newFollowUpStage = "FINAL_COMPLETED";
+          promptMoveToList = true;
+        }
+        
+        if (newFollowUpStage !== currentStage) {
+          await storage.updateNewMemberFollowUpStage(newMemberId, newFollowUpStage, new Date());
+        }
+      }
+      
       await storage.createAuditLog({
         actorUserId: user.id,
         action: "CREATE",
@@ -2680,7 +2701,8 @@ export async function registerRoutes(
         }).catch(err => console.error("Email notification failed:", err));
       }
       
-      res.status(201).json(checkin);
+      // Include promptMoveToList flag when final follow-up is completed
+      res.status(201).json({ ...checkin, promptMoveToList });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
@@ -2739,6 +2761,22 @@ export async function registerRoutes(
       
       // Update new member status
       await storage.updateNewMember(newMemberId, { status: "SCHEDULED" });
+      
+      // Update follow-up stage based on current stage
+      const currentStage = newMember.followUpStage || "NEW";
+      let newFollowUpStage = currentStage;
+      
+      if (currentStage === "NEW" || currentStage === "CONTACT_NEW_MEMBER") {
+        newFollowUpStage = "SCHEDULED";
+      } else if (currentStage === "INITIATE_SECOND") {
+        newFollowUpStage = "SECOND_SCHEDULED";
+      } else if (currentStage === "INITIATE_FINAL") {
+        newFollowUpStage = "FINAL_SCHEDULED";
+      }
+      
+      if (newFollowUpStage !== currentStage) {
+        await storage.updateNewMemberFollowUpStage(newMemberId, newFollowUpStage);
+      }
       
       await storage.createAuditLog({
         actorUserId: user.id,
