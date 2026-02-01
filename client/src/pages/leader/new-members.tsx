@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type NewMember } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, Video, ClipboardCheck, Clock, Church, Users2 } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, Video, ClipboardCheck, Clock, Church, Users2, Users, UserMinus } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
@@ -142,6 +142,7 @@ export default function LeaderNewMembers() {
   const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
   const [convertToMemberDialogOpen, setConvertToMemberDialogOpen] = useState(false);
   const [convertToGuestDialogOpen, setConvertToGuestDialogOpen] = useState(false);
+  const [finalFollowUpPromptOpen, setFinalFollowUpPromptOpen] = useState(false);
 
   const { data: newMembers, isLoading } = useQuery<NewMember[]>({
     queryKey: ["/api/leader/new-members"],
@@ -218,18 +219,25 @@ export default function LeaderNewMembers() {
 
   const followUpNoteMutation = useMutation({
     mutationFn: async (data: FollowUpNoteData) => {
-      if (!selectedNewMember) return;
-      await apiRequest("POST", `/api/leader/new-members/${selectedNewMember.id}/checkins`, data);
+      if (!selectedNewMember) return null;
+      const response = await apiRequest("POST", `/api/leader/new-members/${selectedNewMember.id}/checkins`, data);
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast({
         title: "Note added",
         description: "The follow-up note has been recorded.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
       setFollowUpNoteDialogOpen(false);
-      setSelectedNewMember(null);
       followUpNoteForm.reset();
+      
+      // Check if final follow-up was completed - show prompt to move to list
+      if (result?.promptMoveToList) {
+        setFinalFollowUpPromptOpen(true);
+      } else {
+        setSelectedNewMember(null);
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -852,6 +860,55 @@ export default function LeaderNewMembers() {
               ) : (
                 "Move to Guest List"
               )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Final Follow-Up Completed Prompt */}
+      <Dialog open={finalFollowUpPromptOpen} onOpenChange={(open) => {
+        setFinalFollowUpPromptOpen(open);
+        if (!open) setSelectedNewMember(null);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Final Follow-Up Completed</DialogTitle>
+            <DialogDescription>
+              Congratulations! You have completed all follow-ups with {selectedNewMember?.firstName} {selectedNewMember?.lastName}. 
+              Would you like to move them to the Members List or Guest List?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button 
+              onClick={() => {
+                setFinalFollowUpPromptOpen(false);
+                setConvertToMemberDialogOpen(true);
+              }}
+              data-testid="button-prompt-move-to-members"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Move to Members List
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setFinalFollowUpPromptOpen(false);
+                setConvertToGuestDialogOpen(true);
+              }}
+              data-testid="button-prompt-move-to-guests"
+            >
+              <UserMinus className="h-4 w-4 mr-2" />
+              Move to Guest List
+            </Button>
+            <Button 
+              variant="ghost"
+              onClick={() => {
+                setFinalFollowUpPromptOpen(false);
+                setSelectedNewMember(null);
+              }}
+              data-testid="button-prompt-decide-later"
+            >
+              Decide Later
             </Button>
           </div>
         </DialogContent>
