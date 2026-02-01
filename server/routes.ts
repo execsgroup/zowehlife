@@ -1785,6 +1785,39 @@ export async function registerRoutes(
     }
   });
 
+  // Get new members for ministry admin's ministry
+  app.get("/api/ministry-admin/new-members", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const newMembers = await storage.getNewMembersByChurch(user.churchId);
+      res.json(newMembers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get new members" });
+    }
+  });
+
+  // Get members for ministry admin's ministry
+  app.get("/api/ministry-admin/members", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const members = await storage.getMembersByChurch(user.churchId);
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get members" });
+    }
+  });
+
+  // Get followups for ministry admin's ministry
+  app.get("/api/ministry-admin/followups", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const followups = await storage.getUpcomingFollowups(user.churchId);
+      res.json(followups);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get followups" });
+    }
+  });
+
   // ==================== LEADER ROUTES ====================
 
   // Leader stats

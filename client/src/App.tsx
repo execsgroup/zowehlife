@@ -27,6 +27,10 @@ import AdminDeletedAccounts from "@/pages/admin/deleted-accounts";
 import MinistryAdminDashboard from "@/pages/ministry-admin/dashboard";
 import MinistryAdminAccountRequests from "@/pages/ministry-admin/account-requests";
 import MinistryAdminSettings from "@/pages/ministry-admin/settings";
+import MinistryAdminConverts from "@/pages/ministry-admin/converts";
+import MinistryAdminFollowups from "@/pages/ministry-admin/followups";
+import MinistryAdminNewMembers from "@/pages/ministry-admin/new-members";
+import MinistryAdminMembers from "@/pages/ministry-admin/members";
 import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
 import LeaderFollowups from "@/pages/leader/followups";
@@ -166,6 +170,18 @@ function Router() {
       </Route>
       <Route path="/ministry-admin/settings">
         <ProtectedRoute component={MinistryAdminSettings} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/converts">
+        <ProtectedRoute component={MinistryAdminConverts} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/followups">
+        <ProtectedRoute component={MinistryAdminFollowups} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/new-members">
+        <ProtectedRoute component={MinistryAdminNewMembers} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/members">
+        <ProtectedRoute component={MinistryAdminMembers} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       
       {/* Leader routes */}
