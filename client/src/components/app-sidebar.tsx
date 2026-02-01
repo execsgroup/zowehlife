@@ -63,6 +63,8 @@ const ministryAdminNavItems = [
 const leaderNavItems = [
   { title: "Dashboard", url: "/leader/dashboard", icon: LayoutDashboard },
   { title: "My Converts", url: "/leader/converts", icon: UserPlus },
+  { title: "New Members", url: "/leader/new-members", icon: Users },
+  { title: "Members", url: "/leader/members", icon: Church },
   { title: "Follow-ups", url: "/leader/followups", icon: CalendarClock },
   { title: "Prayer Requests", url: "/leader/prayer-requests", icon: HandHeart },
   { title: "Contact Requests", url: "/leader/contact-requests", icon: MessageSquare },
