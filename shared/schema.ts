@@ -23,7 +23,8 @@ export const churches = pgTable("churches", {
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   role: userRoleEnum("role").notNull().default("LEADER"),
-  fullName: text("full_name").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   churchId: varchar("church_id").references(() => churches.id),
@@ -95,7 +96,8 @@ export const auditLog = pgTable("audit_log", {
 // Account requests table (for prospective leaders)
 export const accountRequests = pgTable("account_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  fullName: text("full_name").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
   churchId: varchar("church_id").references(() => churches.id),
@@ -112,7 +114,8 @@ export const ministryRequests = pgTable("ministry_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   ministryName: text("ministry_name").notNull(),
   location: text("location"),
-  adminFullName: text("admin_full_name").notNull(),
+  adminFirstName: text("admin_first_name").notNull(),
+  adminLastName: text("admin_last_name").notNull(),
   adminEmail: text("admin_email").notNull(),
   adminPhone: text("admin_phone"),
   description: text("description"),
@@ -264,7 +267,8 @@ export const loginSchema = z.object({
 
 // Admin setup schema
 export const adminSetupSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   setupKey: z.string().min(1, "Setup key is required"),
