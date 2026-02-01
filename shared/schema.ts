@@ -8,6 +8,7 @@ export const userRoleEnum = pgEnum("user_role", ["ADMIN", "MINISTRY_ADMIN", "LEA
 export const convertStatusEnum = pgEnum("convert_status", ["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]);
 export const checkinOutcomeEnum = pgEnum("checkin_outcome", ["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER", "NOT_COMPLETED"]);
 export const accountRequestStatusEnum = pgEnum("account_request_status", ["PENDING", "APPROVED", "DENIED"]);
+export const followUpStageEnum = pgEnum("follow_up_stage", ["NEW", "SCHEDULED", "FIRST_COMPLETED", "INITIATE_SECOND", "SECOND_SCHEDULED", "SECOND_COMPLETED", "INITIATE_FINAL", "FINAL_SCHEDULED", "FINAL_COMPLETED"]);
 
 // Churches table
 export const churches = pgTable("churches", {
@@ -90,6 +91,8 @@ export const newMembers = pgTable("new_members", {
   ageGroup: text("age_group"),
   notes: text("notes"),
   status: convertStatusEnum("status").notNull().default("NEW"),
+  followUpStage: followUpStageEnum("follow_up_stage").notNull().default("NEW"),
+  lastFollowUpCompletedAt: timestamp("last_follow_up_completed_at"),
   selfSubmitted: text("self_submitted").default("false"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -126,6 +129,41 @@ export const members = pgTable("members", {
   memberSince: date("member_since"),
   notes: text("notes"),
   selfSubmitted: text("self_submitted").default("false"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Member Check-ins table
+export const memberCheckins = pgTable("member_checkins", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  memberId: varchar("member_id").notNull().references(() => members.id),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  createdByUserId: varchar("created_by_user_id").notNull().references(() => users.id),
+  checkinDate: date("checkin_date").notNull(),
+  notes: text("notes"),
+  outcome: checkinOutcomeEnum("outcome").notNull(),
+  nextFollowupDate: date("next_followup_date"),
+  videoLink: text("video_link"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Guests table
+export const guests = pgTable("guests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  createdByUserId: varchar("created_by_user_id").references(() => users.id),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: date("date_of_birth"),
+  phone: text("phone"),
+  email: text("email"),
+  address: text("address"),
+  country: text("country"),
+  gender: text("gender"),
+  ageGroup: text("age_group"),
+  notes: text("notes"),
+  sourceType: text("source_type"),
+  sourceId: varchar("source_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -334,6 +372,17 @@ export const insertMemberSchema = createInsertSchema(members).omit({
   updatedAt: true,
 });
 
+export const insertMemberCheckinSchema = createInsertSchema(memberCheckins).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGuestSchema = createInsertSchema(guests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Public convert submission schema (for self-submissions via church link)
 export const publicConvertSubmissionSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -439,6 +488,12 @@ export type InsertNewMemberCheckin = z.infer<typeof insertNewMemberCheckinSchema
 
 export type Member = typeof members.$inferSelect;
 export type InsertMember = z.infer<typeof insertMemberSchema>;
+
+export type MemberCheckin = typeof memberCheckins.$inferSelect;
+export type InsertMemberCheckin = z.infer<typeof insertMemberCheckinSchema>;
+
+export type Guest = typeof guests.$inferSelect;
+export type InsertGuest = z.infer<typeof insertGuestSchema>;
 
 export type ArchivedMinistry = typeof archivedMinistries.$inferSelect;
 export type InsertArchivedMinistry = z.infer<typeof insertArchivedMinistrySchema>;

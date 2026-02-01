@@ -12,6 +12,8 @@ import {
   newMembers,
   newMemberCheckins,
   members,
+  memberCheckins,
+  guests,
   archivedMinistries,
   type Church,
   type InsertChurch,
@@ -36,6 +38,10 @@ import {
   type InsertNewMemberCheckin,
   type Member,
   type InsertMember,
+  type MemberCheckin,
+  type InsertMemberCheckin,
+  type Guest,
+  type InsertGuest,
   type ArchivedMinistry,
   type InsertArchivedMinistry,
 } from "@shared/schema";
@@ -242,6 +248,26 @@ export interface IStorage {
     notes?: string;
   }): Promise<Member>;
   updateMember(id: string, data: Partial<InsertMember>): Promise<Member>;
+
+  // Member Check-ins
+  getMemberCheckin(id: string): Promise<MemberCheckin | undefined>;
+  getMemberCheckins(memberId: string): Promise<MemberCheckin[]>;
+  createMemberCheckin(checkin: InsertMemberCheckin): Promise<MemberCheckin>;
+
+  // Guests
+  getGuest(id: string): Promise<Guest | undefined>;
+  getGuestsByChurch(churchId: string): Promise<Guest[]>;
+  createGuest(guest: InsertGuest): Promise<Guest>;
+  updateGuest(id: string, data: Partial<InsertGuest>): Promise<Guest>;
+  deleteGuest(id: string): Promise<void>;
+
+  // New Member Follow-up Stage
+  updateNewMemberFollowUpStage(id: string, stage: string, completedAt?: Date): Promise<NewMember>;
+  getNewMembersForFollowUpCheck(daysAgo: number): Promise<NewMember[]>;
+
+  // Convert New Member to Member or Guest
+  convertNewMemberToMember(newMemberId: string, userId: string): Promise<Member>;
+  convertNewMemberToGuest(newMemberId: string, userId: string): Promise<Guest>;
 
   // Church Token Methods
   getChurchByNewMemberToken(token: string): Promise<Church | undefined>;
@@ -1181,6 +1207,126 @@ export class DatabaseStorage implements IStorage {
     }
     
     throw new Error(`Failed to generate unique member token after ${maxRetries} attempts`);
+  }
+
+  // Member Check-ins
+  async getMemberCheckin(id: string): Promise<MemberCheckin | undefined> {
+    const [checkin] = await db.select().from(memberCheckins).where(eq(memberCheckins.id, id));
+    return checkin || undefined;
+  }
+
+  async getMemberCheckins(memberId: string): Promise<MemberCheckin[]> {
+    return db.select().from(memberCheckins).where(eq(memberCheckins.memberId, memberId)).orderBy(desc(memberCheckins.createdAt));
+  }
+
+  async createMemberCheckin(checkin: InsertMemberCheckin): Promise<MemberCheckin> {
+    const [created] = await db.insert(memberCheckins).values(checkin).returning();
+    return created;
+  }
+
+  // Guests
+  async getGuest(id: string): Promise<Guest | undefined> {
+    const [guest] = await db.select().from(guests).where(eq(guests.id, id));
+    return guest || undefined;
+  }
+
+  async getGuestsByChurch(churchId: string): Promise<Guest[]> {
+    return db.select().from(guests).where(eq(guests.churchId, churchId)).orderBy(desc(guests.createdAt));
+  }
+
+  async createGuest(guest: InsertGuest): Promise<Guest> {
+    const [created] = await db.insert(guests).values(guest).returning();
+    return created;
+  }
+
+  async updateGuest(id: string, data: Partial<InsertGuest>): Promise<Guest> {
+    const [updated] = await db.update(guests).set({ ...data, updatedAt: new Date() }).where(eq(guests.id, id)).returning();
+    return updated;
+  }
+
+  async deleteGuest(id: string): Promise<void> {
+    await db.delete(guests).where(eq(guests.id, id));
+  }
+
+  // New Member Follow-up Stage
+  async updateNewMemberFollowUpStage(id: string, stage: string, completedAt?: Date): Promise<NewMember> {
+    const updateData: any = { followUpStage: stage, updatedAt: new Date() };
+    if (completedAt) {
+      updateData.lastFollowUpCompletedAt = completedAt;
+    }
+    const [updated] = await db.update(newMembers).set(updateData).where(eq(newMembers.id, id)).returning();
+    return updated;
+  }
+
+  async getNewMembersForFollowUpCheck(daysAgo: number): Promise<NewMember[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
+    
+    return db.select().from(newMembers).where(
+      and(
+        isNotNull(newMembers.lastFollowUpCompletedAt),
+        lte(newMembers.lastFollowUpCompletedAt, cutoffDate)
+      )
+    );
+  }
+
+  // Convert New Member to Member or Guest
+  async convertNewMemberToMember(newMemberId: string, userId: string): Promise<Member> {
+    const newMember = await this.getNewMember(newMemberId);
+    if (!newMember) {
+      throw new Error("New member not found");
+    }
+
+    const [member] = await db.insert(members).values({
+      churchId: newMember.churchId,
+      createdByUserId: userId,
+      firstName: newMember.firstName,
+      lastName: newMember.lastName,
+      dateOfBirth: newMember.dateOfBirth,
+      phone: newMember.phone,
+      email: newMember.email,
+      address: newMember.address,
+      country: newMember.country,
+      gender: newMember.gender,
+      ageGroup: newMember.ageGroup,
+      memberSince: new Date().toISOString().split('T')[0],
+      notes: newMember.notes,
+      selfSubmitted: "false",
+    }).returning();
+
+    // Delete the new member record
+    await db.delete(newMembers).where(eq(newMembers.id, newMemberId));
+
+    return member;
+  }
+
+  async convertNewMemberToGuest(newMemberId: string, userId: string): Promise<Guest> {
+    const newMember = await this.getNewMember(newMemberId);
+    if (!newMember) {
+      throw new Error("New member not found");
+    }
+
+    const [guest] = await db.insert(guests).values({
+      churchId: newMember.churchId,
+      createdByUserId: userId,
+      firstName: newMember.firstName,
+      lastName: newMember.lastName,
+      dateOfBirth: newMember.dateOfBirth,
+      phone: newMember.phone,
+      email: newMember.email,
+      address: newMember.address,
+      country: newMember.country,
+      gender: newMember.gender,
+      ageGroup: newMember.ageGroup,
+      notes: newMember.notes,
+      sourceType: "new_member",
+      sourceId: newMemberId,
+    }).returning();
+
+    // Delete the new member record
+    await db.delete(newMembers).where(eq(newMembers.id, newMemberId));
+
+    return guest;
   }
 
   // Archived Ministries
