@@ -144,6 +144,33 @@ When scheduling a follow-up, leaders can include an auto-generated Jitsi Meet vi
 - Video link is stored in the checkin record
 - "Join Meeting" button appears in the Follow-up Timeline when a video link is available
 
+## New Member Follow-Up Workflow
+New members go through a structured follow-up workflow with automatic stage progression:
+
+### Follow-Up Stages
+1. **NEW**: Initial state when new member is added
+2. **CONTACT_NEW_MEMBER**: Auto-set after 14 days with no contact (scheduler)
+3. **SCHEDULED**: First follow-up scheduled by leader
+4. **FIRST_COMPLETED**: First follow-up completed with "Connected" outcome
+5. **INITIATE_SECOND**: Auto-set 20 days after first completed (scheduler)
+6. **SECOND_SCHEDULED**: Second follow-up scheduled
+7. **SECOND_COMPLETED**: Second follow-up completed
+8. **INITIATE_FINAL**: Auto-set 20 days after second completed (scheduler)
+9. **FINAL_SCHEDULED**: Final follow-up scheduled
+10. **FINAL_COMPLETED**: All follow-ups complete - prompts leader to move to Members or Guest List
+
+### Automated Progression
+The scheduler runs hourly and automatically progresses stages:
+- **14 days no contact**: NEW → CONTACT_NEW_MEMBER
+- **20 days after first completed**: FIRST_COMPLETED → INITIATE_SECOND
+- **20 days after second completed**: SECOND_COMPLETED → INITIATE_FINAL
+
+### Completion Prompt
+When the final follow-up is marked as "Connected", leaders are prompted with a dialog offering three options:
+- Move to Members List
+- Move to Guest List
+- Decide Later
+
 ## Action Icons
 The application uses icon buttons with hover tooltips for common actions:
 - **Follow-ups Page**: Follow Up Note, Schedule Next Follow Up, View Convert Details, Follow Up Timeline
