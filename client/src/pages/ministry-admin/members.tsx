@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,9 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Search, Church, Phone, Mail, Eye, MapPin, Calendar } from "lucide-react";
+import { Search, Church, Phone, Mail, Eye } from "lucide-react";
 import { format } from "date-fns";
 
 interface Member {
@@ -37,8 +37,6 @@ const statusColors: Record<string, string> = {
 
 export default function MinistryAdminMembers() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const { data: members, isLoading } = useQuery<Member[]>({
     queryKey: ["/api/ministry-admin/members"],
@@ -53,11 +51,6 @@ export default function MinistryAdminMembers() {
       member.phone?.toLowerCase().includes(query)
     );
   });
-
-  const openDetails = (member: Member) => {
-    setSelectedMember(member);
-    setDetailsOpen(true);
-  };
 
   return (
     <DashboardLayout>
@@ -153,14 +146,15 @@ export default function MinistryAdminMembers() {
                           <div className="flex items-center gap-1">
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => openDetails(member)}
-                                  data-testid={`button-view-${member.id}`}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
+                                <Link href={`/ministry-admin/members/${member.id}`}>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    data-testid={`button-view-${member.id}`}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </Link>
                               </TooltipTrigger>
                               <TooltipContent>View Details</TooltipContent>
                             </Tooltip>
@@ -183,88 +177,6 @@ export default function MinistryAdminMembers() {
           </CardContent>
         </Card>
       </div>
-
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Member Details</DialogTitle>
-          </DialogHeader>
-          {selectedMember && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">
-                  {selectedMember.firstName} {selectedMember.lastName}
-                </h3>
-                <Badge className={statusColors[selectedMember.status] || ""}>
-                  {selectedMember.status}
-                </Badge>
-              </div>
-
-              <div className="space-y-2">
-                {selectedMember.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    {selectedMember.phone}
-                  </div>
-                )}
-                {selectedMember.email && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    {selectedMember.email}
-                  </div>
-                )}
-                {selectedMember.address && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    {selectedMember.address}
-                  </div>
-                )}
-                {selectedMember.country && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    {selectedMember.country}
-                  </div>
-                )}
-                {selectedMember.dateOfBirth && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    Born: {format(new Date(selectedMember.dateOfBirth), "MMM d, yyyy")}
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Gender:</span>{" "}
-                  {selectedMember.gender || "—"}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Age Group:</span>{" "}
-                  {selectedMember.ageGroup || "—"}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Member Since:</span>{" "}
-                  {selectedMember.memberSince 
-                    ? format(new Date(selectedMember.memberSince), "MMM d, yyyy")
-                    : "—"
-                  }
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Source:</span>{" "}
-                  {selectedMember.selfSubmitted ? "Self-registered" : "Added by leader"}
-                </div>
-              </div>
-
-              {selectedMember.notes && (
-                <div>
-                  <span className="text-sm text-muted-foreground">Notes:</span>
-                  <p className="text-sm mt-1 p-2 bg-muted rounded">{selectedMember.notes}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useLocation } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -58,10 +59,9 @@ type MemberFormData = z.infer<typeof memberFormSchema>;
 
 export default function LeaderMembers() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   const { data: members, isLoading } = useQuery<Member[]>({
     queryKey: ["/api/leader/members"],
@@ -88,8 +88,7 @@ export default function LeaderMembers() {
   });
 
   const handleViewDetails = (member: Member) => {
-    setSelectedMember(member);
-    setDetailsDialogOpen(true);
+    setLocation(`/leader/members/${member.id}`);
   };
 
   const createMutation = useMutation({
@@ -530,91 +529,6 @@ export default function LeaderMembers() {
           </CardContent>
         </Card>
       </div>
-
-      {/* View Details Dialog */}
-      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Member Details</DialogTitle>
-          </DialogHeader>
-          {selectedMember && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Name</p>
-                  <p className="font-medium">{selectedMember.firstName} {selectedMember.lastName}</p>
-                </div>
-                {selectedMember.gender && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Gender</p>
-                    <p className="font-medium">{selectedMember.gender}</p>
-                  </div>
-                )}
-              </div>
-
-              {selectedMember.phone && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="font-medium">{selectedMember.phone}</p>
-                </div>
-              )}
-
-              {selectedMember.email && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{selectedMember.email}</p>
-                </div>
-              )}
-
-              {selectedMember.dateOfBirth && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Date of Birth</p>
-                  <p className="font-medium">{format(new Date(selectedMember.dateOfBirth), "MMMM d, yyyy")}</p>
-                </div>
-              )}
-
-              {selectedMember.memberSince && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Member Since</p>
-                  <p className="font-medium">{format(new Date(selectedMember.memberSince), "MMMM d, yyyy")}</p>
-                </div>
-              )}
-
-              {selectedMember.address && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Address</p>
-                  <p className="font-medium">{selectedMember.address}</p>
-                </div>
-              )}
-
-              {selectedMember.country && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Country</p>
-                  <p className="font-medium">{selectedMember.country}</p>
-                </div>
-              )}
-
-              {selectedMember.notes && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Notes</p>
-                  <p className="font-medium">{selectedMember.notes}</p>
-                </div>
-              )}
-
-              <div>
-                <p className="text-sm text-muted-foreground">Registered</p>
-                <p className="font-medium">
-                  {selectedMember.createdAt ? format(new Date(selectedMember.createdAt), "MMMM d, yyyy") : "-"}
-                </p>
-              </div>
-
-              {selectedMember.selfSubmitted === "true" && (
-                <Badge variant="outline">Self Registered</Badge>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   );
 }

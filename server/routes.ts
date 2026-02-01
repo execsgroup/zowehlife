@@ -1807,6 +1807,49 @@ export async function registerRoutes(
     }
   });
 
+  // Get single new member for ministry admin
+  app.get("/api/ministry-admin/new-members/:id", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const newMember = await storage.getNewMember(req.params.id);
+      if (!newMember || newMember.churchId !== user.churchId) {
+        return res.status(404).json({ message: "New member not found" });
+      }
+      res.json(newMember);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get new member" });
+    }
+  });
+
+  // Get new member check-ins for ministry admin
+  app.get("/api/ministry-admin/new-members/:id/checkins", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const newMember = await storage.getNewMember(req.params.id);
+      if (!newMember || newMember.churchId !== user.churchId) {
+        return res.status(404).json({ message: "New member not found" });
+      }
+      const checkins = await storage.getNewMemberCheckins(req.params.id);
+      res.json(checkins);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get check-ins" });
+    }
+  });
+
+  // Get single member for ministry admin
+  app.get("/api/ministry-admin/members/:id", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const member = await storage.getMember(req.params.id);
+      if (!member || member.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Member not found" });
+      }
+      res.json(member);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get member" });
+    }
+  });
+
   // Get followups for ministry admin's ministry
   app.get("/api/ministry-admin/followups", requireMinistryAdmin, async (req, res) => {
     try {

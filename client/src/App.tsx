@@ -40,6 +40,10 @@ import LeaderSettings from "@/pages/leader/settings";
 import LeaderNewMembers from "@/pages/leader/new-members";
 import LeaderMembers from "@/pages/leader/members";
 import ConvertDetail from "@/pages/leader/convert-detail";
+import NewMemberDetail from "@/pages/leader/new-member-detail";
+import MemberDetail from "@/pages/leader/member-detail";
+import MinistryAdminNewMemberDetail from "@/pages/ministry-admin/new-member-detail";
+import MinistryAdminMemberDetail from "@/pages/ministry-admin/member-detail";
 import NewConvert from "@/pages/new-convert";
 import NewMemberForm from "@/pages/new-member-form";
 import MemberForm from "@/pages/member-form";
@@ -180,8 +184,14 @@ function Router() {
       <Route path="/ministry-admin/new-members">
         <ProtectedRoute component={MinistryAdminNewMembers} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
+      <Route path="/ministry-admin/new-members/:id">
+        <ProtectedRoute component={MinistryAdminNewMemberDetail} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
       <Route path="/ministry-admin/members">
         <ProtectedRoute component={MinistryAdminMembers} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/members/:id">
+        <ProtectedRoute component={MinistryAdminMemberDetail} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       
       {/* Leader routes */}
@@ -212,8 +222,14 @@ function Router() {
       <Route path="/leader/new-members">
         <ProtectedRoute component={LeaderNewMembers} allowedRoles={["LEADER"]} />
       </Route>
+      <Route path="/leader/new-members/:id">
+        <ProtectedRoute component={NewMemberDetail} allowedRoles={["LEADER"]} />
+      </Route>
       <Route path="/leader/members">
         <ProtectedRoute component={LeaderMembers} allowedRoles={["LEADER"]} />
+      </Route>
+      <Route path="/leader/members/:id">
+        <ProtectedRoute component={MemberDetail} allowedRoles={["LEADER"]} />
       </Route>
       
       {/* Fallback */}

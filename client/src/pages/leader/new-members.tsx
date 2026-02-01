@@ -108,13 +108,12 @@ type FollowUpNoteData = z.infer<typeof followUpNoteSchema>;
 
 export default function LeaderNewMembers() {
   const { toast } = useToast();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [followUpNoteDialogOpen, setFollowUpNoteDialogOpen] = useState(false);
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedNewMember, setSelectedNewMember] = useState<NewMember | null>(null);
   const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
 
@@ -240,8 +239,7 @@ export default function LeaderNewMembers() {
   };
 
   const handleViewDetails = (newMember: NewMember) => {
-    setSelectedNewMember(newMember);
-    setDetailsDialogOpen(true);
+    setLocation(`/leader/new-members/${newMember.id}`);
   };
 
   const handleViewTimeline = (newMember: NewMember) => {
@@ -937,98 +935,6 @@ export default function LeaderNewMembers() {
               </Button>
             </form>
           </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* View Details Dialog */}
-      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>New Member Details</DialogTitle>
-          </DialogHeader>
-          {selectedNewMember && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Name</p>
-                  <p className="font-medium">{selectedNewMember.firstName} {selectedNewMember.lastName}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge className={statusColors[selectedNewMember.status]}>
-                    {statusLabels[selectedNewMember.status]}
-                  </Badge>
-                </div>
-              </div>
-
-              {selectedNewMember.phone && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="font-medium">{selectedNewMember.phone}</p>
-                </div>
-              )}
-
-              {selectedNewMember.email && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{selectedNewMember.email}</p>
-                </div>
-              )}
-
-              {selectedNewMember.gender && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Gender</p>
-                  <p className="font-medium">{selectedNewMember.gender}</p>
-                </div>
-              )}
-
-              {selectedNewMember.ageGroup && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Age Group</p>
-                  <p className="font-medium">{selectedNewMember.ageGroup}</p>
-                </div>
-              )}
-
-              {selectedNewMember.dateOfBirth && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Date of Birth</p>
-                  <p className="font-medium">{format(new Date(selectedNewMember.dateOfBirth), "MMMM d, yyyy")}</p>
-                </div>
-              )}
-
-              {selectedNewMember.address && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Address</p>
-                  <p className="font-medium">{selectedNewMember.address}</p>
-                </div>
-              )}
-
-              {selectedNewMember.country && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Country</p>
-                  <p className="font-medium">{selectedNewMember.country}</p>
-                </div>
-              )}
-
-              {selectedNewMember.notes && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Notes</p>
-                  <p className="font-medium">{selectedNewMember.notes}</p>
-                </div>
-              )}
-
-              <div>
-                <p className="text-sm text-muted-foreground">Registered</p>
-                <p className="font-medium">
-                  {selectedNewMember.createdAt ? format(new Date(selectedNewMember.createdAt), "MMMM d, yyyy") : "-"}
-                </p>
-              </div>
-
-              {selectedNewMember.selfSubmitted === "true" && (
-                <Badge variant="outline">Self Registered</Badge>
-              )}
-            </div>
-          )}
         </DialogContent>
       </Dialog>
 
