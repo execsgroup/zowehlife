@@ -7,7 +7,7 @@ import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,19 +39,12 @@ import {
   Church,
   Cake,
   Video,
+  CalendarPlus,
 } from "lucide-react";
 import { format } from "date-fns";
+import { ConvertScheduleFollowUpDialog } from "@/components/convert-schedule-followup-dialog";
+import { ConvertAddNoteDialog } from "@/components/convert-add-note-dialog";
 
-const checkinFormSchema = z.object({
-  checkinDate: z.string().min(1, "Date is required"),
-  notes: z.string().optional(),
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
-  nextFollowupDate: z.string().optional(),
-  customLeaderMessage: z.string().optional(),
-  customConvertMessage: z.string().optional(),
-  customLeaderSubject: z.string().optional(),
-  customConvertSubject: z.string().optional(),
-});
 
 const updateConvertSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -90,7 +83,6 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-type CheckinFormData = z.infer<typeof checkinFormSchema>;
 type UpdateConvertData = z.infer<typeof updateConvertSchema>;
 
 const statusColors: Record<string, string> = {
@@ -120,29 +112,14 @@ export default function ConvertDetail() {
   const [location] = useLocation();
   const convertId = location.split('/').pop();
 
-  const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: convert, isLoading } = useQuery<ConvertWithCheckins>({
     queryKey: ["/api/leader/converts", convertId],
     enabled: !!convertId,
   });
-
-  const checkinForm = useForm<CheckinFormData>({
-    resolver: zodResolver(checkinFormSchema),
-    defaultValues: {
-      checkinDate: format(new Date(), "yyyy-MM-dd"),
-      notes: "",
-      outcome: "CONNECTED",
-      nextFollowupDate: "",
-      customLeaderMessage: "",
-      customConvertMessage: "",
-      customLeaderSubject: "",
-      customConvertSubject: "",
-    },
-  });
-
-  const watchNextFollowupDate = checkinForm.watch("nextFollowupDate");
 
   const editForm = useForm<UpdateConvertData>({
     resolver: zodResolver(updateConvertSchema),
@@ -186,38 +163,6 @@ export default function ConvertDetail() {
     }
     setEditDialogOpen(true);
   };
-
-  const checkinMutation = useMutation({
-    mutationFn: async (data: CheckinFormData) => {
-      await apiRequest("POST", `/api/leader/converts/${convertId}/checkins`, data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Check-in recorded",
-        description: "The follow-up check-in has been saved.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts", convertId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
-      setCheckinDialogOpen(false);
-      checkinForm.reset({
-        checkinDate: format(new Date(), "yyyy-MM-dd"),
-        notes: "",
-        outcome: "CONNECTED",
-        nextFollowupDate: "",
-        customLeaderMessage: "",
-        customConvertMessage: "",
-        customLeaderSubject: "",
-        customConvertSubject: "",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save check-in",
-        variant: "destructive",
-      });
-    },
-  });
 
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateConvertData) => {
@@ -479,223 +424,35 @@ END:VCALENDAR`;
           </CardContent>
         </Card>
 
-        {/* Check-ins Section */}
+        {/* Follow-up Timeline Section */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
                 <CardTitle>Follow-up Timeline</CardTitle>
                 <CardDescription>
                   Record and track check-ins with this convert
                 </CardDescription>
               </div>
-              <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2" data-testid="button-add-checkin">
-                    <Plus className="h-4 w-4" />
-                    Add Check-in
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Record Check-in</DialogTitle>
-                    <DialogDescription>
-                      Log a follow-up interaction with {convert.firstName}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...checkinForm}>
-                    <form
-                      onSubmit={checkinForm.handleSubmit((data) => checkinMutation.mutate(data))}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        control={checkinForm.control}
-                        name="checkinDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Check-in Date</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} data-testid="input-checkin-date" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={checkinForm.control}
-                        name="outcome"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Outcome</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-checkin-outcome">
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="CONNECTED">Connected</SelectItem>
-                                <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                                <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                                <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                                <SelectItem value="REFERRED">Referred</SelectItem>
-                                <SelectItem value="OTHER">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={checkinForm.control}
-                        name="notes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Notes</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Details about the interaction..."
-                                className="resize-none"
-                                {...field}
-                                data-testid="input-checkin-notes"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={checkinForm.control}
-                        name="nextFollowupDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Next Follow-up Date (Optional)</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} data-testid="input-next-followup" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {watchNextFollowupDate && (
-                        <div className="space-y-4 border-t pt-4 mt-4">
-                          <p className="text-sm text-muted-foreground">
-                            Customize the email notifications that will be sent (leave blank for defaults):
-                          </p>
-                          
-                          <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                            <p className="text-sm font-medium">Your Reminder Email</p>
-                            <FormField
-                              control={checkinForm.control}
-                              name="customLeaderSubject"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Subject Line</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Leave blank for default subject..."
-                                      {...field}
-                                      data-testid="input-custom-leader-subject"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={checkinForm.control}
-                              name="customLeaderMessage"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Message Body</FormLabel>
-                                  <FormControl>
-                                    <Textarea
-                                      placeholder="Leave blank for default message..."
-                                      className="resize-none min-h-[80px]"
-                                      {...field}
-                                      data-testid="input-custom-leader-message"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          {convert?.email && (
-                            <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                              <p className="text-sm font-medium">Email to {convert.firstName}</p>
-                              <FormField
-                                control={checkinForm.control}
-                                name="customConvertSubject"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Subject Line</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        placeholder="Leave blank for default subject..."
-                                        {...field}
-                                        data-testid="input-custom-convert-subject"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={checkinForm.control}
-                                name="customConvertMessage"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Message Body</FormLabel>
-                                    <FormControl>
-                                      <Textarea
-                                        placeholder="Leave blank for default message..."
-                                        className="resize-none min-h-[80px]"
-                                        {...field}
-                                        data-testid="input-custom-convert-message"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="flex justify-end gap-2 pt-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setCheckinDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={checkinMutation.isPending}
-                          data-testid="button-save-checkin"
-                        >
-                          {checkinMutation.isPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            "Save Check-in"
-                          )}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setNoteDialogOpen(true)}
+                  data-testid="button-add-note"
+                >
+                  <FileText className="h-4 w-4" />
+                  Add Note
+                </Button>
+                <Button
+                  className="gap-2"
+                  onClick={() => setScheduleDialogOpen(true)}
+                  data-testid="button-schedule-followup"
+                >
+                  <CalendarPlus className="h-4 w-4" />
+                  Schedule Follow Up
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -767,15 +524,26 @@ END:VCALENDAR`;
             ) : (
               <div className="text-center py-8">
                 <Calendar className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground mb-4">No check-ins recorded yet</p>
-                <Button
-                  onClick={() => setCheckinDialogOpen(true)}
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add First Check-in
-                </Button>
+                <p className="text-muted-foreground mb-4">No follow-ups recorded yet</p>
+                <div className="flex items-center justify-center gap-2">
+                  <Button
+                    onClick={() => setNoteDialogOpen(true)}
+                    variant="outline"
+                    className="gap-2"
+                    data-testid="button-add-first-note"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Add Note
+                  </Button>
+                  <Button
+                    onClick={() => setScheduleDialogOpen(true)}
+                    className="gap-2"
+                    data-testid="button-schedule-first-followup"
+                  >
+                    <CalendarPlus className="h-4 w-4" />
+                    Schedule Follow Up
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
@@ -1090,6 +858,18 @@ END:VCALENDAR`;
             </Form>
           </DialogContent>
         </Dialog>
+
+        <ConvertAddNoteDialog
+          open={noteDialogOpen}
+          onOpenChange={setNoteDialogOpen}
+          convert={convert}
+        />
+
+        <ConvertScheduleFollowUpDialog
+          open={scheduleDialogOpen}
+          onOpenChange={setScheduleDialogOpen}
+          convert={convert}
+        />
       </div>
     </DashboardLayout>
   );

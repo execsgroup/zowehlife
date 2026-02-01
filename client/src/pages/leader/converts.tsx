@@ -19,10 +19,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, Video } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
+import { ConvertScheduleFollowUpDialog } from "@/components/convert-schedule-followup-dialog";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -92,17 +92,6 @@ const statusLabels: Record<string, string> = {
   INACTIVE: "Inactive",
 };
 
-const scheduleFollowUpSchema = z.object({
-  nextFollowupDate: z.string().min(1, "Follow-up date is required"),
-  customLeaderSubject: z.string().optional(),
-  customLeaderMessage: z.string().optional(),
-  customConvertSubject: z.string().optional(),
-  customConvertMessage: z.string().optional(),
-  includeVideoLink: z.boolean().optional(),
-});
-
-type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
-
 export default function LeaderConverts() {
   const { toast } = useToast();
   const basePath = useBasePath();
@@ -138,18 +127,6 @@ export default function LeaderConverts() {
     },
   });
 
-  const scheduleForm = useForm<ScheduleFollowUpData>({
-    resolver: zodResolver(scheduleFollowUpSchema),
-    defaultValues: {
-      nextFollowupDate: "",
-      customLeaderSubject: "",
-      customLeaderMessage: "",
-      customConvertSubject: "",
-      customConvertMessage: "",
-      includeVideoLink: true,
-    },
-  });
-
   // Check for ?new=true query param
   useEffect(() => {
     if (location.includes("new=true")) {
@@ -157,48 +134,8 @@ export default function LeaderConverts() {
     }
   }, [location]);
 
-  const scheduleFollowUpMutation = useMutation({
-    mutationFn: async (data: ScheduleFollowUpData) => {
-      if (!selectedConvert) return;
-      await apiRequest("POST", `/api/leader/converts/${selectedConvert.id}/schedule-followup`, data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Follow-up scheduled",
-        description: "The follow-up has been scheduled and email notifications will be sent.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
-      setFollowUpDialogOpen(false);
-      setSelectedConvert(null);
-      scheduleForm.reset({
-        nextFollowupDate: "",
-        customLeaderSubject: "",
-        customLeaderMessage: "",
-        customConvertSubject: "",
-        customConvertMessage: "",
-        includeVideoLink: true,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to schedule follow-up",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleScheduleFollowUp = (convert: Convert) => {
     setSelectedConvert(convert);
-    scheduleForm.reset({
-      nextFollowupDate: "",
-      customLeaderSubject: "",
-      customLeaderMessage: "",
-      customConvertSubject: "",
-      customConvertMessage: "",
-      includeVideoLink: true,
-    });
     setFollowUpDialogOpen(true);
   };
 
@@ -787,179 +724,11 @@ export default function LeaderConverts() {
         </Card>
       </div>
 
-      {/* Schedule Follow Up Dialog */}
-      <Dialog open={followUpDialogOpen} onOpenChange={setFollowUpDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Schedule Follow Up</DialogTitle>
-            <DialogDescription>
-              {selectedConvert && (
-                <>Schedule a follow-up with {selectedConvert.firstName} {selectedConvert.lastName} and send email notifications</>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...scheduleForm}>
-            <form
-              onSubmit={scheduleForm.handleSubmit((data) => scheduleFollowUpMutation.mutate(data))}
-              className="space-y-4"
-            >
-              <FormField
-                control={scheduleForm.control}
-                name="nextFollowupDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Follow-up Date *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} data-testid="input-schedule-followup-date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={scheduleForm.control}
-                name="includeVideoLink"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-include-video-link"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="flex items-center gap-2">
-                        <Video className="h-4 w-4" />
-                        Include video call link
-                      </FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Add a free Jitsi Meet video call link to the email
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-4 border-t pt-4">
-                <p className="text-sm text-muted-foreground">
-                  Customize the email notifications (leave blank for defaults):
-                </p>
-                
-                {selectedConvert?.email && (
-                  <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">Email to {selectedConvert.firstName} {selectedConvert.lastName}</p>
-                    <FormField
-                      control={scheduleForm.control}
-                      name="customConvertSubject"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Subject Line</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Leave blank for default subject..."
-                              {...field}
-                              data-testid="input-convert-subject"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={scheduleForm.control}
-                      name="customConvertMessage"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Message Body</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Leave blank for default message..."
-                              className="resize-none min-h-[80px]"
-                              {...field}
-                              data-testid="input-convert-message"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-
-                <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm font-medium">
-                    Your Reminder Email{" "}
-                    <span className="italic text-muted-foreground font-normal">
-                      (Email will be sent to {selectedConvert?.firstName} {selectedConvert?.lastName} a day before the scheduled follow up)
-                    </span>
-                  </p>
-                  <FormField
-                    control={scheduleForm.control}
-                    name="customLeaderSubject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject Line</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Leave blank for default subject..."
-                            {...field}
-                            data-testid="input-leader-subject"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={scheduleForm.control}
-                    name="customLeaderMessage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message Body</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Leave blank for default message..."
-                            className="resize-none min-h-[80px]"
-                            {...field}
-                            data-testid="input-leader-message"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setFollowUpDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={scheduleFollowUpMutation.isPending}
-                  data-testid="button-schedule-followup"
-                >
-                  {scheduleFollowUpMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Scheduling...
-                    </>
-                  ) : (
-                    "Schedule Follow Up"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <ConvertScheduleFollowUpDialog
+        open={followUpDialogOpen}
+        onOpenChange={setFollowUpDialogOpen}
+        convert={selectedConvert}
+      />
     </DashboardLayout>
   );
 }
