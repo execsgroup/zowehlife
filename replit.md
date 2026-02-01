@@ -57,9 +57,12 @@ A ministry management web application with a three-tier role system for tracking
 - **Routing**: wouter for client-side routing
 
 ## Database Schema
-- **churches**: id, name, location, public_token (unique link token), logo_url, created_at
+- **churches**: id, name, location, public_token (Salvation Form link), new_member_token (New Member Form link), member_token (Member Form link), logo_url, created_at
 - **users**: id, role (ADMIN/MINISTRY_ADMIN/LEADER), first_name, last_name, email, password_hash, church_id, created_at
 - **converts**: id, church_id, created_by_user_id (nullable), first_name, last_name, phone, email, address, date_of_birth, birth_day, birth_month, country, salvation_decision, summary_notes, status, self_submitted, wants_contact, gender, age_group, is_church_member, prayer_request
+- **new_members**: id, church_id, created_by_user_id (nullable), first_name, last_name, phone, email, address, date_of_birth, country, gender, age_group, status, notes, self_submitted, created_at
+- **new_member_checkins**: id, new_member_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date, video_link
+- **members**: id, church_id, created_by_user_id (nullable), first_name, last_name, phone, email, address, date_of_birth, country, gender, member_since, status, notes, self_submitted, created_at
 - **ministry_requests**: id, ministry_name, location, admin_first_name, admin_last_name, admin_email, admin_phone, description, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 
 ## Church Logo Upload
@@ -69,14 +72,29 @@ Leaders can upload a church logo from the "Church Settings" page in their dashbo
 - **account_requests**: id, first_name, last_name, email, phone, church_name (free text), church_id, reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 - **audit_log**: id, actor_user_id, action, entity_type, entity_id
 
-## Public Church Convert Links
-Each church has a unique public token that generates a shareable link (e.g., `/connect/{token}`). Anyone with this link can submit their information as a new convert directly to that church. This enables:
-- Church leaders to share a link with new converts at events
-- Self-registration without requiring leader accounts
-- Automatic association with the correct church
-- Converts marked as "self_submitted" in the database
+## Public Registration Links
+Each church has three unique tokens that generate shareable links for different registration purposes:
 
-Admin can copy the link from the Churches page using the link icon button.
+### Salvation Form (Converts)
+- URL: `/connect/{publicToken}`
+- For new converts making salvation decisions
+- Links shared at evangelism events
+
+### New Member Form
+- URL: `/new-member/{newMemberToken}`
+- For new members joining the church
+- Includes fields for personal info, gender, age group
+
+### Member Form  
+- URL: `/member/{memberToken}`
+- For existing church members to register
+- Includes member_since date field
+
+All forms:
+- Enable self-registration without requiring leader accounts
+- Automatically associate submissions with the correct church
+- Mark records as "self_submitted" in the database
+- Leaders can copy shareable links from the Leader Dashboard
 
 ## Ministry Registration Flow (Three-Tier System)
 The system uses a three-tier role hierarchy:
@@ -169,6 +187,21 @@ The email reminder scheduler runs hourly to:
 - `GET/PATCH /api/leader/converts/:id` - Get/update convert
 - `POST /api/leader/converts/:convertId/checkins` - Create check-in (for recording follow-up notes)
 - `POST /api/leader/converts/:convertId/schedule-followup` - Schedule a follow-up with email notifications and optional video call link
+- `GET/POST /api/leader/new-members` - List/create new members
+- `GET/PATCH /api/leader/new-members/:id` - Get/update new member
+- `POST /api/leader/new-members/:id/checkins` - Create check-in for new member
+- `POST /api/leader/new-members/:id/schedule-followup` - Schedule a follow-up for new member
+- `GET /api/leader/new-members/:id/checkins` - Get check-in history for new member
+- `GET/POST /api/leader/members` - List/create members
+- `GET/PATCH /api/leader/members/:id` - Get/update member
+- `POST /api/leader/church/generate-new-member-token` - Generate new member token for shareable link
+- `POST /api/leader/church/generate-member-token` - Generate member token for shareable link
+
+### Public
+- `GET /api/public/church-new-member/:token` - Get church info for new member form
+- `POST /api/public/church-new-member/:token/submit` - Submit new member via public link
+- `GET /api/public/church-member/:token` - Get church info for member form
+- `POST /api/public/church-member/:token/submit` - Submit member via public link
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection (auto-provided by Replit)
