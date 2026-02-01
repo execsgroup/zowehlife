@@ -16,6 +16,8 @@ export const churches = pgTable("churches", {
   location: text("location"),
   logoUrl: text("logo_url"),
   publicToken: text("public_token").unique(),
+  newMemberToken: text("new_member_token").unique(),
+  memberToken: text("member_token").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -70,6 +72,61 @@ export const checkins = pgTable("checkins", {
   nextFollowupDate: date("next_followup_date"),
   videoLink: text("video_link"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// New Members table
+export const newMembers = pgTable("new_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  createdByUserId: varchar("created_by_user_id").references(() => users.id),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: date("date_of_birth"),
+  phone: text("phone"),
+  email: text("email"),
+  address: text("address"),
+  country: text("country"),
+  gender: text("gender"),
+  ageGroup: text("age_group"),
+  notes: text("notes"),
+  status: convertStatusEnum("status").notNull().default("NEW"),
+  selfSubmitted: text("self_submitted").default("false"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// New Member Check-ins table
+export const newMemberCheckins = pgTable("new_member_checkins", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  newMemberId: varchar("new_member_id").notNull().references(() => newMembers.id),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  createdByUserId: varchar("created_by_user_id").notNull().references(() => users.id),
+  checkinDate: date("checkin_date").notNull(),
+  notes: text("notes"),
+  outcome: checkinOutcomeEnum("outcome").notNull(),
+  nextFollowupDate: date("next_followup_date"),
+  videoLink: text("video_link"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Members table
+export const members = pgTable("members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  createdByUserId: varchar("created_by_user_id").references(() => users.id),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: date("date_of_birth"),
+  phone: text("phone"),
+  email: text("email"),
+  address: text("address"),
+  country: text("country"),
+  gender: text("gender"),
+  memberSince: date("member_since"),
+  notes: text("notes"),
+  selfSubmitted: text("self_submitted").default("false"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Prayer requests table
@@ -241,6 +298,23 @@ export const insertContactRequestSchema = createInsertSchema(contactRequests).om
   createdAt: true,
 });
 
+export const insertNewMemberSchema = createInsertSchema(newMembers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNewMemberCheckinSchema = createInsertSchema(newMemberCheckins).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMemberSchema = createInsertSchema(members).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Public convert submission schema (for self-submissions via church link)
 export const publicConvertSubmissionSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -258,6 +332,38 @@ export const publicConvertSubmissionSchema = z.object({
 });
 
 export type PublicConvertSubmission = z.infer<typeof publicConvertSubmissionSchema>;
+
+// Public new member submission schema (for self-submissions via church link)
+export const publicNewMemberSubmissionSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phone: z.string().optional(),
+  email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+  dateOfBirth: z.string().optional(),
+  address: z.string().optional(),
+  country: z.string().optional(),
+  gender: z.enum(["Male", "Female"]).optional(),
+  ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
+  notes: z.string().optional(),
+});
+
+export type PublicNewMemberSubmission = z.infer<typeof publicNewMemberSubmissionSchema>;
+
+// Public member submission schema (for self-submissions via church link)
+export const publicMemberSubmissionSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phone: z.string().optional(),
+  email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+  dateOfBirth: z.string().optional(),
+  address: z.string().optional(),
+  country: z.string().optional(),
+  gender: z.enum(["Male", "Female"]).optional(),
+  memberSince: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export type PublicMemberSubmission = z.infer<typeof publicMemberSubmissionSchema>;
 
 // Login schema
 export const loginSchema = z.object({
@@ -304,3 +410,12 @@ export type InsertContactRequest = z.infer<typeof insertContactRequestSchema>;
 
 export type LoginData = z.infer<typeof loginSchema>;
 export type AdminSetupData = z.infer<typeof adminSetupSchema>;
+
+export type NewMember = typeof newMembers.$inferSelect;
+export type InsertNewMember = z.infer<typeof insertNewMemberSchema>;
+
+export type NewMemberCheckin = typeof newMemberCheckins.$inferSelect;
+export type InsertNewMemberCheckin = z.infer<typeof insertNewMemberCheckinSchema>;
+
+export type Member = typeof members.$inferSelect;
+export type InsertMember = z.infer<typeof insertMemberSchema>;
