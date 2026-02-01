@@ -2305,13 +2305,14 @@ export async function registerRoutes(
         nextFollowupDate: data.nextFollowupDate || null,
       });
 
-      // Update convert status based on outcome (excluding SCHEDULED_VISIT and OTHER which don't map directly)
+      // Update convert status based on outcome
       const outcomeToStatus: Record<string, string> = {
         "CONNECTED": "CONNECTED",
         "NO_RESPONSE": "NO_RESPONSE",
         "NEEDS_PRAYER": "NEEDS_PRAYER",
         "REFERRED": "REFERRED",
         "NOT_COMPLETED": "NOT_COMPLETED",
+        "SCHEDULED_VISIT": "SCHEDULED",
       };
       if (outcomeToStatus[data.outcome]) {
         await storage.updateConvert(convertId, { status: outcomeToStatus[data.outcome] as any });
@@ -2648,6 +2649,7 @@ export async function registerRoutes(
         "NEEDS_PRAYER": "NEEDS_PRAYER",
         "REFERRED": "REFERRED",
         "NOT_COMPLETED": "NOT_COMPLETED",
+        "SCHEDULED_VISIT": "SCHEDULED",
       };
       if (outcomeToStatus[data.outcome]) {
         await storage.updateNewMember(newMemberId, { status: outcomeToStatus[data.outcome] as any });
