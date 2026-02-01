@@ -157,6 +157,19 @@ export interface IStorage {
   getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>>;
   updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void>;
   markConvertsAsNeverContacted(): Promise<number>;
+  getNewMemberCheckinsWithUpcomingFollowups(): Promise<Array<{
+    checkinId: string;
+    newMemberId: string;
+    newMemberFirstName: string;
+    newMemberLastName: string;
+    newMemberEmail: string | null;
+    leaderName: string;
+    leaderEmail: string;
+    churchName: string;
+    nextFollowupDate: string;
+    customReminderSubject: string | null;
+    customReminderMessage: string | null;
+  }>>;
 
   // Archived Ministries
   getArchivedMinistries(): Promise<ArchivedMinistry[]>;
@@ -964,6 +977,59 @@ export class DatabaseStorage implements IStorage {
       .returning({ id: converts.id });
 
     return result.length;
+  }
+
+  async getNewMemberCheckinsWithUpcomingFollowups(): Promise<Array<{
+    checkinId: string;
+    newMemberId: string;
+    newMemberFirstName: string;
+    newMemberLastName: string;
+    newMemberEmail: string | null;
+    leaderName: string;
+    leaderEmail: string;
+    churchName: string;
+    nextFollowupDate: string;
+    customReminderSubject: string | null;
+    customReminderMessage: string | null;
+  }>> {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split("T")[0];
+
+    const results = await db
+      .select({
+        checkinId: newMemberCheckins.id,
+        newMemberId: newMemberCheckins.newMemberId,
+        newMemberFirstName: newMembers.firstName,
+        newMemberLastName: newMembers.lastName,
+        newMemberEmail: newMembers.email,
+        leaderFirstName: users.firstName,
+        leaderLastName: users.lastName,
+        leaderEmail: users.email,
+        churchName: churches.name,
+        nextFollowupDate: newMemberCheckins.nextFollowupDate,
+        customReminderSubject: newMemberCheckins.customReminderSubject,
+        customReminderMessage: newMemberCheckins.customReminderMessage,
+      })
+      .from(newMemberCheckins)
+      .innerJoin(newMembers, eq(newMemberCheckins.newMemberId, newMembers.id))
+      .innerJoin(users, eq(newMemberCheckins.createdByUserId, users.id))
+      .innerJoin(churches, eq(newMemberCheckins.churchId, churches.id))
+      .where(eq(newMemberCheckins.nextFollowupDate, tomorrowStr));
+
+    return results.map(r => ({
+      checkinId: r.checkinId,
+      newMemberId: r.newMemberId,
+      newMemberFirstName: r.newMemberFirstName,
+      newMemberLastName: r.newMemberLastName,
+      newMemberEmail: r.newMemberEmail,
+      leaderName: `${r.leaderFirstName} ${r.leaderLastName}`,
+      leaderEmail: r.leaderEmail,
+      churchName: r.churchName,
+      nextFollowupDate: r.nextFollowupDate || "",
+      customReminderSubject: r.customReminderSubject,
+      customReminderMessage: r.customReminderMessage,
+    }));
   }
 
   // New Members

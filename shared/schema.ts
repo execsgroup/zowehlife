@@ -109,6 +109,8 @@ export const newMemberCheckins = pgTable("new_member_checkins", {
   outcome: checkinOutcomeEnum("outcome").notNull(),
   nextFollowupDate: date("next_followup_date"),
   videoLink: text("video_link"),
+  customReminderSubject: text("custom_reminder_subject"),
+  customReminderMessage: text("custom_reminder_message"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

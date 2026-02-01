@@ -85,6 +85,56 @@ async function processUpcomingFollowUpReminders() {
   }
 }
 
+async function processNewMemberUpcomingFollowUpReminders() {
+  try {
+    console.log("[Scheduler] Checking for upcoming new member follow-ups to send reminders...");
+    
+    const upcomingFollowups = await storage.getNewMemberCheckinsWithUpcomingFollowups();
+    
+    for (const followup of upcomingFollowups) {
+      // Skip if new member doesn't have an email
+      if (!followup.newMemberEmail) {
+        console.log(`[Scheduler] Skipping reminder for ${followup.newMemberFirstName} ${followup.newMemberLastName} - no email`);
+        continue;
+      }
+
+      // Check if reminder was already sent (using checkinId with "new_member_" prefix)
+      const reminderKey = `new_member_${followup.checkinId}`;
+      const alreadySent = await storage.hasReminderBeenSent(reminderKey, "DAY_BEFORE");
+      if (alreadySent) {
+        console.log(`[Scheduler] Reminder already sent for new member checkin ${followup.checkinId}`);
+        continue;
+      }
+
+      // Build contact URL using Replit environment
+      const replitDomain = process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS?.split(',')[0];
+      const contactUrl = replitDomain ? `https://${replitDomain}/contact` : undefined;
+      
+      // Send reminder email with custom subject/message if available
+      const result = await sendFollowUpReminderEmail({
+        convertName: `${followup.newMemberFirstName} ${followup.newMemberLastName}`,
+        convertEmail: followup.newMemberEmail,
+        leaderName: followup.leaderName,
+        churchName: followup.churchName,
+        followUpDate: followup.nextFollowupDate,
+        contactUrl,
+        customSubject: followup.customReminderSubject || undefined,
+        customMessage: followup.customReminderMessage || undefined,
+      });
+
+      if (result.success) {
+        // Record that reminder was sent
+        await storage.recordReminderSent(reminderKey, "DAY_BEFORE");
+        console.log(`[Scheduler] Reminder sent for new member ${followup.newMemberFirstName} ${followup.newMemberLastName}`);
+      }
+    }
+    
+    console.log(`[Scheduler] Processed ${upcomingFollowups.length} upcoming new member follow-ups`);
+  } catch (error) {
+    console.error("[Scheduler] Error processing new member follow-up reminders:", error);
+  }
+}
+
 // New Member Follow-up Workflow Functions
 
 // Check for new members who haven't been contacted within 14 days of joining
@@ -152,6 +202,7 @@ export function startReminderScheduler() {
   
   // Run immediately on startup
   processUpcomingFollowUpReminders();
+  processNewMemberUpcomingFollowUpReminders();
   processExpiredFollowups();
   processNeverContactedConverts();
   processNewMemberContactReminders();
@@ -161,6 +212,7 @@ export function startReminderScheduler() {
   // Then run periodically
   setInterval(() => {
     processUpcomingFollowUpReminders();
+    processNewMemberUpcomingFollowUpReminders();
     processExpiredFollowups();
     processNeverContactedConverts();
     processNewMemberContactReminders();

@@ -314,6 +314,8 @@ interface ReminderEmailData {
   churchName: string;
   followUpDate: string;
   contactUrl?: string;
+  customSubject?: string;
+  customMessage?: string;
 }
 
 export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
@@ -344,15 +346,20 @@ export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
         </div>`
       : '';
 
+    // Use custom subject/message if provided
+    const emailSubject = data.customSubject || `Reminder: We're reaching out tomorrow - ${data.churchName}`;
+    const emailMessage = data.customMessage || 
+      `We wanted to let you know that someone from ${data.churchName} will be reaching out to you tomorrow to check in and see how you're doing on your faith journey.`;
+
     await client.emails.send({
       from: fromWithMinistry,
       to: data.convertEmail,
-      subject: `Reminder: We're reaching out tomorrow - ${data.churchName}`,
+      subject: emailSubject,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">Just a Friendly Reminder</h2>
           <p>Hello ${data.convertName},</p>
-          <p>We wanted to let you know that someone from ${data.churchName} will be reaching out to you tomorrow to check in and see how you're doing on your faith journey.</p>
+          <p>${emailMessage}</p>
           <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
           <p>We're here to support you every step of the way. If you have any prayer requests or need anything before then, please don't hesitate to let us know.</p>
           ${contactButtonSection}

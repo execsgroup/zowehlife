@@ -2750,12 +2750,11 @@ export async function registerRoutes(
       
       const schema = z.object({
         nextFollowupDate: z.string().min(1, "Follow-up date is required"),
-        notes: z.string().optional(),
         includeVideoLink: z.boolean().optional(),
-        customLeaderMessage: z.string().optional(),
         customConvertMessage: z.string().optional(),
-        customLeaderSubject: z.string().optional(),
         customConvertSubject: z.string().optional(),
+        customReminderSubject: z.string().optional(),
+        customReminderMessage: z.string().optional(),
       });
       
       const data = schema.parse(req.body);
@@ -2774,10 +2773,12 @@ export async function registerRoutes(
         churchId: user.churchId,
         createdByUserId: user.id,
         checkinDate: new Date().toISOString().split("T")[0],
-        notes: data.notes || null,
+        notes: null,
         outcome: "SCHEDULED_VISIT",
         nextFollowupDate: data.nextFollowupDate,
         videoLink: videoLink || null,
+        customReminderSubject: data.customReminderSubject || null,
+        customReminderMessage: data.customReminderMessage || null,
       });
       
       // Update new member status
@@ -2819,12 +2820,10 @@ export async function registerRoutes(
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
         followUpDate: data.nextFollowupDate,
-        notes: data.notes || undefined,
+        notes: undefined,
         videoCallLink: videoLink,
         contactUrl,
-        customLeaderMessage: data.customLeaderMessage || undefined,
         customConvertMessage: data.customConvertMessage || undefined,
-        customLeaderSubject: data.customLeaderSubject || undefined,
         customConvertSubject: data.customConvertSubject || undefined,
       }).catch(err => console.error("Email notification failed:", err));
       

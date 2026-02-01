@@ -114,11 +114,10 @@ const followUpStageColors: Record<string, string> = {
 
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
-  notes: z.string().optional(),
-  customLeaderSubject: z.string().optional(),
-  customLeaderMessage: z.string().optional(),
   customConvertSubject: z.string().optional(),
   customConvertMessage: z.string().optional(),
+  customReminderSubject: z.string().optional(),
+  customReminderMessage: z.string().optional(),
   includeVideoLink: z.boolean().optional(),
 });
 
@@ -170,11 +169,10 @@ export default function LeaderNewMembers() {
     resolver: zodResolver(scheduleFollowUpSchema),
     defaultValues: {
       nextFollowupDate: "",
-      notes: "",
-      customLeaderSubject: "",
-      customLeaderMessage: "",
       customConvertSubject: "",
       customConvertMessage: "",
+      customReminderSubject: "",
+      customReminderMessage: "",
       includeVideoLink: true,
     },
   });
@@ -254,11 +252,10 @@ export default function LeaderNewMembers() {
     setSelectedNewMember(newMember);
     scheduleForm.reset({
       nextFollowupDate: "",
-      notes: "",
-      customLeaderSubject: "",
-      customLeaderMessage: "",
       customConvertSubject: "",
       customConvertMessage: "",
+      customReminderSubject: "",
+      customReminderMessage: "",
       includeVideoLink: true,
     });
     setFollowUpDialogOpen(true);
@@ -944,24 +941,6 @@ export default function LeaderNewMembers() {
 
               <FormField
                 control={scheduleForm.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Notes for the follow-up..."
-                        {...field}
-                        data-testid="input-followup-notes"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={scheduleForm.control}
                 name="includeVideoLink"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
@@ -986,44 +965,17 @@ export default function LeaderNewMembers() {
               />
 
               <div className="space-y-4 pt-4 border-t">
-                <h4 className="font-medium text-sm">Email Customization (Optional)</h4>
+                <h4 className="font-medium text-sm">Initial Email to New Member (Optional)</h4>
+                <p className="text-xs text-muted-foreground">Sent immediately when scheduling the follow-up</p>
                 
-                <FormField
-                  control={scheduleForm.control}
-                  name="customLeaderSubject"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Leader Email Subject</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Custom subject for leader email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={scheduleForm.control}
-                  name="customLeaderMessage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Leader Email Message</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Custom message for leader email" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={scheduleForm.control}
                   name="customConvertSubject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>New Member Email Subject</FormLabel>
+                      <FormLabel>Subject</FormLabel>
                       <FormControl>
-                        <Input placeholder="Custom subject for new member email" {...field} />
+                        <Input placeholder="Custom subject for initial email" {...field} data-testid="input-initial-email-subject" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1035,9 +987,42 @@ export default function LeaderNewMembers() {
                   name="customConvertMessage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>New Member Email Message</FormLabel>
+                      <FormLabel>Message</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Custom message for new member email" {...field} />
+                        <Textarea placeholder="Custom message for initial email" {...field} data-testid="input-initial-email-message" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-4 pt-4 border-t">
+                <h4 className="font-medium text-sm">Day-Before Reminder (Optional)</h4>
+                <p className="text-xs text-muted-foreground">Sent one day before the scheduled follow-up</p>
+                
+                <FormField
+                  control={scheduleForm.control}
+                  name="customReminderSubject"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subject</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Custom subject for reminder email" {...field} data-testid="input-reminder-email-subject" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={scheduleForm.control}
+                  name="customReminderMessage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Message</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Custom message for reminder email" {...field} data-testid="input-reminder-email-message" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

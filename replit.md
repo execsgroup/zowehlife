@@ -119,12 +119,14 @@ The system uses a three-tier role hierarchy:
 ## Follow-Up System
 The system separates follow-up actions into two distinct flows:
 
-### Schedule Follow Up (Converts Page)
-Leaders use "Schedule Follow Up" button to plan future contact with converts:
+### Schedule Follow Up (Converts / New Members Page)
+Leaders use "Schedule Follow Up" button to plan future contact:
 - Set a follow-up date
 - Optional: Include auto-generated Jitsi Meet video call link (unique per scheduling)
-- Customize email subject and message for both leader reminder and convert notification
-- Emails are sent immediately when scheduling
+- Optional: Customize the **Initial Email** subject and message (sent immediately to the member)
+- Optional: Customize the **Day-Before Reminder** subject and message (sent 1 day before the follow-up date)
+- Leader always receives a system-generated email notification (not customizable)
+- All emails include a Contact Us button linking to the contact form
 
 ### Follow Up Notes (Followups Page)
 Leaders record outcomes of completed follow-ups via "Follow Up Notes" button:
