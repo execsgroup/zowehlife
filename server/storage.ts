@@ -327,26 +327,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChurch(insertChurch: InsertChurch): Promise<Church> {
-    // Generate a unique token for the church with retry logic
+    // Generate unique tokens for all three form types with retry logic
     const maxRetries = 5;
     let lastError: Error | null = null;
     
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        const token = this.generateRandomToken();
-        const [church] = await db.insert(churches).values({ ...insertChurch, publicToken: token }).returning();
+        const publicToken = this.generateRandomToken();
+        const newMemberToken = this.generateRandomToken();
+        const memberToken = this.generateRandomToken();
+        const [church] = await db.insert(churches).values({ 
+          ...insertChurch, 
+          publicToken,
+          newMemberToken,
+          memberToken,
+        }).returning();
         return church;
       } catch (error: any) {
-        // Check if it's a unique constraint violation
-        if (error?.code === '23505' && error?.constraint?.includes('public_token')) {
+        // Check if it's a unique constraint violation for any token
+        if (error?.code === '23505' && 
+            (error?.constraint?.includes('public_token') || 
+             error?.constraint?.includes('new_member_token') ||
+             error?.constraint?.includes('member_token'))) {
           lastError = error;
-          continue; // Retry with a new token
+          continue; // Retry with new tokens
         }
         throw error; // Re-throw other errors
       }
     }
     
-    throw new Error(`Failed to generate unique token after ${maxRetries} attempts`);
+    throw new Error(`Failed to generate unique tokens after ${maxRetries} attempts`);
   }
 
   private generateRandomToken(): string {

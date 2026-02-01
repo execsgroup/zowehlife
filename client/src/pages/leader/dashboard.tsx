@@ -242,9 +242,7 @@ export default function LeaderDashboard() {
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Generate a link from the <Link href="/leader/new-members" className="underline text-foreground hover:text-muted-foreground" data-testid="link-new-members">New Members</Link> page
-                </p>
+                <Skeleton className="h-10 w-full" />
               )}
             </div>
 
@@ -279,9 +277,7 @@ export default function LeaderDashboard() {
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Generate a link from the <Link href="/leader/members" className="underline text-foreground hover:text-muted-foreground" data-testid="link-members">Members</Link> page
-                </p>
+                <Skeleton className="h-10 w-full" />
               )}
             </div>
           </CardContent>
