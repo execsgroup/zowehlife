@@ -1829,7 +1829,7 @@ export async function registerRoutes(
       if (!newMember || newMember.churchId !== user.churchId) {
         return res.status(404).json({ message: "New member not found" });
       }
-      const checkins = await storage.getNewMemberCheckins(req.params.id);
+      const checkins = await storage.getNewMemberCheckinsByNewMember(req.params.id);
       res.json(checkins);
     } catch (error) {
       res.status(500).json({ message: "Failed to get check-ins" });
@@ -2967,6 +2967,452 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching church tokens:", error);
       res.status(500).json({ message: "Failed to fetch tokens" });
+    }
+  });
+
+  // ===== LEADER GUESTS ROUTES =====
+  
+  // Get guests for leader's church
+  app.get("/api/leader/guests", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const guests = await storage.getGuestsByChurch(user.churchId);
+      res.json(guests);
+    } catch (error) {
+      console.error("Error fetching guests:", error);
+      res.status(500).json({ message: "Failed to fetch guests" });
+    }
+  });
+
+  // Get single guest
+  app.get("/api/leader/guests/:id", requireLeader, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+      
+      const guest = await storage.getGuest(id);
+      if (!guest) {
+        return res.status(404).json({ message: "Guest not found" });
+      }
+      
+      if (guest.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      res.json(guest);
+    } catch (error) {
+      console.error("Error fetching guest:", error);
+      res.status(500).json({ message: "Failed to fetch guest" });
+    }
+  });
+
+  // Create guest
+  app.post("/api/leader/guests", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const schema = z.object({
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"),
+        phone: z.string().optional().nullable(),
+        email: z.string().email().optional().nullable().or(z.literal("")),
+        dateOfBirth: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        country: z.string().optional().nullable(),
+        gender: z.string().optional().nullable(),
+        ageGroup: z.string().optional().nullable(),
+        notes: z.string().optional().nullable(),
+      });
+      
+      const data = schema.parse(req.body);
+      
+      const guest = await storage.createGuest({
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone || null,
+        email: data.email || null,
+        dateOfBirth: data.dateOfBirth || null,
+        address: data.address || null,
+        country: data.country || null,
+        gender: data.gender || null,
+        ageGroup: data.ageGroup || null,
+        notes: data.notes || null,
+      });
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "CREATE",
+        entityType: "GUEST",
+        entityId: guest.id,
+      });
+      
+      res.status(201).json(guest);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error creating guest:", error);
+      res.status(500).json({ message: "Failed to create guest" });
+    }
+  });
+
+  // Update guest
+  app.patch("/api/leader/guests/:id", requireLeader, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+      
+      const guest = await storage.getGuest(id);
+      if (!guest) {
+        return res.status(404).json({ message: "Guest not found" });
+      }
+      
+      if (guest.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      const schema = z.object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        phone: z.string().optional().nullable(),
+        email: z.string().email().optional().nullable().or(z.literal("")),
+        dateOfBirth: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        country: z.string().optional().nullable(),
+        gender: z.string().optional().nullable(),
+        ageGroup: z.string().optional().nullable(),
+        notes: z.string().optional().nullable(),
+      });
+      
+      const data = schema.parse(req.body);
+      const updated = await storage.updateGuest(id, data);
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "UPDATE",
+        entityType: "GUEST",
+        entityId: id,
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error updating guest:", error);
+      res.status(500).json({ message: "Failed to update guest" });
+    }
+  });
+
+  // Delete guest
+  app.delete("/api/leader/guests/:id", requireLeader, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+      
+      const guest = await storage.getGuest(id);
+      if (!guest) {
+        return res.status(404).json({ message: "Guest not found" });
+      }
+      
+      if (guest.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      await storage.deleteGuest(id);
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "DELETE",
+        entityType: "GUEST",
+        entityId: id,
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting guest:", error);
+      res.status(500).json({ message: "Failed to delete guest" });
+    }
+  });
+
+  // ===== MEMBER CHECKINS ROUTES =====
+
+  // Get member checkins
+  app.get("/api/leader/members/:id/checkins", requireLeader, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+      
+      const member = await storage.getMember(id);
+      if (!member) {
+        return res.status(404).json({ message: "Member not found" });
+      }
+      
+      if (member.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      const checkins = await storage.getMemberCheckins(id);
+      res.json(checkins);
+    } catch (error) {
+      console.error("Error fetching member checkins:", error);
+      res.status(500).json({ message: "Failed to fetch checkins" });
+    }
+  });
+
+  // Create member checkin
+  app.post("/api/leader/members/:memberId/checkins", requireLeader, async (req, res) => {
+    try {
+      const { memberId } = req.params;
+      const user = (req as any).user;
+      
+      const member = await storage.getMember(memberId);
+      if (!member) {
+        return res.status(404).json({ message: "Member not found" });
+      }
+      
+      if (member.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      const schema = z.object({
+        notes: z.string().optional(),
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "SCHEDULED_VISIT", "NOT_COMPLETED"]),
+        nextFollowupDate: z.string().optional().nullable(),
+        videoLink: z.string().optional().nullable(),
+      });
+      
+      const data = schema.parse(req.body);
+      
+      const checkin = await storage.createMemberCheckin({
+        memberId,
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        checkinDate: new Date().toISOString().split("T")[0],
+        notes: data.notes || null,
+        outcome: data.outcome,
+        nextFollowupDate: data.nextFollowupDate || null,
+        videoLink: data.videoLink || null,
+      });
+      
+      // Update member status based on outcome
+      const statusMap: Record<string, string> = {
+        CONNECTED: "ACTIVE",
+        NO_RESPONSE: "NO_RESPONSE",
+        NEEDS_PRAYER: "NEEDS_PRAYER",
+        REFERRED: "REFERRED",
+        SCHEDULED_VISIT: "SCHEDULED",
+        NOT_COMPLETED: "NOT_COMPLETED",
+      };
+      
+      if (statusMap[data.outcome]) {
+        await storage.updateMember(memberId, { status: statusMap[data.outcome] });
+      }
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "CREATE",
+        entityType: "MEMBER_CHECKIN",
+        entityId: checkin.id,
+      });
+      
+      res.status(201).json(checkin);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error creating member checkin:", error);
+      res.status(500).json({ message: "Failed to create checkin" });
+    }
+  });
+
+  // Schedule follow-up for member
+  app.post("/api/leader/members/:memberId/schedule-followup", requireLeader, async (req, res) => {
+    try {
+      const { memberId } = req.params;
+      const user = (req as any).user;
+      
+      const member = await storage.getMember(memberId);
+      if (!member) {
+        return res.status(404).json({ message: "Member not found" });
+      }
+      
+      if (member.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      const schema = z.object({
+        nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+        notes: z.string().optional(),
+        includeVideoLink: z.boolean().optional(),
+        customLeaderMessage: z.string().optional(),
+        customConvertMessage: z.string().optional(),
+        customLeaderSubject: z.string().optional(),
+        customConvertSubject: z.string().optional(),
+      });
+      
+      const data = schema.parse(req.body);
+      const church = await storage.getChurch(user.churchId);
+      
+      // Generate video link if requested
+      let videoLink: string | undefined;
+      if (data.includeVideoLink) {
+        const roomName = `${church?.name || "ministry"}-${member.firstName}-${member.lastName}-${Date.now()}`.replace(/[^a-zA-Z0-9-]/g, "-");
+        videoLink = `https://meet.jit.si/${roomName}`;
+      }
+      
+      // Create a checkin with SCHEDULED_VISIT outcome
+      const checkin = await storage.createMemberCheckin({
+        memberId,
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        checkinDate: new Date().toISOString().split("T")[0],
+        notes: data.notes || null,
+        outcome: "SCHEDULED_VISIT",
+        nextFollowupDate: data.nextFollowupDate,
+        videoLink: videoLink || null,
+      });
+      
+      // Update member status
+      await storage.updateMember(memberId, { status: "SCHEDULED" });
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "SCHEDULE_FOLLOWUP",
+        entityType: "MEMBER",
+        entityId: memberId,
+      });
+      
+      // Send notification emails
+      sendFollowUpNotification({
+        convertName: `${member.firstName} ${member.lastName}`,
+        convertEmail: member.email || undefined,
+        leaderName: `${user.firstName} ${user.lastName}`,
+        leaderEmail: user.email,
+        churchName: church?.name || "Ministry",
+        followUpDate: data.nextFollowupDate,
+        notes: data.notes || undefined,
+        videoLink,
+        customLeaderMessage: data.customLeaderMessage || undefined,
+        customConvertMessage: data.customConvertMessage || undefined,
+        customLeaderSubject: data.customLeaderSubject || undefined,
+        customConvertSubject: data.customConvertSubject || undefined,
+      }).catch(err => console.error("Email notification failed:", err));
+      
+      res.status(201).json(checkin);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error scheduling follow-up:", error);
+      res.status(500).json({ message: "Failed to schedule follow-up" });
+    }
+  });
+
+  // ===== NEW MEMBER CONVERSION ROUTES =====
+
+  // Convert new member to member
+  app.post("/api/leader/new-members/:id/convert-to-member", requireLeader, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+      
+      const newMember = await storage.getNewMember(id);
+      if (!newMember) {
+        return res.status(404).json({ message: "New member not found" });
+      }
+      
+      if (newMember.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      const member = await storage.convertNewMemberToMember(id, user.id);
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "CONVERT_TO_MEMBER",
+        entityType: "NEW_MEMBER",
+        entityId: id,
+      });
+      
+      res.status(201).json(member);
+    } catch (error) {
+      console.error("Error converting to member:", error);
+      res.status(500).json({ message: "Failed to convert to member" });
+    }
+  });
+
+  // Convert new member to guest
+  app.post("/api/leader/new-members/:id/convert-to-guest", requireLeader, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+      
+      const newMember = await storage.getNewMember(id);
+      if (!newMember) {
+        return res.status(404).json({ message: "New member not found" });
+      }
+      
+      if (newMember.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      const guest = await storage.convertNewMemberToGuest(id, user.id);
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "CONVERT_TO_GUEST",
+        entityType: "NEW_MEMBER",
+        entityId: id,
+      });
+      
+      res.status(201).json(guest);
+    } catch (error) {
+      console.error("Error converting to guest:", error);
+      res.status(500).json({ message: "Failed to convert to guest" });
+    }
+  });
+
+  // Update new member follow-up stage
+  app.patch("/api/leader/new-members/:id/follow-up-stage", requireLeader, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+      
+      const newMember = await storage.getNewMember(id);
+      if (!newMember) {
+        return res.status(404).json({ message: "New member not found" });
+      }
+      
+      if (newMember.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      
+      const schema = z.object({
+        stage: z.enum(["NEW", "SCHEDULED", "FIRST_COMPLETED", "INITIATE_SECOND", "SECOND_SCHEDULED", "SECOND_COMPLETED", "INITIATE_FINAL", "FINAL_SCHEDULED", "FINAL_COMPLETED"]),
+      });
+      
+      const data = schema.parse(req.body);
+      
+      // If completing a stage, set the completedAt timestamp
+      const completedAt = data.stage.includes("COMPLETED") ? new Date() : undefined;
+      const updated = await storage.updateNewMemberFollowUpStage(id, data.stage, completedAt);
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "UPDATE_FOLLOWUP_STAGE",
+        entityType: "NEW_MEMBER",
+        entityId: id,
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error updating follow-up stage:", error);
+      res.status(500).json({ message: "Failed to update follow-up stage" });
     }
   });
 

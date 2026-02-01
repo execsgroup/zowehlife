@@ -27,6 +27,7 @@ import {
   LayoutDashboard,
   Church,
   Users,
+  Users2,
   UserPlus,
   HandHeart,
   ClipboardList,
@@ -63,6 +64,7 @@ const ministryAdminNavItems = [
   { title: "Follow-ups", url: "/ministry-admin/followups", icon: CalendarClock },
   { title: "New Members", url: "/ministry-admin/new-members", icon: Users },
   { title: "Members", url: "/ministry-admin/members", icon: Church },
+  { title: "Guest List", url: "/ministry-admin/guests", icon: Users2 },
   { title: "Leader Requests", url: "/ministry-admin/account-requests", icon: ClipboardList },
   { title: "Settings", url: "/ministry-admin/settings", icon: Settings },
 ];
@@ -72,6 +74,7 @@ const leaderNavItems = [
   { title: "My Converts", url: "/leader/converts", icon: UserPlus },
   { title: "New Members", url: "/leader/new-members", icon: Users },
   { title: "Members", url: "/leader/members", icon: Church },
+  { title: "Guest List", url: "/leader/guests", icon: Users2 },
   { title: "Follow-ups", url: "/leader/followups", icon: CalendarClock },
   { title: "Prayer Requests", url: "/leader/prayer-requests", icon: HandHeart },
   { title: "Contact Requests", url: "/leader/contact-requests", icon: MessageSquare },

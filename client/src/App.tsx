@@ -39,6 +39,7 @@ import LeaderContactRequests from "@/pages/leader/contact-requests";
 import LeaderSettings from "@/pages/leader/settings";
 import LeaderNewMembers from "@/pages/leader/new-members";
 import LeaderMembers from "@/pages/leader/members";
+import LeaderGuests from "@/pages/leader/guests";
 import ConvertDetail from "@/pages/leader/convert-detail";
 import NewMemberDetail from "@/pages/leader/new-member-detail";
 import MemberDetail from "@/pages/leader/member-detail";
@@ -230,6 +231,9 @@ function Router() {
       </Route>
       <Route path="/leader/members/:id">
         <ProtectedRoute component={MemberDetail} allowedRoles={["LEADER"]} />
+      </Route>
+      <Route path="/leader/guests">
+        <ProtectedRoute component={LeaderGuests} allowedRoles={["LEADER"]} />
       </Route>
       
       {/* Fallback */}
