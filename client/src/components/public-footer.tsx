@@ -62,6 +62,11 @@ export function PublicFooter() {
                   Register a Ministry
                 </Link>
               </li>
+              <li>
+                <Link href="/setup" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-admin-setup">
+                  Admin Setup
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
