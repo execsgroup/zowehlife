@@ -2,6 +2,8 @@ import { storage } from "./storage";
 import { sendFollowUpReminderEmail } from "./email";
 
 const REMINDER_CHECK_INTERVAL = 60 * 60 * 1000; // Check every hour
+const CONTACT_REMINDER_DAYS = 14; // Days before auto-changing to CONTACT_NEW_MEMBER
+const FOLLOWUP_PROGRESSION_DAYS = 20; // Days before auto-changing to next initiate stage
 
 async function processExpiredFollowups() {
   try {
@@ -78,6 +80,68 @@ async function processUpcomingFollowUpReminders() {
   }
 }
 
+// New Member Follow-up Workflow Functions
+
+// Check for new members who haven't been contacted within 14 days of joining
+async function processNewMemberContactReminders() {
+  try {
+    console.log("[Scheduler] Checking for new members needing contact reminder...");
+    
+    const newMembersToRemind = await storage.getNewMembersNeedingContactReminder(CONTACT_REMINDER_DAYS);
+    
+    for (const newMember of newMembersToRemind) {
+      await storage.updateNewMemberFollowUpStage(newMember.id, "CONTACT_NEW_MEMBER");
+      console.log(`[Scheduler] New member ${newMember.firstName} ${newMember.lastName} marked as CONTACT_NEW_MEMBER (14+ days with no follow-up)`);
+    }
+    
+    if (newMembersToRemind.length > 0) {
+      console.log(`[Scheduler] Marked ${newMembersToRemind.length} new members as needing contact`);
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error processing new member contact reminders:", error);
+  }
+}
+
+// Check for new members who completed first follow-up 20 days ago - auto-change to INITIATE_SECOND
+async function processNewMemberSecondFollowUp() {
+  try {
+    console.log("[Scheduler] Checking for new members needing second follow-up initiation...");
+    
+    const newMembersForSecond = await storage.getNewMembersNeedingSecondFollowUp(FOLLOWUP_PROGRESSION_DAYS);
+    
+    for (const newMember of newMembersForSecond) {
+      await storage.updateNewMemberFollowUpStage(newMember.id, "INITIATE_SECOND");
+      console.log(`[Scheduler] New member ${newMember.firstName} ${newMember.lastName} marked as INITIATE_SECOND (20 days after first completed)`);
+    }
+    
+    if (newMembersForSecond.length > 0) {
+      console.log(`[Scheduler] Marked ${newMembersForSecond.length} new members for second follow-up initiation`);
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error processing second follow-up initiation:", error);
+  }
+}
+
+// Check for new members who completed second follow-up 20 days ago - auto-change to INITIATE_FINAL
+async function processNewMemberFinalFollowUp() {
+  try {
+    console.log("[Scheduler] Checking for new members needing final follow-up initiation...");
+    
+    const newMembersForFinal = await storage.getNewMembersNeedingFinalFollowUp(FOLLOWUP_PROGRESSION_DAYS);
+    
+    for (const newMember of newMembersForFinal) {
+      await storage.updateNewMemberFollowUpStage(newMember.id, "INITIATE_FINAL");
+      console.log(`[Scheduler] New member ${newMember.firstName} ${newMember.lastName} marked as INITIATE_FINAL (20 days after second completed)`);
+    }
+    
+    if (newMembersForFinal.length > 0) {
+      console.log(`[Scheduler] Marked ${newMembersForFinal.length} new members for final follow-up initiation`);
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error processing final follow-up initiation:", error);
+  }
+}
+
 export function startReminderScheduler() {
   console.log("[Scheduler] Starting follow-up reminder scheduler...");
   
@@ -85,11 +149,17 @@ export function startReminderScheduler() {
   processUpcomingFollowUpReminders();
   processExpiredFollowups();
   processNeverContactedConverts();
+  processNewMemberContactReminders();
+  processNewMemberSecondFollowUp();
+  processNewMemberFinalFollowUp();
   
   // Then run periodically
   setInterval(() => {
     processUpcomingFollowUpReminders();
     processExpiredFollowups();
     processNeverContactedConverts();
+    processNewMemberContactReminders();
+    processNewMemberSecondFollowUp();
+    processNewMemberFinalFollowUp();
   }, REMINDER_CHECK_INTERVAL);
 }

@@ -264,6 +264,9 @@ export interface IStorage {
   // New Member Follow-up Stage
   updateNewMemberFollowUpStage(id: string, stage: string, completedAt?: Date): Promise<NewMember>;
   getNewMembersForFollowUpCheck(daysAgo: number): Promise<NewMember[]>;
+  getNewMembersNeedingContactReminder(days: number): Promise<NewMember[]>;
+  getNewMembersNeedingSecondFollowUp(days: number): Promise<NewMember[]>;
+  getNewMembersNeedingFinalFollowUp(days: number): Promise<NewMember[]>;
 
   // Convert New Member to Member or Guest
   convertNewMemberToMember(newMemberId: string, userId: string): Promise<Member>;
@@ -1264,6 +1267,47 @@ export class DatabaseStorage implements IStorage {
     
     return db.select().from(newMembers).where(
       and(
+        isNotNull(newMembers.lastFollowUpCompletedAt),
+        lte(newMembers.lastFollowUpCompletedAt, cutoffDate)
+      )
+    );
+  }
+
+  // Get new members who joined X days ago and have never been contacted (still in NEW stage)
+  async getNewMembersNeedingContactReminder(days: number): Promise<NewMember[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return db.select().from(newMembers).where(
+      and(
+        eq(newMembers.followUpStage, "NEW"),
+        lte(newMembers.createdAt, cutoffDate)
+      )
+    );
+  }
+
+  // Get new members who completed first follow-up X days ago and are in FIRST_COMPLETED stage
+  async getNewMembersNeedingSecondFollowUp(days: number): Promise<NewMember[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return db.select().from(newMembers).where(
+      and(
+        eq(newMembers.followUpStage, "FIRST_COMPLETED"),
+        isNotNull(newMembers.lastFollowUpCompletedAt),
+        lte(newMembers.lastFollowUpCompletedAt, cutoffDate)
+      )
+    );
+  }
+
+  // Get new members who completed second follow-up X days ago and are in SECOND_COMPLETED stage
+  async getNewMembersNeedingFinalFollowUp(days: number): Promise<NewMember[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return db.select().from(newMembers).where(
+      and(
+        eq(newMembers.followUpStage, "SECOND_COMPLETED"),
         isNotNull(newMembers.lastFollowUpCompletedAt),
         lte(newMembers.lastFollowUpCompletedAt, cutoffDate)
       )
