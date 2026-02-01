@@ -317,16 +317,6 @@ export default function LeaderFollowups() {
                             </TooltipTrigger>
                             <TooltipContent>Schedule Next Follow Up</TooltipContent>
                           </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link href={`${basePath}/converts/${followup.convertId}`}>
-                                <Button variant="outline" size="icon" data-testid={`button-view-convert-${followup.id}`}>
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>View Convert Details</TooltipContent>
-                          </Tooltip>
                           {followup.videoLink && (
                             <Tooltip>
                               <TooltipTrigger asChild>

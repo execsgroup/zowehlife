@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Calendar, Phone, Mail, Clock, Video, User, Eye } from "lucide-react";
+import { Calendar, Phone, Mail, Clock, Video, User } from "lucide-react";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 
 interface FollowUp {
@@ -123,16 +123,6 @@ export default function MinistryAdminFollowups() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link href={`/ministry-admin/converts/${followup.convertId}`}>
-                                  <Button variant="outline" size="icon" data-testid={`button-view-convert-${followup.id}`}>
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>View Convert Details</TooltipContent>
-                            </Tooltip>
                             {followup.videoLink && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
