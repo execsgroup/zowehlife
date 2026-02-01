@@ -243,7 +243,8 @@ export async function registerRoutes(
       const passwordHash = await bcrypt.hash(data.password, 10);
       const user = await storage.createUser({
         role: "ADMIN",
-        fullName: data.fullName,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         passwordHash,
         churchId: null,
@@ -594,7 +595,8 @@ export async function registerRoutes(
   app.post("/api/admin/leaders", requireAdmin, async (req, res) => {
     try {
       const schema = z.object({
-        fullName: z.string().min(2),
+        firstName: z.string().min(1),
+        lastName: z.string().min(1),
         email: z.string().email(),
         password: z.string().min(8),
         churchId: z.string().min(1),
@@ -617,7 +619,8 @@ export async function registerRoutes(
       const passwordHash = await bcrypt.hash(data.password, 10);
       const user = await storage.createUser({
         role: "LEADER",
-        fullName: data.fullName,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         passwordHash,
         churchId: data.churchId,
@@ -784,7 +787,7 @@ export async function registerRoutes(
         sendFollowUpNotification({
           convertName: `${convert.firstName} ${convert.lastName}`,
           convertEmail: convert.email || undefined,
-          leaderName: user.fullName,
+          leaderName: `${user.firstName} ${user.lastName}`,
           leaderEmail: user.email,
           churchName: church?.name || "Ministry",
           followUpDate: data.nextFollowupDate,
@@ -1022,7 +1025,8 @@ export async function registerRoutes(
       }
 
       // Use edited data
-      const finalName = editedData.fullName;
+      const finalFirstName = editedData.firstName;
+      const finalLastName = editedData.lastName;
       const finalEmail = editedData.email;
       const finalChurchName = editedData.churchName;
       const finalPhone = editedData.phone;
@@ -1036,7 +1040,8 @@ export async function registerRoutes(
 
       // Persist edited fields to the account request record
       await storage.updateAccountRequest(id, {
-        fullName: finalName,
+        firstName: finalFirstName,
+        lastName: finalLastName,
         email: finalEmail,
         phone: finalPhone,
         churchName: finalChurchName,
@@ -1053,7 +1058,8 @@ export async function registerRoutes(
       // Create the leader account
       const newLeader = await storage.createUser({
         role: "LEADER",
-        fullName: finalName,
+        firstName: finalFirstName,
+        lastName: finalLastName,
         email: finalEmail,
         passwordHash,
         churchId: church.id,
@@ -1089,7 +1095,7 @@ export async function registerRoutes(
 
       // Send approval email
       const emailResult = await sendAccountApprovalEmail({
-        leaderName: finalName,
+        leaderName: `${finalFirstName} ${finalLastName}`,
         leaderEmail: finalEmail,
         churchName: church.name,
         temporaryPassword: tempPassword,
@@ -1144,7 +1150,7 @@ export async function registerRoutes(
 
       // Send denial email
       await sendAccountDenialEmail({
-        applicantName: request.fullName,
+        applicantName: `${request.firstName} ${request.lastName}`,
         applicantEmail: request.email,
       });
 
@@ -1186,7 +1192,8 @@ export async function registerRoutes(
       // Use edited data
       const finalMinistryName = editedData.ministryName;
       const finalLocation = editedData.location;
-      const finalAdminFullName = editedData.adminFullName;
+      const finalAdminFirstName = editedData.adminFirstName;
+      const finalAdminLastName = editedData.adminLastName;
       const finalAdminEmail = editedData.adminEmail;
       const finalAdminPhone = editedData.adminPhone;
       const finalDescription = editedData.description;
@@ -1207,7 +1214,8 @@ export async function registerRoutes(
       await storage.updateMinistryRequest(id, {
         ministryName: finalMinistryName,
         location: finalLocation,
-        adminFullName: finalAdminFullName,
+        adminFirstName: finalAdminFirstName,
+        adminLastName: finalAdminLastName,
         adminEmail: finalAdminEmail,
         adminPhone: finalAdminPhone,
         description: finalDescription,
@@ -1226,7 +1234,8 @@ export async function registerRoutes(
       // Create the ministry admin account
       const newMinistryAdmin = await storage.createUser({
         role: "MINISTRY_ADMIN",
-        fullName: finalAdminFullName,
+        firstName: finalAdminFirstName,
+        lastName: finalAdminLastName,
         email: finalAdminEmail,
         passwordHash,
         churchId: church.id,
@@ -1259,7 +1268,7 @@ export async function registerRoutes(
 
       // Send approval email (reuse account approval email for now)
       const emailResult = await sendAccountApprovalEmail({
-        leaderName: finalAdminName,
+        leaderName: `${finalAdminFirstName} ${finalAdminLastName}`,
         leaderEmail: finalAdminEmail,
         churchName: church.name,
         temporaryPassword: tempPassword,
@@ -1314,7 +1323,7 @@ export async function registerRoutes(
 
       // Send denial email
       await sendAccountDenialEmail({
-        applicantName: request.adminFullName,
+        applicantName: `${request.adminFirstName} ${request.adminLastName}`,
         applicantEmail: request.adminEmail,
       });
 
@@ -1378,7 +1387,8 @@ export async function registerRoutes(
       }
 
       // Use edited data
-      const finalName = editedData.fullName;
+      const finalFirstName = editedData.firstName;
+      const finalLastName = editedData.lastName;
       const finalEmail = editedData.email;
       const finalPhone = editedData.phone;
       const finalReason = editedData.reason;
@@ -1391,7 +1401,8 @@ export async function registerRoutes(
 
       // Persist edited fields to the account request record
       await storage.updateAccountRequest(id, {
-        fullName: finalName,
+        firstName: finalFirstName,
+        lastName: finalLastName,
         email: finalEmail,
         phone: finalPhone,
         reason: finalReason,
@@ -1410,7 +1421,8 @@ export async function registerRoutes(
       // Create the leader account
       const newLeader = await storage.createUser({
         role: "LEADER",
-        fullName: finalName,
+        firstName: finalFirstName,
+        lastName: finalLastName,
         email: finalEmail,
         passwordHash,
         churchId: ministryAdmin.churchId,
@@ -1436,7 +1448,7 @@ export async function registerRoutes(
 
       // Send approval email
       const emailResult = await sendAccountApprovalEmail({
-        leaderName: finalName,
+        leaderName: `${finalFirstName} ${finalLastName}`,
         leaderEmail: finalEmail,
         churchName: church.name,
         temporaryPassword: tempPassword,
@@ -1496,7 +1508,7 @@ export async function registerRoutes(
 
       // Send denial email
       await sendAccountDenialEmail({
-        applicantName: request.fullName,
+        applicantName: `${request.firstName} ${request.lastName}`,
         applicantEmail: request.email,
       });
 
@@ -1913,7 +1925,7 @@ export async function registerRoutes(
       sendFollowUpNotification({
         convertName: `${convert.firstName} ${convert.lastName}`,
         convertEmail: convert.email || undefined,
-        leaderName: user.fullName,
+        leaderName: `${user.firstName} ${user.lastName}`,
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
         followUpDate: data.nextFollowupDate,
@@ -2000,7 +2012,7 @@ export async function registerRoutes(
         sendFollowUpNotification({
           convertName: `${convert.firstName} ${convert.lastName}`,
           convertEmail: convert.email || undefined,
-          leaderName: user.fullName,
+          leaderName: `${user.firstName} ${user.lastName}`,
           leaderEmail: user.email,
           churchName: church?.name || "Ministry",
           followUpDate: data.nextFollowupDate,

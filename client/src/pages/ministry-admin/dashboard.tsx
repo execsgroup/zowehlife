@@ -64,7 +64,7 @@ export default function MinistryAdminDashboard() {
             {church?.name || "Ministry"} Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Welcome back, {user?.fullName}. Manage your ministry and approve new leaders.
+            Welcome back, {user?.firstName}. Manage your ministry and approve new leaders.
           </p>
         </div>
 

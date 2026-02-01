@@ -89,12 +89,7 @@ export function AppSidebar() {
     return leaderNavItems;
   };
   const navItems = getNavItems();
-  const initials = user?.fullName
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "U";
+  const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || "U";
 
   const currentChurch = user?.role === "LEADER" ? church : user?.role === "MINISTRY_ADMIN" ? ministryAdminChurch : null;
   const showChurchLogo = currentChurch?.logoUrl;
@@ -185,7 +180,7 @@ export function AppSidebar() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-start text-left flex-1 min-w-0">
-                <span className="text-sm font-medium truncate w-full">{user?.fullName}</span>
+                <span className="text-sm font-medium truncate w-full">{user?.firstName} {user?.lastName}</span>
                 <span className="text-xs text-sidebar-foreground/70 truncate w-full">
                   {getRoleLabel()}
                 </span>
@@ -195,7 +190,7 @@ export function AppSidebar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <div className="px-2 py-1.5">
-              <p className="text-sm font-medium">{user?.fullName}</p>
+              <p className="text-sm font-medium">{user?.firstName} {user?.lastName}</p>
               <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
             <DropdownMenuSeparator />

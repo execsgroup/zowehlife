@@ -753,7 +753,8 @@ export class DatabaseStorage implements IStorage {
         convertFirstName: converts.firstName,
         convertLastName: converts.lastName,
         convertEmail: converts.email,
-        leaderName: users.fullName,
+        leaderFirstName: users.firstName,
+        leaderLastName: users.lastName,
         leaderEmail: users.email,
         churchName: churches.name,
         nextFollowupDate: checkins.nextFollowupDate,
@@ -765,7 +766,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(checkins.nextFollowupDate, tomorrowStr));
 
     return results.map(r => ({
-      ...r,
+      checkinId: r.checkinId,
+      convertId: r.convertId,
+      convertFirstName: r.convertFirstName,
+      convertLastName: r.convertLastName,
+      convertEmail: r.convertEmail,
+      leaderName: `${r.leaderFirstName} ${r.leaderLastName}`,
+      leaderEmail: r.leaderEmail,
+      churchName: r.churchName,
       nextFollowupDate: r.nextFollowupDate || "",
     }));
   }

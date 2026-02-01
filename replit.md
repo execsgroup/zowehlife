@@ -58,15 +58,15 @@ A ministry management web application with a three-tier role system for tracking
 
 ## Database Schema
 - **churches**: id, name, location, public_token (unique link token), logo_url, created_at
-- **users**: id, role (ADMIN/MINISTRY_ADMIN/LEADER), full_name, email, password_hash, church_id
+- **users**: id, role (ADMIN/MINISTRY_ADMIN/LEADER), first_name, last_name, email, password_hash, church_id, created_at
 - **converts**: id, church_id, created_by_user_id (nullable), first_name, last_name, phone, email, address, date_of_birth, birth_day, birth_month, country, salvation_decision, summary_notes, status, self_submitted, wants_contact, gender, age_group, is_church_member, prayer_request
-- **ministry_requests**: id, ministry_name, location, admin_name, admin_email, admin_phone, description, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
+- **ministry_requests**: id, ministry_name, location, admin_first_name, admin_last_name, admin_email, admin_phone, description, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 
 ## Church Logo Upload
 Leaders can upload a church logo from the "Church Settings" page in their dashboard. The logo will be displayed on the public Salvation Form for new converts. Logos are stored in Replit's Object Storage and can be up to 5MB in size (images only).
 - **checkins**: id, convert_id, church_id, created_by_user_id, checkin_date, notes, outcome, next_followup_date, video_link
 - **prayer_requests**: id, name, phone, email, message, church_preference
-- **account_requests**: id, full_name, email, phone, church_name (free text), reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
+- **account_requests**: id, first_name, last_name, email, phone, church_name (free text), church_id, reason, status (PENDING/APPROVED/DENIED), reviewed_by_user_id, reviewed_at, created_at
 - **audit_log**: id, actor_user_id, action, entity_type, entity_id
 
 ## Public Church Convert Links

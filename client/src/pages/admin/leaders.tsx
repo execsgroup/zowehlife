@@ -22,7 +22,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { format } from "date-fns";
 
 const leaderFormSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   churchId: z.string().min(1, "Please select a ministry"),
@@ -57,7 +58,8 @@ export default function AdminLeaders() {
   const form = useForm<LeaderFormData>({
     resolver: zodResolver(leaderFormSchema),
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       churchId: "",
@@ -179,23 +181,42 @@ export default function AdminLeaders() {
                   onSubmit={form.handleSubmit((data) => createMutation.mutate(data))}
                   className="space-y-4"
                 >
-                  <FormField
-                    control={form.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter full name"
-                            {...field}
-                            data-testid="input-leader-name"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="First name"
+                              {...field}
+                              data-testid="input-leader-first-name"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Last name"
+                              {...field}
+                              data-testid="input-leader-last-name"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={form.control}
                     name="email"
@@ -290,7 +311,7 @@ export default function AdminLeaders() {
               <DialogHeader>
                 <DialogTitle>Reset Password</DialogTitle>
                 <DialogDescription>
-                  Set a new password for {selectedLeader?.fullName}
+                  Set a new password for {selectedLeader?.firstName} {selectedLeader?.lastName}
                 </DialogDescription>
               </DialogHeader>
               <Form {...resetForm}>
@@ -350,7 +371,7 @@ export default function AdminLeaders() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Leader Account</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete {selectedLeader?.fullName}'s account? This action cannot be undone.
+                  Are you sure you want to delete {selectedLeader?.firstName} {selectedLeader?.lastName}'s account? This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -396,12 +417,7 @@ export default function AdminLeaders() {
                 </TableHeader>
                 <TableBody>
                   {leaders.map((leader) => {
-                    const initials = leader.fullName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()
-                      .slice(0, 2);
+                    const initials = `${leader.firstName?.[0] || ''}${leader.lastName?.[0] || ''}`.toUpperCase();
 
                     return (
                       <TableRow key={leader.id} data-testid={`row-leader-${leader.id}`}>
@@ -412,7 +428,7 @@ export default function AdminLeaders() {
                                 {initials}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="font-medium">{leader.fullName}</span>
+                            <span className="font-medium">{leader.firstName} {leader.lastName}</span>
                           </div>
                         </TableCell>
                         <TableCell>

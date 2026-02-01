@@ -87,7 +87,7 @@ export default function LeaderDashboard() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold">
-                  Welcome back, {user?.fullName?.split(" ")[0]}!
+                  Welcome back, {user?.firstName}!
                 </h2>
                 <p className="text-muted-foreground">
                   {isLoading ? (

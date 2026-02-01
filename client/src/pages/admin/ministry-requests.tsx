@@ -20,7 +20,8 @@ interface MinistryRequest {
   id: string;
   ministryName: string;
   location: string | null;
-  adminFullName: string;
+  adminFirstName: string;
+  adminLastName: string;
   adminEmail: string;
   adminPhone: string | null;
   description: string | null;
@@ -39,7 +40,8 @@ const statusColors: Record<string, string> = {
 const reviewFormSchema = z.object({
   ministryName: z.string().min(2, "Ministry name must be at least 2 characters"),
   location: z.string().optional(),
-  adminFullName: z.string().min(2, "Admin name must be at least 2 characters"),
+  adminFirstName: z.string().min(1, "First name is required"),
+  adminLastName: z.string().min(1, "Last name is required"),
   adminEmail: z.string().email("Please enter a valid email"),
   adminPhone: z.string().optional(),
   description: z.string().optional(),
@@ -60,7 +62,8 @@ export default function MinistryRequests() {
     defaultValues: {
       ministryName: "",
       location: "",
-      adminFullName: "",
+      adminFirstName: "",
+      adminLastName: "",
       adminEmail: "",
       adminPhone: "",
       description: "",
@@ -125,7 +128,8 @@ export default function MinistryRequests() {
     form.reset({
       ministryName: request.ministryName,
       location: request.location || "",
-      adminFullName: request.adminFullName,
+      adminFirstName: request.adminFirstName,
+      adminLastName: request.adminLastName,
       adminEmail: request.adminEmail,
       adminPhone: request.adminPhone || "",
       description: request.description || "",
@@ -208,7 +212,7 @@ export default function MinistryRequests() {
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1 text-sm">
                             <User className="h-3 w-3 text-muted-foreground" />
-                            {request.adminFullName}
+                            {request.adminFirstName} {request.adminLastName}
                           </div>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <Mail className="h-3 w-3" />
@@ -281,7 +285,7 @@ export default function MinistryRequests() {
                   {processedRequests.map((request) => (
                     <TableRow key={request.id} data-testid={`row-ministry-history-${request.id}`}>
                       <TableCell className="font-medium">{request.ministryName}</TableCell>
-                      <TableCell>{request.adminFullName}</TableCell>
+                      <TableCell>{request.adminFirstName} {request.adminLastName}</TableCell>
                       <TableCell className="text-muted-foreground">{request.adminEmail}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[request.status]}>
@@ -339,19 +343,34 @@ export default function MinistryRequests() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="adminFullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Admin Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} data-testid="input-review-admin-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="adminFirstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} data-testid="input-review-admin-first-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="adminLastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} data-testid="input-review-admin-last-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="adminEmail"

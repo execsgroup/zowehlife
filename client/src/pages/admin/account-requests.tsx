@@ -18,7 +18,8 @@ import { UserPlus, Check, X, Mail, Phone, Church, Calendar, Loader2, FileText, E
 
 interface AccountRequest {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string | null;
   churchName: string;
@@ -36,7 +37,8 @@ const statusColors: Record<string, string> = {
 };
 
 const reviewFormSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
   churchName: z.string().min(2, "Ministry name must be at least 2 characters"),
@@ -56,7 +58,8 @@ export default function AccountRequests() {
   const form = useForm<ReviewFormData>({
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phone: "",
       churchName: "",
@@ -120,7 +123,8 @@ export default function AccountRequests() {
 
   const handleReview = (request: AccountRequest) => {
     form.reset({
-      fullName: request.fullName,
+      firstName: request.firstName,
+      lastName: request.lastName,
       email: request.email,
       phone: request.phone || "",
       churchName: request.churchName,
@@ -189,7 +193,7 @@ export default function AccountRequests() {
                 <TableBody>
                   {pendingRequests.map((request) => (
                     <TableRow key={request.id} data-testid={`row-request-${request.id}`}>
-                      <TableCell className="font-medium">{request.fullName}</TableCell>
+                      <TableCell className="font-medium">{request.firstName} {request.lastName}</TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -268,7 +272,7 @@ export default function AccountRequests() {
                 <TableBody>
                   {processedRequests.map((request) => (
                     <TableRow key={request.id} data-testid={`row-history-${request.id}`}>
-                      <TableCell className="font-medium">{request.fullName}</TableCell>
+                      <TableCell className="font-medium">{request.firstName} {request.lastName}</TableCell>
                       <TableCell className="text-muted-foreground">{request.email}</TableCell>
                       <TableCell>{request.churchName}</TableCell>
                       <TableCell>
@@ -301,19 +305,34 @@ export default function AccountRequests() {
           </DialogHeader>
           <Form {...form}>
             <form className="space-y-4">
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} data-testid="input-review-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} data-testid="input-review-first-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} data-testid="input-review-last-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="email"
