@@ -686,7 +686,13 @@ export default function LeaderNewMembers() {
                     {filteredNewMembers?.map((nm) => (
                       <TableRow key={nm.id} data-testid={`row-new-member-${nm.id}`}>
                         <TableCell>
-                          <div className="font-medium">{nm.firstName} {nm.lastName}</div>
+                          <div 
+                            className="font-medium cursor-pointer hover:text-primary hover:underline"
+                            onClick={() => handleViewDetails(nm)}
+                            data-testid={`link-view-details-${nm.id}`}
+                          >
+                            {nm.firstName} {nm.lastName}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
@@ -740,19 +746,6 @@ export default function LeaderNewMembers() {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>Follow Up Note</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleViewDetails(nm)}
-                                  data-testid={`button-view-details-${nm.id}`}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View Details</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>

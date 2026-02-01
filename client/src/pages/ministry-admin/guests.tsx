@@ -86,14 +86,19 @@ export default function MinistryAdminGuests() {
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender</TableHead>
                       <TableHead>Added</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredGuests?.map((guest) => (
                       <TableRow key={guest.id} data-testid={`row-guest-${guest.id}`}>
                         <TableCell>
-                          <div className="font-medium">{guest.firstName} {guest.lastName}</div>
+                          <div 
+                            className="font-medium cursor-pointer hover:text-primary hover:underline"
+                            onClick={() => handleViewDetails(guest)}
+                            data-testid={`link-view-details-${guest.id}`}
+                          >
+                            {guest.firstName} {guest.lastName}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
@@ -114,23 +119,6 @@ export default function MinistryAdminGuests() {
                         <TableCell>{guest.gender || "-"}</TableCell>
                         <TableCell>
                           {guest.createdAt ? format(new Date(guest.createdAt), "MMM d, yyyy") : "-"}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleViewDetails(guest)}
-                                  data-testid={`button-view-guest-${guest.id}`}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View Details</TooltipContent>
-                            </Tooltip>
-                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

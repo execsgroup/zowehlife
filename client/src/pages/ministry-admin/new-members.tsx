@@ -123,16 +123,20 @@ export default function MinistryAdminNewMembers() {
                       <TableHead>Gender / Age</TableHead>
                       <TableHead>Follow Up Status</TableHead>
                       <TableHead>Visit Date</TableHead>
-                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredMembers.map((member) => (
                       <TableRow key={member.id} data-testid={`row-new-member-${member.id}`}>
                         <TableCell>
-                          <div className="font-medium">
-                            {member.firstName} {member.lastName}
-                          </div>
+                          <Link href={`/ministry-admin/new-members/${member.id}`}>
+                            <div 
+                              className="font-medium cursor-pointer hover:text-primary hover:underline"
+                              data-testid={`link-view-details-${member.id}`}
+                            >
+                              {member.firstName} {member.lastName}
+                            </div>
+                          </Link>
                           {member.country && (
                             <div className="text-sm text-muted-foreground">{member.country}</div>
                           )}
@@ -166,24 +170,6 @@ export default function MinistryAdminNewMembers() {
                         <TableCell>
                           <div className="text-sm text-muted-foreground">
                             {format(new Date(member.createdAt), "MMM d, yyyy")}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link href={`/ministry-admin/new-members/${member.id}`}>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    data-testid={`button-view-${member.id}`}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>View Details</TooltipContent>
-                            </Tooltip>
                           </div>
                         </TableCell>
                       </TableRow>

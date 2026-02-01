@@ -475,7 +475,13 @@ export default function LeaderGuests() {
                     {filteredGuests?.map((g) => (
                       <TableRow key={g.id} data-testid={`row-guest-${g.id}`}>
                         <TableCell>
-                          <div className="font-medium">{g.firstName} {g.lastName}</div>
+                          <div 
+                            className="font-medium cursor-pointer hover:text-primary hover:underline"
+                            onClick={() => handleView(g)}
+                            data-testid={`link-view-details-${g.id}`}
+                          >
+                            {g.firstName} {g.lastName}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
@@ -507,19 +513,6 @@ export default function LeaderGuests() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleView(g)}
-                                  data-testid={`button-view-guest-${g.id}`}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View Details</TooltipContent>
-                            </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button

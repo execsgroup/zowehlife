@@ -467,14 +467,19 @@ export default function LeaderMembers() {
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender</TableHead>
                       <TableHead>Member Since</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredMembers?.map((m) => (
                       <TableRow key={m.id} data-testid={`row-member-${m.id}`}>
                         <TableCell>
-                          <div className="font-medium">{m.firstName} {m.lastName}</div>
+                          <div 
+                            className="font-medium cursor-pointer hover:text-primary hover:underline"
+                            onClick={() => handleViewDetails(m)}
+                            data-testid={`link-view-details-${m.id}`}
+                          >
+                            {m.firstName} {m.lastName}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
@@ -495,23 +500,6 @@ export default function LeaderMembers() {
                         <TableCell>{m.gender || "-"}</TableCell>
                         <TableCell>
                           {m.memberSince ? format(new Date(m.memberSince), "MMM d, yyyy") : "-"}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() => handleViewDetails(m)}
-                                  data-testid={`button-view-details-${m.id}`}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View Details</TooltipContent>
-                            </Tooltip>
-                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
