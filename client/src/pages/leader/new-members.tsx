@@ -88,6 +88,7 @@ const statusLabels: Record<string, string> = {
 
 const followUpStageLabels: Record<string, string> = {
   NEW: "Not Started",
+  CONTACT_NEW_MEMBER: "Needs Contact",
   SCHEDULED: "1st Scheduled",
   FIRST_COMPLETED: "1st Completed",
   INITIATE_SECOND: "Ready for 2nd",
@@ -100,6 +101,7 @@ const followUpStageLabels: Record<string, string> = {
 
 const followUpStageColors: Record<string, string> = {
   NEW: "bg-muted text-muted-foreground border-muted",
+  CONTACT_NEW_MEMBER: "bg-chart-4/10 text-chart-4 border-chart-4/20",
   SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
   FIRST_COMPLETED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
   INITIATE_SECOND: "bg-accent/10 text-accent border-accent/20",
@@ -675,7 +677,7 @@ export default function LeaderNewMembers() {
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Follow Up Status</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -704,8 +706,8 @@ export default function LeaderNewMembers() {
                         </TableCell>
                         <TableCell>{nm.gender || "-"}</TableCell>
                         <TableCell>
-                          <Badge className={statusColors[nm.status]}>
-                            {statusLabels[nm.status]}
+                          <Badge className={followUpStageColors[nm.followUpStage || "NEW"]}>
+                            {followUpStageLabels[nm.followUpStage || "NEW"]}
                           </Badge>
                         </TableCell>
                         <TableCell>

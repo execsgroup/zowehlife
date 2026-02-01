@@ -24,6 +24,7 @@ interface NewMember {
   gender: string | null;
   ageGroup: string | null;
   status: string;
+  followUpStage: string | null;
   notes: string | null;
   selfSubmitted: boolean;
   createdAt: string;
@@ -34,6 +35,32 @@ const statusColors: Record<string, string> = {
   CONTACTED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
   ACTIVE: "bg-chart-3/10 text-chart-3 border-chart-3/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
+};
+
+const followUpStageLabels: Record<string, string> = {
+  NEW: "Not Started",
+  CONTACT_NEW_MEMBER: "Needs Contact",
+  SCHEDULED: "1st Scheduled",
+  FIRST_COMPLETED: "1st Completed",
+  INITIATE_SECOND: "Ready for 2nd",
+  SECOND_SCHEDULED: "2nd Scheduled",
+  SECOND_COMPLETED: "2nd Completed",
+  INITIATE_FINAL: "Ready for Final",
+  FINAL_SCHEDULED: "Final Scheduled",
+  FINAL_COMPLETED: "Completed",
+};
+
+const followUpStageColors: Record<string, string> = {
+  NEW: "bg-accent/10 text-accent border-accent/20",
+  CONTACT_NEW_MEMBER: "bg-chart-4/10 text-chart-4 border-chart-4/20",
+  SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  FIRST_COMPLETED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  INITIATE_SECOND: "bg-primary/10 text-primary border-primary/20",
+  SECOND_SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  SECOND_COMPLETED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  INITIATE_FINAL: "bg-primary/10 text-primary border-primary/20",
+  FINAL_SCHEDULED: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  FINAL_COMPLETED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
 };
 
 
@@ -94,7 +121,7 @@ export default function MinistryAdminNewMembers() {
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender / Age</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Follow Up Status</TableHead>
                       <TableHead>Joined</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -132,8 +159,8 @@ export default function MinistryAdminNewMembers() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={statusColors[member.status] || ""}>
-                            {member.status}
+                          <Badge className={followUpStageColors[member.followUpStage || "NEW"]}>
+                            {followUpStageLabels[member.followUpStage || "NEW"]}
                           </Badge>
                         </TableCell>
                         <TableCell>
