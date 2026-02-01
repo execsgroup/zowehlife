@@ -60,6 +60,7 @@ const adminNavItems = [
 const ministryAdminNavItems = [
   { title: "Dashboard", url: "/ministry-admin/dashboard", icon: LayoutDashboard },
   { title: "Leader Requests", url: "/ministry-admin/account-requests", icon: ClipboardList },
+  { title: "Settings", url: "/ministry-admin/settings", icon: Settings },
 ];
 
 const leaderNavItems = [

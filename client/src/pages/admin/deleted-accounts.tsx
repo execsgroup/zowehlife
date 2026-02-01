@@ -339,7 +339,7 @@ export default function DeletedAccounts() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={closeViewDetails}>
+            <Button variant="outline" onClick={closeViewDetails} data-testid="button-close-view-details">
               Close
             </Button>
           </DialogFooter>
