@@ -66,6 +66,7 @@ interface FollowUpEmailData {
   customLeaderSubject?: string;
   customConvertSubject?: string;
   videoCallLink?: string;
+  contactUrl?: string;
 }
 
 export async function sendFollowUpNotification(data: FollowUpEmailData) {
@@ -148,6 +149,13 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
     );
 
     if (data.convertEmail) {
+      // Contact button HTML
+      const contactButtonSection = data.contactUrl
+        ? `<div style="margin: 25px 0; text-align: center;">
+            <a href="${data.contactUrl}" style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600;">Contact Us</a>
+          </div>`
+        : '';
+      
       // Build convert email content - use custom message if provided
       const convertEmailContent = data.customConvertMessage
         ? `
@@ -157,6 +165,8 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <div style="white-space: pre-wrap; margin: 20px 0;">${data.customConvertMessage}</div>
               <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
               ${videoCallSection}
+              <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
+              ${contactButtonSection}
               <p>Blessings,<br>${data.churchName}</p>
             </div>
           `
@@ -168,6 +178,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
               ${videoCallSection}
               <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
+              ${contactButtonSection}
               <p>Blessings,<br>${data.churchName}</p>
             </div>
           `;

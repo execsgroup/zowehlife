@@ -988,6 +988,10 @@ export async function registerRoutes(
       // Send follow-up notification email if a next follow-up date is set
       if (data.nextFollowupDate) {
         const church = await storage.getChurch(convert.churchId);
+        const protocol = req.headers['x-forwarded-proto'] || 'https';
+        const host = req.headers.host || 'localhost:5000';
+        const contactUrl = `${protocol}://${host}/contact`;
+        
         sendFollowUpNotification({
           convertName: `${convert.firstName} ${convert.lastName}`,
           convertEmail: convert.email || undefined,
@@ -996,6 +1000,7 @@ export async function registerRoutes(
           churchName: church?.name || "Ministry",
           followUpDate: data.nextFollowupDate,
           notes: data.notes || undefined,
+          contactUrl,
           customLeaderMessage: data.customLeaderMessage || undefined,
           customConvertMessage: data.customConvertMessage || undefined,
           customLeaderSubject: data.customLeaderSubject || undefined,
@@ -2237,6 +2242,11 @@ export async function registerRoutes(
         entityId: checkin.id,
       });
 
+      // Build contact form URL
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host || 'localhost:5000';
+      const contactUrl = `${protocol}://${host}/contact`;
+      
       // Send follow-up notification emails
       console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
       sendFollowUpNotification({
@@ -2246,12 +2256,13 @@ export async function registerRoutes(
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
         followUpDate: data.nextFollowupDate,
-        notes: videoCallLink ? `Video Call Link: ${videoCallLink}` : undefined,
+        notes: data.notes || undefined,
+        videoCallLink,
+        contactUrl,
         customLeaderMessage: data.customLeaderMessage || undefined,
         customConvertMessage: data.customConvertMessage || undefined,
         customLeaderSubject: data.customLeaderSubject || undefined,
         customConvertSubject: data.customConvertSubject || undefined,
-        videoCallLink,
       }).then(result => {
         console.log(`Follow-up email result:`, result);
       }).catch(err => console.error("Email notification failed:", err));
@@ -2327,6 +2338,10 @@ export async function registerRoutes(
 
       if (data.nextFollowupDate) {
         const church = await storage.getChurch(user.churchId);
+        const protocol = req.headers['x-forwarded-proto'] || 'https';
+        const host = req.headers.host || 'localhost:5000';
+        const contactUrl = `${protocol}://${host}/contact`;
+        
         sendFollowUpNotification({
           convertName: `${convert.firstName} ${convert.lastName}`,
           convertEmail: convert.email || undefined,
@@ -2335,6 +2350,7 @@ export async function registerRoutes(
           churchName: church?.name || "Ministry",
           followUpDate: data.nextFollowupDate,
           notes: data.notes || undefined,
+          contactUrl,
           customLeaderMessage: data.customLeaderMessage || undefined,
           customConvertMessage: data.customConvertMessage || undefined,
           customLeaderSubject: data.customLeaderSubject || undefined,
@@ -2686,6 +2702,10 @@ export async function registerRoutes(
       // Send follow-up notification if scheduled
       if (data.nextFollowupDate) {
         const church = await storage.getChurch(user.churchId);
+        const protocol = req.headers['x-forwarded-proto'] || 'https';
+        const host = req.headers.host || 'localhost:5000';
+        const contactUrl = `${protocol}://${host}/contact`;
+        
         sendFollowUpNotification({
           convertName: `${newMember.firstName} ${newMember.lastName}`,
           convertEmail: newMember.email || undefined,
@@ -2694,6 +2714,7 @@ export async function registerRoutes(
           churchName: church?.name || "Ministry",
           followUpDate: data.nextFollowupDate,
           notes: data.notes || undefined,
+          contactUrl,
           customLeaderMessage: data.customLeaderMessage || undefined,
           customConvertMessage: data.customConvertMessage || undefined,
           customLeaderSubject: data.customLeaderSubject || undefined,
@@ -2785,6 +2806,11 @@ export async function registerRoutes(
         entityId: newMemberId,
       });
       
+      // Build contact form URL
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host || 'localhost:5000';
+      const contactUrl = `${protocol}://${host}/contact`;
+      
       // Send notification emails
       sendFollowUpNotification({
         convertName: `${newMember.firstName} ${newMember.lastName}`,
@@ -2794,7 +2820,8 @@ export async function registerRoutes(
         churchName: church?.name || "Ministry",
         followUpDate: data.nextFollowupDate,
         notes: data.notes || undefined,
-        videoLink,
+        videoCallLink: videoLink,
+        contactUrl,
         customLeaderMessage: data.customLeaderMessage || undefined,
         customConvertMessage: data.customConvertMessage || undefined,
         customLeaderSubject: data.customLeaderSubject || undefined,
@@ -3335,6 +3362,11 @@ export async function registerRoutes(
         entityId: memberId,
       });
       
+      // Build contact form URL
+      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const host = req.headers.host || 'localhost:5000';
+      const contactUrl = `${protocol}://${host}/contact`;
+      
       // Send notification emails
       sendFollowUpNotification({
         convertName: `${member.firstName} ${member.lastName}`,
@@ -3344,7 +3376,8 @@ export async function registerRoutes(
         churchName: church?.name || "Ministry",
         followUpDate: data.nextFollowupDate,
         notes: data.notes || undefined,
-        videoLink,
+        videoCallLink: videoLink,
+        contactUrl,
         customLeaderMessage: data.customLeaderMessage || undefined,
         customConvertMessage: data.customConvertMessage || undefined,
         customLeaderSubject: data.customLeaderSubject || undefined,
