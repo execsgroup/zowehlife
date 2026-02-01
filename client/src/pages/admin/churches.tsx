@@ -6,7 +6,7 @@ import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertChurchSchema, type Church } from "@shared/schema";
-import { Plus, MapPin, Users, Loader2, Pencil, Church as ChurchIcon, Eye } from "lucide-react";
+import { Plus, MapPin, Users, Loader2, Pencil, Church as ChurchIcon, Eye, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
@@ -36,6 +36,12 @@ export default function AdminChurches() {
   const [, navigate] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingChurch, setEditingChurch] = useState<Church | null>(null);
+  
+  // Delete confirmation state
+  const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [churchToDelete, setChurchToDelete] = useState<Church | null>(null);
+  const [confirmText, setConfirmText] = useState("");
 
   const { data: churches, isLoading } = useQuery<ChurchWithCounts[]>({
     queryKey: ["/api/admin/churches"],
@@ -78,6 +84,52 @@ export default function AdminChurches() {
       });
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (churchId: string) => {
+      await apiRequest("DELETE", `/api/admin/churches/${churchId}/archive`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Ministry cancelled",
+        description: "The ministry account has been cancelled and backed up. You can restore it from the Deleted Accounts page.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      closeDeleteDialog();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cancel ministry account",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const openDeleteDialog = (church: Church) => {
+    setChurchToDelete(church);
+    setDeleteStep(1);
+    setConfirmText("");
+    setDeleteDialogOpen(true);
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setChurchToDelete(null);
+    setDeleteStep(1);
+    setConfirmText("");
+  };
+
+  const handleDeleteStep1 = () => {
+    setDeleteStep(2);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (confirmText === "Cancel Account" && churchToDelete) {
+      deleteMutation.mutate(churchToDelete.id);
+    }
+  };
 
   const openEditDialog = (church: Church) => {
     setEditingChurch(church);
@@ -261,6 +313,22 @@ export default function AdminChurches() {
                               <p>Edit ministry</p>
                             </TooltipContent>
                           </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openDeleteDialog(church)}
+                                data-testid={`button-delete-church-${church.id}`}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Cancel ministry account</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -283,6 +351,79 @@ export default function AdminChurches() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={(open) => !open && closeDeleteDialog()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">
+              {deleteStep === 1 ? "Cancel Ministry Account?" : "Confirm Cancellation"}
+            </DialogTitle>
+            <DialogDescription>
+              {deleteStep === 1 ? (
+                <>
+                  Are you sure you want to cancel the account for{" "}
+                  <span className="font-semibold">{churchToDelete?.name}</span>?
+                  This will remove all ministry data including leaders, converts, and members.
+                  A backup will be created that can be restored later.
+                </>
+              ) : (
+                <>
+                  This action will permanently remove all data for{" "}
+                  <span className="font-semibold">{churchToDelete?.name}</span>.
+                  To confirm, please type <span className="font-bold">Cancel Account</span> below.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteStep === 2 && (
+            <div className="py-4">
+              <Input
+                placeholder="Type 'Cancel Account' to confirm"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                data-testid="input-confirm-delete"
+              />
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={closeDeleteDialog}
+              data-testid="button-cancel-delete"
+            >
+              Go Back
+            </Button>
+            {deleteStep === 1 ? (
+              <Button
+                variant="destructive"
+                onClick={handleDeleteStep1}
+                data-testid="button-proceed-delete"
+              >
+                Yes, Cancel Account
+              </Button>
+            ) : (
+              <Button
+                variant="destructive"
+                onClick={handleDeleteConfirm}
+                disabled={confirmText !== "Cancel Account" || deleteMutation.isPending}
+                data-testid="button-confirm-delete"
+              >
+                {deleteMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  "Confirm Cancellation"
+                )}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
