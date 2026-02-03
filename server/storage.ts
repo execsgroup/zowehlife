@@ -106,6 +106,7 @@ export interface IStorage {
     prayerRequest?: string;
   }): Promise<Convert>;
   updateConvert(id: string, convert: Partial<InsertConvert>): Promise<Convert>;
+  deleteConvert(id: string): Promise<void>;
 
   // Checkins
   getCheckin(id: string): Promise<Checkin | undefined>;
@@ -244,6 +245,7 @@ export interface IStorage {
     notes?: string;
   }): Promise<NewMember>;
   updateNewMember(id: string, data: Partial<InsertNewMember>): Promise<NewMember>;
+  deleteNewMember(id: string): Promise<void>;
 
   // New Member Checkins
   getNewMemberCheckin(id: string): Promise<NewMemberCheckin | undefined>;
@@ -280,6 +282,7 @@ export interface IStorage {
     notes?: string;
   }): Promise<Member>;
   updateMember(id: string, data: Partial<InsertMember>): Promise<Member>;
+  deleteMember(id: string): Promise<void>;
 
   // Member Check-ins
   getMemberCheckin(id: string): Promise<MemberCheckin | undefined>;
@@ -588,6 +591,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(converts.id, id))
       .returning();
     return convert;
+  }
+
+  async deleteConvert(id: string): Promise<void> {
+    await db.delete(converts).where(eq(converts.id, id));
   }
 
   // Checkins
@@ -1160,6 +1167,10 @@ export class DatabaseStorage implements IStorage {
     return newMember;
   }
 
+  async deleteNewMember(id: string): Promise<void> {
+    await db.delete(newMembers).where(eq(newMembers.id, id));
+  }
+
   // New Member Checkins
   async getNewMemberCheckin(id: string): Promise<NewMemberCheckin | undefined> {
     const [checkin] = await db.select().from(newMemberCheckins).where(eq(newMemberCheckins.id, id));
@@ -1294,6 +1305,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(members.id, id))
       .returning();
     return member;
+  }
+
+  async deleteMember(id: string): Promise<void> {
+    await db.delete(members).where(eq(members.id, id));
   }
 
   // Church Token Methods

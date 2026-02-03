@@ -809,12 +809,6 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // Find the affiliation by record type and ID
-      const affiliation = await storage.getAffiliationByRecordId(type as "convert" | "new_member" | "member", recordId);
-      if (!affiliation) {
-        return res.status(404).json({ message: "Affiliation not found for this record" });
-      }
-
       // Determine requester's ministry
       let requesterMinistryId: string | null = null;
       if (user.role === "ADMIN") {
@@ -823,32 +817,99 @@ export async function registerRoutes(
         requesterMinistryId = user.churchId || null;
       }
 
-      // Verify the affiliation belongs to the requester's ministry
-      if (requesterMinistryId && affiliation.ministryId !== requesterMinistryId) {
-        return res.status(403).json({ message: "Not authorized to remove this person" });
+      // Find the affiliation by record type and ID
+      const affiliation = await storage.getAffiliationByRecordId(type as "convert" | "new_member" | "member", recordId);
+      
+      if (affiliation) {
+        // Has affiliation - use existing flow
+        // Verify the affiliation belongs to the requester's ministry
+        if (requesterMinistryId && affiliation.ministryId !== requesterMinistryId) {
+          return res.status(403).json({ message: "Not authorized to remove this person" });
+        }
+
+        // Get person and ministry details for the email
+        const person = await storage.getPerson(affiliation.personId);
+        const ministry = await storage.getChurch(affiliation.ministryId);
+
+        if (!person || !ministry) {
+          return res.status(404).json({ message: "Person or ministry not found" });
+        }
+
+        // Delete the affiliation
+        await storage.deleteMinistryAffiliation(affiliation.id);
+
+        // Send notification email only if person has an email
+        if (person.email) {
+          await sendMinistryRemovalEmail({
+            memberEmail: person.email,
+            memberName: `${person.firstName} ${person.lastName}`,
+            ministryName: ministry.name,
+          });
+        }
+
+        res.json({ message: "Person removed from ministry successfully" });
+      } else {
+        // No affiliation - record was manually added, delete it directly
+        let record: any = null;
+        let recordEmail: string | null = null;
+        let recordName: string = "";
+        let recordMinistryId: string | null = null;
+
+        if (type === "convert") {
+          record = await storage.getConvert(recordId);
+          if (record) {
+            recordEmail = record.email;
+            recordName = `${record.firstName} ${record.lastName}`;
+            recordMinistryId = record.churchId;
+          }
+        } else if (type === "new_member") {
+          record = await storage.getNewMember(recordId);
+          if (record) {
+            recordEmail = record.email;
+            recordName = `${record.firstName} ${record.lastName}`;
+            recordMinistryId = record.churchId;
+          }
+        } else if (type === "member") {
+          record = await storage.getMember(recordId);
+          if (record) {
+            recordEmail = record.email;
+            recordName = `${record.firstName} ${record.lastName}`;
+            recordMinistryId = record.churchId;
+          }
+        }
+
+        if (!record) {
+          return res.status(404).json({ message: "Record not found" });
+        }
+
+        // Verify the record belongs to the requester's ministry
+        if (requesterMinistryId && recordMinistryId !== requesterMinistryId) {
+          return res.status(403).json({ message: "Not authorized to remove this person" });
+        }
+
+        // Get ministry for email
+        const ministry = recordMinistryId ? await storage.getChurch(recordMinistryId) : null;
+
+        // Delete the record directly
+        if (type === "convert") {
+          await storage.deleteConvert(recordId);
+        } else if (type === "new_member") {
+          await storage.deleteNewMember(recordId);
+        } else if (type === "member") {
+          await storage.deleteMember(recordId);
+        }
+
+        // Send notification email only if record has an email
+        if (recordEmail && ministry) {
+          await sendMinistryRemovalEmail({
+            memberEmail: recordEmail,
+            memberName: recordName,
+            ministryName: ministry.name,
+          });
+        }
+
+        res.json({ message: "Person removed from ministry successfully" });
       }
-
-      // Get person and ministry details for the email
-      const person = await storage.getPerson(affiliation.personId);
-      const ministry = await storage.getChurch(affiliation.ministryId);
-
-      if (!person || !ministry) {
-        return res.status(404).json({ message: "Person or ministry not found" });
-      }
-
-      // Delete the affiliation
-      await storage.deleteMinistryAffiliation(affiliation.id);
-
-      // Send notification email only if person has an email
-      if (person.email) {
-        await sendMinistryRemovalEmail({
-          memberEmail: person.email,
-          memberName: `${person.firstName} ${person.lastName}`,
-          ministryName: ministry.name,
-        });
-      }
-
-      res.json({ message: "Person removed from ministry successfully" });
     } catch (error) {
       console.error("Failed to remove person from ministry:", error);
       res.status(500).json({ message: "Failed to remove person from ministry" });
