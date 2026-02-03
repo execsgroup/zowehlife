@@ -333,6 +333,13 @@ export interface IStorage {
   updateMinistryAffiliationType(id: string, type: "convert" | "new_member" | "member"): Promise<MinistryAffiliation>;
   checkAffiliationExists(personId: string, ministryId: string): Promise<MinistryAffiliation | undefined>;
 
+  // Member Accounts - Admin queries
+  getMemberAccountsWithDetailsByMinistry(ministryId: string): Promise<{
+    memberAccount: MemberAccount;
+    person: Person;
+    affiliation: MinistryAffiliation;
+  }[]>;
+
   // Account Claim Tokens
   createAccountClaimToken(token: InsertAccountClaimToken): Promise<AccountClaimToken>;
   getValidClaimToken(tokenHash: string): Promise<AccountClaimToken | undefined>;
@@ -1893,6 +1900,24 @@ export class DatabaseStorage implements IStorage {
       )
     );
     return result[0];
+  }
+
+  async getMemberAccountsWithDetailsByMinistry(ministryId: string): Promise<{
+    memberAccount: MemberAccount;
+    person: Person;
+    affiliation: MinistryAffiliation;
+  }[]> {
+    const results = await db
+      .select({
+        memberAccount: memberAccounts,
+        person: persons,
+        affiliation: ministryAffiliations,
+      })
+      .from(ministryAffiliations)
+      .innerJoin(persons, eq(ministryAffiliations.personId, persons.id))
+      .innerJoin(memberAccounts, eq(persons.id, memberAccounts.personId))
+      .where(eq(ministryAffiliations.ministryId, ministryId));
+    return results;
   }
 
   // Account Claim Tokens

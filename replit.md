@@ -50,9 +50,17 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Switch between multiple ministry affiliations
 - **Member Account System**: Secure account provisioning with:
     - Automatic account creation when converts/members register via public forms
-    - Claim tokens (SHA-256 hashed, 24-hour expiry) sent via email for secure password setup
+    - Claim tokens (SHA-256 hashed, 24-hour expiry, one-time use via usedAt field) sent via email for secure password setup
     - Multi-ministry affiliation support (one person can belong to multiple ministries)
     - Person identity management using normalized email as primary key
+    - Account status lifecycle: PENDING_CLAIM → ACTIVE (can be SUSPENDED by admins)
+    - Session separation: Staff login clears member session and vice versa to prevent role confusion
+- **Member Account Management**: Leaders and Ministry Admins can:
+    - View all member portal accounts for their ministry
+    - See account status (Pending Claim, Active, Suspended)
+    - Resend claim tokens for accounts that haven't been claimed yet
+    - Suspend or activate member accounts (Ministry Admins only)
+    - View member affiliation type (convert, new_member, member) and last login
 
 ## External Dependencies
 - **PostgreSQL**: Primary database for data storage.

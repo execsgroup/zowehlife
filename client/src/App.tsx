@@ -36,6 +36,7 @@ import LeaderSettings from "@/pages/leader/settings";
 import LeaderNewMembers from "@/pages/leader/new-members";
 import LeaderMembers from "@/pages/leader/members";
 import LeaderGuests from "@/pages/leader/guests";
+import LeaderMemberAccounts from "@/pages/leader/member-accounts";
 import ConvertDetail from "@/pages/leader/convert-detail";
 import NewMemberDetail from "@/pages/leader/new-member-detail";
 import MemberDetail from "@/pages/leader/member-detail";
@@ -196,6 +197,9 @@ function Router() {
       <Route path="/ministry-admin/members/:id">
         <ProtectedRoute component={MemberDetail} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
+      <Route path="/ministry-admin/member-accounts">
+        <ProtectedRoute component={LeaderMemberAccounts} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
       <Route path="/ministry-admin/guests">
         <ProtectedRoute component={LeaderGuests} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
@@ -242,6 +246,9 @@ function Router() {
       </Route>
       <Route path="/leader/members/:id">
         <ProtectedRoute component={MemberDetail} allowedRoles={["LEADER"]} />
+      </Route>
+      <Route path="/leader/member-accounts">
+        <ProtectedRoute component={LeaderMemberAccounts} allowedRoles={["LEADER"]} />
       </Route>
       <Route path="/leader/guests">
         <ProtectedRoute component={LeaderGuests} allowedRoles={["LEADER"]} />

@@ -294,6 +294,46 @@ export async function resendClaimEmail(memberAccountId: string): Promise<boolean
 }
 
 /**
+ * Resend claim token for a pending account
+ * Used by leaders/admins to help members who lost their claim email
+ */
+export async function resendClaimToken(
+  memberAccountId: string,
+  ministryName: string
+): Promise<{ success: boolean; error?: string }> {
+  const memberAccount = await storage.getMemberAccount(memberAccountId);
+  if (!memberAccount) {
+    return { success: false, error: "Member account not found" };
+  }
+
+  if (memberAccount.status !== "PENDING_CLAIM") {
+    return { success: false, error: "Account already claimed - member can use password reset instead" };
+  }
+
+  const person = await storage.getPerson(memberAccount.personId);
+  if (!person) {
+    return { success: false, error: "Person record not found" };
+  }
+
+  // Invalidate existing tokens and create a new one
+  await storage.invalidateExistingTokens(memberAccountId);
+  
+  const token = generateClaimToken();
+  const tokenHash = hashClaimToken(token);
+  const expiresAt = new Date(Date.now() + CLAIM_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+
+  await storage.createAccountClaimToken({
+    memberAccountId,
+    tokenHash,
+    expiresAt,
+  });
+
+  await sendClaimAccountEmail(person.email, person.firstName, ministryName, token);
+  
+  return { success: true };
+}
+
+/**
  * Claim account with token and set password
  */
 export async function claimAccountWithToken(

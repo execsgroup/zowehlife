@@ -13,6 +13,7 @@ import {
   authenticateMember,
   claimAccountWithToken,
   resendClaimEmail,
+  resendClaimToken,
 } from "./member-account-service";
 import {
   insertChurchSchema,
@@ -637,6 +638,158 @@ export async function registerRoutes(
       res.json({ followUps: memberVisibleFollowUps });
     } catch (error) {
       res.status(500).json({ message: "Failed to get follow-ups" });
+    }
+  });
+
+  // ==================== LEADER MEMBER ACCOUNT MANAGEMENT ====================
+
+  // Get member accounts for ministry (leaders/admins only)
+  app.get("/api/leader/member-accounts", requireAuth, async (req, res) => {
+    try {
+      // Get ministry ID based on user role
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      let ministryId: string | undefined;
+      if (user.role === "ADMIN") {
+        // Admin can specify a ministry ID
+        ministryId = req.query.ministryId as string;
+        if (!ministryId) {
+          return res.status(400).json({ message: "Ministry ID required for admin" });
+        }
+      } else if (user.role === "MINISTRY_ADMIN" || user.role === "LEADER") {
+        ministryId = user.churchId || undefined;
+      }
+
+      if (!ministryId) {
+        return res.status(400).json({ message: "No ministry assigned" });
+      }
+
+      const accounts = await storage.getMemberAccountsWithDetailsByMinistry(ministryId);
+      
+      // Map to response format (don't expose password hashes)
+      const response = accounts.map(acc => ({
+        id: acc.memberAccount.id,
+        personId: acc.person.id,
+        firstName: acc.person.firstName,
+        lastName: acc.person.lastName,
+        email: acc.person.email,
+        phone: acc.person.phone,
+        status: acc.memberAccount.status,
+        lastLoginAt: acc.memberAccount.lastLoginAt,
+        createdAt: acc.memberAccount.createdAt,
+        affiliationType: acc.affiliation.relationshipType,
+        affiliationId: acc.affiliation.id,
+      }));
+
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to get member accounts:", error);
+      res.status(500).json({ message: "Failed to get member accounts" });
+    }
+  });
+
+  // Resend claim token for a pending member account
+  app.post("/api/leader/member-accounts/:id/resend-claim", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get ministry ID based on user role
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      let ministryId: string | undefined;
+      let ministryName: string = "Zoweh Life Ministry";
+      
+      if (user.role === "ADMIN") {
+        const ministryIdParam = req.query.ministryId as string;
+        if (ministryIdParam) {
+          ministryId = ministryIdParam;
+          const ministry = await storage.getChurch(ministryId);
+          if (ministry) ministryName = ministry.name;
+        }
+      } else if (user.role === "MINISTRY_ADMIN" || user.role === "LEADER") {
+        ministryId = user.churchId || undefined;
+        if (ministryId) {
+          const ministry = await storage.getChurch(ministryId);
+          if (ministry) ministryName = ministry.name;
+        }
+      }
+
+      if (!ministryId) {
+        return res.status(400).json({ message: "No ministry assigned" });
+      }
+
+      // Verify the member account belongs to the requester's ministry
+      const memberAccount = await storage.getMemberAccount(id);
+      if (!memberAccount) {
+        return res.status(404).json({ message: "Member account not found" });
+      }
+      const affiliations = await storage.getAffiliationsByPerson(memberAccount.personId);
+      const hasAccess = user.role === "ADMIN" || affiliations.some(a => a.ministryId === ministryId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Not authorized to manage this account" });
+      }
+
+      const result = await resendClaimToken(id, ministryName);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ message: "Claim token resent successfully" });
+    } catch (error) {
+      console.error("Failed to resend claim token:", error);
+      res.status(500).json({ message: "Failed to resend claim token" });
+    }
+  });
+
+  // Update member account status (suspend/activate)
+  app.patch("/api/leader/member-accounts/:id/status", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!["ACTIVE", "SUSPENDED"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      // Get user and verify authorization (only ministry admins and platform admins can suspend)
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (user.role === "LEADER") {
+        return res.status(403).json({ message: "Only admins can change account status" });
+      }
+
+      // Verify the member account belongs to the requester's ministry
+      const memberAccount = await storage.getMemberAccount(id);
+      if (!memberAccount) {
+        return res.status(404).json({ message: "Member account not found" });
+      }
+      
+      // Get ministry ID based on role
+      const ministryId = user.role === "ADMIN" ? null : user.churchId;
+      
+      if (ministryId) {
+        const affiliations = await storage.getAffiliationsByPerson(memberAccount.personId);
+        const hasAccess = affiliations.some(a => a.ministryId === ministryId);
+        if (!hasAccess) {
+          return res.status(403).json({ message: "Not authorized to manage this account" });
+        }
+      }
+
+      await storage.updateMemberAccountStatus(id, status);
+      res.json({ message: `Account status updated to ${status}` });
+    } catch (error) {
+      console.error("Failed to update member account status:", error);
+      res.status(500).json({ message: "Failed to update account status" });
     }
   });
 
