@@ -2229,6 +2229,15 @@ export async function registerRoutes(
       const { id } = req.params;
       const ministryAdmin = (req as any).user;
 
+      // Check leader limit (max 3 leaders per ministry)
+      const MAX_LEADERS_PER_MINISTRY = 3;
+      const currentLeaders = await storage.getLeadersByChurch(ministryAdmin.churchId);
+      if (currentLeaders.length >= MAX_LEADERS_PER_MINISTRY) {
+        return res.status(400).json({ 
+          message: `You have reached the maximum limit of ${MAX_LEADERS_PER_MINISTRY} leaders for your ministry. Please remove a leader before adding a new one.` 
+        });
+      }
+
       // Validate the edited data
       const editedData = insertAccountRequestSchema.parse(req.body);
 
@@ -2401,6 +2410,23 @@ export async function registerRoutes(
       res.json(leaders);
     } catch (error) {
       res.status(500).json({ message: "Failed to get leaders" });
+    }
+  });
+
+  // Get leader quota info for ministry admin
+  app.get("/api/ministry-admin/leader-quota", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const MAX_LEADERS_PER_MINISTRY = 3;
+      const leaders = await storage.getLeadersByChurch(user.churchId);
+      res.json({
+        currentCount: leaders.length,
+        maxAllowed: MAX_LEADERS_PER_MINISTRY,
+        remaining: Math.max(0, MAX_LEADERS_PER_MINISTRY - leaders.length),
+        canAddMore: leaders.length < MAX_LEADERS_PER_MINISTRY,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get leader quota" });
     }
   });
 

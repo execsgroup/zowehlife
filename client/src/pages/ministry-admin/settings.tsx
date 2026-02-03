@@ -10,7 +10,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
-import { Settings, MapPin, AlertTriangle, Loader2, Trash2 } from "lucide-react";
+import { Settings, MapPin, AlertTriangle, Loader2, Trash2, Users } from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 
@@ -25,6 +25,13 @@ interface Church {
   memberToken: string | null;
 }
 
+interface LeaderQuota {
+  currentCount: number;
+  maxAllowed: number;
+  remaining: number;
+  canAddMore: boolean;
+}
+
 export default function MinistryAdminSettings() {
   const { toast } = useToast();
   const { logout } = useAuth();
@@ -36,6 +43,10 @@ export default function MinistryAdminSettings() {
 
   const { data: church, isLoading } = useQuery<Church>({
     queryKey: ["/api/ministry-admin/church"],
+  });
+
+  const { data: leaderQuota, isLoading: isLoadingQuota } = useQuery<LeaderQuota>({
+    queryKey: ["/api/ministry-admin/leader-quota"],
   });
 
   const deleteMutation = useMutation({
@@ -140,6 +151,58 @@ export default function MinistryAdminSettings() {
                 <Badge variant="secondary">Active</Badge>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Leader Quota
+            </CardTitle>
+            <CardDescription>
+              Manage how many leaders can be added to your ministry.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingQuota ? (
+              <Skeleton className="h-20 w-full" />
+            ) : leaderQuota ? (
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="p-4 rounded-lg border bg-card">
+                    <p className="text-sm text-muted-foreground">Current Leaders</p>
+                    <p className="text-3xl font-bold" data-testid="text-current-leaders">
+                      {leaderQuota.currentCount}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg border bg-card">
+                    <p className="text-sm text-muted-foreground">Maximum Allowed</p>
+                    <p className="text-3xl font-bold" data-testid="text-max-leaders">
+                      {leaderQuota.maxAllowed}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg border bg-card">
+                    <p className="text-sm text-muted-foreground">Remaining Slots</p>
+                    <p className="text-3xl font-bold" data-testid="text-remaining-leaders">
+                      {leaderQuota.remaining}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={leaderQuota.canAddMore ? "secondary" : "destructive"}>
+                    {leaderQuota.canAddMore 
+                      ? `${leaderQuota.remaining} slot${leaderQuota.remaining !== 1 ? 's' : ''} available` 
+                      : "No slots available"}
+                  </Badge>
+                  {!leaderQuota.canAddMore && (
+                    <span className="text-sm text-muted-foreground">
+                      Remove an existing leader to add a new one.
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
