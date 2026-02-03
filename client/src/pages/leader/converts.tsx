@@ -542,34 +542,6 @@ export default function LeaderConverts() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-convert-status">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="NEW">New</SelectItem>
-                            <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                            <SelectItem value="CONNECTED">Connected</SelectItem>
-                            <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                            <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                            <SelectItem value="REFERRED">Referred</SelectItem>
-                            <SelectItem value="NOT_COMPLETED">Not Completed</SelectItem>
-                            <SelectItem value="NEVER_CONTACTED">Never Contacted</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <div className="flex justify-end gap-2 pt-2">
                     <Button
                       type="button"
