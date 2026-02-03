@@ -2779,6 +2779,21 @@ export async function registerRoutes(
         entityId: convert.id,
       });
 
+      // Provision member account if email is provided
+      if (data.email) {
+        const church = await storage.getChurch(user.churchId);
+        await provisionMemberAccountForConvert({
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone || null,
+          ministryId: user.churchId,
+          ministryName: church?.name || "Ministry",
+          convertId: convert.id,
+          sendClaimEmail: true,
+        });
+      }
+
       res.status(201).json(convert);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -3224,6 +3239,22 @@ export async function registerRoutes(
         entityType: "NEW_MEMBER",
         entityId: newMember.id,
       });
+
+      // Provision member account if email is provided
+      if (data.email) {
+        const church = await storage.getChurch(user.churchId);
+        await provisionMemberAccountForMember({
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone || null,
+          ministryId: user.churchId,
+          ministryName: church?.name || "Ministry",
+          newMemberId: newMember.id,
+          memberType: "new_member",
+          sendClaimEmail: true,
+        });
+      }
       
       res.status(201).json(newMember);
     } catch (error) {
@@ -3614,6 +3645,22 @@ export async function registerRoutes(
         entityType: "MEMBER",
         entityId: member.id,
       });
+
+      // Provision member account if email is provided
+      if (data.email) {
+        const church = await storage.getChurch(user.churchId);
+        await provisionMemberAccountForMember({
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone || null,
+          ministryId: user.churchId,
+          ministryName: church?.name || "Ministry",
+          memberId: member.id,
+          memberType: "member",
+          sendClaimEmail: true,
+        });
+      }
       
       res.status(201).json(member);
     } catch (error) {
