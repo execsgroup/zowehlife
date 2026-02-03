@@ -49,7 +49,7 @@ export function PublicNav() {
             </Link>
             <Link href="/login">
               <Button variant="outline" size="sm" data-testid="button-login">
-                Staff Login
+                Ministry Login
               </Button>
             </Link>
             <Button
@@ -97,7 +97,7 @@ export function PublicNav() {
                     onClick={() => setMobileMenuOpen(false)}
                     data-testid="mobile-button-staff-login"
                   >
-                    Staff Login
+                    Ministry Login
                   </Button>
                 </Link>
               </div>
