@@ -18,11 +18,12 @@ The application is built with a clear separation of concerns, utilizing a React 
 - **Theming**: Dark/light theme toggle is implemented for user preference.
 
 ### Technical Implementations
-- **Authentication**: Session-based authentication is used with `bcrypt` for secure password hashing.
-- **Authorization**: A three-tier role system dictates access levels:
+- **Authentication**: Session-based authentication is used with `bcrypt` for secure password hashing. Member accounts use a separate session namespace (`memberAccountId`, `personId`, `currentMinistryId`).
+- **Authorization**: A three-tier staff role system plus member accounts:
     - **ADMIN (Platform Admin)**: Manages platform-wide settings and ministry registrations.
     - **MINISTRY_ADMIN**: Manages a specific ministry, including leader approvals.
     - **LEADER**: Manages converts within their assigned ministry.
+    - **Member Accounts**: Converts and members can access their own portal to view journey and submit prayer requests.
 - **Database**: PostgreSQL is the chosen relational database, managed with Drizzle ORM.
 - **Routing**: `wouter` is used for client-side routing.
 - **Email Notifications**: Automated email reminders are sent for follow-ups, including initial emails and day-before reminders.
@@ -42,6 +43,16 @@ The application is built with a clear separation of concerns, utilizing a React 
 - **Dashboard Statistics**: Role-based dashboards provide relevant statistics for Platform Admins, Ministry Admins, and Leaders.
 - **Account Request Management**: Admins can approve or deny ministry and leader account requests.
 - **Prayer Request Submission**: Public form for submitting prayer requests.
+- **Member Portal**: A dedicated portal for converts and members to:
+    - View their spiritual journey timeline across ministries
+    - Track scheduled and completed follow-up sessions
+    - Submit and view prayer requests
+    - Switch between multiple ministry affiliations
+- **Member Account System**: Secure account provisioning with:
+    - Automatic account creation when converts/members register via public forms
+    - Claim tokens (SHA-256 hashed, 24-hour expiry) sent via email for secure password setup
+    - Multi-ministry affiliation support (one person can belong to multiple ministries)
+    - Person identity management using normalized email as primary key
 
 ## External Dependencies
 - **PostgreSQL**: Primary database for data storage.

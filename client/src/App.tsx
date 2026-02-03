@@ -42,6 +42,11 @@ import MemberDetail from "@/pages/leader/member-detail";
 import NewConvert from "@/pages/new-convert";
 import NewMemberForm from "@/pages/new-member-form";
 import MemberForm from "@/pages/member-form";
+import MemberPortalLogin from "@/pages/member-portal/login";
+import MemberPortalClaim from "@/pages/member-portal/claim";
+import MemberPortalDashboard from "@/pages/member-portal/dashboard";
+import MemberPortalPrayerRequests from "@/pages/member-portal/prayer-requests";
+import MemberPortalJourney from "@/pages/member-portal/journey";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -241,6 +246,13 @@ function Router() {
       <Route path="/leader/guests">
         <ProtectedRoute component={LeaderGuests} allowedRoles={["LEADER"]} />
       </Route>
+      
+      {/* Member Portal routes */}
+      <Route path="/member-portal/login" component={MemberPortalLogin} />
+      <Route path="/member-portal/claim" component={MemberPortalClaim} />
+      <Route path="/member-portal" component={MemberPortalDashboard} />
+      <Route path="/member-portal/prayer-requests" component={MemberPortalPrayerRequests} />
+      <Route path="/member-portal/journey" component={MemberPortalJourney} />
       
       {/* Fallback */}
       <Route component={NotFound} />

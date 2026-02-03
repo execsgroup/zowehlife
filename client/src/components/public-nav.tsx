@@ -42,9 +42,14 @@ export function PublicNav() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Link href="/member-portal/login">
+              <Button variant="ghost" size="sm" data-testid="button-member-portal">
+                Member Portal
+              </Button>
+            </Link>
             <Link href="/login">
               <Button variant="outline" size="sm" data-testid="button-login">
-                Login
+                Staff Login
               </Button>
             </Link>
             <Button
@@ -74,6 +79,28 @@ export function PublicNav() {
                   </Button>
                 </Link>
               ))}
+              <div className="border-t pt-2 mt-2">
+                <Link href="/member-portal/login">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => setMobileMenuOpen(false)}
+                    data-testid="mobile-button-member-portal"
+                  >
+                    Member Portal
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => setMobileMenuOpen(false)}
+                    data-testid="mobile-button-staff-login"
+                  >
+                    Staff Login
+                  </Button>
+                </Link>
+              </div>
             </div>
           </nav>
         )}

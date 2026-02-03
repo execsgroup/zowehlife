@@ -15,6 +15,11 @@ import {
   memberCheckins,
   guests,
   archivedMinistries,
+  persons,
+  memberAccounts,
+  ministryAffiliations,
+  accountClaimTokens,
+  memberPrayerRequests,
   type Church,
   type InsertChurch,
   type User,
@@ -44,6 +49,16 @@ import {
   type InsertGuest,
   type ArchivedMinistry,
   type InsertArchivedMinistry,
+  type Person,
+  type InsertPerson,
+  type MemberAccount,
+  type InsertMemberAccount,
+  type MinistryAffiliation,
+  type InsertMinistryAffiliation,
+  type AccountClaimToken,
+  type InsertAccountClaimToken,
+  type MemberPrayerRequest,
+  type InsertMemberPrayerRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -294,6 +309,43 @@ export interface IStorage {
   getChurchByMemberToken(token: string): Promise<Church | undefined>;
   generateNewMemberTokenForChurch(id: string): Promise<Church>;
   generateMemberTokenForChurch(id: string): Promise<Church>;
+
+  // Persons (Member identity)
+  getPerson(id: string): Promise<Person | undefined>;
+  getPersonByEmail(email: string): Promise<Person | undefined>;
+  createPerson(person: InsertPerson): Promise<Person>;
+  updatePerson(id: string, data: Partial<InsertPerson>): Promise<Person>;
+
+  // Member Accounts
+  getMemberAccount(id: string): Promise<MemberAccount | undefined>;
+  getMemberAccountByPersonId(personId: string): Promise<MemberAccount | undefined>;
+  getMemberAccountByEmail(email: string): Promise<MemberAccount | undefined>;
+  createMemberAccount(account: InsertMemberAccount): Promise<MemberAccount>;
+  updateMemberAccountPassword(id: string, passwordHash: string): Promise<void>;
+  updateMemberAccountStatus(id: string, status: "PENDING_CLAIM" | "ACTIVE" | "SUSPENDED"): Promise<void>;
+  updateMemberAccountLastLogin(id: string): Promise<void>;
+
+  // Ministry Affiliations
+  getMinistryAffiliation(id: string): Promise<MinistryAffiliation | undefined>;
+  getAffiliationsByPerson(personId: string): Promise<MinistryAffiliation[]>;
+  getAffiliationsByMinistry(ministryId: string): Promise<MinistryAffiliation[]>;
+  createMinistryAffiliation(affiliation: InsertMinistryAffiliation): Promise<MinistryAffiliation>;
+  updateMinistryAffiliationType(id: string, type: "convert" | "new_member" | "member"): Promise<MinistryAffiliation>;
+  checkAffiliationExists(personId: string, ministryId: string): Promise<MinistryAffiliation | undefined>;
+
+  // Account Claim Tokens
+  createAccountClaimToken(token: InsertAccountClaimToken): Promise<AccountClaimToken>;
+  getValidClaimToken(tokenHash: string): Promise<AccountClaimToken | undefined>;
+  markClaimTokenUsed(id: string): Promise<void>;
+  invalidateExistingTokens(memberAccountId: string): Promise<void>;
+
+  // Member Prayer Requests
+  getMemberPrayerRequest(id: string): Promise<MemberPrayerRequest | undefined>;
+  getMemberPrayerRequestsByPerson(personId: string, ministryId?: string): Promise<MemberPrayerRequest[]>;
+  getMemberPrayerRequestsByMinistry(ministryId: string): Promise<MemberPrayerRequest[]>;
+  createMemberPrayerRequest(request: InsertMemberPrayerRequest): Promise<MemberPrayerRequest>;
+  updateMemberPrayerRequest(id: string, data: Partial<InsertMemberPrayerRequest>): Promise<MemberPrayerRequest>;
+  updateMemberPrayerRequestStatus(id: string, status: "SUBMITTED" | "BEING_PRAYED_FOR" | "FOLLOWUP_SCHEDULED" | "ANSWERED" | "CLOSED"): Promise<MemberPrayerRequest>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1742,6 +1794,183 @@ export class DatabaseStorage implements IStorage {
 
   async deleteArchivedMinistry(id: string): Promise<void> {
     await db.delete(archivedMinistries).where(eq(archivedMinistries.id, id));
+  }
+
+  // Persons (Member identity)
+  async getPerson(id: string): Promise<Person | undefined> {
+    const result = await db.select().from(persons).where(eq(persons.id, id));
+    return result[0];
+  }
+
+  async getPersonByEmail(email: string): Promise<Person | undefined> {
+    const result = await db.select().from(persons).where(eq(persons.email, email.toLowerCase()));
+    return result[0];
+  }
+
+  async createPerson(person: InsertPerson): Promise<Person> {
+    const result = await db.insert(persons).values({
+      ...person,
+      email: person.email.toLowerCase(),
+    }).returning();
+    return result[0];
+  }
+
+  async updatePerson(id: string, data: Partial<InsertPerson>): Promise<Person> {
+    const updateData: any = { ...data, updatedAt: new Date() };
+    if (data.email) {
+      updateData.email = data.email.toLowerCase();
+    }
+    const result = await db.update(persons).set(updateData).where(eq(persons.id, id)).returning();
+    return result[0];
+  }
+
+  // Member Accounts
+  async getMemberAccount(id: string): Promise<MemberAccount | undefined> {
+    const result = await db.select().from(memberAccounts).where(eq(memberAccounts.id, id));
+    return result[0];
+  }
+
+  async getMemberAccountByPersonId(personId: string): Promise<MemberAccount | undefined> {
+    const result = await db.select().from(memberAccounts).where(eq(memberAccounts.personId, personId));
+    return result[0];
+  }
+
+  async getMemberAccountByEmail(email: string): Promise<MemberAccount | undefined> {
+    const person = await this.getPersonByEmail(email);
+    if (!person) return undefined;
+    return this.getMemberAccountByPersonId(person.id);
+  }
+
+  async createMemberAccount(account: InsertMemberAccount): Promise<MemberAccount> {
+    const result = await db.insert(memberAccounts).values(account).returning();
+    return result[0];
+  }
+
+  async updateMemberAccountPassword(id: string, passwordHash: string): Promise<void> {
+    await db.update(memberAccounts).set({ 
+      passwordHash,
+      status: "ACTIVE"
+    }).where(eq(memberAccounts.id, id));
+  }
+
+  async updateMemberAccountStatus(id: string, status: "PENDING_CLAIM" | "ACTIVE" | "SUSPENDED"): Promise<void> {
+    await db.update(memberAccounts).set({ status }).where(eq(memberAccounts.id, id));
+  }
+
+  async updateMemberAccountLastLogin(id: string): Promise<void> {
+    await db.update(memberAccounts).set({ lastLoginAt: new Date() }).where(eq(memberAccounts.id, id));
+  }
+
+  // Ministry Affiliations
+  async getMinistryAffiliation(id: string): Promise<MinistryAffiliation | undefined> {
+    const result = await db.select().from(ministryAffiliations).where(eq(ministryAffiliations.id, id));
+    return result[0];
+  }
+
+  async getAffiliationsByPerson(personId: string): Promise<MinistryAffiliation[]> {
+    return db.select().from(ministryAffiliations).where(eq(ministryAffiliations.personId, personId));
+  }
+
+  async getAffiliationsByMinistry(ministryId: string): Promise<MinistryAffiliation[]> {
+    return db.select().from(ministryAffiliations).where(eq(ministryAffiliations.ministryId, ministryId));
+  }
+
+  async createMinistryAffiliation(affiliation: InsertMinistryAffiliation): Promise<MinistryAffiliation> {
+    const result = await db.insert(ministryAffiliations).values(affiliation).returning();
+    return result[0];
+  }
+
+  async updateMinistryAffiliationType(id: string, type: "convert" | "new_member" | "member"): Promise<MinistryAffiliation> {
+    const result = await db.update(ministryAffiliations).set({ relationshipType: type }).where(eq(ministryAffiliations.id, id)).returning();
+    return result[0];
+  }
+
+  async checkAffiliationExists(personId: string, ministryId: string): Promise<MinistryAffiliation | undefined> {
+    const result = await db.select().from(ministryAffiliations).where(
+      and(
+        eq(ministryAffiliations.personId, personId),
+        eq(ministryAffiliations.ministryId, ministryId)
+      )
+    );
+    return result[0];
+  }
+
+  // Account Claim Tokens
+  async createAccountClaimToken(token: InsertAccountClaimToken): Promise<AccountClaimToken> {
+    const result = await db.insert(accountClaimTokens).values(token).returning();
+    return result[0];
+  }
+
+  async getValidClaimToken(tokenHash: string): Promise<AccountClaimToken | undefined> {
+    const result = await db.select().from(accountClaimTokens).where(
+      and(
+        eq(accountClaimTokens.tokenHash, tokenHash),
+        gte(accountClaimTokens.expiresAt, new Date())
+      )
+    );
+    // Only return if not used
+    const token = result[0];
+    if (token && !token.usedAt) {
+      return token;
+    }
+    return undefined;
+  }
+
+  async markClaimTokenUsed(id: string): Promise<void> {
+    await db.update(accountClaimTokens).set({ usedAt: new Date() }).where(eq(accountClaimTokens.id, id));
+  }
+
+  async invalidateExistingTokens(memberAccountId: string): Promise<void> {
+    await db.update(accountClaimTokens).set({ usedAt: new Date() }).where(
+      and(
+        eq(accountClaimTokens.memberAccountId, memberAccountId),
+        sql`${accountClaimTokens.usedAt} IS NULL`
+      )
+    );
+  }
+
+  // Member Prayer Requests
+  async getMemberPrayerRequest(id: string): Promise<MemberPrayerRequest | undefined> {
+    const result = await db.select().from(memberPrayerRequests).where(eq(memberPrayerRequests.id, id));
+    return result[0];
+  }
+
+  async getMemberPrayerRequestsByPerson(personId: string, ministryId?: string): Promise<MemberPrayerRequest[]> {
+    if (ministryId) {
+      return db.select().from(memberPrayerRequests).where(
+        and(
+          eq(memberPrayerRequests.personId, personId),
+          eq(memberPrayerRequests.ministryId, ministryId)
+        )
+      ).orderBy(desc(memberPrayerRequests.createdAt));
+    }
+    return db.select().from(memberPrayerRequests).where(eq(memberPrayerRequests.personId, personId)).orderBy(desc(memberPrayerRequests.createdAt));
+  }
+
+  async getMemberPrayerRequestsByMinistry(ministryId: string): Promise<MemberPrayerRequest[]> {
+    return db.select().from(memberPrayerRequests).where(eq(memberPrayerRequests.ministryId, ministryId)).orderBy(desc(memberPrayerRequests.createdAt));
+  }
+
+  async createMemberPrayerRequest(request: InsertMemberPrayerRequest): Promise<MemberPrayerRequest> {
+    const result = await db.insert(memberPrayerRequests).values(request).returning();
+    return result[0];
+  }
+
+  async updateMemberPrayerRequest(id: string, data: Partial<InsertMemberPrayerRequest>): Promise<MemberPrayerRequest> {
+    const result = await db.update(memberPrayerRequests).set({
+      ...data,
+      updatedAt: new Date(),
+    }).where(eq(memberPrayerRequests.id, id)).returning();
+    return result[0];
+  }
+
+  async updateMemberPrayerRequestStatus(id: string, status: "SUBMITTED" | "BEING_PRAYED_FOR" | "FOLLOWUP_SCHEDULED" | "ANSWERED" | "CLOSED"): Promise<MemberPrayerRequest> {
+    const updateData: any = { status, updatedAt: new Date() };
+    if (status === "ANSWERED" || status === "CLOSED") {
+      updateData.resolvedAt = new Date();
+    }
+    const result = await db.update(memberPrayerRequests).set(updateData).where(eq(memberPrayerRequests.id, id)).returning();
+    return result[0];
   }
 }
 

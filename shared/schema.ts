@@ -10,6 +10,11 @@ export const checkinOutcomeEnum = pgEnum("checkin_outcome", ["CONNECTED", "NO_RE
 export const accountRequestStatusEnum = pgEnum("account_request_status", ["PENDING", "APPROVED", "DENIED"]);
 export const followUpStageEnum = pgEnum("follow_up_stage", ["NEW", "CONTACT_NEW_MEMBER", "SCHEDULED", "FIRST_COMPLETED", "INITIATE_SECOND", "SECOND_SCHEDULED", "SECOND_COMPLETED", "INITIATE_FINAL", "FINAL_SCHEDULED", "FINAL_COMPLETED"]);
 
+// Member account enums
+export const memberAccountStatusEnum = pgEnum("member_account_status", ["PENDING_CLAIM", "ACTIVE", "SUSPENDED"]);
+export const affiliationTypeEnum = pgEnum("affiliation_type", ["convert", "new_member", "member"]);
+export const prayerRequestStatusEnum = pgEnum("prayer_request_status", ["SUBMITTED", "BEING_PRAYED_FOR", "FOLLOWUP_SCHEDULED", "ANSWERED", "CLOSED"]);
+
 // Churches table
 export const churches = pgTable("churches", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -299,6 +304,63 @@ export const archivedMinistries = pgTable("archived_ministries", {
   archivedAt: timestamp("archived_at").defaultNow().notNull(),
 });
 
+// Persons table - normalized identity keyed by email
+export const persons = pgTable("persons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phone: text("phone"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Member accounts table - login credentials for members
+export const memberAccounts = pgTable("member_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  personId: varchar("person_id").notNull().unique().references(() => persons.id),
+  passwordHash: text("password_hash"),
+  status: memberAccountStatusEnum("status").notNull().default("PENDING_CLAIM"),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Ministry affiliations table - links persons to ministries
+export const ministryAffiliations = pgTable("ministry_affiliations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  personId: varchar("person_id").notNull().references(() => persons.id),
+  ministryId: varchar("ministry_id").notNull().references(() => churches.id),
+  relationshipType: affiliationTypeEnum("relationship_type").notNull().default("convert"),
+  convertId: varchar("convert_id").references(() => converts.id),
+  newMemberId: varchar("new_member_id").references(() => newMembers.id),
+  memberId: varchar("member_id").references(() => members.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Account claim tokens table - for secure password setup
+export const accountClaimTokens = pgTable("account_claim_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  memberAccountId: varchar("member_account_id").notNull().references(() => memberAccounts.id),
+  tokenHash: text("token_hash").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Member prayer requests table - for member portal
+export const memberPrayerRequests = pgTable("member_prayer_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  personId: varchar("person_id").notNull().references(() => persons.id),
+  ministryId: varchar("ministry_id").notNull().references(() => churches.id),
+  request: text("request").notNull(),
+  isPrivate: text("is_private").default("true"),
+  status: prayerRequestStatusEnum("status").notNull().default("SUBMITTED"),
+  leaderNotes: text("leader_notes"),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertChurchSchema = createInsertSchema(churches).omit({
   id: true,
@@ -380,6 +442,33 @@ export const insertMemberCheckinSchema = createInsertSchema(memberCheckins).omit
 });
 
 export const insertGuestSchema = createInsertSchema(guests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPersonSchema = createInsertSchema(persons).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMemberAccountSchema = createInsertSchema(memberAccounts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMinistryAffiliationSchema = createInsertSchema(ministryAffiliations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAccountClaimTokenSchema = createInsertSchema(accountClaimTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMemberPrayerRequestSchema = createInsertSchema(memberPrayerRequests).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -499,3 +588,44 @@ export type InsertGuest = z.infer<typeof insertGuestSchema>;
 
 export type ArchivedMinistry = typeof archivedMinistries.$inferSelect;
 export type InsertArchivedMinistry = z.infer<typeof insertArchivedMinistrySchema>;
+
+export type Person = typeof persons.$inferSelect;
+export type InsertPerson = z.infer<typeof insertPersonSchema>;
+
+export type MemberAccount = typeof memberAccounts.$inferSelect;
+export type InsertMemberAccount = z.infer<typeof insertMemberAccountSchema>;
+
+export type MinistryAffiliation = typeof ministryAffiliations.$inferSelect;
+export type InsertMinistryAffiliation = z.infer<typeof insertMinistryAffiliationSchema>;
+
+export type AccountClaimToken = typeof accountClaimTokens.$inferSelect;
+export type InsertAccountClaimToken = z.infer<typeof insertAccountClaimTokenSchema>;
+
+export type MemberPrayerRequest = typeof memberPrayerRequests.$inferSelect;
+export type InsertMemberPrayerRequest = z.infer<typeof insertMemberPrayerRequestSchema>;
+
+// Member claim account schema
+export const claimAccountSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export type ClaimAccountData = z.infer<typeof claimAccountSchema>;
+
+// Member login schema
+export const memberLoginSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type MemberLoginData = z.infer<typeof memberLoginSchema>;
+
+// Member prayer request submission schema
+export const memberPrayerRequestSubmissionSchema = z.object({
+  requestText: z.string().min(1, "Prayer request is required"),
+  isPrivate: z.boolean().optional(),
+  ministryId: z.string().optional(),
+  category: z.string().optional(),
+});
+
+export type MemberPrayerRequestSubmission = z.infer<typeof memberPrayerRequestSubmissionSchema>;

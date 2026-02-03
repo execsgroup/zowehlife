@@ -8,6 +8,13 @@ import { startReminderScheduler } from "./scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import OpenAI from "openai";
 import {
+  provisionMemberAccountForConvert,
+  provisionMemberAccountForMember,
+  authenticateMember,
+  claimAccountWithToken,
+  resendClaimEmail,
+} from "./member-account-service";
+import {
   insertChurchSchema,
   insertPrayerRequestSchema,
   insertContactRequestSchema,
@@ -18,12 +25,18 @@ import {
   publicConvertSubmissionSchema,
   publicNewMemberSubmissionSchema,
   publicMemberSubmissionSchema,
+  claimAccountSchema,
+  memberLoginSchema,
+  memberPrayerRequestSubmissionSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
 declare module "express-session" {
   interface SessionData {
     userId?: string;
+    memberAccountId?: string;
+    personId?: string;
+    currentMinistryId?: string;
   }
 }
 
@@ -286,6 +299,11 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
+      // Clear any member session to prevent role confusion
+      req.session.memberAccountId = undefined;
+      req.session.personId = undefined;
+      req.session.currentMinistryId = undefined;
+      
       req.session.userId = user.id;
 
       // Clear login attempts on successful login
@@ -337,6 +355,288 @@ export async function registerRoutes(
       res.json({ ...safeUser, church: church ? { id: church.id, name: church.name } : null });
     } catch (error) {
       res.status(500).json({ message: "Failed to get user" });
+    }
+  });
+
+  // ==================== MEMBER AUTH ROUTES ====================
+
+  // Member login
+  app.post("/api/member/login", rateLimitLogin, async (req, res) => {
+    try {
+      const data = memberLoginSchema.parse(req.body);
+      const result = await authenticateMember(data.email, data.password);
+
+      if (!result.success || !result.memberAccount || !result.person) {
+        return res.status(401).json({ message: result.error || "Invalid credentials" });
+      }
+
+      // Get affiliations to set default ministry
+      const affiliations = await storage.getAffiliationsByPerson(result.person.id);
+      const defaultMinistryId = affiliations.length > 0 ? affiliations[0].ministryId : null;
+
+      // Clear any staff session to prevent role confusion
+      req.session.userId = undefined;
+      
+      req.session.memberAccountId = result.memberAccount.id;
+      req.session.personId = result.person.id;
+      req.session.currentMinistryId = defaultMinistryId || undefined;
+
+      res.json({
+        message: "Logged in successfully",
+        person: {
+          id: result.person.id,
+          email: result.person.email,
+          firstName: result.person.firstName,
+          lastName: result.person.lastName,
+        },
+        currentMinistryId: defaultMinistryId,
+      });
+    } catch (error: any) {
+      if (error?.errors) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  // Claim member account (set password)
+  app.post("/api/member/claim", async (req, res) => {
+    try {
+      const data = claimAccountSchema.parse(req.body);
+      const result = await claimAccountWithToken(data.token, data.password);
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ message: "Account claimed successfully. You can now log in." });
+    } catch (error: any) {
+      if (error?.errors) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to claim account" });
+    }
+  });
+
+  // Member logout
+  app.post("/api/member/logout", (req, res) => {
+    req.session.memberAccountId = undefined;
+    req.session.personId = undefined;
+    req.session.currentMinistryId = undefined;
+    res.json({ message: "Logged out" });
+  });
+
+  // Get current member profile with affiliations
+  app.get("/api/member/me", async (req, res) => {
+    try {
+      if (!req.session.memberAccountId || !req.session.personId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const person = await storage.getPerson(req.session.personId);
+      if (!person) {
+        return res.status(404).json({ message: "Person not found" });
+      }
+
+      const memberAccount = await storage.getMemberAccount(req.session.memberAccountId);
+      if (!memberAccount) {
+        return res.status(404).json({ message: "Account not found" });
+      }
+
+      // Get all affiliations with ministry details
+      const affiliations = await storage.getAffiliationsByPerson(person.id);
+      const affiliationsWithDetails = await Promise.all(
+        affiliations.map(async (aff) => {
+          const ministry = await storage.getChurch(aff.ministryId);
+          return {
+            id: aff.id,
+            ministryId: aff.ministryId,
+            ministryName: ministry?.name || "Unknown",
+            relationshipType: aff.relationshipType,
+          };
+        })
+      );
+
+      // Get current ministry details
+      let currentMinistry = null;
+      if (req.session.currentMinistryId) {
+        const ministry = await storage.getChurch(req.session.currentMinistryId);
+        if (ministry) {
+          currentMinistry = { id: ministry.id, name: ministry.name };
+        }
+      }
+
+      res.json({
+        person: {
+          id: person.id,
+          email: person.email,
+          firstName: person.firstName,
+          lastName: person.lastName,
+          phone: person.phone,
+        },
+        accountStatus: memberAccount.status,
+        affiliations: affiliationsWithDetails,
+        currentMinistry,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get member profile" });
+    }
+  });
+
+  // Switch member's current ministry context
+  app.post("/api/member/switch-ministry", async (req, res) => {
+    try {
+      if (!req.session.memberAccountId || !req.session.personId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { ministryId } = req.body;
+      if (!ministryId) {
+        return res.status(400).json({ message: "Ministry ID is required" });
+      }
+
+      // Verify user has affiliation with this ministry
+      const affiliation = await storage.checkAffiliationExists(req.session.personId, ministryId);
+      if (!affiliation) {
+        return res.status(403).json({ message: "You are not affiliated with this ministry" });
+      }
+
+      req.session.currentMinistryId = ministryId;
+
+      const ministry = await storage.getChurch(ministryId);
+      res.json({
+        message: "Ministry switched successfully",
+        currentMinistry: ministry ? { id: ministry.id, name: ministry.name } : null,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to switch ministry" });
+    }
+  });
+
+  // Middleware to check member authentication
+  function requireMemberAuth(req: Request, res: Response, next: NextFunction) {
+    if (!req.session.memberAccountId || !req.session.personId) {
+      return res.status(401).json({ message: "Member not authenticated" });
+    }
+    next();
+  }
+
+  // Submit member prayer request
+  app.post("/api/member/prayer-requests", requireMemberAuth, async (req, res) => {
+    try {
+      const data = memberPrayerRequestSubmissionSchema.parse(req.body);
+      const prayerRequest = await storage.createMemberPrayerRequest({
+        personId: req.session.personId!,
+        ministryId: req.session.currentMinistryId || data.ministryId || null,
+        requestText: data.requestText,
+        category: data.category || null,
+        isPrivate: data.isPrivate || false,
+      });
+      res.status(201).json(prayerRequest);
+    } catch (error: any) {
+      if (error?.errors) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to submit prayer request" });
+    }
+  });
+
+  // Get member's prayer requests
+  app.get("/api/member/prayer-requests", requireMemberAuth, async (req, res) => {
+    try {
+      const prayerRequests = await storage.getMemberPrayerRequests(req.session.personId!);
+      res.json(prayerRequests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get prayer requests" });
+    }
+  });
+
+  // Get member's spiritual journey (converts and members records across ministries)
+  app.get("/api/member/journey", requireMemberAuth, async (req, res) => {
+    try {
+      const affiliations = await storage.getAffiliationsByPerson(req.session.personId!);
+      
+      // Use the affiliation's linked record IDs for efficient lookup
+      const journey = await Promise.all(
+        affiliations.map(async (aff) => {
+          const ministry = await storage.getChurch(aff.ministryId);
+          let record = null;
+          
+          // Use the direct foreign key references on the affiliation record
+          if (aff.convertId) {
+            const convert = await storage.getConvert(aff.convertId);
+            record = convert ? {
+              id: convert.id,
+              createdAt: convert.createdAt,
+              status: convert.status,
+            } : null;
+          } else if (aff.newMemberId) {
+            const newMember = await storage.getNewMember(aff.newMemberId);
+            record = newMember ? {
+              id: newMember.id,
+              createdAt: newMember.createdAt,
+              status: newMember.followUpStage,
+            } : null;
+          } else if (aff.memberId) {
+            const member = await storage.getMember(aff.memberId);
+            record = member ? {
+              id: member.id,
+              createdAt: member.createdAt,
+              status: "ACTIVE",
+            } : null;
+          }
+          
+          return {
+            ministryId: aff.ministryId,
+            ministryName: ministry?.name || "Unknown",
+            relationshipType: aff.relationshipType,
+            joinedAt: aff.createdAt,
+            record,
+          };
+        })
+      );
+
+      res.json({ journey });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get journey" });
+    }
+  });
+
+  // Get member's follow-ups for current ministry
+  app.get("/api/member/follow-ups", requireMemberAuth, async (req, res) => {
+    try {
+      if (!req.session.currentMinistryId) {
+        return res.json({ followUps: [] });
+      }
+
+      const person = await storage.getPerson(req.session.personId!);
+      if (!person) {
+        return res.status(404).json({ message: "Person not found" });
+      }
+
+      // Find the convert record for this person in current ministry to get follow-ups
+      const converts = await storage.getConvertsByChurch(req.session.currentMinistryId);
+      const convert = converts.find(c => 
+        c.email?.toLowerCase() === person.email.toLowerCase()
+      );
+
+      if (!convert) {
+        return res.json({ followUps: [] });
+      }
+
+      const followUps = await storage.getFollowUpsByConvert(convert.id);
+      
+      // Return follow-ups with minimal info (member should only see scheduled times and completion status)
+      const memberVisibleFollowUps = followUps.map(fu => ({
+        id: fu.id,
+        scheduledDate: fu.scheduledDate,
+        status: fu.status,
+        completedAt: fu.completedAt,
+      }));
+
+      res.json({ followUps: memberVisibleFollowUps });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get follow-ups" });
     }
   });
 
@@ -422,6 +722,23 @@ export async function registerRoutes(
         isChurchMember: data.isChurchMember,
         prayerRequest: data.prayerRequest,
       });
+      
+      // Auto-provision member account if email provided
+      if (data.email) {
+        try {
+          await provisionMemberAccountForConvert({
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phone: data.phone,
+            ministryId: church.id,
+            ministryName: church.name,
+            convertId: convert.id,
+          });
+        } catch (provisionError) {
+          console.log("[Member Account] Auto-provision failed, continuing:", provisionError);
+        }
+      }
       
       res.status(201).json({ 
         message: "Thank you! Your information has been submitted successfully.",
@@ -2405,6 +2722,24 @@ export async function registerRoutes(
       const data = publicNewMemberSubmissionSchema.parse(req.body);
       const newMember = await storage.createPublicNewMember(church.id, data);
       
+      // Auto-provision member account if email provided
+      if (data.email) {
+        try {
+          await provisionMemberAccountForMember({
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phone: data.phone,
+            ministryId: church.id,
+            ministryName: church.name,
+            memberType: 'new_member',
+            newMemberId: newMember.id,
+          });
+        } catch (provisionError) {
+          console.log("[Member Account] Auto-provision failed, continuing:", provisionError);
+        }
+      }
+      
       res.status(201).json({ message: "Registration successful", id: newMember.id });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -2449,6 +2784,24 @@ export async function registerRoutes(
       
       const data = publicMemberSubmissionSchema.parse(req.body);
       const member = await storage.createPublicMember(church.id, data);
+      
+      // Auto-provision member account if email provided
+      if (data.email) {
+        try {
+          await provisionMemberAccountForMember({
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phone: data.phone,
+            ministryId: church.id,
+            ministryName: church.name,
+            memberType: 'member',
+            memberId: member.id,
+          });
+        } catch (provisionError) {
+          console.log("[Member Account] Auto-provision failed, continuing:", provisionError);
+        }
+      }
       
       res.status(201).json({ message: "Registration successful", id: member.id });
     } catch (error) {

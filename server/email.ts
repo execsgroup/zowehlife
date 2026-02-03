@@ -407,3 +407,36 @@ export async function sendAccountDenialEmail(data: AccountDenialEmailData) {
     return { success: false, error };
   }
 }
+
+interface GenericEmailData {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+export async function sendEmail(data: GenericEmailData) {
+  try {
+    const { client, fromEmail } = await getUncachableResendClient();
+    
+    const actualFromEmail = fromEmail || 'Zoweh Life <noreply@resend.dev>';
+    console.log(`[Email] Sending generic email from: ${actualFromEmail} to: ${data.to}`);
+
+    const result = await client.emails.send({
+      from: actualFromEmail,
+      to: data.to,
+      subject: data.subject,
+      html: data.html
+    });
+
+    if (result.error) {
+      console.error('[Email] Resend API returned error:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    console.log(`[Email] Email sent successfully to ${data.to}, id: ${result.data?.id}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Email] Failed to send email:', error?.message || error);
+    return { success: false, error };
+  }
+}

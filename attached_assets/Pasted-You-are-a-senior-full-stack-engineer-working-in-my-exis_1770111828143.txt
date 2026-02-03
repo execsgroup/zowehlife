@@ -1,0 +1,148 @@
+You are a senior full-stack engineer working in my existing Zoweh Life codebase.
+
+Context
+Zoweh Life is a multi-ministry management web app (React + TypeScript + TailwindCSS + shadcn/ui frontend; Express + TypeScript backend; PostgreSQL + Drizzle ORM; session auth + bcrypt; role-based access for Admin and Leader; Resend for email).
+
+Goal
+Implement “Member Accounts” (for members/converts) with a secure onboarding flow, multi-ministry affiliation, and a member-facing portal. Use shared components and shared schema/types wherever possible so changes propagate consistently across the app.
+
+Key Language Rule
+Replace the word “church” with “ministry” everywhere in any new UI copy and new code.
+
+FEATURES TO BUILD
+
+A) Member Account Model + Multi-Ministry Affiliation
+1) Add a new user role: MEMBER (distinct from Admin and Leader).
+2) A single MEMBER account may be affiliated with multiple ministries.
+   - Link affiliation by email address: if the same email is used across records, the MEMBER sees multiple ministries in their account.
+   - A ministry affiliation should be created when:
+     - A Convert record is created from the Public Connect/Convert flow (new convert form).
+     - A Convert record is created manually by a Leader/Admin.
+     - A Member record is created by an Admin/Leader action that marks the person as an official “Member”.
+   - A “Member” should be able to switch ministries from a dropdown (or “switcher” control) in the member portal.
+
+3) Data model requirements:
+   - Normalize around a Person identity keyed by email (case-insensitive).
+   - Suggested tables (or equivalent with Drizzle):
+     - persons (id, email UNIQUE lowercased, first_name, last_name, phone, etc.)
+     - member_accounts (id, person_id UNIQUE, password_hash, status, last_login_at, created_at)
+     - ministry_affiliations (id, person_id, ministry_id, relationship_type ENUM: convert|member, created_at)
+     - Converts and Members records should reference person_id to avoid duplication.
+   - If your existing schema already has converts table with email, migrate to person_id while preserving data.
+
+B) Account Provisioning Rules (VERY IMPORTANT)
+1) Moving forward, when any action creates a new Convert or Member record (including public connect form, admin creation, leader creation) an account SHOULD be created and login details should be sent to the person’s email — EXCEPT where stated below.
+2) Exception: When a “New Member Form” is submitted/created, do NOT auto-create a login at that moment.
+   - Only create the MEMBER login when that record is later “moved/approved” into being a Member (i.e., a status transition to member).
+3) For converts created via the public connect flow:
+   - Create a Person identity and a MEMBER account immediately (unless account already exists).
+   - Create a ministry affiliation with relationship_type = convert.
+   - Send the welcome email with login details immediately.
+
+4) If an account already exists for that email:
+   - Do NOT create a new account.
+   - Add the new ministry affiliation if missing.
+   - Send a “You’ve been added to another ministry” email (no password sent).
+
+C) Secure Login and First-Time Access
+1) Do NOT email plaintext passwords.
+2) Use a secure “Set Password” / “Claim Account” flow:
+   - Generate a single-use token (expires in 24 hours).
+   - Email a “Set your password” link to the member.
+   - Once set, member can login normally.
+3) If your system already uses session auth, extend it to allow MEMBER login.
+4) Add endpoints:
+   - POST /api/member/claim (token + new password)
+   - POST /api/auth/login (existing) should accept MEMBER credentials
+   - GET /api/member/me (returns member profile + affiliated ministries + current ministry context)
+   - POST /api/member/switch-ministry (sets selected ministry in session)
+
+D) Member Portal (Member-Facing UI)
+Build a member portal area with routes protected for MEMBER role:
+- /member (Home)
+- /member/journey
+- /member/prayer
+- /member/followups
+- /member/messages (phase 2 / optional toggle)
+
+Member Portal Requirements:
+1) My Journey (Core)
+   - Show: salvation/reconnection date (if available), discipleship stage, assigned leader contact, next recommended step.
+2) Prayer Requests (Private & Ongoing)
+   - Submit prayer request
+   - View prayer request history
+   - Status updates: Being prayed for / Follow-up scheduled / Closed
+   - Member can mark “Answered/Resolved”
+3) Spiritual Check-In Reflections (Optional)
+   - Weekly prompt form
+   - Responses visible to assigned leader/admin (not other members)
+4) Follow-Ups & Appointments
+   - View upcoming follow-ups/check-ins
+   - Confirm/reschedule/request follow-up
+5) Multi-Ministry Switcher
+   - Visible in member portal header/sidebar: shows selected ministry
+   - Switching changes which data is shown (prayer, follow-ups, journey) by scoping queries to current ministry.
+
+E) Admin/Leader Controls for Member Accounts
+1) Admin/Leader can:
+   - View whether a person has a MEMBER account
+   - Trigger “Resend claim email”
+   - Mark convert as member (status transition)
+   - When convert becomes member:
+     - update relationship_type in ministry_affiliations to member
+     - if no account exists, create account and send claim email
+2) Add a “Promote to Member” action to the Convert profile view (admin/leader only).
+3) Ensure audit logs for key actions (promotion, account creation, claim email sent).
+
+F) Shared Components + DRY Requirement (VERY IMPORTANT)
+Refactor so that forms and UI blocks reuse shared components and schemas:
+1) Use Zod schemas shared between frontend and backend (single source of truth).
+2) Create reusable UI components for:
+   - PrayerRequestForm
+   - FollowUpList / FollowUpCard
+   - PersonSummaryCard
+   - MinistrySwitcher
+   - StatusBadge
+3) Ensure these are used in both Leader/Admin views and Member portal where applicable.
+4) If you change a field label or validation, it should update across all relevant screens.
+
+G) Emails (Resend)
+Implement email templates (consistent branding and tone):
+1) Claim account email (first-time)
+2) Added to another ministry email
+3) Resend claim link email
+4) Promotion to member email (triggered when status becomes “member” if no account existed)
+
+Email copy rules:
+- Use “ministry” language (not church).
+- Keep it warm, simple, and professional.
+- Avoid sensitive details.
+
+H) Security & Privacy
+1) Member can only see their own data scoped to the selected ministry.
+2) No internal leader notes exposed to members.
+3) No scoring/analytics exposed to members.
+4) Use rate limiting on claim endpoints.
+5) Ensure token is hashed in DB and single-use.
+
+DELIVERABLES
+1) Implement DB migrations (Drizzle) + updated schema.
+2) Implement backend endpoints and middleware checks for MEMBER.
+3) Implement frontend routes + UI screens using existing shadcn components.
+4) Add “Promote to Member” workflow and the “do not create account on New Member Form creation” exception.
+5) Use shared components and shared schemas so changes replicate across the app.
+6) Provide a short README section describing:
+   - How member account creation works
+   - Multi-ministry affiliation logic
+   - How to test (seed steps + test user emails)
+
+IMPLEMENTATION ORDER (Follow this)
+1) Schema + migrations
+2) Account claim token flow + emails
+3) Member auth + session integration
+4) Multi-ministry affiliation + switcher
+5) Member portal screens
+6) Admin/Leader promote-to-member flow
+7) Component refactor for reusability + shared schemas
+
+Proceed now. Scan the repo, propose the minimal set of schema changes, then implement end-to-end.
