@@ -143,6 +143,10 @@ export default function LeaderNewMembers() {
     queryKey: ["/api/leader/new-members"],
   });
 
+  const { data: church } = useQuery<{ id: string; name: string }>({
+    queryKey: ["/api/leader/church"],
+  });
+
   const removeMutation = useMutation({
     mutationFn: async (newMemberId: string) => {
       await apiRequest("DELETE", `/api/leader/remove/new_member/${newMemberId}`);
@@ -372,6 +376,14 @@ export default function LeaderNewMembers() {
                     onSubmit={form.handleSubmit((data) => createMutation.mutate(data))}
                     className="space-y-4"
                   >
+                    <div className="rounded-md border bg-muted/50 p-3">
+                      <div className="flex items-center gap-2">
+                        <Church className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Ministry:</span>
+                        <span className="text-sm text-muted-foreground">{church?.name || "Loading..."}</span>
+                      </div>
+                    </div>
+
                     <div className="grid gap-4 sm:grid-cols-2">
                       <FormField
                         control={form.control}

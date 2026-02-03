@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
-import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus } from "lucide-react";
+import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus, Church } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
@@ -96,6 +96,10 @@ export default function LeaderMembers() {
 
   const { data: tokens } = useQuery<{ publicToken: string | null; newMemberToken: string | null; memberToken: string | null }>({
     queryKey: ["/api/leader/church/tokens"],
+  });
+
+  const { data: church } = useQuery<{ id: string; name: string }>({
+    queryKey: ["/api/leader/church"],
   });
 
   const form = useForm<MemberFormData>({
@@ -239,6 +243,14 @@ export default function LeaderMembers() {
                     onSubmit={form.handleSubmit((data) => createMutation.mutate(data))}
                     className="space-y-4"
                   >
+                    <div className="rounded-md border bg-muted/50 p-3">
+                      <div className="flex items-center gap-2">
+                        <Church className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Ministry:</span>
+                        <span className="text-sm text-muted-foreground">{church?.name || "Loading..."}</span>
+                      </div>
+                    </div>
+
                     <div className="grid gap-4 sm:grid-cols-2">
                       <FormField
                         control={form.control}

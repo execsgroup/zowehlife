@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, UserMinus } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, UserMinus, Church } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
@@ -107,6 +107,10 @@ export default function LeaderConverts() {
 
   const { data: converts, isLoading } = useQuery<Convert[]>({
     queryKey: ["/api/leader/converts"],
+  });
+
+  const { data: church } = useQuery<{ id: string; name: string }>({
+    queryKey: ["/api/leader/church"],
   });
 
   const removeMutation = useMutation({
@@ -249,6 +253,14 @@ export default function LeaderConverts() {
                   onSubmit={form.handleSubmit((data) => createMutation.mutate(data))}
                   className="space-y-4"
                 >
+                  <div className="rounded-md border bg-muted/50 p-3">
+                    <div className="flex items-center gap-2">
+                      <Church className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Ministry:</span>
+                      <span className="text-sm text-muted-foreground">{church?.name || "Loading..."}</span>
+                    </div>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="salvationDecision"
