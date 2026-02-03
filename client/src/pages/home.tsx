@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useSearch } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,27 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Heart, BookOpen, Users, ArrowRight, Sparkles, HandHeart, Church, UserPlus, Loader2 } from "lucide-react";
-import type { Church as ChurchType } from "@shared/schema";
-
-const leaderRequestSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().optional(),
-  churchId: z.string().min(1, "Please select a ministry"),
-  churchName: z.string().min(2, "Ministry name is required"),
-  reason: z.string().min(1, "Please tell us about your ministry involvement"),
-});
-
-type LeaderRequestFormData = z.infer<typeof leaderRequestSchema>;
+import { Heart, BookOpen, Users, ArrowRight, Sparkles, HandHeart, Church, Loader2 } from "lucide-react";
 
 const ministryRequestSchema = z.object({
   ministryName: z.string().min(2, "Ministry name must be at least 2 characters"),
@@ -43,40 +29,17 @@ const ministryRequestSchema = z.object({
 type MinistryRequestFormData = z.infer<typeof ministryRequestSchema>;
 
 export default function Home() {
-  const [leaderDialogOpen, setLeaderDialogOpen] = useState(false);
   const [ministryDialogOpen, setMinistryDialogOpen] = useState(false);
-  const [selectedChurchId, setSelectedChurchId] = useState<string>("");
   const { toast } = useToast();
   const searchString = useSearch();
 
   useEffect(() => {
     const params = new URLSearchParams(searchString);
-    if (params.get("becomeLeader") === "true") {
-      setLeaderDialogOpen(true);
-      window.history.replaceState({}, "", "/");
-    }
     if (params.get("registerMinistry") === "true") {
       setMinistryDialogOpen(true);
       window.history.replaceState({}, "", "/");
     }
   }, [searchString]);
-
-  const { data: churches } = useQuery<ChurchType[]>({
-    queryKey: ["/api/public/churches"],
-  });
-
-  const leaderForm = useForm<LeaderRequestFormData>({
-    resolver: zodResolver(leaderRequestSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      churchId: "",
-      churchName: "",
-      reason: "",
-    },
-  });
 
   const ministryForm = useForm<MinistryRequestFormData>({
     resolver: zodResolver(ministryRequestSchema),
@@ -88,28 +51,6 @@ export default function Home() {
       adminEmail: "",
       adminPhone: "",
       description: "",
-    },
-  });
-
-  const leaderSubmitMutation = useMutation({
-    mutationFn: async (data: LeaderRequestFormData) => {
-      await apiRequest("POST", "/api/account-requests", data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Request Submitted",
-        description: "Your leader account request has been submitted. The ministry admin will review your request.",
-      });
-      leaderForm.reset();
-      setSelectedChurchId("");
-      setLeaderDialogOpen(false);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Submission Failed",
-        description: error.message,
-        variant: "destructive",
-      });
     },
   });
 
@@ -133,10 +74,6 @@ export default function Home() {
       });
     },
   });
-
-  const onLeaderSubmit = (data: LeaderRequestFormData) => {
-    leaderSubmitMutation.mutate(data);
-  };
 
   const onMinistrySubmit = (data: MinistryRequestFormData) => {
     ministrySubmitMutation.mutate(data);
@@ -301,156 +238,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      {/* Leader Account Request Dialog */}
-      <Dialog open={leaderDialogOpen} onOpenChange={(open) => {
-        setLeaderDialogOpen(open);
-        if (!open) {
-          setSelectedChurchId("");
-          leaderForm.reset();
-        }
-      }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Request Leader Account</DialogTitle>
-            <DialogDescription>
-              Select your registered ministry and submit a request to become a leader. The ministry admin will review your request.
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...leaderForm}>
-            <form onSubmit={leaderForm.handleSubmit(onLeaderSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={leaderForm.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John" {...field} data-testid="input-leader-first-name" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={leaderForm.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Doe" {...field} data-testid="input-leader-last-name" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={leaderForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email *</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="john@example.com" {...field} data-testid="input-leader-email" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={leaderForm.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-leader-phone" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={leaderForm.control}
-                name="churchId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Select Your Ministry *</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        setSelectedChurchId(value);
-                        const selectedChurch = churches?.find(c => c.id === value);
-                        if (selectedChurch) {
-                          leaderForm.setValue("churchName", selectedChurch.name);
-                        }
-                      }}
-                    >
-                      <FormControl>
-                        <SelectTrigger data-testid="select-church-dropdown">
-                          <SelectValue placeholder="Select your ministry..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {churches && churches.length > 0 ? (
-                          churches.map((church) => (
-                            <SelectItem key={church.id} value={church.id}>
-                              {church.name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="none" disabled>No ministries registered yet</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription className="text-xs">
-                      Don't see your ministry? <a href="/?registerMinistry=true" className="text-primary hover:underline" onClick={(e) => { e.preventDefault(); setLeaderDialogOpen(false); setMinistryDialogOpen(true); }}>Register it first</a>
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={leaderForm.control}
-                name="reason"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tell us about your involvement *</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe your role and involvement in the ministry..."
-                        className="resize-none"
-                        {...field}
-                        data-testid="input-leader-reason"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={leaderSubmitMutation.isPending || !selectedChurchId}
-                data-testid="button-submit-leader-request"
-              >
-                {leaderSubmitMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  "Submit Request"
-                )}
-              </Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
 
       {/* Ministry Registration Request Dialog */}
       <Dialog open={ministryDialogOpen} onOpenChange={(open) => {

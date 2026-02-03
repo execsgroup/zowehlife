@@ -2430,6 +2430,132 @@ export async function registerRoutes(
     }
   });
 
+  // Create a new leader (direct creation, no approval needed)
+  app.post("/api/ministry-admin/leaders", requireMinistryAdmin, async (req, res) => {
+    try {
+      const ministryAdmin = (req as any).user;
+      const MAX_LEADERS_PER_MINISTRY = 3;
+
+      // Check leader quota
+      const existingLeaders = await storage.getLeadersByChurch(ministryAdmin.churchId);
+      if (existingLeaders.length >= MAX_LEADERS_PER_MINISTRY) {
+        return res.status(400).json({ 
+          message: `Maximum number of leaders (${MAX_LEADERS_PER_MINISTRY}) reached for this ministry. Remove an existing leader to add a new one.` 
+        });
+      }
+
+      const schema = z.object({
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"),
+        email: z.string().email("Please enter a valid email"),
+        phone: z.string().optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      // Check if email already taken
+      const existingUser = await storage.getUserByEmail(data.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists" });
+      }
+
+      // Get the ministry info
+      const church = await storage.getChurch(ministryAdmin.churchId);
+      if (!church) {
+        return res.status(500).json({ message: "Ministry not found" });
+      }
+
+      // Generate temporary password
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+      // Create the leader account
+      const newLeader = await storage.createUser({
+        role: "LEADER",
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        passwordHash,
+        churchId: ministryAdmin.churchId,
+      });
+
+      // Log the action
+      await storage.createAuditLog({
+        actorUserId: ministryAdmin.id,
+        action: "CREATE",
+        entityType: "USER",
+        entityId: newLeader.id,
+      });
+
+      // Send welcome email with credentials
+      const emailResult = await sendAccountApprovalEmail({
+        leaderName: `${data.firstName} ${data.lastName}`,
+        leaderEmail: data.email,
+        churchName: church.name,
+        temporaryPassword: tempPassword,
+      });
+
+      if (!emailResult.success) {
+        console.error("Failed to send welcome email:", emailResult.error);
+        return res.status(201).json({ 
+          message: "Leader account created but email notification failed. Please manually share the login credentials.",
+          credentials: {
+            email: data.email,
+            temporaryPassword: tempPassword
+          }
+        });
+      }
+
+      res.status(201).json({ message: "Leader account created and login credentials sent via email" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Failed to create leader:", error);
+      res.status(500).json({ message: "Failed to create leader" });
+    }
+  });
+
+  // Delete/remove a leader from the ministry
+  app.delete("/api/ministry-admin/leaders/:id", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const ministryAdmin = (req as any).user;
+
+      // Get the leader
+      const leader = await storage.getUser(id);
+      if (!leader) {
+        return res.status(404).json({ message: "Leader not found" });
+      }
+
+      // Verify the leader belongs to this ministry
+      if (leader.churchId !== ministryAdmin.churchId) {
+        return res.status(403).json({ message: "You can only remove leaders from your ministry" });
+      }
+
+      // Verify they are actually a leader
+      if (leader.role !== "LEADER") {
+        return res.status(400).json({ message: "This user is not a leader" });
+      }
+
+      // Delete the leader account
+      await storage.deleteUser(id);
+
+      // Log the action
+      await storage.createAuditLog({
+        actorUserId: ministryAdmin.id,
+        action: "DELETE",
+        entityType: "USER",
+        entityId: id,
+      });
+
+      res.json({ message: "Leader removed successfully" });
+    } catch (error) {
+      console.error("Failed to remove leader:", error);
+      res.status(500).json({ message: "Failed to remove leader" });
+    }
+  });
+
   // Get converts for ministry admin's ministry
   app.get("/api/ministry-admin/converts", requireMinistryAdmin, async (req, res) => {
     try {

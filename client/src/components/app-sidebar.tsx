@@ -69,7 +69,7 @@ const ministryAdminNavItems = [
   { title: "Member Accounts", url: "/ministry-admin/member-accounts", icon: UserCog },
   { title: "Prayer Requests", url: "/ministry-admin/prayer-requests", icon: HandHeart },
   { title: "Contact Requests", url: "/ministry-admin/contact-requests", icon: MessageSquare },
-  { title: "Leader Requests", url: "/ministry-admin/account-requests", icon: ClipboardList },
+  { title: "Manage Leaders", url: "/ministry-admin/leaders", icon: ClipboardList },
   { title: "Settings", url: "/ministry-admin/settings", icon: Settings },
 ];
 
