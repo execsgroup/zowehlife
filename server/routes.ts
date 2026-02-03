@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
-import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail } from "./email";
+import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail, sendMinistryRemovalEmail } from "./email";
 import { startReminderScheduler } from "./scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import OpenAI from "openai";
@@ -790,6 +790,125 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to update member account status:", error);
       res.status(500).json({ message: "Failed to update account status" });
+    }
+  });
+
+  // Remove a person from ministry by record type (convert, new_member, member)
+  app.delete("/api/leader/remove/:type/:recordId", requireAuth, async (req, res) => {
+    try {
+      const { type, recordId } = req.params;
+      
+      // Validate type
+      if (!["convert", "new_member", "member"].includes(type)) {
+        return res.status(400).json({ message: "Invalid type. Must be 'convert', 'new_member', or 'member'" });
+      }
+
+      // Get user and verify authorization
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Find the affiliation by record type and ID
+      const affiliation = await storage.getAffiliationByRecordId(type as "convert" | "new_member" | "member", recordId);
+      if (!affiliation) {
+        return res.status(404).json({ message: "Affiliation not found for this record" });
+      }
+
+      // Determine requester's ministry
+      let requesterMinistryId: string | null = null;
+      if (user.role === "ADMIN") {
+        requesterMinistryId = null; // Admin can access any ministry
+      } else if (user.role === "MINISTRY_ADMIN" || user.role === "LEADER") {
+        requesterMinistryId = user.churchId || null;
+      }
+
+      // Verify the affiliation belongs to the requester's ministry
+      if (requesterMinistryId && affiliation.ministryId !== requesterMinistryId) {
+        return res.status(403).json({ message: "Not authorized to remove this person" });
+      }
+
+      // Get person and ministry details for the email
+      const person = await storage.getPerson(affiliation.personId);
+      const ministry = await storage.getChurch(affiliation.ministryId);
+
+      if (!person || !ministry) {
+        return res.status(404).json({ message: "Person or ministry not found" });
+      }
+
+      // Delete the affiliation
+      await storage.deleteMinistryAffiliation(affiliation.id);
+
+      // Send notification email only if person has an email
+      if (person.email) {
+        await sendMinistryRemovalEmail({
+          memberEmail: person.email,
+          memberName: `${person.firstName} ${person.lastName}`,
+          ministryName: ministry.name,
+        });
+      }
+
+      res.json({ message: "Person removed from ministry successfully" });
+    } catch (error) {
+      console.error("Failed to remove person from ministry:", error);
+      res.status(500).json({ message: "Failed to remove person from ministry" });
+    }
+  });
+
+  // Remove a person from ministry (delete affiliation)
+  app.delete("/api/leader/affiliations/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get user and verify authorization
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Get the affiliation to verify it exists and get details
+      const affiliation = await storage.getMinistryAffiliation(id);
+      if (!affiliation) {
+        return res.status(404).json({ message: "Affiliation not found" });
+      }
+
+      // Determine requester's ministry
+      let requesterMinistryId: string | null = null;
+      if (user.role === "ADMIN") {
+        requesterMinistryId = null; // Admin can access any ministry
+      } else if (user.role === "MINISTRY_ADMIN" || user.role === "LEADER") {
+        requesterMinistryId = user.churchId || null;
+      }
+
+      // Verify the affiliation belongs to the requester's ministry
+      if (requesterMinistryId && affiliation.ministryId !== requesterMinistryId) {
+        return res.status(403).json({ message: "Not authorized to remove this person" });
+      }
+
+      // Get person and ministry details for the email
+      const person = await storage.getPerson(affiliation.personId);
+      const ministry = await storage.getChurch(affiliation.ministryId);
+
+      if (!person || !ministry) {
+        return res.status(404).json({ message: "Person or ministry not found" });
+      }
+
+      // Delete the affiliation
+      await storage.deleteMinistryAffiliation(id);
+
+      // Send notification email only if person has an email
+      if (person.email) {
+        await sendMinistryRemovalEmail({
+          memberEmail: person.email,
+          memberName: `${person.firstName} ${person.lastName}`,
+          ministryName: ministry.name,
+        });
+      }
+
+      res.json({ message: "Person removed from ministry successfully" });
+    } catch (error) {
+      console.error("Failed to remove person from ministry:", error);
+      res.status(500).json({ message: "Failed to remove person from ministry" });
     }
   });
 

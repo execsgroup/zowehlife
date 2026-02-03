@@ -61,6 +61,10 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Resend claim tokens for accounts that haven't been claimed yet
     - Suspend or activate member accounts (Ministry Admins only)
     - View member affiliation type (convert, new_member, member) and last login
+- **Remove from Ministry**: Leaders and Admins can remove converts, new members, and members from their ministry:
+    - Removes the ministry affiliation only (does NOT deactivate member portal account)
+    - Person is notified via email about removal (if email is on file)
+    - Person can still join other ministries through public registration forms
 
 ## External Dependencies
 - **PostgreSQL**: Primary database for data storage.

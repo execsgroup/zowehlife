@@ -19,7 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type NewMember } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, ClipboardCheck, Clock, Church, Users2, Users, UserMinus, Video } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, ClipboardCheck, Clock, Church, Users2, Users, UserMinus, Video, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { NewMemberScheduleFollowUpDialog } from "@/components/new-member-schedule-followup-dialog";
@@ -135,9 +136,33 @@ export default function LeaderNewMembers() {
   const [convertToMemberDialogOpen, setConvertToMemberDialogOpen] = useState(false);
   const [convertToGuestDialogOpen, setConvertToGuestDialogOpen] = useState(false);
   const [finalFollowUpPromptOpen, setFinalFollowUpPromptOpen] = useState(false);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [newMemberToRemove, setNewMemberToRemove] = useState<NewMember | null>(null);
 
   const { data: newMembers, isLoading } = useQuery<NewMember[]>({
     queryKey: ["/api/leader/new-members"],
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (newMemberId: string) => {
+      await apiRequest("DELETE", `/api/leader/remove/new_member/${newMemberId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "New member removed",
+        description: "The new member has been removed from this ministry and notified via email.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      setRemoveDialogOpen(false);
+      setNewMemberToRemove(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove new member",
+        variant: "destructive",
+      });
+    },
   });
 
   const form = useForm<NewMemberFormData>({
@@ -729,6 +754,22 @@ export default function LeaderNewMembers() {
                               </TooltipTrigger>
                               <TooltipContent>Move to Guest List</TooltipContent>
                             </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setNewMemberToRemove(nm);
+                                    setRemoveDialogOpen(true);
+                                  }}
+                                  data-testid={`button-remove-new-member-${nm.id}`}
+                                >
+                                  <UserMinus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Remove from Ministry</TooltipContent>
+                            </Tooltip>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -964,6 +1005,37 @@ export default function LeaderNewMembers() {
         onOpenChange={setTimelineDialogOpen}
         newMember={selectedNewMember}
       />
+
+      {/* Remove New Member Dialog */}
+      <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove New Member from Ministry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {newMemberToRemove?.firstName} {newMemberToRemove?.lastName} from this ministry? 
+              They will be notified via email and can join another ministry if they wish. 
+              This action does not deactivate their member portal account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => newMemberToRemove && removeMutation.mutate(newMemberToRemove.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-remove-new-member"
+            >
+              {removeMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                "Remove"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

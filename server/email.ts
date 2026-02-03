@@ -414,6 +414,49 @@ interface GenericEmailData {
   html: string;
 }
 
+interface MinistryRemovalEmailData {
+  memberEmail: string;
+  memberName: string;
+  ministryName: string;
+}
+
+export async function sendMinistryRemovalEmail(data: MinistryRemovalEmailData) {
+  try {
+    const { client, fromEmail } = await getUncachableResendClient();
+    
+    const actualFromEmail = fromEmail || 'Zoweh Life <noreply@resend.dev>';
+    console.log(`[Email] Sending ministry removal notification from: ${actualFromEmail} to: ${data.memberEmail}`);
+
+    const result = await client.emails.send({
+      from: actualFromEmail,
+      to: data.memberEmail,
+      subject: `You have been removed from ${data.ministryName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Ministry Affiliation Update</h2>
+          <p>Dear ${data.memberName},</p>
+          <p>This is to inform you that you have been removed from <strong>${data.ministryName}</strong>.</p>
+          <p>If you believe this was done in error, please contact the ministry leadership directly.</p>
+          <p>You can still join other ministries through their public registration forms. Your member portal account remains active for any other ministries you may be affiliated with.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="color: #666; font-size: 12px;">This is an automated message from Zoweh Life.</p>
+        </div>
+      `
+    });
+
+    if (result.error) {
+      console.error('[Email] Resend API returned error:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    console.log(`[Email] Ministry removal email sent successfully to ${data.memberEmail}, id: ${result.data?.id}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[Email] Failed to send ministry removal email:', error?.message || error);
+    return { success: false, error };
+  }
+}
+
 export async function sendEmail(data: GenericEmailData) {
   try {
     const { client, fromEmail } = await getUncachableResendClient();

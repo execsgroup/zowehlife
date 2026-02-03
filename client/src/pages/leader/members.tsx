@@ -19,7 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
-import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2 } from "lucide-react";
+import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 
@@ -64,9 +65,33 @@ export default function LeaderMembers() {
   const [, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
 
   const { data: members, isLoading } = useQuery<Member[]>({
     queryKey: ["/api/leader/members"],
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (memberId: string) => {
+      await apiRequest("DELETE", `/api/leader/remove/member/${memberId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Member removed",
+        description: "The member has been removed from this ministry and notified via email.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
+      setRemoveDialogOpen(false);
+      setMemberToRemove(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove member",
+        variant: "destructive",
+      });
+    },
   });
 
   const { data: tokens } = useQuery<{ publicToken: string | null; newMemberToken: string | null; memberToken: string | null }>({
@@ -469,6 +494,7 @@ export default function LeaderMembers() {
                       <TableHead>Contact</TableHead>
                       <TableHead>Gender</TableHead>
                       <TableHead>Member Since</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -503,6 +529,39 @@ export default function LeaderMembers() {
                         <TableCell>
                           {m.memberSince ? format(new Date(m.memberSince), "MMM d, yyyy") : "-"}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="icon"
+                                  onClick={() => handleViewDetails(m)}
+                                  data-testid={`button-view-member-${m.id}`}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View Details</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  onClick={() => {
+                                    setMemberToRemove(m);
+                                    setRemoveDialogOpen(true);
+                                  }}
+                                  data-testid={`button-remove-member-${m.id}`}
+                                >
+                                  <UserMinus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Remove from Ministry</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -512,6 +571,36 @@ export default function LeaderMembers() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Member from Ministry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {memberToRemove?.firstName} {memberToRemove?.lastName} from this ministry? 
+              They will be notified via email and can join another ministry if they wish. 
+              This action does not deactivate their member portal account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => memberToRemove && removeMutation.mutate(memberToRemove.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-remove-member"
+            >
+              {removeMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                "Remove"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

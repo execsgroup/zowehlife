@@ -332,6 +332,8 @@ export interface IStorage {
   createMinistryAffiliation(affiliation: InsertMinistryAffiliation): Promise<MinistryAffiliation>;
   updateMinistryAffiliationType(id: string, type: "convert" | "new_member" | "member"): Promise<MinistryAffiliation>;
   checkAffiliationExists(personId: string, ministryId: string): Promise<MinistryAffiliation | undefined>;
+  deleteMinistryAffiliation(id: string): Promise<void>;
+  getAffiliationByRecordId(recordType: "convert" | "new_member" | "member", recordId: string): Promise<MinistryAffiliation | undefined>;
 
   // Member Accounts - Admin queries
   getMemberAccountsWithDetailsByMinistry(ministryId: string): Promise<{
@@ -1899,6 +1901,22 @@ export class DatabaseStorage implements IStorage {
         eq(ministryAffiliations.ministryId, ministryId)
       )
     );
+    return result[0];
+  }
+
+  async deleteMinistryAffiliation(id: string): Promise<void> {
+    await db.delete(ministryAffiliations).where(eq(ministryAffiliations.id, id));
+  }
+
+  async getAffiliationByRecordId(recordType: "convert" | "new_member" | "member", recordId: string): Promise<MinistryAffiliation | undefined> {
+    let result;
+    if (recordType === "convert") {
+      result = await db.select().from(ministryAffiliations).where(eq(ministryAffiliations.convertId, recordId));
+    } else if (recordType === "new_member") {
+      result = await db.select().from(ministryAffiliations).where(eq(ministryAffiliations.newMemberId, recordId));
+    } else {
+      result = await db.select().from(ministryAffiliations).where(eq(ministryAffiliations.memberId, recordId));
+    }
     return result[0];
   }
 

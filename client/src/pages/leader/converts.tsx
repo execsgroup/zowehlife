@@ -19,7 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, UserMinus } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { ConvertScheduleFollowUpDialog } from "@/components/convert-schedule-followup-dialog";
@@ -101,9 +102,33 @@ export default function LeaderConverts() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedConvert, setSelectedConvert] = useState<Convert | null>(null);
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [convertToRemove, setConvertToRemove] = useState<Convert | null>(null);
 
   const { data: converts, isLoading } = useQuery<Convert[]>({
     queryKey: ["/api/leader/converts"],
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: async (convertId: string) => {
+      await apiRequest("DELETE", `/api/leader/remove/convert/${convertId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Convert removed",
+        description: "The convert has been removed from this ministry and notified via email.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      setRemoveDialogOpen(false);
+      setConvertToRemove(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove convert",
+        variant: "destructive",
+      });
+    },
   });
 
   const form = useForm<ConvertFormData>({
@@ -697,6 +722,22 @@ export default function LeaderConverts() {
                             </TooltipTrigger>
                             <TooltipContent>View Convert Details</TooltipContent>
                           </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => {
+                                  setConvertToRemove(convert);
+                                  setRemoveDialogOpen(true);
+                                }}
+                                data-testid={`button-remove-convert-${convert.id}`}
+                              >
+                                <UserMinus className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Remove from Ministry</TooltipContent>
+                          </Tooltip>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -729,6 +770,36 @@ export default function LeaderConverts() {
         onOpenChange={setFollowUpDialogOpen}
         convert={selectedConvert}
       />
+
+      <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Convert from Ministry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {convertToRemove?.firstName} {convertToRemove?.lastName} from this ministry? 
+              They will be notified via email and can join another ministry if they wish. 
+              This action does not deactivate their member portal account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => convertToRemove && removeMutation.mutate(convertToRemove.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-remove-convert"
+            >
+              {removeMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                "Remove"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
