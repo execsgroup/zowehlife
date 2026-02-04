@@ -594,6 +594,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteConvert(id: string): Promise<void> {
+    // First delete related checkins (foreign key constraint)
+    await db.delete(checkins).where(eq(checkins.convertId, id));
+    // Delete any ministry affiliations referencing this convert
+    await db.delete(ministryAffiliations).where(eq(ministryAffiliations.convertId, id));
+    // Now delete the convert
     await db.delete(converts).where(eq(converts.id, id));
   }
 
@@ -1168,6 +1173,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteNewMember(id: string): Promise<void> {
+    // First delete related checkins (foreign key constraint)
+    await db.delete(newMemberCheckins).where(eq(newMemberCheckins.newMemberId, id));
+    // Delete any ministry affiliations referencing this new member
+    await db.delete(ministryAffiliations).where(eq(ministryAffiliations.newMemberId, id));
+    // Now delete the new member
     await db.delete(newMembers).where(eq(newMembers.id, id));
   }
 
@@ -1308,6 +1318,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMember(id: string): Promise<void> {
+    // First delete related checkins (foreign key constraint)
+    await db.delete(memberCheckins).where(eq(memberCheckins.memberId, id));
+    // Delete any ministry affiliations referencing this member
+    await db.delete(ministryAffiliations).where(eq(ministryAffiliations.memberId, id));
+    // Now delete the member
     await db.delete(members).where(eq(members.id, id));
   }
 
