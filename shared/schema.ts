@@ -361,6 +361,18 @@ export const memberPrayerRequests = pgTable("member_prayer_requests", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Journal entries table - private by default, can be shared with leaders
+export const journalEntries = pgTable("journal_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  personId: varchar("person_id").notNull().references(() => persons.id),
+  title: text("title"),
+  content: text("content").notNull(),
+  isPrivate: text("is_private").default("true"),
+  sharedWithMinistryId: varchar("shared_with_ministry_id").references(() => churches.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertChurchSchema = createInsertSchema(churches).omit({
   id: true,
@@ -469,6 +481,12 @@ export const insertAccountClaimTokenSchema = createInsertSchema(accountClaimToke
 });
 
 export const insertMemberPrayerRequestSchema = createInsertSchema(memberPrayerRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -603,6 +621,9 @@ export type InsertAccountClaimToken = z.infer<typeof insertAccountClaimTokenSche
 
 export type MemberPrayerRequest = typeof memberPrayerRequests.$inferSelect;
 export type InsertMemberPrayerRequest = z.infer<typeof insertMemberPrayerRequestSchema>;
+
+export type JournalEntry = typeof journalEntries.$inferSelect;
+export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 
 // Member claim account schema
 export const claimAccountSchema = z.object({
