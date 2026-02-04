@@ -20,6 +20,7 @@ import {
   ministryAffiliations,
   accountClaimTokens,
   memberPrayerRequests,
+  journalEntries,
   type Church,
   type InsertChurch,
   type User,
@@ -59,6 +60,8 @@ import {
   type InsertAccountClaimToken,
   type MemberPrayerRequest,
   type InsertMemberPrayerRequest,
+  type JournalEntry,
+  type InsertJournalEntry,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -358,6 +361,14 @@ export interface IStorage {
   createMemberPrayerRequest(request: InsertMemberPrayerRequest): Promise<MemberPrayerRequest>;
   updateMemberPrayerRequest(id: string, data: Partial<InsertMemberPrayerRequest>): Promise<MemberPrayerRequest>;
   updateMemberPrayerRequestStatus(id: string, status: "SUBMITTED" | "BEING_PRAYED_FOR" | "FOLLOWUP_SCHEDULED" | "ANSWERED" | "CLOSED"): Promise<MemberPrayerRequest>;
+
+  // Journal Entries
+  getJournalEntry(id: string): Promise<JournalEntry | undefined>;
+  getJournalEntriesByPerson(personId: string): Promise<JournalEntry[]>;
+  getJournalEntriesSharedWithMinistry(ministryId: string): Promise<JournalEntry[]>;
+  createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
+  updateJournalEntry(id: string, data: Partial<InsertJournalEntry>): Promise<JournalEntry>;
+  deleteJournalEntry(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2044,6 +2055,44 @@ export class DatabaseStorage implements IStorage {
     }
     const result = await db.update(memberPrayerRequests).set(updateData).where(eq(memberPrayerRequests.id, id)).returning();
     return result[0];
+  }
+
+  // Journal Entries
+  async getJournalEntry(id: string): Promise<JournalEntry | undefined> {
+    const [entry] = await db.select().from(journalEntries).where(eq(journalEntries.id, id));
+    return entry || undefined;
+  }
+
+  async getJournalEntriesByPerson(personId: string): Promise<JournalEntry[]> {
+    return await db.select().from(journalEntries)
+      .where(eq(journalEntries.personId, personId))
+      .orderBy(desc(journalEntries.createdAt));
+  }
+
+  async getJournalEntriesSharedWithMinistry(ministryId: string): Promise<JournalEntry[]> {
+    return await db.select().from(journalEntries)
+      .where(and(
+        eq(journalEntries.sharedWithMinistryId, ministryId),
+        eq(journalEntries.isPrivate, "false")
+      ))
+      .orderBy(desc(journalEntries.createdAt));
+  }
+
+  async createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry> {
+    const [created] = await db.insert(journalEntries).values(entry).returning();
+    return created;
+  }
+
+  async updateJournalEntry(id: string, data: Partial<InsertJournalEntry>): Promise<JournalEntry> {
+    const result = await db.update(journalEntries).set({
+      ...data,
+      updatedAt: new Date(),
+    }).where(eq(journalEntries.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteJournalEntry(id: string): Promise<void> {
+    await db.delete(journalEntries).where(eq(journalEntries.id, id));
   }
 }
 
