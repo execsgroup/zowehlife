@@ -319,8 +319,7 @@ export async function resendClaimToken(
   // Invalidate existing tokens and create a new one
   await storage.invalidateExistingTokens(memberAccountId);
   
-  const token = generateClaimToken();
-  const tokenHash = hashClaimToken(token);
+  const { token, hash: tokenHash } = generateClaimToken();
   const expiresAt = new Date(Date.now() + CLAIM_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
 
   await storage.createAccountClaimToken({
@@ -403,7 +402,7 @@ async function sendClaimAccountEmail(
   ministryName: string,
   token: string
 ): Promise<void> {
-  const claimUrl = `${getBaseUrl()}/member/claim?token=${token}`;
+  const claimUrl = `${getBaseUrl()}/member-portal/claim?token=${token}`;
 
   await sendEmail({
     to: email,
@@ -430,7 +429,7 @@ async function sendAddedToMinistryEmail(
   firstName: string,
   ministryName: string
 ): Promise<void> {
-  const loginUrl = `${getBaseUrl()}/member/login`;
+  const loginUrl = `${getBaseUrl()}/member-portal/login`;
 
   await sendEmail({
     to: email,
@@ -457,7 +456,7 @@ async function sendPromotionToMemberEmail(
   ministryName: string,
   token: string
 ): Promise<void> {
-  const claimUrl = `${getBaseUrl()}/member/claim?token=${token}`;
+  const claimUrl = `${getBaseUrl()}/member-portal/claim?token=${token}`;
 
   await sendEmail({
     to: email,
