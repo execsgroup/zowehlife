@@ -7,6 +7,20 @@ import type { Person, MemberAccount, MinistryAffiliation } from "@shared/schema"
 const CLAIM_TOKEN_EXPIRY_HOURS = 24;
 const SALT_ROUNDS = 10;
 
+/**
+ * Get the base URL for the application
+ * Uses APP_URL in production, falls back to dev domain or default
+ */
+function getBaseUrl(): string {
+  if (process.env.APP_URL) {
+    return process.env.APP_URL;
+  }
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  return "https://zowehlife.com";
+}
+
 interface ProvisionResult {
   person: Person;
   memberAccount: MemberAccount;
@@ -402,7 +416,7 @@ async function sendClaimAccountEmail(
   ministryName: string,
   token: string
 ): Promise<void> {
-  const claimUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "https://zoweh-life.replit.app"}/member/claim?token=${token}`;
+  const claimUrl = `${getBaseUrl()}/member/claim?token=${token}`;
 
   await sendEmail({
     to: email,
@@ -429,7 +443,7 @@ async function sendAddedToMinistryEmail(
   firstName: string,
   ministryName: string
 ): Promise<void> {
-  const loginUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "https://zoweh-life.replit.app"}/member/login`;
+  const loginUrl = `${getBaseUrl()}/member/login`;
 
   await sendEmail({
     to: email,
@@ -456,7 +470,7 @@ async function sendPromotionToMemberEmail(
   ministryName: string,
   token: string
 ): Promise<void> {
-  const claimUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "https://zoweh-life.replit.app"}/member/claim?token=${token}`;
+  const claimUrl = `${getBaseUrl()}/member/claim?token=${token}`;
 
   await sendEmail({
     to: email,

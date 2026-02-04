@@ -2,6 +2,19 @@ import { storage } from "./storage";
 import { sendFollowUpReminderEmail } from "./email";
 
 const REMINDER_CHECK_INTERVAL = 60 * 60 * 1000; // Check every hour
+
+/**
+ * Get the base URL for the application
+ */
+function getBaseUrl(): string {
+  if (process.env.APP_URL) {
+    return process.env.APP_URL;
+  }
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  return "https://zowehlife.com";
+}
 const CONTACT_REMINDER_DAYS = 14; // Days before auto-changing to CONTACT_NEW_MEMBER
 const FOLLOWUP_PROGRESSION_DAYS = 20; // Days before auto-changing to next initiate stage
 
@@ -58,9 +71,8 @@ async function processUpcomingFollowUpReminders() {
         continue;
       }
 
-      // Build contact URL using Replit environment
-      const replitDomain = process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS?.split(',')[0];
-      const contactUrl = replitDomain ? `https://${replitDomain}/contact` : undefined;
+      // Build contact URL
+      const contactUrl = `${getBaseUrl()}/contact`;
       
       // Send reminder email
       const result = await sendFollowUpReminderEmail({
@@ -106,9 +118,8 @@ async function processNewMemberUpcomingFollowUpReminders() {
         continue;
       }
 
-      // Build contact URL using Replit environment
-      const replitDomain = process.env.REPLIT_DEV_DOMAIN || process.env.REPLIT_DOMAINS?.split(',')[0];
-      const contactUrl = replitDomain ? `https://${replitDomain}/contact` : undefined;
+      // Build contact URL
+      const contactUrl = `${getBaseUrl()}/contact`;
       
       // Send reminder email with custom subject/message if available
       const result = await sendFollowUpReminderEmail({
