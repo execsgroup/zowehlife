@@ -642,6 +642,84 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== MEMBER JOURNAL ENTRIES ====================
+
+  // Get member's journal entries
+  app.get("/api/member/journal", requireMemberAuth, async (req, res) => {
+    try {
+      const entries = await storage.getJournalEntriesByPerson(req.session.personId!);
+      res.json({ entries });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get journal entries" });
+    }
+  });
+
+  // Create a new journal entry
+  app.post("/api/member/journal", requireMemberAuth, async (req, res) => {
+    try {
+      const { title, content, isPrivate, shareWithMinistry } = req.body;
+      
+      if (!content || content.trim() === "") {
+        return res.status(400).json({ message: "Content is required" });
+      }
+
+      const entry = await storage.createJournalEntry({
+        personId: req.session.personId!,
+        title: title || null,
+        content,
+        isPrivate: isPrivate === false ? "false" : "true",
+        sharedWithMinistryId: shareWithMinistry && !isPrivate ? req.session.currentMinistryId : null,
+      });
+
+      res.json({ entry });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create journal entry" });
+    }
+  });
+
+  // Update a journal entry
+  app.patch("/api/member/journal/:id", requireMemberAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, content, isPrivate, shareWithMinistry } = req.body;
+
+      // Verify ownership
+      const existing = await storage.getJournalEntry(id);
+      if (!existing || existing.personId !== req.session.personId) {
+        return res.status(404).json({ message: "Entry not found" });
+      }
+
+      const entry = await storage.updateJournalEntry(id, {
+        title: title !== undefined ? title : existing.title,
+        content: content !== undefined ? content : existing.content,
+        isPrivate: isPrivate === false ? "false" : "true",
+        sharedWithMinistryId: shareWithMinistry && isPrivate === false ? req.session.currentMinistryId : null,
+      });
+
+      res.json({ entry });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update journal entry" });
+    }
+  });
+
+  // Delete a journal entry
+  app.delete("/api/member/journal/:id", requireMemberAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Verify ownership
+      const existing = await storage.getJournalEntry(id);
+      if (!existing || existing.personId !== req.session.personId) {
+        return res.status(404).json({ message: "Entry not found" });
+      }
+
+      await storage.deleteJournalEntry(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete journal entry" });
+    }
+  });
+
   // ==================== LEADER MEMBER ACCOUNT MANAGEMENT ====================
 
   // Get member accounts for ministry (leaders/admins only)
