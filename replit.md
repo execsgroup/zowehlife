@@ -32,7 +32,8 @@ The application is built with a clear separation of concerns, utilizing a React 
 - **Public Registration Links**: Churches can generate unique, shareable links for Salvation Forms, New Member Forms, and Member Forms, allowing self-submission which is automatically associated with the correct church.
 - **Ministry & Leader Registration Flow**:
     - Ministries register and are approved by a Platform Admin.
-    - Leaders request to join specific ministries and are approved by a Ministry Admin.
+    - Ministry Admins can directly add leaders (max 3 per ministry) with auto-generated passwords.
+- **Dynamic API Routing**: Role-based API path hooks (`useBasePath` and `useApiBasePath`) enable shared components to work across Leader, Ministry Admin, and Admin roles by dynamically resolving frontend routes and API endpoints.
 - **Church Logo Upload**: Leaders can upload church logos (up to 5MB, image only) via their dashboard, stored in Replit's Object Storage and displayed on public forms.
 - **Video Conferencing**: Jitsi Meet integration allows for auto-generated unique video call links for follow-ups without requiring external accounts or API keys.
 

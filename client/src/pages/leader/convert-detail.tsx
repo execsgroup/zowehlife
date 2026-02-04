@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert, type Checkin } from "@shared/schema";
 import {
@@ -109,6 +110,7 @@ interface ConvertWithCheckins extends Convert {
 export default function ConvertDetail() {
   const { toast } = useToast();
   const basePath = useBasePath();
+  const apiBasePath = useApiBasePath();
   const [location] = useLocation();
   const convertId = location.split('/').pop();
 
@@ -117,7 +119,7 @@ export default function ConvertDetail() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: convert, isLoading } = useQuery<ConvertWithCheckins>({
-    queryKey: ["/api/leader/converts", convertId],
+    queryKey: [`${apiBasePath}/converts`, convertId],
     enabled: !!convertId,
   });
 
@@ -166,15 +168,15 @@ export default function ConvertDetail() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateConvertData) => {
-      await apiRequest("PATCH", `/api/leader/converts/${convertId}`, data);
+      await apiRequest("PATCH", `${apiBasePath}/converts/${convertId}`, data);
     },
     onSuccess: () => {
       toast({
         title: "Convert updated",
         description: "The convert information has been updated.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts", convertId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convertId] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
       setEditDialogOpen(false);
     },
     onError: (error: Error) => {

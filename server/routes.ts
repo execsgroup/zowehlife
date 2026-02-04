@@ -2567,6 +2567,74 @@ export async function registerRoutes(
     }
   });
 
+  // Get single convert with checkins for ministry admin
+  app.get("/api/ministry-admin/converts/:id", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+
+      const convert = await storage.getConvert(id);
+      if (!convert) {
+        return res.status(404).json({ message: "Convert not found" });
+      }
+
+      if (convert.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const checkinsList = await storage.getCheckinsByConvert(id);
+
+      res.json({ ...convert, checkins: checkinsList });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get convert" });
+    }
+  });
+
+  // Update convert for ministry admin
+  app.patch("/api/ministry-admin/converts/:id", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = (req as any).user;
+
+      const convert = await storage.getConvert(id);
+      if (!convert) {
+        return res.status(404).json({ message: "Convert not found" });
+      }
+
+      if (convert.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const schema = z.object({
+        firstName: z.string().min(1).optional(),
+        lastName: z.string().min(1).optional(),
+        phone: z.string().optional(),
+        email: z.string().email().optional().or(z.literal("")),
+        address: z.string().optional(),
+        summaryNotes: z.string().optional(),
+        status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]).optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      const updated = await storage.updateConvert(id, data);
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "UPDATE",
+        entityType: "CONVERT",
+        entityId: id,
+      });
+
+      res.json(updated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to update convert" });
+    }
+  });
+
   // Cancel (archive) ministry account - Ministry Admin
   app.delete("/api/ministry-admin/church/cancel", requireMinistryAdmin, async (req, res) => {
     try {
