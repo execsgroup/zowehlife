@@ -15,6 +15,7 @@ import {
   Church, 
   Calendar,
   HandHeart,
+  BookOpen,
   Loader2 
 } from "lucide-react";
 
@@ -213,6 +214,25 @@ export default function MemberDashboard() {
                     <CardTitle className="text-lg">Prayer Requests</CardTitle>
                     <CardDescription>
                       {prayerRequests?.length || 0} requests submitted
+                    </CardDescription>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/member-portal/journal">
+            <Card className="hover-elevate cursor-pointer h-full">
+              <CardHeader className="flex flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">My Journal</CardTitle>
+                    <CardDescription>
+                      Personal reflections and notes
                     </CardDescription>
                   </div>
                 </div>

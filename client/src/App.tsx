@@ -48,6 +48,7 @@ import MemberPortalClaim from "@/pages/member-portal/claim";
 import MemberPortalDashboard from "@/pages/member-portal/dashboard";
 import MemberPortalPrayerRequests from "@/pages/member-portal/prayer-requests";
 import MemberPortalJourney from "@/pages/member-portal/journey";
+import MemberPortalJournal from "@/pages/member-portal/journal";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -260,6 +261,7 @@ function Router() {
       <Route path="/member-portal" component={MemberPortalDashboard} />
       <Route path="/member-portal/prayer-requests" component={MemberPortalPrayerRequests} />
       <Route path="/member-portal/journey" component={MemberPortalJourney} />
+      <Route path="/member-portal/journal" component={MemberPortalJournal} />
       
       {/* Fallback */}
       <Route component={NotFound} />
