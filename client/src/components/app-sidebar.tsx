@@ -55,7 +55,6 @@ const adminNavItems = [
   { title: "All Converts", url: "/admin/converts", icon: UserPlus },
   { title: "Prayer Requests", url: "/admin/prayer-requests", icon: HandHeart },
   { title: "Ministry Requests", url: "/admin/ministry-requests", icon: Building2 },
-  { title: "Leader Requests", url: "/admin/account-requests", icon: ClipboardList },
   { title: "Deleted Accounts", url: "/admin/deleted-accounts", icon: Archive },
 ];
 
