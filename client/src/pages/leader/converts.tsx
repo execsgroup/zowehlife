@@ -117,12 +117,12 @@ export default function LeaderConverts() {
     mutationFn: async (convertId: string) => {
       await apiRequest("DELETE", `/api/leader/remove/convert/${convertId}`);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Convert removed",
         description: "The convert has been removed from this ministry and notified via email.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/leader/converts"] });
       setRemoveDialogOpen(false);
       setConvertToRemove(null);
     },

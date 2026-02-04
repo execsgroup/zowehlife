@@ -151,12 +151,12 @@ export default function LeaderNewMembers() {
     mutationFn: async (newMemberId: string) => {
       await apiRequest("DELETE", `/api/leader/remove/new_member/${newMemberId}`);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "New member removed",
         description: "The new member has been removed from this ministry and notified via email.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/leader/new-members"] });
       setRemoveDialogOpen(false);
       setNewMemberToRemove(null);
     },
