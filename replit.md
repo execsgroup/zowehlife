@@ -46,8 +46,9 @@ The application is built with a clear separation of concerns, utilizing a React 
 - **Prayer Request Submission**: Public form for submitting prayer requests.
 - **Member Portal**: A dedicated portal for converts and members to:
     - View their spiritual journey timeline across ministries
-    - Track scheduled and completed follow-up sessions
+    - Track scheduled and completed follow-up sessions with video meeting links
     - Submit and view prayer requests
+    - Write private journal entries with optional ministry sharing
     - Switch between multiple ministry affiliations
 - **Member Account System**: Secure account provisioning with:
     - Automatic account creation when converts/members register via public forms

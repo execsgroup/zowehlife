@@ -16,6 +16,8 @@ import {
   Calendar,
   HandHeart,
   BookOpen,
+  Video,
+  ExternalLink,
   Loader2 
 } from "lucide-react";
 
@@ -52,6 +54,15 @@ interface JourneyItem {
   } | null;
 }
 
+interface FollowUp {
+  id: string;
+  scheduledDate: string;
+  status: string;
+  completedAt: string | null;
+  videoLink: string | null;
+  nextFollowupDate: string | null;
+}
+
 export default function MemberDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -67,6 +78,11 @@ export default function MemberDashboard() {
 
   const { data: prayerRequests } = useQuery<any[]>({
     queryKey: ["/api/member/prayer-requests"],
+    enabled: !!profile,
+  });
+
+  const { data: followUpsData } = useQuery<{ followUps: FollowUp[] }>({
+    queryKey: ["/api/member/follow-ups"],
     enabled: !!profile,
   });
 
@@ -241,6 +257,70 @@ export default function MemberDashboard() {
             </Card>
           </Link>
         </div>
+
+        {/* Upcoming Follow-ups Section */}
+        {followUpsData?.followUps && followUpsData.followUps.filter(fu => fu.status !== "COMPLETED").length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                Upcoming Follow-ups
+              </CardTitle>
+              <CardDescription>
+                Your scheduled sessions with ministry leaders
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {followUpsData.followUps
+                  .filter(fu => fu.status !== "COMPLETED")
+                  .map((followUp) => (
+                    <div
+                      key={followUp.id}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">
+                            {new Date(followUp.scheduledDate).toLocaleDateString(undefined, {
+                              weekday: "long",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Scheduled session with your leader
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {followUp.videoLink && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            data-testid={`button-join-video-${followUp.id}`}
+                          >
+                            <a 
+                              href={followUp.videoLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <Video className="h-4 w-4 mr-1" />
+                              Join
+                              <ExternalLink className="h-3 w-3 ml-1" />
+                            </a>
+                          </Button>
+                        )}
+                        <Badge variant="secondary">Scheduled</Badge>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>

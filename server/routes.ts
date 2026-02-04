@@ -628,12 +628,14 @@ export async function registerRoutes(
 
       const followUps = await storage.getFollowUpsByConvert(convert.id);
       
-      // Return follow-ups with minimal info (member should only see scheduled times and completion status)
+      // Return follow-ups with info member should see (scheduled times, video links, and completion status)
       const memberVisibleFollowUps = followUps.map(fu => ({
         id: fu.id,
         scheduledDate: fu.scheduledDate,
         status: fu.status,
         completedAt: fu.completedAt,
+        videoLink: fu.videoLink,
+        nextFollowupDate: fu.nextFollowupDate,
       }));
 
       res.json({ followUps: memberVisibleFollowUps });
