@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -37,6 +38,7 @@ export function ConvertAddNoteDialog({
   convert,
 }: ConvertAddNoteDialogProps) {
   const { toast } = useToast();
+  const apiBasePath = useApiBasePath();
 
   const form = useForm<AddNoteData>({
     resolver: zodResolver(addNoteSchema),
@@ -49,7 +51,7 @@ export function ConvertAddNoteDialog({
   const addNoteMutation = useMutation({
     mutationFn: async (data: AddNoteData) => {
       if (!convert) return;
-      await apiRequest("POST", `/api/leader/converts/${convert.id}/checkins`, {
+      await apiRequest("POST", `${apiBasePath}/converts/${convert.id}/checkins`, {
         checkinDate: format(new Date(), "yyyy-MM-dd"),
         outcome: data.outcome,
         notes: data.notes || "",
@@ -60,10 +62,10 @@ export function ConvertAddNoteDialog({
         title: "Notes recorded",
         description: "Your follow-up notes have been saved.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts", convert?.id?.toString()] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/stats`] });
       onOpenChange(false);
       form.reset({
         outcome: "CONNECTED",

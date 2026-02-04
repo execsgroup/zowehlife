@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
 import { AITextarea } from "@/components/ai-text-helper";
@@ -39,6 +40,7 @@ export function NewMemberScheduleFollowUpDialog({
   newMemberLastName,
 }: NewMemberScheduleFollowUpDialogProps) {
   const { toast } = useToast();
+  const apiBasePath = useApiBasePath();
 
   const form = useForm<ScheduleFollowUpData>({
     resolver: zodResolver(scheduleFollowUpSchema),
@@ -54,15 +56,15 @@ export function NewMemberScheduleFollowUpDialog({
 
   const scheduleFollowUpMutation = useMutation({
     mutationFn: async (data: ScheduleFollowUpData) => {
-      await apiRequest("POST", `/api/leader/new-members/${newMemberId}/schedule-followup`, data);
+      await apiRequest("POST", `${apiBasePath}/new-members/${newMemberId}/schedule-followup`, data);
     },
     onSuccess: () => {
       toast({
         title: "Follow-up scheduled",
         description: "The follow-up has been scheduled and notifications sent.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members", newMemberId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`, newMemberId] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
       onOpenChange(false);
       form.reset();
     },

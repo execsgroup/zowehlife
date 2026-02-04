@@ -3,23 +3,10 @@ import { sendEmail } from "./email";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import type { Person, MemberAccount, MinistryAffiliation } from "@shared/schema";
+import { getBaseUrl } from "./utils/url";
 
 const CLAIM_TOKEN_EXPIRY_HOURS = 24;
 const SALT_ROUNDS = 10;
-
-/**
- * Get the base URL for the application
- * Uses APP_URL in production, falls back to dev domain or default
- */
-function getBaseUrl(): string {
-  if (process.env.APP_URL) {
-    return process.env.APP_URL;
-  }
-  if (process.env.REPLIT_DEV_DOMAIN) {
-    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
-  }
-  return "https://zowehlife.com";
-}
 
 interface ProvisionResult {
   person: Person;

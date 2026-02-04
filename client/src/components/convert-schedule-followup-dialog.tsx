@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
 import { AITextarea } from "@/components/ai-text-helper";
@@ -42,6 +43,7 @@ export function ConvertScheduleFollowUpDialog({
   convert,
 }: ConvertScheduleFollowUpDialogProps) {
   const { toast } = useToast();
+  const apiBasePath = useApiBasePath();
 
   const form = useForm<ScheduleFollowUpData>({
     resolver: zodResolver(scheduleFollowUpSchema),
@@ -58,16 +60,16 @@ export function ConvertScheduleFollowUpDialog({
   const scheduleFollowUpMutation = useMutation({
     mutationFn: async (data: ScheduleFollowUpData) => {
       if (!convert) return;
-      await apiRequest("POST", `/api/leader/converts/${convert.id}/schedule-followup`, data);
+      await apiRequest("POST", `${apiBasePath}/converts/${convert.id}/schedule-followup`, data);
     },
     onSuccess: () => {
       toast({
         title: "Follow-up scheduled",
         description: "The follow-up has been scheduled and email notifications will be sent.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts", convert?.id?.toString()] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
       onOpenChange(false);
       form.reset({
         nextFollowupDate: "",

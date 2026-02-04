@@ -67,6 +67,13 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Person is notified via email about removal (if email is on file)
     - Person can still join other ministries through public registration forms
 
+## Environment Configuration
+The application uses environment-aware URL generation to ensure consistent behavior across development and production:
+- **APP_URL**: Set in production (e.g., `https://zowehlife.com`) for all email links and URLs
+- **REPLIT_DEV_DOMAIN**: Automatically available in development for dev URLs
+- **Centralized URL Utility**: `server/utils/url.ts` provides `getBaseUrl()` and `buildUrl()` functions used across the application
+- All components use dynamic paths via `useBasePath()` (frontend routes) and `useApiBasePath()` (API endpoints)
+
 ## External Dependencies
 - **PostgreSQL**: Primary database for data storage.
 - **Drizzle ORM**: Used for interacting with the PostgreSQL database.

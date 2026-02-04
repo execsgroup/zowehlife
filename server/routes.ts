@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail, sendMinistryRemovalEmail } from "./email";
 import { startReminderScheduler } from "./scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
+import { buildUrl } from "./utils/url";
 import OpenAI from "openai";
 import {
   provisionMemberAccountForConvert,
@@ -1639,9 +1640,7 @@ export async function registerRoutes(
       // Send follow-up notification email if a next follow-up date is set
       if (data.nextFollowupDate) {
         const church = await storage.getChurch(convert.churchId);
-        const protocol = req.headers['x-forwarded-proto'] || 'https';
-        const host = req.headers.host || 'localhost:5000';
-        const contactUrl = `${protocol}://${host}/contact`;
+        const contactUrl = buildUrl("/contact", req);
         
         sendFollowUpNotification({
           convertName: `${convert.firstName} ${convert.lastName}`,
@@ -3129,9 +3128,7 @@ export async function registerRoutes(
       });
 
       // Build contact form URL
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.headers.host || 'localhost:5000';
-      const contactUrl = `${protocol}://${host}/contact`;
+      const contactUrl = buildUrl("/contact", req);
       
       // Send follow-up notification emails
       console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
@@ -3224,9 +3221,7 @@ export async function registerRoutes(
 
       if (data.nextFollowupDate) {
         const church = await storage.getChurch(user.churchId);
-        const protocol = req.headers['x-forwarded-proto'] || 'https';
-        const host = req.headers.host || 'localhost:5000';
-        const contactUrl = `${protocol}://${host}/contact`;
+        const contactUrl = buildUrl("/contact", req);
         
         sendFollowUpNotification({
           convertName: `${convert.firstName} ${convert.lastName}`,
@@ -3640,9 +3635,7 @@ export async function registerRoutes(
       // Send follow-up notification if scheduled
       if (data.nextFollowupDate) {
         const church = await storage.getChurch(user.churchId);
-        const protocol = req.headers['x-forwarded-proto'] || 'https';
-        const host = req.headers.host || 'localhost:5000';
-        const contactUrl = `${protocol}://${host}/contact`;
+        const contactUrl = buildUrl("/contact", req);
         
         sendFollowUpNotification({
           convertName: `${newMember.firstName} ${newMember.lastName}`,
@@ -3746,9 +3739,7 @@ export async function registerRoutes(
       });
       
       // Build contact form URL
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.headers.host || 'localhost:5000';
-      const contactUrl = `${protocol}://${host}/contact`;
+      const contactUrl = buildUrl("/contact", req);
       
       // Send notification emails
       sendFollowUpNotification({
@@ -4316,9 +4307,7 @@ export async function registerRoutes(
       });
       
       // Build contact form URL
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const host = req.headers.host || 'localhost:5000';
-      const contactUrl = `${protocol}://${host}/contact`;
+      const contactUrl = buildUrl("/contact", req);
       
       // Send notification emails
       sendFollowUpNotification({
