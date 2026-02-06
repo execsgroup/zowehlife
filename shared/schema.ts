@@ -76,6 +76,7 @@ export const checkins = pgTable("checkins", {
   notes: text("notes"),
   outcome: checkinOutcomeEnum("outcome").notNull(),
   nextFollowupDate: date("next_followup_date"),
+  nextFollowupTime: text("next_followup_time"),
   videoLink: text("video_link"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -113,6 +114,7 @@ export const newMemberCheckins = pgTable("new_member_checkins", {
   notes: text("notes"),
   outcome: checkinOutcomeEnum("outcome").notNull(),
   nextFollowupDate: date("next_followup_date"),
+  nextFollowupTime: text("next_followup_time"),
   videoLink: text("video_link"),
   customReminderSubject: text("custom_reminder_subject"),
   customReminderMessage: text("custom_reminder_message"),
@@ -150,6 +152,7 @@ export const memberCheckins = pgTable("member_checkins", {
   notes: text("notes"),
   outcome: checkinOutcomeEnum("outcome").notNull(),
   nextFollowupDate: date("next_followup_date"),
+  nextFollowupTime: text("next_followup_time"),
   videoLink: text("video_link"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
