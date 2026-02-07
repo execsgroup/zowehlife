@@ -44,6 +44,7 @@ interface NewMemberCheckin {
   notes: string | null;
   outcome: string;
   nextFollowupDate: string | null;
+  nextFollowupTime: string | null;
   videoLink: string | null;
   createdAt: string;
 }
@@ -519,6 +520,7 @@ export default function NewMemberDetail() {
                             <span className="text-muted-foreground">
                               Next follow-up:{" "}
                               {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
+                              {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                             </span>
                           </div>
                         )}

@@ -69,6 +69,7 @@ async function processUpcomingFollowUpReminders() {
         leaderName: followup.leaderName,
         churchName: followup.churchName,
         followUpDate: followup.nextFollowupDate,
+        followUpTime: followup.nextFollowupTime || undefined,
         contactUrl,
       });
 
@@ -116,6 +117,7 @@ async function processNewMemberUpcomingFollowUpReminders() {
         leaderName: followup.leaderName,
         churchName: followup.churchName,
         followUpDate: followup.nextFollowupDate,
+        followUpTime: followup.nextFollowupTime || undefined,
         contactUrl,
         customSubject: followup.customReminderSubject || undefined,
         customMessage: followup.customReminderMessage || undefined,

@@ -636,6 +636,7 @@ export async function registerRoutes(
         completedAt: fu.completedAt,
         videoLink: fu.videoLink,
         nextFollowupDate: fu.nextFollowupDate,
+        nextFollowupTime: fu.nextFollowupTime,
       }));
 
       res.json({ followUps: memberVisibleFollowUps });
@@ -3165,6 +3166,7 @@ export async function registerRoutes(
 
       const schema = z.object({
         nextFollowupDate: z.string().min(1),
+        nextFollowupTime: z.string().optional(),
         customLeaderSubject: z.string().optional(),
         customLeaderMessage: z.string().optional(),
         customConvertSubject: z.string().optional(),
@@ -3191,9 +3193,10 @@ export async function registerRoutes(
         churchId: user.churchId,
         createdByUserId: user.id,
         checkinDate: new Date().toISOString().split('T')[0],
-        notes: `Follow-up scheduled for ${data.nextFollowupDate}`,
+        notes: `Follow-up scheduled for ${data.nextFollowupDate}${data.nextFollowupTime ? ' at ' + data.nextFollowupTime : ''}`,
         outcome: "SCHEDULED_VISIT",
         nextFollowupDate: data.nextFollowupDate,
+        nextFollowupTime: data.nextFollowupTime || null,
         videoLink: videoCallLink || null,
       });
 
@@ -3219,6 +3222,7 @@ export async function registerRoutes(
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
         followUpDate: data.nextFollowupDate,
+        followUpTime: data.nextFollowupTime || undefined,
         notes: data.notes || undefined,
         videoCallLink,
         contactUrl,
@@ -3761,6 +3765,7 @@ export async function registerRoutes(
       
       const schema = z.object({
         nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+        nextFollowupTime: z.string().optional(),
         includeVideoLink: z.boolean().optional(),
         customConvertMessage: z.string().optional(),
         customConvertSubject: z.string().optional(),
@@ -3787,6 +3792,7 @@ export async function registerRoutes(
         notes: null,
         outcome: "SCHEDULED_VISIT",
         nextFollowupDate: data.nextFollowupDate,
+        nextFollowupTime: data.nextFollowupTime || null,
         videoLink: videoLink || null,
         customReminderSubject: data.customReminderSubject || null,
         customReminderMessage: data.customReminderMessage || null,
@@ -3829,6 +3835,7 @@ export async function registerRoutes(
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
         followUpDate: data.nextFollowupDate,
+        followUpTime: data.nextFollowupTime || undefined,
         notes: undefined,
         videoCallLink: videoLink,
         contactUrl,
@@ -4346,6 +4353,7 @@ export async function registerRoutes(
       
       const schema = z.object({
         nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+        nextFollowupTime: z.string().optional(),
         notes: z.string().optional(),
         includeVideoLink: z.boolean().optional(),
         customLeaderMessage: z.string().optional(),
@@ -4373,6 +4381,7 @@ export async function registerRoutes(
         notes: data.notes || null,
         outcome: "SCHEDULED_VISIT",
         nextFollowupDate: data.nextFollowupDate,
+        nextFollowupTime: data.nextFollowupTime || null,
         videoLink: videoLink || null,
       });
       
@@ -4397,6 +4406,7 @@ export async function registerRoutes(
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
         followUpDate: data.nextFollowupDate,
+        followUpTime: data.nextFollowupTime || undefined,
         notes: data.notes || undefined,
         videoCallLink: videoLink,
         contactUrl,

@@ -18,9 +18,17 @@ interface FollowUp {
   convertPhone: string | null;
   convertEmail: string | null;
   nextFollowupDate: string;
+  nextFollowupTime: string | null;
   notes: string | null;
   videoLink: string | null;
 }
+
+const formatTime = (time: string) => {
+  const [h, m] = time.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
+};
 
 function getDateBadge(dateStr: string, id: string) {
   const date = new Date(dateStr);
@@ -111,6 +119,7 @@ export default function MinistryAdminFollowups() {
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                            {followup.nextFollowupTime && <span> at {formatTime(followup.nextFollowupTime)}</span>}
                           </div>
                         </TableCell>
                         <TableCell>

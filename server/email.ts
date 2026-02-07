@@ -60,6 +60,7 @@ interface FollowUpEmailData {
   leaderEmail: string;
   churchName: string;
   followUpDate: string;
+  followUpTime?: string;
   notes?: string;
   customLeaderMessage?: string;
   customConvertMessage?: string;
@@ -89,6 +90,12 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
       day: 'numeric'
     });
 
+    const formattedTime = data.followUpTime 
+      ? new Date(`2000-01-01T${data.followUpTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      : null;
+
+    const formattedDateTime = formattedTime ? `${formattedDate} at ${formattedTime}` : formattedDate;
+
     const emailsToSend: Promise<any>[] = [];
 
     // Video call section HTML
@@ -107,7 +114,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
             <h2 style="color: #333;">Follow-up Reminder</h2>
             <p>Hello ${data.leaderName},</p>
             <div style="white-space: pre-wrap; margin: 20px 0;">${data.customLeaderMessage}</div>
-            <p style="margin: 20px 0;"><strong>Follow-up Date:</strong> ${formattedDate}</p>
+            <p style="margin: 20px 0;"><strong>Follow-up Date:</strong> ${formattedDateTime}</p>
             ${videoCallSection}
             <p>Blessings,<br>${data.churchName}</p>
           </div>
@@ -117,14 +124,14 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
             <h2 style="color: #333;">Follow-up Reminder</h2>
             <p>Hello ${data.leaderName},</p>
             <p>This is a reminder that you have a scheduled follow-up with ${data.convertName}.</p>
-            <p style="margin: 20px 0;"><strong>Follow-up Date:</strong> ${formattedDate}</p>
+            <p style="margin: 20px 0;"><strong>Follow-up Date:</strong> ${formattedDateTime}</p>
             ${videoCallSection}
             <p>Please ensure to reach out and connect on the scheduled date.</p>
             <p>Blessings,<br>${data.churchName}</p>
           </div>
         `;
 
-    const leaderSubject = data.customLeaderSubject || `Follow-up Reminder: ${data.convertName} on ${formattedDate}`;
+    const leaderSubject = data.customLeaderSubject || `Follow-up Reminder: ${data.convertName} on ${formattedDateTime}`;
     
     // Build dynamic from address with ministry name as display name
     const getFromWithMinistry = (ministryName: string, email: string) => {
@@ -163,7 +170,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <h2 style="color: #333;">We're Here For You</h2>
               <p>Hello ${data.convertName},</p>
               <div style="white-space: pre-wrap; margin: 20px 0;">${data.customConvertMessage}</div>
-              <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
+              <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDateTime}</p>
               ${videoCallSection}
               <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
               ${contactButtonSection}
@@ -175,7 +182,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <h2 style="color: #333;">We're Here For You</h2>
               <p>Hello ${data.convertName},</p>
               <p>Thank you for worshiping and fellowshipping with us. We're grateful you joined us and pray your faith journey continues to grow stronger. Someone from ${data.churchName} will be reaching out soon to connect with you and see how we can support you.</p>
-              <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
+              <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDateTime}</p>
               ${videoCallSection}
               <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
               ${contactButtonSection}
@@ -313,6 +320,7 @@ interface ReminderEmailData {
   leaderName: string;
   churchName: string;
   followUpDate: string;
+  followUpTime?: string;
   contactUrl?: string;
   customSubject?: string;
   customMessage?: string;
@@ -328,6 +336,12 @@ export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
       month: 'long',
       day: 'numeric'
     });
+
+    const formattedTime = data.followUpTime 
+      ? new Date(`2000-01-01T${data.followUpTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      : null;
+
+    const formattedDateTime = formattedTime ? `${formattedDate} at ${formattedTime}` : formattedDate;
 
     // Build dynamic from address with ministry name
     const getFromWithMinistry = (ministryName: string, email: string) => {
@@ -360,7 +374,7 @@ export async function sendFollowUpReminderEmail(data: ReminderEmailData) {
           <h2 style="color: #333;">Just a Friendly Reminder</h2>
           <p>Hello ${data.convertName},</p>
           <p>${emailMessage}</p>
-          <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDate}</p>
+          <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDateTime}</p>
           <p>We're here to support you every step of the way. If you have any prayer requests or need anything before then, please don't hesitate to let us know.</p>
           ${contactButtonSection}
           <p>Blessings,<br>${data.churchName}</p>

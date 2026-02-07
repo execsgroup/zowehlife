@@ -125,6 +125,7 @@ export interface IStorage {
     convertPhone: string | null;
     convertEmail: string | null;
     nextFollowupDate: string;
+    nextFollowupTime: string | null;
     notes: string | null;
     videoLink: string | null;
   }>>;
@@ -173,6 +174,7 @@ export interface IStorage {
     leaderEmail: string;
     churchName: string;
     nextFollowupDate: string;
+    nextFollowupTime: string | null;
   }>>;
   getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>>;
   updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void>;
@@ -187,6 +189,7 @@ export interface IStorage {
     leaderEmail: string;
     churchName: string;
     nextFollowupDate: string;
+    nextFollowupTime: string | null;
     customReminderSubject: string | null;
     customReminderMessage: string | null;
   }>>;
@@ -218,6 +221,7 @@ export interface IStorage {
       convertId: string;
       convertName: string;
       nextFollowupDate: string;
+      nextFollowupTime: string | null;
       videoLink: string | null;
     }>;
   }>;
@@ -263,6 +267,7 @@ export interface IStorage {
     newMemberPhone: string | null;
     newMemberEmail: string | null;
     nextFollowupDate: string;
+    nextFollowupTime: string | null;
     notes: string | null;
     videoLink: string | null;
   }>>;
@@ -665,6 +670,7 @@ export class DatabaseStorage implements IStorage {
         convertPhone: converts.phone,
         convertEmail: converts.email,
         nextFollowupDate: checkins.nextFollowupDate,
+        nextFollowupTime: checkins.nextFollowupTime,
         notes: checkins.notes,
         videoLink: checkins.videoLink,
       })
@@ -889,6 +895,7 @@ export class DatabaseStorage implements IStorage {
         id: checkins.id,
         convertId: checkins.convertId,
         nextFollowupDate: checkins.nextFollowupDate,
+        nextFollowupTime: checkins.nextFollowupTime,
         videoLink: checkins.videoLink,
         firstName: converts.firstName,
         lastName: converts.lastName,
@@ -908,6 +915,7 @@ export class DatabaseStorage implements IStorage {
         convertId: f.convertId,
         convertName: `${f.firstName} ${f.lastName}`,
         nextFollowupDate: f.nextFollowupDate || "",
+        nextFollowupTime: f.nextFollowupTime,
         videoLink: f.videoLink || null,
       })),
     };
@@ -982,6 +990,7 @@ export class DatabaseStorage implements IStorage {
     leaderEmail: string;
     churchName: string;
     nextFollowupDate: string;
+    nextFollowupTime: string | null;
   }>> {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -999,6 +1008,7 @@ export class DatabaseStorage implements IStorage {
         leaderEmail: users.email,
         churchName: churches.name,
         nextFollowupDate: checkins.nextFollowupDate,
+        nextFollowupTime: checkins.nextFollowupTime,
       })
       .from(checkins)
       .innerJoin(converts, eq(checkins.convertId, converts.id))
@@ -1016,6 +1026,7 @@ export class DatabaseStorage implements IStorage {
       leaderEmail: r.leaderEmail,
       churchName: r.churchName,
       nextFollowupDate: r.nextFollowupDate || "",
+      nextFollowupTime: r.nextFollowupTime,
     }));
   }
 
@@ -1078,6 +1089,7 @@ export class DatabaseStorage implements IStorage {
     leaderEmail: string;
     churchName: string;
     nextFollowupDate: string;
+    nextFollowupTime: string | null;
     customReminderSubject: string | null;
     customReminderMessage: string | null;
   }>> {
@@ -1097,6 +1109,7 @@ export class DatabaseStorage implements IStorage {
         leaderEmail: users.email,
         churchName: churches.name,
         nextFollowupDate: newMemberCheckins.nextFollowupDate,
+        nextFollowupTime: newMemberCheckins.nextFollowupTime,
         customReminderSubject: newMemberCheckins.customReminderSubject,
         customReminderMessage: newMemberCheckins.customReminderMessage,
       })
@@ -1116,6 +1129,7 @@ export class DatabaseStorage implements IStorage {
       leaderEmail: r.leaderEmail,
       churchName: r.churchName,
       nextFollowupDate: r.nextFollowupDate || "",
+      nextFollowupTime: r.nextFollowupTime,
       customReminderSubject: r.customReminderSubject,
       customReminderMessage: r.customReminderMessage,
     }));
@@ -1227,6 +1241,7 @@ export class DatabaseStorage implements IStorage {
     newMemberPhone: string | null;
     newMemberEmail: string | null;
     nextFollowupDate: string;
+    nextFollowupTime: string | null;
     notes: string | null;
     videoLink: string | null;
   }>> {
@@ -1240,6 +1255,7 @@ export class DatabaseStorage implements IStorage {
         newMemberPhone: newMembers.phone,
         newMemberEmail: newMembers.email,
         nextFollowupDate: newMemberCheckins.nextFollowupDate,
+        nextFollowupTime: newMemberCheckins.nextFollowupTime,
         notes: newMemberCheckins.notes,
         videoLink: newMemberCheckins.videoLink,
       })
@@ -1261,6 +1277,7 @@ export class DatabaseStorage implements IStorage {
       newMemberPhone: r.newMemberPhone,
       newMemberEmail: r.newMemberEmail,
       nextFollowupDate: r.nextFollowupDate || "",
+      nextFollowupTime: r.nextFollowupTime,
       notes: r.notes,
       videoLink: r.videoLink,
     }));

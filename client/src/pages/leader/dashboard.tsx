@@ -22,6 +22,7 @@ interface LeaderStats {
     convertId: string;
     convertName: string;
     nextFollowupDate: string;
+    nextFollowupTime: string | null;
     videoLink: string | null;
   }>;
 }
@@ -324,6 +325,7 @@ export default function LeaderDashboard() {
                         <p className="text-sm text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {format(new Date(followup.nextFollowupDate), "EEEE, MMM d")}
+                          {followup.nextFollowupTime && (() => { const [h, m] = followup.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                         </p>
                       </div>
                     </Link>

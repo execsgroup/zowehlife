@@ -32,6 +32,7 @@ interface ConvertFollowUp {
   convertPhone: string | null;
   convertEmail: string | null;
   nextFollowupDate: string;
+  nextFollowupTime: string | null;
   notes: string | null;
   videoLink: string | null;
 }
@@ -44,6 +45,7 @@ interface NewMemberFollowUp {
   newMemberPhone: string | null;
   newMemberEmail: string | null;
   nextFollowupDate: string;
+  nextFollowupTime: string | null;
   notes: string | null;
   videoLink: string | null;
 }
@@ -55,8 +57,16 @@ const followUpNotesSchema = z.object({
 
 type FollowUpNotesData = z.infer<typeof followUpNotesSchema>;
 
+const formatTime = (time: string) => {
+  const [h, m] = time.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
+};
+
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+  nextFollowupTime: z.string().optional(),
   customLeaderSubject: z.string().optional(),
   customLeaderMessage: z.string().optional(),
   customConvertSubject: z.string().optional(),
@@ -122,6 +132,7 @@ export default function LeaderFollowups() {
     resolver: zodResolver(scheduleFollowUpSchema),
     defaultValues: {
       nextFollowupDate: "",
+      nextFollowupTime: "",
       customLeaderSubject: "",
       customLeaderMessage: "",
       customConvertSubject: "",
@@ -189,6 +200,7 @@ export default function LeaderFollowups() {
       setSelectedFollowUp(null);
       scheduleForm.reset({
         nextFollowupDate: "",
+        nextFollowupTime: "",
         includeVideoLink: true,
       });
     },
@@ -244,6 +256,7 @@ export default function LeaderFollowups() {
     });
     scheduleForm.reset({
       nextFollowupDate: "",
+      nextFollowupTime: "",
       customLeaderSubject: "",
       customLeaderMessage: "",
       customConvertSubject: "",
@@ -264,6 +277,7 @@ export default function LeaderFollowups() {
     });
     scheduleForm.reset({
       nextFollowupDate: "",
+      nextFollowupTime: "",
       customLeaderSubject: "",
       customLeaderMessage: "",
       customConvertSubject: "",
@@ -371,6 +385,7 @@ export default function LeaderFollowups() {
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span data-testid={`text-followup-date-${followup.id}`}>
                               {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                              {followup.nextFollowupTime && <span> at {formatTime(followup.nextFollowupTime)}</span>}
                             </span>
                           </div>
                         </TableCell>
@@ -502,6 +517,7 @@ export default function LeaderFollowups() {
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span data-testid={`text-newmember-date-${followup.id}`}>
                               {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                              {followup.nextFollowupTime && <span> at {formatTime(followup.nextFollowupTime)}</span>}
                             </span>
                           </div>
                         </TableCell>
@@ -688,6 +704,24 @@ export default function LeaderFollowups() {
                         type="date"
                         {...field}
                         data-testid="input-schedule-date"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={scheduleForm.control}
+                name="nextFollowupTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Follow-up Time (optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="time"
+                        {...field}
+                        data-testid="input-schedule-time"
                       />
                     </FormControl>
                     <FormMessage />

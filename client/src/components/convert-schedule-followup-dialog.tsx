@@ -15,6 +15,7 @@ import { AITextarea } from "@/components/ai-text-helper";
 
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+  nextFollowupTime: z.string().optional(),
   customLeaderSubject: z.string().optional(),
   customLeaderMessage: z.string().optional(),
   customConvertSubject: z.string().optional(),
@@ -49,6 +50,7 @@ export function ConvertScheduleFollowUpDialog({
     resolver: zodResolver(scheduleFollowUpSchema),
     defaultValues: {
       nextFollowupDate: "",
+      nextFollowupTime: "",
       customLeaderSubject: "",
       customLeaderMessage: "",
       customConvertSubject: "",
@@ -73,6 +75,7 @@ export function ConvertScheduleFollowUpDialog({
       onOpenChange(false);
       form.reset({
         nextFollowupDate: "",
+        nextFollowupTime: "",
         customLeaderSubject: "",
         customLeaderMessage: "",
         customConvertSubject: "",
@@ -113,6 +116,20 @@ export function ConvertScheduleFollowUpDialog({
                   <FormLabel>Follow-up Date *</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} data-testid="input-schedule-followup-date" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="nextFollowupTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Follow-up Time (optional)</FormLabel>
+                  <FormControl>
+                    <Input type="time" {...field} data-testid="input-schedule-followup-time" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

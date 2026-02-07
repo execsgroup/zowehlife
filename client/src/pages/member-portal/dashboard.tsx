@@ -57,6 +57,7 @@ interface JourneyItem {
 interface FollowUp {
   id: string;
   scheduledDate: string;
+  nextFollowupTime: string | null;
   status: string;
   completedAt: string | null;
   videoLink: string | null;
@@ -288,6 +289,7 @@ export default function MemberDashboard() {
                               month: "long",
                               day: "numeric",
                             })}
+                            {followUp.nextFollowupTime && (() => { const [h, m] = followUp.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             Scheduled session with your leader
