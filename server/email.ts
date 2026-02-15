@@ -68,6 +68,114 @@ interface FollowUpEmailData {
   customConvertSubject?: string;
   videoCallLink?: string;
   contactUrl?: string;
+  category?: string;
+}
+
+function getCategorySpecificEmail(category: string, convertName: string, churchName: string, formattedDateTime: string, videoCallSection: string, contactButtonSection: string): { subject: string; body: string } {
+  switch (category) {
+    case "converts":
+      return {
+        subject: `Your Faith Journey Matters - ${churchName}`,
+        body: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Welcome to Your New Journey of Faith</h2>
+            <p>Hello ${convertName},</p>
+            <p>We are so excited about your decision to follow Christ! This is the beginning of an incredible journey, and we want you to know that you are not walking it alone. The team at ${churchName} is here to support, encourage, and walk alongside you every step of the way.</p>
+            <p>We'd love to connect with you personally to answer any questions you may have, share some helpful resources, and get to know you better.</p>
+            <p style="margin: 20px 0;"><strong>Scheduled Follow-Up:</strong> ${formattedDateTime}</p>
+            ${videoCallSection}
+            <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out. We are praying for you!</p>
+            ${contactButtonSection}
+            <p>In Christ's love,<br>${churchName}</p>
+          </div>
+        `,
+      };
+    case "new_members":
+      return {
+        subject: `Welcome to the Family - ${churchName}`,
+        body: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Welcome to ${churchName}!</h2>
+            <p>Hello ${convertName},</p>
+            <p>Thank you for taking the step to become a part of our church family! We are thrilled to have you with us. Our heart is to see every member connected, growing, and thriving in community.</p>
+            <p>We'd love to connect with you to help you get plugged in, learn about the ministries and groups available, and answer any questions you might have about life at ${churchName}.</p>
+            <p style="margin: 20px 0;"><strong>Scheduled Follow-Up:</strong> ${formattedDateTime}</p>
+            ${videoCallSection}
+            <p>If there's anything we can do in the meantime, please don't hesitate to reach out. We're glad you're here!</p>
+            ${contactButtonSection}
+            <p>Blessings,<br>${churchName}</p>
+          </div>
+        `,
+      };
+    case "members":
+      return {
+        subject: `We'd Love to Check In - ${churchName}`,
+        body: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Checking In With You</h2>
+            <p>Hello ${convertName},</p>
+            <p>You are an important part of our ${churchName} family, and we just wanted to reach out and check in with you. Whether life has been full of blessings or you're going through a challenging season, we want you to know that we care and are here for you.</p>
+            <p>We'd love to catch up, hear how you're doing, and see if there's any way we can support you in your walk of faith.</p>
+            <p style="margin: 20px 0;"><strong>Scheduled Follow-Up:</strong> ${formattedDateTime}</p>
+            ${videoCallSection}
+            <p>If you have any prayer requests or need to talk sooner, please don't hesitate to reach out.</p>
+            ${contactButtonSection}
+            <p>With love,<br>${churchName}</p>
+          </div>
+        `,
+      };
+    case "guests":
+      return {
+        subject: `Great to Have You Visit - ${churchName}`,
+        body: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Thank You for Visiting!</h2>
+            <p>Hello ${convertName},</p>
+            <p>It was wonderful having you visit ${churchName}! We hope you felt welcomed and that your experience was meaningful. We'd love the opportunity to get to know you better and answer any questions you may have about our community.</p>
+            <p>One of our team members would like to connect with you personally.</p>
+            <p style="margin: 20px 0;"><strong>Scheduled Follow-Up:</strong> ${formattedDateTime}</p>
+            ${videoCallSection}
+            <p>We hope to see you again soon! If you'd like to reach out before then, please feel free.</p>
+            ${contactButtonSection}
+            <p>Warmly,<br>${churchName}</p>
+          </div>
+        `,
+      };
+    default:
+      return {
+        subject: `We'd love to connect with you - ${churchName}`,
+        body: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">We're Here For You</h2>
+            <p>Hello ${convertName},</p>
+            <p>Thank you for worshiping and fellowshipping with us. We're grateful you joined us and pray your faith journey continues to grow stronger. Someone from ${churchName} will be reaching out soon to connect with you and see how we can support you.</p>
+            <p style="margin: 20px 0;"><strong>Expected Contact Date:</strong> ${formattedDateTime}</p>
+            ${videoCallSection}
+            <p>If you have any prayer requests or need to connect sooner, please don't hesitate to reach out.</p>
+            ${contactButtonSection}
+            <p>Blessings,<br>${churchName}</p>
+          </div>
+        `,
+      };
+  }
+}
+
+function getCategorySpecificLeaderEmail(category: string, convertName: string, churchName: string, leaderName: string, formattedDateTime: string, videoCallSection: string): { subject: string; body: string } {
+  const categoryLabel = category === "converts" ? "new convert" : category === "new_members" ? "new member" : category === "members" ? "member" : category === "guests" ? "guest" : "person";
+  return {
+    subject: `${categoryLabel.charAt(0).toUpperCase() + categoryLabel.slice(1)} Follow-Up: ${convertName} on ${formattedDateTime}`,
+    body: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">${categoryLabel.charAt(0).toUpperCase() + categoryLabel.slice(1)} Follow-Up Reminder</h2>
+        <p>Hello ${leaderName},</p>
+        <p>This is a reminder that you have a scheduled follow-up with <strong>${convertName}</strong> (${categoryLabel}).</p>
+        <p style="margin: 20px 0;"><strong>Follow-up Date:</strong> ${formattedDateTime}</p>
+        ${videoCallSection}
+        <p>Please ensure to reach out and connect on the scheduled date.</p>
+        <p>Blessings,<br>${churchName}</p>
+      </div>
+    `,
+  };
 }
 
 export async function sendFollowUpNotification(data: FollowUpEmailData) {
@@ -107,7 +215,11 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
         </div>`
       : '';
 
-    // Build leader email content - use custom message if provided
+    // Build leader email content - use custom message if provided, or category-specific default
+    const categoryLeaderEmail = data.category 
+      ? getCategorySpecificLeaderEmail(data.category, data.convertName, data.churchName, data.leaderName, formattedDateTime, videoCallSection)
+      : null;
+
     const leaderEmailContent = data.customLeaderMessage 
       ? `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -119,7 +231,9 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
             <p>Blessings,<br>${data.churchName}</p>
           </div>
         `
-      : `
+      : categoryLeaderEmail
+        ? categoryLeaderEmail.body
+        : `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #333;">Follow-up Reminder</h2>
             <p>Hello ${data.leaderName},</p>
@@ -131,7 +245,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
           </div>
         `;
 
-    const leaderSubject = data.customLeaderSubject || `Follow-up Reminder: ${data.convertName} on ${formattedDateTime}`;
+    const leaderSubject = data.customLeaderSubject || (categoryLeaderEmail ? categoryLeaderEmail.subject : `Follow-up Reminder: ${data.convertName} on ${formattedDateTime}`);
     
     // Build dynamic from address with ministry name as display name
     const getFromWithMinistry = (ministryName: string, email: string) => {
@@ -163,7 +277,11 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
           </div>`
         : '';
       
-      // Build convert email content - use custom message if provided
+      // Build convert email content - use custom message if provided, or category-specific default
+      const categoryEmail = data.category
+        ? getCategorySpecificEmail(data.category, data.convertName, data.churchName, formattedDateTime, videoCallSection, contactButtonSection)
+        : null;
+
       const convertEmailContent = data.customConvertMessage
         ? `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -177,7 +295,9 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
               <p>Blessings,<br>${data.churchName}</p>
             </div>
           `
-        : `
+        : categoryEmail
+          ? categoryEmail.body
+          : `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #333;">We're Here For You</h2>
               <p>Hello ${data.convertName},</p>
@@ -190,7 +310,7 @@ export async function sendFollowUpNotification(data: FollowUpEmailData) {
             </div>
           `;
 
-      const convertSubject = data.customConvertSubject || `We'd love to connect with you - ${data.churchName}`;
+      const convertSubject = data.customConvertSubject || (categoryEmail ? categoryEmail.subject : `We'd love to connect with you - ${data.churchName}`);
       
       emailsToSend.push(
         client.emails.send({

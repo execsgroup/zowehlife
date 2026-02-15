@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { AITextarea } from "@/components/ai-text-helper";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
@@ -421,12 +421,14 @@ export default function MassFollowUp() {
 
                   <div className="space-y-2">
                     <Label htmlFor="custom-message">Custom Email Message (Optional)</Label>
-                    <Textarea
+                    <AITextarea
                       id="custom-message"
-                      placeholder="Add a personal message to include in the notification email..."
                       value={customMessage}
-                      onChange={(e) => setCustomMessage(e.target.value)}
-                      rows={3}
+                      onChange={setCustomMessage}
+                      placeholder="Add a personal message to include in the notification email..."
+                      context={`Writing a follow-up email message for ${categoryLabels[category] || "people"} at a church/ministry. The message should be warm, encouraging, and faith-based.`}
+                      aiPlaceholder="e.g., Make it more encouraging, add a scripture..."
+                      rows={4}
                       data-testid="input-custom-message"
                     />
                   </div>

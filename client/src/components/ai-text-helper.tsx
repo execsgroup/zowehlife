@@ -176,6 +176,7 @@ interface AITextareaProps {
   rows?: number;
   className?: string;
   disabled?: boolean;
+  id?: string;
   "data-testid"?: string;
 }
 
@@ -188,11 +189,13 @@ export function AITextarea({
   rows = 4,
   className = "",
   disabled = false,
+  id,
   "data-testid": dataTestId,
 }: AITextareaProps) {
   return (
     <div className="relative">
       <Textarea
+        id={id}
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}

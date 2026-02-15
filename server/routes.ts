@@ -2967,6 +2967,7 @@ export async function registerRoutes(
               contactUrl,
               customConvertSubject: data.customSubject || undefined,
               customConvertMessage: data.customMessage || undefined,
+              category: data.category,
             }).catch(err => console.error(`Email failed for ${personName}:`, err));
           }
 
@@ -4739,6 +4740,7 @@ export async function registerRoutes(
               contactUrl,
               customConvertSubject: data.customSubject || undefined,
               customConvertMessage: data.customMessage || undefined,
+              category: data.category,
             }).catch(err => console.error(`Email failed for ${personName}:`, err));
           }
 
