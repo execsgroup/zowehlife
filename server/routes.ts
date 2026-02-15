@@ -2902,6 +2902,20 @@ export async function registerRoutes(
       const churchName = church?.name || "Ministry";
       const leaderName = `${user.firstName} ${user.lastName}`;
       const contactUrl = buildUrl("/contact", req);
+      const sanitizedChurch = churchName.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+      const massFollowup = await storage.createMassFollowup({
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        category: data.category,
+        scheduledDate: data.nextFollowupDate,
+        scheduledTime: data.nextFollowupTime || null,
+        notes: `Mass follow-up scheduled for ${data.nextFollowupDate}${data.nextFollowupTime ? ` at ${data.nextFollowupTime}` : ""}`,
+        status: "SCHEDULED",
+        customSubject: data.customSubject || null,
+        customMessage: data.customMessage || null,
+        videoLink: data.includeVideoLink ? `https://meet.jit.si/${sanitizedChurch}-mass-${Date.now()}` : null,
+      });
 
       const results: { personId: string; name: string; success: boolean; error?: string }[] = [];
 
@@ -2926,32 +2940,28 @@ export async function registerRoutes(
           const personName = `${person.firstName} ${person.lastName}`;
           let videoLink: string | undefined;
           if (data.includeVideoLink) {
-            const sanitizedChurch = churchName.toLowerCase().replace(/[^a-z0-9]/g, "");
             const sanitizedName = `${person.firstName}-${person.lastName}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
             videoLink = `https://meet.jit.si/${sanitizedChurch}-${sanitizedName}-${Date.now()}`;
           }
 
-          const checkinData = {
-            churchId: user.churchId,
-            createdByUserId: user.id,
-            checkinDate: new Date().toISOString().split("T")[0],
-            notes: `Mass follow-up scheduled for ${data.nextFollowupDate}${data.nextFollowupTime ? ` at ${data.nextFollowupTime}` : ""}`,
-            outcome: "SCHEDULED_VISIT" as const,
-            nextFollowupDate: data.nextFollowupDate,
-            nextFollowupTime: data.nextFollowupTime || null,
+          await storage.createMassFollowupParticipant({
+            massFollowupId: massFollowup.id,
+            personCategory: data.category,
+            convertId: data.category === "converts" ? personId : null,
+            newMemberId: data.category === "new_members" ? personId : null,
+            memberId: data.category === "members" ? personId : null,
+            guestId: data.category === "guests" ? personId : null,
+            firstName: person.firstName,
+            lastName: person.lastName,
+            email: person.email || null,
+            attended: "false",
             videoLink: videoLink || null,
-          };
+          });
 
           if (data.category === "converts") {
-            await storage.createCheckin({ ...checkinData, convertId: personId });
             await storage.updateConvert(personId, { status: "SCHEDULED" });
           } else if (data.category === "new_members") {
-            await storage.createNewMemberCheckin({ ...checkinData, newMemberId: personId });
             await storage.updateNewMember(personId, { status: "SCHEDULED" });
-          } else if (data.category === "members") {
-            await storage.createMemberCheckin({ ...checkinData, memberId: personId });
-          } else if (data.category === "guests") {
-            await storage.createGuestCheckin({ ...checkinData, guestId: personId });
           }
 
           if (person.email) {
@@ -2992,12 +3002,106 @@ export async function registerRoutes(
         results,
         succeeded,
         failed,
+        massFollowupId: massFollowup.id,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
       res.status(500).json({ message: "Failed to schedule mass follow-ups" });
+    }
+  });
+
+  app.get("/api/ministry-admin/mass-followups", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const massFollowups = await storage.getMassFollowupsByChurch(user.churchId);
+      res.json(massFollowups);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get mass follow-ups" });
+    }
+  });
+
+  app.get("/api/ministry-admin/mass-followups/:id", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const massFollowup = await storage.getMassFollowup(req.params.id);
+      if (!massFollowup || massFollowup.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Mass follow-up not found" });
+      }
+      const participants = await storage.getMassFollowupParticipants(massFollowup.id);
+      res.json({ ...massFollowup, participants });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get mass follow-up" });
+    }
+  });
+
+  app.post("/api/ministry-admin/mass-followups/:id/complete", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const completeSchema = z.object({
+        notes: z.string().optional().default(""),
+        attendees: z.array(z.string()),
+      });
+      const data = completeSchema.parse(req.body);
+
+      const massFollowup = await storage.getMassFollowup(req.params.id);
+      if (!massFollowup || massFollowup.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Mass follow-up not found" });
+      }
+
+      const participants = await storage.getMassFollowupParticipants(massFollowup.id);
+
+      for (const participant of participants) {
+        const attended = data.attendees.includes(participant.id);
+        await storage.updateMassFollowupParticipant(participant.id, { attended: attended ? "true" : "false" });
+
+        if (attended) {
+          const checkinData = {
+            churchId: massFollowup.churchId,
+            createdByUserId: user.id,
+            checkinDate: new Date().toISOString().split("T")[0],
+            notes: data.notes || `Attended mass follow-up on ${massFollowup.scheduledDate}`,
+            outcome: "CONNECTED" as const,
+            nextFollowupDate: null,
+            nextFollowupTime: null,
+            videoLink: participant.videoLink || null,
+          };
+
+          if (massFollowup.category === "converts" && participant.convertId) {
+            await storage.createCheckin({ ...checkinData, convertId: participant.convertId });
+            await storage.updateConvert(participant.convertId, { status: "CONNECTED" });
+          } else if (massFollowup.category === "new_members" && participant.newMemberId) {
+            await storage.createNewMemberCheckin({ ...checkinData, newMemberId: participant.newMemberId });
+            await storage.updateNewMember(participant.newMemberId, { status: "CONNECTED" });
+          } else if (massFollowup.category === "members" && participant.memberId) {
+            await storage.createMemberCheckin({ ...checkinData, memberId: participant.memberId });
+          } else if (massFollowup.category === "guests" && participant.guestId) {
+            await storage.createGuestCheckin({ ...checkinData, guestId: participant.guestId });
+          }
+        }
+      }
+
+      const updated = await storage.updateMassFollowup(massFollowup.id, {
+        status: "COMPLETED",
+        completedAt: new Date(),
+        completionNotes: data.notes || null,
+      });
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "COMPLETE_MASS_FOLLOWUP",
+        entityType: "MASS_FOLLOWUP",
+        entityId: massFollowup.id,
+      });
+
+      const updatedParticipants = await storage.getMassFollowupParticipants(massFollowup.id);
+      res.json({ ...updated, participants: updatedParticipants });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to complete mass follow-up" });
     }
   });
 
@@ -4675,6 +4779,20 @@ export async function registerRoutes(
       const churchName = church?.name || "Ministry";
       const leaderName = `${user.firstName} ${user.lastName}`;
       const contactUrl = buildUrl("/contact", req);
+      const sanitizedChurch = churchName.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+      const massFollowup = await storage.createMassFollowup({
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        category: data.category,
+        scheduledDate: data.nextFollowupDate,
+        scheduledTime: data.nextFollowupTime || null,
+        notes: `Mass follow-up scheduled for ${data.nextFollowupDate}${data.nextFollowupTime ? ` at ${data.nextFollowupTime}` : ""}`,
+        status: "SCHEDULED",
+        customSubject: data.customSubject || null,
+        customMessage: data.customMessage || null,
+        videoLink: data.includeVideoLink ? `https://meet.jit.si/${sanitizedChurch}-mass-${Date.now()}` : null,
+      });
 
       const results: { personId: string; name: string; success: boolean; error?: string }[] = [];
 
@@ -4699,32 +4817,28 @@ export async function registerRoutes(
           const personName = `${person.firstName} ${person.lastName}`;
           let videoLink: string | undefined;
           if (data.includeVideoLink) {
-            const sanitizedChurch = churchName.toLowerCase().replace(/[^a-z0-9]/g, "");
             const sanitizedName = `${person.firstName}-${person.lastName}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
             videoLink = `https://meet.jit.si/${sanitizedChurch}-${sanitizedName}-${Date.now()}`;
           }
 
-          const checkinData = {
-            churchId: user.churchId,
-            createdByUserId: user.id,
-            checkinDate: new Date().toISOString().split("T")[0],
-            notes: `Mass follow-up scheduled for ${data.nextFollowupDate}${data.nextFollowupTime ? ` at ${data.nextFollowupTime}` : ""}`,
-            outcome: "SCHEDULED_VISIT" as const,
-            nextFollowupDate: data.nextFollowupDate,
-            nextFollowupTime: data.nextFollowupTime || null,
+          await storage.createMassFollowupParticipant({
+            massFollowupId: massFollowup.id,
+            personCategory: data.category,
+            convertId: data.category === "converts" ? personId : null,
+            newMemberId: data.category === "new_members" ? personId : null,
+            memberId: data.category === "members" ? personId : null,
+            guestId: data.category === "guests" ? personId : null,
+            firstName: person.firstName,
+            lastName: person.lastName,
+            email: person.email || null,
+            attended: "false",
             videoLink: videoLink || null,
-          };
+          });
 
           if (data.category === "converts") {
-            await storage.createCheckin({ ...checkinData, convertId: personId });
             await storage.updateConvert(personId, { status: "SCHEDULED" });
           } else if (data.category === "new_members") {
-            await storage.createNewMemberCheckin({ ...checkinData, newMemberId: personId });
             await storage.updateNewMember(personId, { status: "SCHEDULED" });
-          } else if (data.category === "members") {
-            await storage.createMemberCheckin({ ...checkinData, memberId: personId });
-          } else if (data.category === "guests") {
-            await storage.createGuestCheckin({ ...checkinData, guestId: personId });
           }
 
           if (person.email) {
@@ -4765,6 +4879,7 @@ export async function registerRoutes(
         results,
         succeeded,
         failed,
+        massFollowupId: massFollowup.id,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -4772,6 +4887,99 @@ export async function registerRoutes(
       }
       console.error("Error in mass followup:", error);
       res.status(500).json({ message: "Failed to schedule mass follow-ups" });
+    }
+  });
+
+  app.get("/api/leader/mass-followups", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const massFollowups = await storage.getMassFollowupsByChurch(user.churchId);
+      res.json(massFollowups);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get mass follow-ups" });
+    }
+  });
+
+  app.get("/api/leader/mass-followups/:id", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const massFollowup = await storage.getMassFollowup(req.params.id);
+      if (!massFollowup || massFollowup.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Mass follow-up not found" });
+      }
+      const participants = await storage.getMassFollowupParticipants(massFollowup.id);
+      res.json({ ...massFollowup, participants });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get mass follow-up" });
+    }
+  });
+
+  app.post("/api/leader/mass-followups/:id/complete", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const completeSchema = z.object({
+        notes: z.string().optional().default(""),
+        attendees: z.array(z.string()),
+      });
+      const data = completeSchema.parse(req.body);
+
+      const massFollowup = await storage.getMassFollowup(req.params.id);
+      if (!massFollowup || massFollowup.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Mass follow-up not found" });
+      }
+
+      const participants = await storage.getMassFollowupParticipants(massFollowup.id);
+
+      for (const participant of participants) {
+        const attended = data.attendees.includes(participant.id);
+        await storage.updateMassFollowupParticipant(participant.id, { attended: attended ? "true" : "false" });
+
+        if (attended) {
+          const checkinData = {
+            churchId: massFollowup.churchId,
+            createdByUserId: user.id,
+            checkinDate: new Date().toISOString().split("T")[0],
+            notes: data.notes || `Attended mass follow-up on ${massFollowup.scheduledDate}`,
+            outcome: "CONNECTED" as const,
+            nextFollowupDate: null,
+            nextFollowupTime: null,
+            videoLink: participant.videoLink || null,
+          };
+
+          if (massFollowup.category === "converts" && participant.convertId) {
+            await storage.createCheckin({ ...checkinData, convertId: participant.convertId });
+            await storage.updateConvert(participant.convertId, { status: "CONNECTED" });
+          } else if (massFollowup.category === "new_members" && participant.newMemberId) {
+            await storage.createNewMemberCheckin({ ...checkinData, newMemberId: participant.newMemberId });
+            await storage.updateNewMember(participant.newMemberId, { status: "CONNECTED" });
+          } else if (massFollowup.category === "members" && participant.memberId) {
+            await storage.createMemberCheckin({ ...checkinData, memberId: participant.memberId });
+          } else if (massFollowup.category === "guests" && participant.guestId) {
+            await storage.createGuestCheckin({ ...checkinData, guestId: participant.guestId });
+          }
+        }
+      }
+
+      const updated = await storage.updateMassFollowup(massFollowup.id, {
+        status: "COMPLETED",
+        completedAt: new Date(),
+        completionNotes: data.notes || null,
+      });
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "COMPLETE_MASS_FOLLOWUP",
+        entityType: "MASS_FOLLOWUP",
+        entityId: massFollowup.id,
+      });
+
+      const updatedParticipants = await storage.getMassFollowupParticipants(massFollowup.id);
+      res.json({ ...updated, participants: updatedParticipants });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to complete mass follow-up" });
     }
   });
 

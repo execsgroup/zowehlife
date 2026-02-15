@@ -14,6 +14,8 @@ export const followUpStageEnum = pgEnum("follow_up_stage", ["NEW", "CONTACT_NEW_
 export const memberAccountStatusEnum = pgEnum("member_account_status", ["PENDING_CLAIM", "ACTIVE", "SUSPENDED"]);
 export const affiliationTypeEnum = pgEnum("affiliation_type", ["convert", "new_member", "member"]);
 export const prayerRequestStatusEnum = pgEnum("prayer_request_status", ["SUBMITTED", "BEING_PRAYED_FOR", "FOLLOWUP_SCHEDULED", "ANSWERED", "CLOSED"]);
+export const massFollowupStatusEnum = pgEnum("mass_followup_status", ["SCHEDULED", "COMPLETED", "CANCELLED"]);
+export const massFollowupCategoryEnum = pgEnum("mass_followup_category", ["converts", "new_members", "members", "guests"]);
 
 // Churches table
 export const churches = pgTable("churches", {
@@ -189,6 +191,41 @@ export const guestCheckins = pgTable("guest_checkins", {
   outcome: checkinOutcomeEnum("outcome").notNull(),
   nextFollowupDate: date("next_followup_date"),
   nextFollowupTime: text("next_followup_time"),
+  videoLink: text("video_link"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Mass follow-ups table - groups multiple people into one follow-up session
+export const massFollowups = pgTable("mass_followups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  createdByUserId: varchar("created_by_user_id").notNull().references(() => users.id),
+  category: massFollowupCategoryEnum("category").notNull(),
+  scheduledDate: date("scheduled_date").notNull(),
+  scheduledTime: text("scheduled_time"),
+  notes: text("notes"),
+  completionNotes: text("completion_notes"),
+  status: massFollowupStatusEnum("status").notNull().default("SCHEDULED"),
+  customSubject: text("custom_subject"),
+  customMessage: text("custom_message"),
+  videoLink: text("video_link"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Mass follow-up participants - links individuals to a mass follow-up
+export const massFollowupParticipants = pgTable("mass_followup_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  massFollowupId: varchar("mass_followup_id").notNull().references(() => massFollowups.id),
+  personCategory: massFollowupCategoryEnum("person_category").notNull(),
+  convertId: varchar("convert_id").references(() => converts.id),
+  newMemberId: varchar("new_member_id").references(() => newMembers.id),
+  memberId: varchar("member_id").references(() => members.id),
+  guestId: varchar("guest_id").references(() => guests.id),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email"),
+  attended: text("attended").default("false"),
   videoLink: text("video_link"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -482,6 +519,16 @@ export const insertGuestCheckinSchema = createInsertSchema(guestCheckins).omit({
   createdAt: true,
 });
 
+export const insertMassFollowupSchema = createInsertSchema(massFollowups).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMassFollowupParticipantSchema = createInsertSchema(massFollowupParticipants).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertPersonSchema = createInsertSchema(persons).omit({
   id: true,
   createdAt: true,
@@ -629,6 +676,12 @@ export type InsertGuest = z.infer<typeof insertGuestSchema>;
 
 export type GuestCheckin = typeof guestCheckins.$inferSelect;
 export type InsertGuestCheckin = z.infer<typeof insertGuestCheckinSchema>;
+
+export type MassFollowup = typeof massFollowups.$inferSelect;
+export type InsertMassFollowup = z.infer<typeof insertMassFollowupSchema>;
+
+export type MassFollowupParticipant = typeof massFollowupParticipants.$inferSelect;
+export type InsertMassFollowupParticipant = z.infer<typeof insertMassFollowupParticipantSchema>;
 
 export type ArchivedMinistry = typeof archivedMinistries.$inferSelect;
 export type InsertArchivedMinistry = z.infer<typeof insertArchivedMinistrySchema>;

@@ -65,6 +65,12 @@ import {
   type InsertMemberPrayerRequest,
   type JournalEntry,
   type InsertJournalEntry,
+  massFollowups,
+  massFollowupParticipants,
+  type MassFollowup,
+  type InsertMassFollowup,
+  type MassFollowupParticipant,
+  type InsertMassFollowupParticipant,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -380,6 +386,15 @@ export interface IStorage {
   createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
   updateJournalEntry(id: string, data: Partial<InsertJournalEntry>): Promise<JournalEntry>;
   deleteJournalEntry(id: string): Promise<void>;
+
+  // Mass Follow-ups
+  createMassFollowup(data: InsertMassFollowup): Promise<MassFollowup>;
+  getMassFollowup(id: string): Promise<MassFollowup | undefined>;
+  getMassFollowupsByChurch(churchId: string): Promise<MassFollowup[]>;
+  updateMassFollowup(id: string, data: Partial<InsertMassFollowup>): Promise<MassFollowup>;
+  createMassFollowupParticipant(data: InsertMassFollowupParticipant): Promise<MassFollowupParticipant>;
+  getMassFollowupParticipants(massFollowupId: string): Promise<MassFollowupParticipant[]>;
+  updateMassFollowupParticipant(id: string, data: Partial<InsertMassFollowupParticipant>): Promise<MassFollowupParticipant>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2122,6 +2137,44 @@ export class DatabaseStorage implements IStorage {
 
   async deleteJournalEntry(id: string): Promise<void> {
     await db.delete(journalEntries).where(eq(journalEntries.id, id));
+  }
+
+  // Mass Follow-ups
+  async createMassFollowup(data: InsertMassFollowup): Promise<MassFollowup> {
+    const [created] = await db.insert(massFollowups).values(data).returning();
+    return created;
+  }
+
+  async getMassFollowup(id: string): Promise<MassFollowup | undefined> {
+    const [result] = await db.select().from(massFollowups).where(eq(massFollowups.id, id));
+    return result || undefined;
+  }
+
+  async getMassFollowupsByChurch(churchId: string): Promise<MassFollowup[]> {
+    return await db.select().from(massFollowups)
+      .where(eq(massFollowups.churchId, churchId))
+      .orderBy(desc(massFollowups.createdAt));
+  }
+
+  async updateMassFollowup(id: string, data: Partial<InsertMassFollowup>): Promise<MassFollowup> {
+    const [updated] = await db.update(massFollowups).set(data).where(eq(massFollowups.id, id)).returning();
+    return updated;
+  }
+
+  async createMassFollowupParticipant(data: InsertMassFollowupParticipant): Promise<MassFollowupParticipant> {
+    const [created] = await db.insert(massFollowupParticipants).values(data).returning();
+    return created;
+  }
+
+  async getMassFollowupParticipants(massFollowupId: string): Promise<MassFollowupParticipant[]> {
+    return await db.select().from(massFollowupParticipants)
+      .where(eq(massFollowupParticipants.massFollowupId, massFollowupId))
+      .orderBy(massFollowupParticipants.lastName);
+  }
+
+  async updateMassFollowupParticipant(id: string, data: Partial<InsertMassFollowupParticipant>): Promise<MassFollowupParticipant> {
+    const [updated] = await db.update(massFollowupParticipants).set(data).where(eq(massFollowupParticipants.id, id)).returning();
+    return updated;
   }
 }
 

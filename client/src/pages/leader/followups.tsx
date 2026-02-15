@@ -16,12 +16,13 @@ import { AITextarea } from "@/components/ai-text-helper";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Video } from "lucide-react";
+import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Video, Users } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface ConvertFollowUp {
@@ -48,6 +49,38 @@ interface NewMemberFollowUp {
   nextFollowupTime: string | null;
   notes: string | null;
   videoLink: string | null;
+}
+
+interface MassFollowupParticipant {
+  id: string;
+  massFollowupId: string;
+  personCategory: string;
+  convertId: string | null;
+  newMemberId: string | null;
+  memberId: string | null;
+  guestId: string | null;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  attended: string;
+  videoLink: string | null;
+}
+
+interface MassFollowupData {
+  id: string;
+  churchId: string;
+  createdByUserId: string;
+  category: string;
+  scheduledDate: string;
+  scheduledTime: string | null;
+  notes: string | null;
+  completionNotes: string | null;
+  status: string;
+  customSubject: string | null;
+  customMessage: string | null;
+  videoLink: string | null;
+  completedAt: string | null;
+  createdAt: string;
 }
 
 const followUpNotesSchema = z.object({
@@ -106,9 +139,15 @@ interface SelectedFollowUp {
 export default function LeaderFollowups() {
   const { toast } = useToast();
   const basePath = useBasePath();
+  const apiBasePath = useApiBasePath();
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [selectedFollowUp, setSelectedFollowUp] = useState<SelectedFollowUp | null>(null);
+  const [massNotesDialogOpen, setMassNotesDialogOpen] = useState(false);
+  const [selectedMassFollowup, setSelectedMassFollowup] = useState<MassFollowupData | null>(null);
+  const [massParticipants, setMassParticipants] = useState<MassFollowupParticipant[]>([]);
+  const [attendeeIds, setAttendeeIds] = useState<string[]>([]);
+  const [massNotes, setMassNotes] = useState("");
 
   const { data: convertFollowups, isLoading: isLoadingConverts } = useQuery<ConvertFollowUp[]>({
     queryKey: ["/api/leader/followups"],
@@ -116,6 +155,10 @@ export default function LeaderFollowups() {
 
   const { data: newMemberFollowups, isLoading: isLoadingNewMembers } = useQuery<NewMemberFollowUp[]>({
     queryKey: ["/api/leader/new-member-followups"],
+  });
+
+  const { data: massFollowups, isLoading: isLoadingMass } = useQuery<MassFollowupData[]>({
+    queryKey: [`${apiBasePath}/mass-followups`],
   });
 
   const isLoading = isLoadingConverts || isLoadingNewMembers;
@@ -287,6 +330,45 @@ export default function LeaderFollowups() {
     setScheduleDialogOpen(true);
   };
 
+  const handleOpenMassNotes = async (massFollowup: MassFollowupData) => {
+    setSelectedMassFollowup(massFollowup);
+    setMassNotes("");
+    try {
+      const res = await fetch(`${apiBasePath}/mass-followups/${massFollowup.id}`, { credentials: "include" });
+      const data = await res.json();
+      setMassParticipants(data.participants || []);
+      setAttendeeIds((data.participants || []).map((p: MassFollowupParticipant) => p.id));
+    } catch {
+      setMassParticipants([]);
+      setAttendeeIds([]);
+    }
+    setMassNotesDialogOpen(true);
+  };
+
+  const completeMassMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedMassFollowup) return;
+      await apiRequest("POST", `${apiBasePath}/mass-followups/${selectedMassFollowup.id}/complete`, {
+        notes: massNotes,
+        attendees: attendeeIds,
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Mass follow-up completed", description: "Attendance recorded and follow-ups logged for attendees." });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/mass-followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      setMassNotesDialogOpen(false);
+      setSelectedMassFollowup(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: "Error", description: error.message || "Failed to complete", variant: "destructive" });
+    },
+  });
+
   const handleExportExcel = async () => {
     try {
       const response = await fetch("/api/leader/followups/export-excel");
@@ -323,6 +405,85 @@ export default function LeaderFollowups() {
             <FileSpreadsheet className="h-4 w-4" />
             Export Excel
           </Button>
+        </div>
+
+        {/* Mass Follow-ups Section */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold" data-testid="text-mass-followup-section-title">Mass Follow-ups</h3>
+          <Card>
+            <CardContent className="p-0">
+              {isLoadingMass ? (
+                <div className="p-6 space-y-4">
+                  {[...Array(2)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : massFollowups && massFollowups.filter(mf => mf.status === "SCHEDULED").length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Scheduled Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {massFollowups.filter(mf => mf.status === "SCHEDULED").map((mf) => (
+                      <TableRow key={mf.id} data-testid={`row-mass-followup-${mf.id}`}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium capitalize" data-testid={`text-mass-category-${mf.id}`}>
+                              {mf.category.replace("_", " ")}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span data-testid={`text-mass-date-${mf.id}`}>
+                              {format(new Date(mf.scheduledDate), "MMM d, yyyy")}
+                              {mf.scheduledTime && <span> at {formatTime(mf.scheduledTime)}</span>}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getDateBadge(mf.scheduledDate, `mass-${mf.id}`)}
+                        </TableCell>
+                        <TableCell className="max-w-[200px]">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {mf.notes || "—"}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="default"
+                                size="icon"
+                                onClick={() => handleOpenMassNotes(mf)}
+                                data-testid={`button-mass-notes-${mf.id}`}
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Record Attendance & Notes</TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="p-8 text-center">
+                  <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-muted-foreground">No upcoming mass follow-ups</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Convert Follow-ups Section */}
@@ -876,6 +1037,110 @@ export default function LeaderFollowups() {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mass Follow-up Completion Dialog */}
+      <Dialog open={massNotesDialogOpen} onOpenChange={setMassNotesDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Record Mass Follow-up</DialogTitle>
+            <DialogDescription>
+              {selectedMassFollowup && (
+                <>
+                  Mark attendance for the {selectedMassFollowup.category.replace("_", " ")} follow-up scheduled on{" "}
+                  {format(new Date(selectedMassFollowup.scheduledDate), "MMMM d, yyyy")}
+                  {selectedMassFollowup.scheduledTime && ` at ${formatTime(selectedMassFollowup.scheduledTime)}`}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Attendance ({attendeeIds.length} of {massParticipants.length} selected)</label>
+              <div className="border rounded-md max-h-[240px] overflow-y-auto">
+                {massParticipants.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 p-3 border-b last:border-b-0"
+                    data-testid={`participant-row-${p.id}`}
+                  >
+                    <Checkbox
+                      checked={attendeeIds.includes(p.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setAttendeeIds((prev) => [...prev, p.id]);
+                        } else {
+                          setAttendeeIds((prev) => prev.filter((id) => id !== p.id));
+                        }
+                      }}
+                      data-testid={`checkbox-participant-${p.id}`}
+                    />
+                    <div className="flex-1">
+                      <span className="font-medium">{p.firstName} {p.lastName}</span>
+                      {p.email && (
+                        <span className="text-sm text-muted-foreground ml-2">{p.email}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAttendeeIds(massParticipants.map((p) => p.id))}
+                  data-testid="button-select-all-attendees"
+                >
+                  Select All
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAttendeeIds([])}
+                  data-testid="button-deselect-all-attendees"
+                >
+                  Deselect All
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="mass-notes">Meeting Notes</label>
+              <Textarea
+                id="mass-notes"
+                placeholder="What happened during this mass follow-up? Any key takeaways?"
+                className="resize-none min-h-[100px]"
+                value={massNotes}
+                onChange={(e) => setMassNotes(e.target.value)}
+                data-testid="input-mass-notes"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMassNotesDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => completeMassMutation.mutate()}
+                disabled={completeMassMutation.isPending}
+                data-testid="button-complete-mass-followup"
+              >
+                {completeMassMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Completing...
+                  </>
+                ) : (
+                  "Complete Follow-up"
+                )}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
