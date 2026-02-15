@@ -40,6 +40,7 @@ import {
   MessageSquare,
   Archive,
   UserCog,
+  UsersRound,
 } from "lucide-react";
 
 interface ChurchData {
@@ -65,6 +66,7 @@ const ministryAdminNavItems = [
   { title: "Members", url: "/ministry-admin/members", icon: Church },
   { title: "Guest List", url: "/ministry-admin/guests", icon: Users2 },
   { title: "Follow-ups", url: "/ministry-admin/followups", icon: CalendarClock },
+  { title: "Mass Follow-Up", url: "/ministry-admin/mass-followup", icon: UsersRound },
   { title: "Member Accounts", url: "/ministry-admin/member-accounts", icon: UserCog },
   { title: "Prayer Requests", url: "/ministry-admin/prayer-requests", icon: HandHeart },
   { title: "Contact Requests", url: "/ministry-admin/contact-requests", icon: MessageSquare },
@@ -79,6 +81,7 @@ const leaderNavItems = [
   { title: "Members", url: "/leader/members", icon: Church },
   { title: "Guest List", url: "/leader/guests", icon: Users2 },
   { title: "Follow-ups", url: "/leader/followups", icon: CalendarClock },
+  { title: "Mass Follow-Up", url: "/leader/mass-followup", icon: UsersRound },
   { title: "Member Accounts", url: "/leader/member-accounts", icon: UserCog },
   { title: "Prayer Requests", url: "/leader/prayer-requests", icon: HandHeart },
   { title: "Contact Requests", url: "/leader/contact-requests", icon: MessageSquare },

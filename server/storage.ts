@@ -14,6 +14,7 @@ import {
   members,
   memberCheckins,
   guests,
+  guestCheckins,
   archivedMinistries,
   persons,
   memberAccounts,
@@ -48,6 +49,8 @@ import {
   type InsertMemberCheckin,
   type Guest,
   type InsertGuest,
+  type GuestCheckin,
+  type InsertGuestCheckin,
   type ArchivedMinistry,
   type InsertArchivedMinistry,
   type Person,
@@ -303,6 +306,9 @@ export interface IStorage {
   createGuest(guest: InsertGuest): Promise<Guest>;
   updateGuest(id: string, data: Partial<InsertGuest>): Promise<Guest>;
   deleteGuest(id: string): Promise<void>;
+
+  // Guest Check-ins
+  createGuestCheckin(checkin: InsertGuestCheckin): Promise<GuestCheckin>;
 
   // New Member Follow-up Stage
   updateNewMemberFollowUpStage(id: string, stage: string, completedAt?: Date): Promise<NewMember>;
@@ -1448,6 +1454,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteGuest(id: string): Promise<void> {
     await db.delete(guests).where(eq(guests.id, id));
+  }
+
+  // Guest Check-ins
+  async createGuestCheckin(checkin: InsertGuestCheckin): Promise<GuestCheckin> {
+    const [created] = await db.insert(guestCheckins).values(checkin).returning();
+    return created;
   }
 
   // New Member Follow-up Stage

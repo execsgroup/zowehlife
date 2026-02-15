@@ -2828,6 +2828,178 @@ export async function registerRoutes(
     }
   });
 
+  // Ministry Admin Mass Follow-Up (delegates to the same logic as leader)
+  app.post("/api/ministry-admin/mass-followup/candidates", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const schema = z.object({
+        category: z.enum(["converts", "new_members", "members", "guests"]),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+      });
+      const data = schema.parse(req.body);
+
+      let people: any[] = [];
+      if (data.category === "converts") {
+        people = await storage.getConvertsByChurch(user.churchId);
+      } else if (data.category === "new_members") {
+        people = await storage.getNewMembersByChurch(user.churchId);
+      } else if (data.category === "members") {
+        people = await storage.getMembersByChurch(user.churchId);
+      } else if (data.category === "guests") {
+        people = await storage.getGuestsByChurch(user.churchId);
+      }
+
+      if (data.dateFrom || data.dateTo) {
+        people = people.filter((p: any) => {
+          let dateField: string | null = null;
+          if (data.category === "members" && p.memberSince) {
+            dateField = p.memberSince;
+          } else if (p.createdAt) {
+            dateField = typeof p.createdAt === "string" ? p.createdAt : new Date(p.createdAt).toISOString().split("T")[0];
+          }
+          if (!dateField) return true;
+          const d = dateField.split("T")[0];
+          if (data.dateFrom && d < data.dateFrom) return false;
+          if (data.dateTo && d > data.dateTo) return false;
+          return true;
+        });
+      }
+
+      const candidates = people.map((p: any) => ({
+        id: p.id,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email || null,
+        phone: p.phone || null,
+        date: data.category === "members" ? (p.memberSince || p.createdAt) : p.createdAt,
+      }));
+
+      res.json(candidates);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to fetch candidates" });
+    }
+  });
+
+  app.post("/api/ministry-admin/mass-followup", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const schema = z.object({
+        category: z.enum(["converts", "new_members", "members", "guests"]),
+        personIds: z.array(z.string()).min(1, "Select at least one person"),
+        nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+        nextFollowupTime: z.string().optional(),
+        includeVideoLink: z.boolean().optional(),
+        customSubject: z.string().optional(),
+        customMessage: z.string().optional(),
+      });
+      const data = schema.parse(req.body);
+
+      const church = await storage.getChurch(user.churchId);
+      const churchName = church?.name || "Ministry";
+      const leaderName = `${user.firstName} ${user.lastName}`;
+      const contactUrl = buildUrl("/contact", req);
+
+      const results: { personId: string; name: string; success: boolean; error?: string }[] = [];
+
+      for (const personId of data.personIds) {
+        try {
+          let person: any = null;
+          if (data.category === "converts") {
+            person = await storage.getConvert(personId);
+          } else if (data.category === "new_members") {
+            person = await storage.getNewMember(personId);
+          } else if (data.category === "members") {
+            person = await storage.getMember(personId);
+          } else if (data.category === "guests") {
+            person = await storage.getGuest(personId);
+          }
+
+          if (!person || person.churchId !== user.churchId) {
+            results.push({ personId, name: "Unknown", success: false, error: "Not found or access denied" });
+            continue;
+          }
+
+          const personName = `${person.firstName} ${person.lastName}`;
+          let videoLink: string | undefined;
+          if (data.includeVideoLink) {
+            const sanitizedChurch = churchName.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const sanitizedName = `${person.firstName}-${person.lastName}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
+            videoLink = `https://meet.jit.si/${sanitizedChurch}-${sanitizedName}-${Date.now()}`;
+          }
+
+          const checkinData = {
+            churchId: user.churchId,
+            createdByUserId: user.id,
+            checkinDate: new Date().toISOString().split("T")[0],
+            notes: `Mass follow-up scheduled for ${data.nextFollowupDate}${data.nextFollowupTime ? ` at ${data.nextFollowupTime}` : ""}`,
+            outcome: "SCHEDULED_VISIT" as const,
+            nextFollowupDate: data.nextFollowupDate,
+            nextFollowupTime: data.nextFollowupTime || null,
+            videoLink: videoLink || null,
+          };
+
+          if (data.category === "converts") {
+            await storage.createCheckin({ ...checkinData, convertId: personId });
+            await storage.updateConvert(personId, { status: "SCHEDULED" });
+          } else if (data.category === "new_members") {
+            await storage.createNewMemberCheckin({ ...checkinData, newMemberId: personId });
+            await storage.updateNewMember(personId, { status: "SCHEDULED" });
+          } else if (data.category === "members") {
+            await storage.createMemberCheckin({ ...checkinData, memberId: personId });
+          } else if (data.category === "guests") {
+            await storage.createGuestCheckin({ ...checkinData, guestId: personId });
+          }
+
+          if (person.email) {
+            sendFollowUpNotification({
+              convertName: personName,
+              convertEmail: person.email,
+              leaderName,
+              leaderEmail: user.email,
+              churchName,
+              followUpDate: data.nextFollowupDate,
+              followUpTime: data.nextFollowupTime || undefined,
+              videoCallLink: videoLink,
+              contactUrl,
+              customConvertSubject: data.customSubject || undefined,
+              customConvertMessage: data.customMessage || undefined,
+            }).catch(err => console.error(`Email failed for ${personName}:`, err));
+          }
+
+          results.push({ personId, name: personName, success: true });
+        } catch (err: any) {
+          results.push({ personId, name: "Unknown", success: false, error: err.message });
+        }
+      }
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "MASS_SCHEDULE_FOLLOWUP",
+        entityType: data.category.toUpperCase(),
+        entityId: data.personIds.join(","),
+      });
+
+      const succeeded = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success).length;
+
+      res.json({
+        message: `Follow-ups scheduled for ${succeeded} ${succeeded === 1 ? "person" : "people"}${failed > 0 ? `, ${failed} failed` : ""}`,
+        results,
+        succeeded,
+        failed,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to schedule mass follow-ups" });
+    }
+  });
+
   // ==================== LEADER ROUTES ====================
 
   // Leader stats
@@ -4423,6 +4595,181 @@ export async function registerRoutes(
       }
       console.error("Error scheduling follow-up:", error);
       res.status(500).json({ message: "Failed to schedule follow-up" });
+    }
+  });
+
+  // ===== MASS FOLLOW-UP ROUTES =====
+
+  app.post("/api/leader/mass-followup/candidates", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const schema = z.object({
+        category: z.enum(["converts", "new_members", "members", "guests"]),
+        dateFrom: z.string().optional(),
+        dateTo: z.string().optional(),
+      });
+      const data = schema.parse(req.body);
+
+      let people: any[] = [];
+      if (data.category === "converts") {
+        people = await storage.getConvertsByChurch(user.churchId);
+      } else if (data.category === "new_members") {
+        people = await storage.getNewMembersByChurch(user.churchId);
+      } else if (data.category === "members") {
+        people = await storage.getMembersByChurch(user.churchId);
+      } else if (data.category === "guests") {
+        people = await storage.getGuestsByChurch(user.churchId);
+      }
+
+      if (data.dateFrom || data.dateTo) {
+        people = people.filter((p: any) => {
+          let dateField: string | null = null;
+          if (data.category === "members" && p.memberSince) {
+            dateField = p.memberSince;
+          } else if (p.createdAt) {
+            dateField = typeof p.createdAt === "string" ? p.createdAt : new Date(p.createdAt).toISOString().split("T")[0];
+          }
+          if (!dateField) return true;
+          const d = dateField.split("T")[0];
+          if (data.dateFrom && d < data.dateFrom) return false;
+          if (data.dateTo && d > data.dateTo) return false;
+          return true;
+        });
+      }
+
+      const candidates = people.map((p: any) => ({
+        id: p.id,
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email || null,
+        phone: p.phone || null,
+        date: data.category === "members" ? (p.memberSince || p.createdAt) : p.createdAt,
+      }));
+
+      res.json(candidates);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error fetching mass followup candidates:", error);
+      res.status(500).json({ message: "Failed to fetch candidates" });
+    }
+  });
+
+  app.post("/api/leader/mass-followup", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const schema = z.object({
+        category: z.enum(["converts", "new_members", "members", "guests"]),
+        personIds: z.array(z.string()).min(1, "Select at least one person"),
+        nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+        nextFollowupTime: z.string().optional(),
+        includeVideoLink: z.boolean().optional(),
+        customSubject: z.string().optional(),
+        customMessage: z.string().optional(),
+      });
+      const data = schema.parse(req.body);
+
+      const church = await storage.getChurch(user.churchId);
+      const churchName = church?.name || "Ministry";
+      const leaderName = `${user.firstName} ${user.lastName}`;
+      const contactUrl = buildUrl("/contact", req);
+
+      const results: { personId: string; name: string; success: boolean; error?: string }[] = [];
+
+      for (const personId of data.personIds) {
+        try {
+          let person: any = null;
+          if (data.category === "converts") {
+            person = await storage.getConvert(personId);
+          } else if (data.category === "new_members") {
+            person = await storage.getNewMember(personId);
+          } else if (data.category === "members") {
+            person = await storage.getMember(personId);
+          } else if (data.category === "guests") {
+            person = await storage.getGuest(personId);
+          }
+
+          if (!person || person.churchId !== user.churchId) {
+            results.push({ personId, name: "Unknown", success: false, error: "Not found or access denied" });
+            continue;
+          }
+
+          const personName = `${person.firstName} ${person.lastName}`;
+          let videoLink: string | undefined;
+          if (data.includeVideoLink) {
+            const sanitizedChurch = churchName.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const sanitizedName = `${person.firstName}-${person.lastName}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
+            videoLink = `https://meet.jit.si/${sanitizedChurch}-${sanitizedName}-${Date.now()}`;
+          }
+
+          const checkinData = {
+            churchId: user.churchId,
+            createdByUserId: user.id,
+            checkinDate: new Date().toISOString().split("T")[0],
+            notes: `Mass follow-up scheduled for ${data.nextFollowupDate}${data.nextFollowupTime ? ` at ${data.nextFollowupTime}` : ""}`,
+            outcome: "SCHEDULED_VISIT" as const,
+            nextFollowupDate: data.nextFollowupDate,
+            nextFollowupTime: data.nextFollowupTime || null,
+            videoLink: videoLink || null,
+          };
+
+          if (data.category === "converts") {
+            await storage.createCheckin({ ...checkinData, convertId: personId });
+            await storage.updateConvert(personId, { status: "SCHEDULED" });
+          } else if (data.category === "new_members") {
+            await storage.createNewMemberCheckin({ ...checkinData, newMemberId: personId });
+            await storage.updateNewMember(personId, { status: "SCHEDULED" });
+          } else if (data.category === "members") {
+            await storage.createMemberCheckin({ ...checkinData, memberId: personId });
+          } else if (data.category === "guests") {
+            await storage.createGuestCheckin({ ...checkinData, guestId: personId });
+          }
+
+          if (person.email) {
+            sendFollowUpNotification({
+              convertName: personName,
+              convertEmail: person.email,
+              leaderName,
+              leaderEmail: user.email,
+              churchName,
+              followUpDate: data.nextFollowupDate,
+              followUpTime: data.nextFollowupTime || undefined,
+              videoCallLink: videoLink,
+              contactUrl,
+              customConvertSubject: data.customSubject || undefined,
+              customConvertMessage: data.customMessage || undefined,
+            }).catch(err => console.error(`Email failed for ${personName}:`, err));
+          }
+
+          results.push({ personId, name: personName, success: true });
+        } catch (err: any) {
+          results.push({ personId, name: "Unknown", success: false, error: err.message });
+        }
+      }
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "MASS_SCHEDULE_FOLLOWUP",
+        entityType: data.category.toUpperCase(),
+        entityId: data.personIds.join(","),
+      });
+
+      const succeeded = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success).length;
+
+      res.json({
+        message: `Follow-ups scheduled for ${succeeded} ${succeeded === 1 ? "person" : "people"}${failed > 0 ? `, ${failed} failed` : ""}`,
+        results,
+        succeeded,
+        failed,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error in mass followup:", error);
+      res.status(500).json({ message: "Failed to schedule mass follow-ups" });
     }
   });
 

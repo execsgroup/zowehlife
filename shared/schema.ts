@@ -178,6 +178,21 @@ export const guests = pgTable("guests", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Guest Check-ins table
+export const guestCheckins = pgTable("guest_checkins", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  guestId: varchar("guest_id").notNull().references(() => guests.id),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  createdByUserId: varchar("created_by_user_id").notNull().references(() => users.id),
+  checkinDate: date("checkin_date").notNull(),
+  notes: text("notes"),
+  outcome: checkinOutcomeEnum("outcome").notNull(),
+  nextFollowupDate: date("next_followup_date"),
+  nextFollowupTime: text("next_followup_time"),
+  videoLink: text("video_link"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Prayer requests table
 export const prayerRequests = pgTable("prayer_requests", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -462,6 +477,11 @@ export const insertGuestSchema = createInsertSchema(guests).omit({
   updatedAt: true,
 });
 
+export const insertGuestCheckinSchema = createInsertSchema(guestCheckins).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertPersonSchema = createInsertSchema(persons).omit({
   id: true,
   createdAt: true,
@@ -606,6 +626,9 @@ export type InsertMemberCheckin = z.infer<typeof insertMemberCheckinSchema>;
 
 export type Guest = typeof guests.$inferSelect;
 export type InsertGuest = z.infer<typeof insertGuestSchema>;
+
+export type GuestCheckin = typeof guestCheckins.$inferSelect;
+export type InsertGuestCheckin = z.infer<typeof insertGuestCheckinSchema>;
 
 export type ArchivedMinistry = typeof archivedMinistries.$inferSelect;
 export type InsertArchivedMinistry = z.infer<typeof insertArchivedMinistrySchema>;
