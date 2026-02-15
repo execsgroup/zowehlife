@@ -1108,12 +1108,14 @@ export default function LeaderFollowups() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="mass-notes">Meeting Notes</label>
-              <Textarea
+              <AITextarea
                 id="mass-notes"
                 placeholder="What happened during this mass follow-up? Any key takeaways?"
-                className="resize-none min-h-[100px]"
                 value={massNotes}
-                onChange={(e) => setMassNotes(e.target.value)}
+                onChange={(text) => setMassNotes(text)}
+                context={selectedMassFollowup ? `Writing meeting notes for a mass follow-up session with ${selectedMassFollowup.category.replace("_", " ")} from a church ministry.` : undefined}
+                aiPlaceholder="e.g., Write a summary of the meeting..."
+                rows={4}
                 data-testid="input-mass-notes"
               />
             </div>
