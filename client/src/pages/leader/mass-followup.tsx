@@ -316,7 +316,7 @@ export default function MassFollowUp() {
                           onClick={() => toggleSelect(candidate.id)}
                           data-testid={`row-candidate-${candidate.id}`}
                         >
-                          <TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={selectedIds.has(candidate.id)}
                               onCheckedChange={() => toggleSelect(candidate.id)}
