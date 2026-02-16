@@ -280,6 +280,8 @@ export const ministryRequests = pgTable("ministry_requests", {
   adminPhone: text("admin_phone"),
   description: text("description"),
   plan: ministryPlanEnum("plan").notNull().default("foundations"),
+  stripeSessionId: text("stripe_session_id"),
+  paymentStatus: text("payment_status").default("unpaid"),
   status: accountRequestStatusEnum("status").notNull().default("PENDING"),
   reviewedByUserId: varchar("reviewed_by_user_id").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),

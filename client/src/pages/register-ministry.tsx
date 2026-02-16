@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,6 +27,8 @@ import {
   Star,
   Loader2,
   ArrowLeft,
+  ArrowRight,
+  CreditCard,
 } from "lucide-react";
 
 const ministryRequestSchema = z.object({
@@ -42,67 +44,46 @@ const ministryRequestSchema = z.object({
 
 type MinistryRequestFormData = z.infer<typeof ministryRequestSchema>;
 
-const tiers = [
-  {
-    id: "foundations" as const,
-    name: "Foundations",
-    tagline: "For small ministries just getting started",
-    highlighted: false,
-    icon: Church,
-    features: [
-      "1 Admin Account",
-      "1 Leader Account",
-      "All Platform Features Included",
-      "Convert & Member Tracking",
-      "Follow-Up Scheduling & Email Notifications",
-      "Public Registration Links",
-      "Dashboard Statistics",
-      "Prayer Requests & Member Portal",
-      "AI Email Drafting & Video Calls",
-    ],
-  },
-  {
-    id: "formation" as const,
-    name: "Formation",
-    tagline: "For growing ministries ready to expand their team",
-    highlighted: true,
-    icon: BookOpen,
-    features: [
-      "1 Admin Account",
-      "Up to 3 Leader Accounts",
-      "All Platform Features Included",
-      "Convert & Member Tracking",
-      "Follow-Up Scheduling & Email Notifications",
-      "Public Registration Links",
-      "Dashboard Statistics",
-      "Prayer Requests & Member Portal",
-      "AI Email Drafting & Video Calls",
-    ],
-  },
-  {
-    id: "stewardship" as const,
-    name: "Stewardship",
-    tagline: "For established ministries with larger leadership teams",
-    highlighted: false,
-    icon: Shield,
-    features: [
-      "1 Admin Account",
-      "Up to 10 Leader Accounts",
-      "All Platform Features Included",
-      "Convert & Member Tracking",
-      "Follow-Up Scheduling & Email Notifications",
-      "Public Registration Links",
-      "Dashboard Statistics",
-      "Prayer Requests & Member Portal",
-      "AI Email Drafting & Video Calls",
-    ],
-  },
+interface StripePlan {
+  planId: string;
+  productId: string;
+  name: string;
+  description: string;
+  priceId: string;
+  amount: number;
+  currency: string;
+  interval: string;
+}
+
+const tierMeta: Record<string, { icon: typeof Church; highlighted: boolean; leaderLimit: string }> = {
+  foundations: { icon: Church, highlighted: false, leaderLimit: "1 Leader Account" },
+  formation: { icon: BookOpen, highlighted: true, leaderLimit: "Up to 3 Leader Accounts" },
+  stewardship: { icon: Shield, highlighted: false, leaderLimit: "Up to 10 Leader Accounts" },
+};
+
+const sharedFeatures = [
+  "All Platform Features Included",
+  "Convert & Member Tracking",
+  "Follow-Up Scheduling & Email Notifications",
+  "Public Registration Links",
+  "Dashboard Statistics",
+  "Prayer Requests & Member Portal",
+  "AI Email Drafting & Video Calls",
 ];
 
+function formatPrice(amount: number): string {
+  return `$${(amount / 100).toFixed(2)}`;
+}
+
 export default function RegisterMinistry() {
-  const [selectedPlan, setSelectedPlan] = useState<"foundations" | "formation" | "stewardship">("foundations");
+  const [step, setStep] = useState<"plan" | "form">("plan");
+  const [selectedPlan, setSelectedPlan] = useState<"foundations" | "formation" | "stewardship" | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+
+  const { data: plans, isLoading: plansLoading } = useQuery<StripePlan[]>({
+    queryKey: ["/api/stripe/ministry-plans"],
+  });
 
   const form = useForm<MinistryRequestFormData>({
     resolver: zodResolver(ministryRequestSchema),
@@ -120,15 +101,19 @@ export default function RegisterMinistry() {
 
   const submitMutation = useMutation({
     mutationFn: async (data: MinistryRequestFormData) => {
-      await apiRequest("POST", "/api/ministry-requests", data);
+      const response = await apiRequest("POST", "/api/ministry-requests", data);
+      return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Request Submitted",
-        description: "Your ministry registration request has been submitted. You will receive an email once it's reviewed.",
-      });
-      form.reset();
-      setLocation("/");
+    onSuccess: (data: { checkoutUrl?: string; requestId?: string; message: string }) => {
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        toast({
+          title: "Request Submitted",
+          description: data.message,
+        });
+        setLocation("/");
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -142,15 +127,17 @@ export default function RegisterMinistry() {
   const handleSelectPlan = (planId: "foundations" | "formation" | "stewardship") => {
     setSelectedPlan(planId);
     form.setValue("plan", planId);
-    const formSection = document.getElementById("registration-form");
-    if (formSection) {
-      formSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    setStep("form");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const onSubmit = (data: MinistryRequestFormData) => {
     submitMutation.mutate(data);
   };
+
+  const selectedStripePlan = plans?.find(p => p.planId === selectedPlan);
+  const planOrder = ["foundations", "formation", "stewardship"];
+  const sortedPlans = plans?.slice().sort((a, b) => planOrder.indexOf(a.planId) - planOrder.indexOf(b.planId));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -162,168 +149,186 @@ export default function RegisterMinistry() {
             <Button
               variant="ghost"
               className="mb-6 gap-2"
-              onClick={() => setLocation("/")}
-              data-testid="button-back-home"
+              onClick={() => {
+                if (step === "form") {
+                  setStep("plan");
+                } else {
+                  setLocation("/");
+                }
+              }}
+              data-testid="button-back"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Home
+              {step === "form" ? "Back to Plans" : "Back to Home"}
             </Button>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-              Choose a Plan to{" "}
-              <span className="text-primary">Start Your Ministry</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Select the tier that best fits your ministry's needs. You can always upgrade later as you grow.
-            </p>
+            {step === "plan" ? (
+              <>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+                  Choose a Plan to{" "}
+                  <span className="text-primary">Start Your Ministry</span>
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Select the tier that best fits your ministry's needs. You can always upgrade later as you grow.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+                  Register Your Ministry
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Fill out the details below. After submitting, you'll be directed to complete payment.
+                </p>
+              </>
+            )}
           </div>
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         </section>
 
-        <section className="py-12 md:py-20">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {tiers.map((tier) => {
-                const isSelected = selectedPlan === tier.id;
-                const TierIcon = tier.icon;
-                return (
-                  <Card
-                    key={tier.id}
-                    className={`relative flex flex-col transition-shadow duration-200 ${
-                      tier.highlighted
-                        ? "border-primary shadow-lg ring-2 ring-primary/20"
-                        : ""
-                    } ${isSelected ? "ring-2 ring-primary" : ""}`}
-                    data-testid={`card-plan-${tier.id}`}
-                  >
-                    {tier.highlighted && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <Badge className="gap-1 bg-primary text-primary-foreground">
-                          <Star className="h-3 w-3" />
-                          Most Popular
-                        </Badge>
-                      </div>
-                    )}
-                    <CardHeader className="text-center pb-2">
-                      <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mx-auto mb-3">
-                        <TierIcon className="h-7 w-7 text-primary" />
-                      </div>
-                      <CardTitle className="text-2xl">{tier.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">{tier.tagline}</p>
-                    </CardHeader>
-                    <CardContent className="flex-1 flex flex-col">
-                      <Button
-                        className="w-full mb-6"
-                        variant={isSelected ? "default" : tier.highlighted ? "default" : "outline"}
-                        onClick={() => handleSelectPlan(tier.id)}
-                        data-testid={`button-select-${tier.id}`}
-                      >
-                        {isSelected ? "Selected" : `Select ${tier.name}`}
-                      </Button>
-                      <ul className="space-y-3 flex-1">
-                        {tier.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+        {step === "plan" && (
+          <>
+            <section className="py-12 md:py-20">
+              <div className="container mx-auto px-4">
+                {plansLoading ? (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    {(sortedPlans || []).map((plan) => {
+                      const meta = tierMeta[plan.planId];
+                      if (!meta) return null;
+                      const TierIcon = meta.icon;
+                      return (
+                        <Card
+                          key={plan.planId}
+                          className={`relative flex flex-col transition-shadow duration-200 ${
+                            meta.highlighted
+                              ? "border-primary shadow-lg ring-2 ring-primary/20"
+                              : ""
+                          }`}
+                          data-testid={`card-plan-${plan.planId}`}
+                        >
+                          {meta.highlighted && (
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                              <Badge className="gap-1 bg-primary text-primary-foreground">
+                                <Star className="h-3 w-3" />
+                                Most Popular
+                              </Badge>
+                            </div>
+                          )}
+                          <CardHeader className="text-center pb-2">
+                            <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mx-auto mb-3">
+                              <TierIcon className="h-7 w-7 text-primary" />
+                            </div>
+                            <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                            <div className="mt-2">
+                              <span className="text-3xl font-bold">{formatPrice(plan.amount)}</span>
+                              <span className="text-muted-foreground">/{plan.interval}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                          </CardHeader>
+                          <CardContent className="flex-1 flex flex-col">
+                            <Button
+                              className="w-full mb-6 gap-2"
+                              variant={meta.highlighted ? "default" : "outline"}
+                              onClick={() => handleSelectPlan(plan.planId as "foundations" | "formation" | "stewardship")}
+                              data-testid={`button-select-${plan.planId}`}
+                            >
+                              Get Started
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                            <ul className="space-y-3 flex-1">
+                              <li className="flex items-start gap-2 text-sm font-medium">
+                                <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                                <span>1 Admin Account</span>
+                              </li>
+                              <li className="flex items-start gap-2 text-sm font-medium">
+                                <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                                <span>{meta.leaderLimit}</span>
+                              </li>
+                              {sharedFeatures.map((feature, idx) => (
+                                <li key={idx} className="flex items-start gap-2 text-sm">
+                                  <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                                  <span>{feature}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
 
-        <section className="py-12 md:py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center mb-10">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">What Every Ministry Gets</h2>
-              <p className="text-muted-foreground">
-                All tiers include the core tools you need to manage and grow your ministry.
-              </p>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-              {[
-                { icon: Users, title: "Member Tracking", desc: "Track converts, new members, and existing members in one place" },
-                { icon: Mail, title: "Email Notifications", desc: "Automated follow-up reminders and status updates" },
-                { icon: BarChart3, title: "Dashboard Analytics", desc: "At-a-glance statistics about your ministry's growth" },
-                { icon: Video, title: "Video Conferencing", desc: "Built-in video call links for remote follow-ups" },
-              ].map((item, idx) => {
-                const ItemIcon = item.icon;
-                return (
-                  <Card key={idx} className="text-center">
-                    <CardContent className="pt-6">
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
-                        <ItemIcon className="h-6 w-6 text-primary" />
-                      </div>
-                      <h3 className="font-semibold mb-1">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section id="registration-form" className="py-12 md:py-20 scroll-mt-8">
-          <div className="container mx-auto px-4">
-            <div className="max-w-xl mx-auto">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold mb-2">Register Your Ministry</h2>
-                <p className="text-muted-foreground">
-                  Fill out the form below and a platform administrator will review your request.
-                </p>
-                <div className="mt-4 inline-flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Selected Plan:</span>
-                  <Badge variant="secondary" className="gap-1" data-testid="badge-selected-plan">
-                    <Sparkles className="h-3 w-3" />
-                    {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
-                  </Badge>
+            <section className="py-12 md:py-16 bg-muted/30">
+              <div className="container mx-auto px-4">
+                <div className="max-w-3xl mx-auto text-center mb-10">
+                  <h2 className="text-2xl md:text-3xl font-bold mb-3">What Every Ministry Gets</h2>
+                  <p className="text-muted-foreground">
+                    All tiers include the core tools you need to manage and grow your ministry.
+                  </p>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+                  {[
+                    { icon: Users, title: "Member Tracking", desc: "Track converts, new members, and existing members in one place" },
+                    { icon: Mail, title: "Email Notifications", desc: "Automated follow-up reminders and status updates" },
+                    { icon: BarChart3, title: "Dashboard Analytics", desc: "At-a-glance statistics about your ministry's growth" },
+                    { icon: Video, title: "Video Conferencing", desc: "Built-in video call links for remote follow-ups" },
+                  ].map((item, idx) => {
+                    const ItemIcon = item.icon;
+                    return (
+                      <Card key={idx} className="text-center">
+                        <CardContent className="pt-6">
+                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
+                            <ItemIcon className="h-6 w-6 text-primary" />
+                          </div>
+                          <h3 className="font-semibold mb-1">{item.title}</h3>
+                          <p className="text-sm text-muted-foreground">{item.desc}</p>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
+            </section>
+          </>
+        )}
 
-              <Card>
-                <CardContent className="pt-6">
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="ministryName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ministry Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Grace Community Church" {...field} data-testid="input-ministry-name" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Location</FormLabel>
-                            <FormControl>
-                              <Input placeholder="City, State/Country" {...field} data-testid="input-ministry-location" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
+        {step === "form" && selectedPlan && (
+          <section className="py-12 md:py-20">
+            <div className="container mx-auto px-4">
+              <div className="max-w-xl mx-auto">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 mb-4">
+                    <span className="text-sm text-muted-foreground">Selected Plan:</span>
+                    <Badge variant="secondary" className="gap-1" data-testid="badge-selected-plan">
+                      <Sparkles className="h-3 w-3" />
+                      {selectedStripePlan?.name || selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
+                    </Badge>
+                    {selectedStripePlan && (
+                      <Badge variant="outline" data-testid="badge-plan-price">
+                        {formatPrice(selectedStripePlan.amount)}/{selectedStripePlan.interval}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                           control={form.control}
-                          name="adminFirstName"
+                          name="ministryName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>First Name *</FormLabel>
+                              <FormLabel>Ministry Name *</FormLabel>
                               <FormControl>
-                                <Input placeholder="John" {...field} data-testid="input-ministry-admin-first-name" />
+                                <Input placeholder="e.g., Grace Community Church" {...field} data-testid="input-ministry-name" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -331,85 +336,127 @@ export default function RegisterMinistry() {
                         />
                         <FormField
                           control={form.control}
-                          name="adminLastName"
+                          name="location"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Last Name *</FormLabel>
+                              <FormLabel>Location</FormLabel>
                               <FormControl>
-                                <Input placeholder="Doe" {...field} data-testid="input-ministry-admin-last-name" />
+                                <Input placeholder="City, State/Country" {...field} data-testid="input-ministry-location" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="adminEmail"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Your Email *</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="admin@ministry.org" {...field} data-testid="input-ministry-admin-email" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="adminPhone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Your Phone</FormLabel>
-                            <FormControl>
-                              <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-ministry-admin-phone" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>About Your Ministry</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Tell us about your ministry and its mission..."
-                                className="resize-none"
-                                {...field}
-                                data-testid="input-ministry-description"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <input type="hidden" {...form.register("plan")} />
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={submitMutation.isPending}
-                        data-testid="button-submit-ministry-request"
-                      >
-                        {submitMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Submitting...
-                          </>
-                        ) : (
-                          "Submit Registration Request"
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="adminFirstName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>First Name *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="John" {...field} data-testid="input-ministry-admin-first-name" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="adminLastName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Last Name *</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Doe" {...field} data-testid="input-ministry-admin-last-name" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="adminEmail"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Your Email *</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="admin@ministry.org" {...field} data-testid="input-ministry-admin-email" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="adminPhone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Your Phone</FormLabel>
+                              <FormControl>
+                                <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-ministry-admin-phone" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>About Your Ministry</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Tell us about your ministry and its mission..."
+                                  className="resize-none"
+                                  {...field}
+                                  data-testid="input-ministry-description"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <input type="hidden" {...form.register("plan")} />
+
+                        <div className="border rounded-md p-4 bg-muted/30 space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <CreditCard className="h-4 w-4 text-primary" />
+                            <span>Payment Information</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            After submitting, you'll be securely redirected to Stripe to complete your {selectedStripePlan ? formatPrice(selectedStripePlan.amount) + "/" + selectedStripePlan.interval : ""} subscription payment.
+                          </p>
+                        </div>
+
+                        <Button
+                          type="submit"
+                          className="w-full gap-2"
+                          disabled={submitMutation.isPending}
+                          data-testid="button-submit-ministry-request"
+                        >
+                          {submitMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              Continue to Payment
+                              <ArrowRight className="h-4 w-4" />
+                            </>
+                          )}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       <PublicFooter />

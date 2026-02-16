@@ -63,13 +63,20 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Resend claim tokens for accounts that haven't been claimed yet
     - Suspend or activate member accounts (Ministry Admins only)
     - View member affiliation type (convert, new_member, member) and last login
-- **Ministry Plan Model**: A 3-tier plan system per ministry (structural foundation only, no enforcement):
-    - **Foundations** (default): Base tier for all ministries
-    - **Formation**: Mid tier
-    - **Stewardship**: Top tier
+- **Ministry Plan Model**: A 3-tier subscription plan system per ministry with Stripe payment integration:
+    - **Foundations** ($19.99/mo): 1 Admin + 1 Leader account, all platform features
+    - **Formation** ($29.99/mo): 1 Admin + up to 3 Leader accounts, all platform features
+    - **Stewardship** ($59.99/mo): 1 Admin + up to 10 Leader accounts, all platform features
     - Plan is stored on the `churches` table as a `ministry_plan` enum column
+    - Leader limits are enforced at all creation points (direct add, account requests)
     - Platform Admins can view and change a ministry's plan from the Ministries page and edit dialog
     - Plan is displayed as a badge on the ministry list table and ministry profile page
+    - **Stripe Payment Flow**: Ministry registration requires Stripe checkout before admin review
+      - Plans/prices fetched from Stripe API at `/api/stripe/ministry-plans`
+      - Registration creates ministry_request, then Stripe checkout session
+      - On payment success, redirects to `/register-ministry/success` with payment verification
+      - Stripe credentials managed via Replit connector (sandbox mode)
+      - Products seeded via `server/seed-stripe-products.ts`
 - **Remove from Ministry**: Leaders and Admins can remove converts, new members, and members from their ministry:
     - Removes the ministry affiliation only (does NOT deactivate member portal account)
     - Person is notified via email about removal (if email is on file)
@@ -88,3 +95,4 @@ The application uses environment-aware URL generation to ensure consistent behav
 - **Replit Object Storage**: Stores uploaded church logos.
 - **OpenAI API**: Powers the AI Text Helper for generating and refining email content (gpt-5.2 model).
 - **Jitsi Meet**: Integrated for generating unique video conferencing links for follow-ups.
+- **Stripe**: Payment processing for ministry subscription plans, managed via Replit connector (sandbox mode).

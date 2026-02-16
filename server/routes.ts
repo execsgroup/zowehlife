@@ -8,6 +8,7 @@ import { startReminderScheduler } from "./scheduler";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { buildUrl } from "./utils/url";
 import OpenAI from "openai";
+import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import {
   provisionMemberAccountForConvert,
   provisionMemberAccountForMember,
@@ -1208,30 +1209,162 @@ export async function registerRoutes(
     }
   });
 
-  // Submit ministry registration request
+  // Get Stripe publishable key
+  app.get("/api/stripe/publishable-key", async (_req, res) => {
+    try {
+      const key = await getStripePublishableKey();
+      res.json({ publishableKey: key });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get Stripe key" });
+    }
+  });
+
+  // Get ministry plan prices from Stripe
+  app.get("/api/stripe/ministry-plans", async (_req, res) => {
+    try {
+      const stripe = await getUncachableStripeClient();
+      const products = await stripe.products.list({ active: true, limit: 10 });
+
+      const planProducts = products.data.filter(p => p.metadata?.plan_id);
+      const plans = await Promise.all(
+        planProducts.map(async (product) => {
+          const prices = await stripe.prices.list({
+            product: product.id,
+            active: true,
+            limit: 1,
+          });
+          const price = prices.data[0];
+          return {
+            planId: product.metadata.plan_id,
+            productId: product.id,
+            name: product.name,
+            description: product.description,
+            priceId: price?.id,
+            amount: price?.unit_amount || 0,
+            currency: price?.currency || 'usd',
+            interval: price?.recurring?.interval || 'month',
+          };
+        })
+      );
+
+      res.json(plans);
+    } catch (error) {
+      console.error("Failed to get ministry plans:", error);
+      res.status(500).json({ message: "Failed to get ministry plans" });
+    }
+  });
+
+  // Submit ministry registration request with Stripe checkout
   app.post("/api/ministry-requests", async (req, res) => {
     try {
       const data = insertMinistryRequestSchema.parse(req.body);
 
-      // Check if admin email already exists
       const existingUser = await storage.getUserByEmail(data.adminEmail);
       if (existingUser) {
         return res.status(400).json({ message: "An account with this email already exists" });
       }
 
-      // Check if ministry name already exists
       const existingChurch = await storage.getChurchByName(data.ministryName);
       if (existingChurch) {
         return res.status(400).json({ message: "A ministry with this name already exists" });
       }
 
       const request = await storage.createMinistryRequest(data);
-      res.status(201).json({ message: "Ministry registration request submitted successfully. You will be notified once reviewed." });
+
+      // Create Stripe checkout session
+      try {
+        const stripe = await getUncachableStripeClient();
+
+        const products = await stripe.products.list({ active: true, limit: 10 });
+        const planProduct = products.data.find(p => p.metadata?.plan_id === data.plan);
+
+        if (!planProduct) {
+          return res.status(201).json({
+            message: "Ministry registration request submitted. Payment setup will be configured by admin.",
+            requestId: request.id,
+          });
+        }
+
+        const prices = await stripe.prices.list({
+          product: planProduct.id,
+          active: true,
+          limit: 1,
+        });
+        const price = prices.data[0];
+
+        if (!price) {
+          return res.status(201).json({
+            message: "Ministry registration request submitted. Payment setup will be configured by admin.",
+            requestId: request.id,
+          });
+        }
+
+        const baseUrl = buildUrl("");
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [{ price: price.id, quantity: 1 }],
+          mode: 'subscription',
+          success_url: `${baseUrl}/register-ministry/success?request_id=${request.id}&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${baseUrl}/register-ministry/cancel?request_id=${request.id}`,
+          customer_email: data.adminEmail,
+          metadata: {
+            ministry_request_id: request.id,
+            plan: data.plan,
+          },
+        });
+
+        await storage.updateMinistryRequestPayment(request.id, session.id);
+
+        res.status(201).json({
+          message: "Ministry registration request submitted. Redirecting to payment.",
+          requestId: request.id,
+          checkoutUrl: session.url,
+        });
+      } catch (stripeError) {
+        console.error("Stripe checkout creation failed:", stripeError);
+        res.status(201).json({
+          message: "Ministry registration request submitted successfully. You will be notified once reviewed.",
+          requestId: request.id,
+        });
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
       res.status(500).json({ message: "Failed to submit ministry request" });
+    }
+  });
+
+  // Verify payment status for a ministry request
+  app.get("/api/ministry-requests/:id/payment-status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const request = await storage.getMinistryRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Ministry request not found" });
+      }
+
+      if (request.stripeSessionId) {
+        try {
+          const stripe = await getUncachableStripeClient();
+          const session = await stripe.checkout.sessions.retrieve(request.stripeSessionId);
+
+          if (session.payment_status === 'paid' && request.paymentStatus !== 'paid') {
+            await storage.updateMinistryRequestPaymentStatus(id, 'paid');
+          }
+
+          res.json({
+            paymentStatus: session.payment_status === 'paid' ? 'paid' : request.paymentStatus,
+            plan: request.plan,
+          });
+        } catch {
+          res.json({ paymentStatus: request.paymentStatus, plan: request.plan });
+        }
+      } else {
+        res.json({ paymentStatus: request.paymentStatus, plan: request.plan });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get payment status" });
     }
   });
 

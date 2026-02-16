@@ -169,6 +169,8 @@ export interface IStorage {
   createMinistryRequest(request: InsertMinistryRequest): Promise<MinistryRequest>;
   updateMinistryRequest(id: string, data: Partial<InsertMinistryRequest>): Promise<MinistryRequest>;
   updateMinistryRequestStatus(id: string, status: "APPROVED" | "DENIED", reviewedByUserId: string): Promise<MinistryRequest>;
+  updateMinistryRequestPayment(requestId: string, stripeSessionId: string): Promise<void>;
+  updateMinistryRequestPaymentStatus(requestId: string, paymentStatus: string): Promise<void>;
 
   // Email Reminders
   hasReminderBeenSent(checkinId: string, reminderType: string): Promise<boolean>;
@@ -843,6 +845,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(ministryRequests.id, id))
       .returning();
     return request;
+  }
+
+  async updateMinistryRequestPayment(requestId: string, stripeSessionId: string): Promise<void> {
+    await db
+      .update(ministryRequests)
+      .set({ stripeSessionId, paymentStatus: "pending" })
+      .where(eq(ministryRequests.id, requestId));
+  }
+
+  async updateMinistryRequestPaymentStatus(requestId: string, paymentStatus: string): Promise<void> {
+    await db
+      .update(ministryRequests)
+      .set({ paymentStatus })
+      .where(eq(ministryRequests.id, requestId));
   }
 
   // Stats
