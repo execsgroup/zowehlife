@@ -122,7 +122,7 @@ export default function LeaderMemberAccounts() {
       case "convert":
         return <Badge data-testid="badge-type-convert" variant="outline">Convert</Badge>;
       case "new_member":
-        return <Badge data-testid="badge-type-new-member" variant="outline">New Member</Badge>;
+        return <Badge data-testid="badge-type-new-member" variant="outline">New Member & Guest</Badge>;
       case "member":
         return <Badge data-testid="badge-type-member" variant="outline">Member</Badge>;
       default:

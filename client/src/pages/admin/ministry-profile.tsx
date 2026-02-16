@@ -135,7 +135,7 @@ export default function MinistryProfile() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Members</CardTitle>
+              <CardTitle className="text-sm font-medium">New Members & Guests</CardTitle>
               <UserPlus className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -201,7 +201,7 @@ export default function MinistryProfile() {
             <TabsTrigger value="activity" data-testid="tab-activity">Recent Activity</TabsTrigger>
             <TabsTrigger value="leaders" data-testid="tab-leaders">Leaders ({leaders.length})</TabsTrigger>
             <TabsTrigger value="converts" data-testid="tab-converts">Converts ({converts.length})</TabsTrigger>
-            <TabsTrigger value="new-members" data-testid="tab-new-members">New Members ({newMembers.length})</TabsTrigger>
+            <TabsTrigger value="new-members" data-testid="tab-new-members">New Members & Guests ({newMembers.length})</TabsTrigger>
             <TabsTrigger value="members" data-testid="tab-members">Members ({members.length})</TabsTrigger>
           </TabsList>
 
@@ -330,7 +330,7 @@ export default function MinistryProfile() {
           <TabsContent value="new-members">
             <Card>
               <CardHeader>
-                <CardTitle>New Members</CardTitle>
+                <CardTitle>New Members & Guests</CardTitle>
                 <CardDescription>Recently joined members at this ministry</CardDescription>
               </CardHeader>
               <CardContent>

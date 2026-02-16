@@ -68,7 +68,7 @@ export default function MinistryAdminNewMemberDetail() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="New Member Details">
+      <DashboardLayout title="New Member & Guest Details">
         <div className="space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-48 w-full" />
@@ -80,15 +80,15 @@ export default function MinistryAdminNewMemberDetail() {
 
   if (!newMember) {
     return (
-      <DashboardLayout title="New Member Not Found">
+      <DashboardLayout title="New Member & Guest Not Found">
         <Card>
           <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">New member not found</h3>
+            <h3 className="text-lg font-semibold mb-2">New member & guest not found</h3>
             <p className="text-muted-foreground mb-4">
-              The new member you're looking for doesn't exist or you don't have access.
+              The new member & guest you're looking for doesn't exist or you don't have access.
             </p>
             <Link href="/ministry-admin/new-members">
-              <Button>Back to New Members</Button>
+              <Button>Back to New Members & Guests</Button>
             </Link>
           </CardContent>
         </Card>
@@ -97,12 +97,12 @@ export default function MinistryAdminNewMemberDetail() {
   }
 
   return (
-    <DashboardLayout title="New Member Details">
+    <DashboardLayout title="New Member & Guest Details">
       <div className="space-y-6">
         <Link href="/ministry-admin/new-members">
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
-            Back to New Members
+            Back to New Members & Guests
           </Button>
         </Link>
 
@@ -219,7 +219,7 @@ export default function MinistryAdminNewMemberDetail() {
           <CardHeader>
             <CardTitle>Follow-up Timeline</CardTitle>
             <CardDescription>
-              History of follow-ups with this new member
+              History of follow-ups with this new member & guest
             </CardDescription>
           </CardHeader>
           <CardContent>

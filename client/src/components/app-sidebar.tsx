@@ -62,7 +62,7 @@ const adminNavItems = [
 const ministryAdminNavItems = [
   { title: "Dashboard", url: "/ministry-admin/dashboard", icon: LayoutDashboard },
   { title: "Converts", url: "/ministry-admin/converts", icon: UserPlus },
-  { title: "New Members", url: "/ministry-admin/new-members", icon: Users },
+  { title: "New Members & Guests", url: "/ministry-admin/new-members", icon: Users },
   { title: "Members", url: "/ministry-admin/members", icon: Church },
   { title: "Guest List", url: "/ministry-admin/guests", icon: Users2 },
   { title: "Follow-ups", url: "/ministry-admin/followups", icon: CalendarClock },
@@ -77,7 +77,7 @@ const ministryAdminNavItems = [
 const leaderNavItems = [
   { title: "Dashboard", url: "/leader/dashboard", icon: LayoutDashboard },
   { title: "My Converts", url: "/leader/converts", icon: UserPlus },
-  { title: "New Members", url: "/leader/new-members", icon: Users },
+  { title: "New Members & Guests", url: "/leader/new-members", icon: Users },
   { title: "Members", url: "/leader/members", icon: Church },
   { title: "Guest List", url: "/leader/guests", icon: Users2 },
   { title: "Follow-ups", url: "/leader/followups", icon: CalendarClock },

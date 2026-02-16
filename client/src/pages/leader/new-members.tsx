@@ -346,13 +346,13 @@ export default function LeaderNewMembers() {
   });
 
   return (
-    <DashboardLayout title="New Members">
+    <DashboardLayout title="New Members & Guests">
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">New Members</h2>
+            <h2 className="text-2xl font-bold tracking-tight">New Members & Guests</h2>
             <p className="text-muted-foreground">
-              Manage and track new members of your ministry
+              Manage and track new members & guests of your ministry
             </p>
           </div>
 
@@ -644,9 +644,9 @@ export default function LeaderNewMembers() {
             ) : filteredNewMembers?.length === 0 ? (
               <div className="text-center py-12">
                 <UserPlus className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 text-lg font-semibold">No new members found</h3>
+                <h3 className="mt-4 text-lg font-semibold">No new members & guests found</h3>
                 <p className="text-muted-foreground">
-                  Add a new member or adjust your filters.
+                  Add a new member & guest or adjust your filters.
                 </p>
               </div>
             ) : (
@@ -774,7 +774,7 @@ export default function LeaderNewMembers() {
           <DialogHeader>
             <DialogTitle>Move to Members List</DialogTitle>
             <DialogDescription>
-              Are you sure you want to move {selectedNewMember?.firstName} {selectedNewMember?.lastName} to the Members List? This will remove them from the New Members list.
+              Are you sure you want to move {selectedNewMember?.firstName} {selectedNewMember?.lastName} to the Members List? This will remove them from the New Members & Guests list.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">

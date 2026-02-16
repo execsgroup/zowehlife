@@ -505,7 +505,7 @@ export default function LeaderGuests() {
                         <TableCell>{g.ageGroup || "-"}</TableCell>
                         <TableCell>
                           {g.sourceType === "new_member" ? (
-                            <Badge variant="outline">From New Members</Badge>
+                            <Badge variant="outline">From New Members & Guests</Badge>
                           ) : (
                             <Badge variant="secondary">Manual Entry</Badge>
                           )}
@@ -593,7 +593,7 @@ export default function LeaderGuests() {
                 <div>
                   <p className="text-sm text-muted-foreground">Source</p>
                   <p className="font-medium">
-                    {selectedGuest.sourceType === "new_member" ? "From New Members" : "Manual Entry"}
+                    {selectedGuest.sourceType === "new_member" ? "From New Members & Guests" : "Manual Entry"}
                   </p>
                 </div>
               </div>

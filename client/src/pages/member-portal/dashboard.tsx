@@ -130,7 +130,7 @@ export default function MemberDashboard() {
       case "convert":
         return <Badge className="bg-coral/10 text-coral border-coral/20">New Believer</Badge>;
       case "new_member":
-        return <Badge className="bg-gold/10 text-gold border-gold/20">New Member</Badge>;
+        return <Badge className="bg-gold/10 text-gold border-gold/20">New Member & Guest</Badge>;
       case "member":
         return <Badge className="bg-accent/10 text-accent border-accent/20">Member</Badge>;
       default:

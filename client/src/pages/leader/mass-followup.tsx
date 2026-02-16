@@ -47,7 +47,7 @@ interface MassFollowUpResult {
 
 const categoryLabels: Record<string, string> = {
   converts: "Follow Up Converts",
-  new_members: "New Member Follow Up",
+  new_members: "New Member & Guest Follow Up",
   members: "Member Follow Up",
   guests: "Guest List",
 };
@@ -204,7 +204,7 @@ export default function MassFollowUp() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="converts" data-testid="option-converts">Follow Up Converts</SelectItem>
-                    <SelectItem value="new_members" data-testid="option-new-members">New Member Follow Up</SelectItem>
+                    <SelectItem value="new_members" data-testid="option-new-members">New Member & Guest Follow Up</SelectItem>
                     <SelectItem value="members" data-testid="option-members">Member Follow Up</SelectItem>
                     <SelectItem value="guests" data-testid="option-guests">Guest List</SelectItem>
                   </SelectContent>

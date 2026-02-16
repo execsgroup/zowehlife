@@ -620,7 +620,7 @@ export default function LeaderFollowups() {
 
         {/* New Member Follow-ups Section */}
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold" data-testid="text-new-member-section-title">New Member Follow-ups</h3>
+          <h3 className="text-lg font-semibold" data-testid="text-new-member-section-title">New Member & Guest Follow-ups</h3>
           <Card>
             <CardContent className="p-0">
               {isLoadingNewMembers ? (
@@ -633,7 +633,7 @@ export default function LeaderFollowups() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>New Member</TableHead>
+                      <TableHead>New Member & Guest</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Follow-up Date</TableHead>
                       <TableHead>Status</TableHead>

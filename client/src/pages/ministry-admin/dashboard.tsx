@@ -87,9 +87,9 @@ export default function MinistryAdminDashboard() {
       icon: UserPlus,
     },
     {
-      title: "New Members",
+      title: "New Members & Guests",
       value: stats?.totalNewMembers || 0,
-      description: "New members in your ministry",
+      description: "New members & guests in your ministry",
       icon: UserCheck,
     },
     {

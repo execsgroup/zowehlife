@@ -46,7 +46,7 @@ export default function MemberJourney() {
       case "convert":
         return <Badge className="bg-blue-600">New Believer</Badge>;
       case "new_member":
-        return <Badge variant="secondary">New Member</Badge>;
+        return <Badge variant="secondary">New Member & Guest</Badge>;
       case "member":
         return <Badge>Full Member</Badge>;
       default:

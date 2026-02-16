@@ -88,9 +88,9 @@ export default function MinistryAdminNewMembers() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
               <Users className="h-6 w-6" />
-              New Members
+              New Members & Guests
             </h1>
-            <p className="text-muted-foreground">View all new members in your ministry</p>
+            <p className="text-muted-foreground">View all new members & guests in your ministry</p>
           </div>
         </div>
 
@@ -99,7 +99,7 @@ export default function MinistryAdminNewMembers() {
             <div className="flex items-center gap-2 mb-4">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search new members..."
+                placeholder="Search new members & guests..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -180,9 +180,9 @@ export default function MinistryAdminNewMembers() {
             ) : (
               <div className="text-center py-12">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No new members found</h3>
+                <h3 className="text-lg font-semibold mb-2">No new members & guests found</h3>
                 <p className="text-muted-foreground">
-                  {searchQuery ? "Try a different search term" : "New members will appear here once they register or are added by leaders"}
+                  {searchQuery ? "Try a different search term" : "New members & guests will appear here once they register or are added by leaders"}
                 </p>
               </div>
             )}
