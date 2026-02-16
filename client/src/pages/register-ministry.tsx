@@ -1,0 +1,415 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { PublicNav } from "@/components/public-nav";
+import { PublicFooter } from "@/components/public-footer";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  Check,
+  Church,
+  Users,
+  BookOpen,
+  Shield,
+  BarChart3,
+  Video,
+  Mail,
+  Sparkles,
+  Star,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
+
+const ministryRequestSchema = z.object({
+  ministryName: z.string().min(2, "Ministry name must be at least 2 characters"),
+  location: z.string().optional(),
+  adminFirstName: z.string().min(1, "First name is required"),
+  adminLastName: z.string().min(1, "Last name is required"),
+  adminEmail: z.string().email("Please enter a valid email"),
+  adminPhone: z.string().optional(),
+  description: z.string().optional(),
+  plan: z.enum(["foundations", "formation", "stewardship"]).default("foundations"),
+});
+
+type MinistryRequestFormData = z.infer<typeof ministryRequestSchema>;
+
+const tiers = [
+  {
+    id: "foundations" as const,
+    name: "Foundations",
+    tagline: "For ministries just getting started",
+    highlighted: false,
+    icon: Church,
+    features: [
+      "Up to 3 Leaders",
+      "Convert & Member Tracking",
+      "Follow-Up Scheduling",
+      "Email Notifications",
+      "Public Registration Links",
+      "Basic Dashboard Statistics",
+      "Prayer Request Management",
+      "Member Portal Access",
+    ],
+  },
+  {
+    id: "formation" as const,
+    name: "Formation",
+    tagline: "For growing ministries ready to scale",
+    highlighted: true,
+    icon: BookOpen,
+    features: [
+      "Everything in Foundations",
+      "AI-Powered Email Drafting",
+      "Video Conference Integration",
+      "Mass Follow-Up Sessions",
+      "Advanced Dashboard Analytics",
+      "Member Journey Timeline",
+      "Journal & Sharing Features",
+      "Multi-Ministry Affiliation",
+    ],
+  },
+  {
+    id: "stewardship" as const,
+    name: "Stewardship",
+    tagline: "For established ministries with full oversight",
+    highlighted: false,
+    icon: Shield,
+    features: [
+      "Everything in Formation",
+      "Priority Support",
+      "Custom Branding & Logo",
+      "Advanced Member Management",
+      "Account Suspension Controls",
+      "Ministry Profile Customization",
+      "Detailed Reporting & Exports",
+      "Dedicated Account Manager",
+    ],
+  },
+];
+
+export default function RegisterMinistry() {
+  const [selectedPlan, setSelectedPlan] = useState<"foundations" | "formation" | "stewardship">("foundations");
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  const form = useForm<MinistryRequestFormData>({
+    resolver: zodResolver(ministryRequestSchema),
+    defaultValues: {
+      ministryName: "",
+      location: "",
+      adminFirstName: "",
+      adminLastName: "",
+      adminEmail: "",
+      adminPhone: "",
+      description: "",
+      plan: "foundations",
+    },
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async (data: MinistryRequestFormData) => {
+      await apiRequest("POST", "/api/ministry-requests", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Request Submitted",
+        description: "Your ministry registration request has been submitted. You will receive an email once it's reviewed.",
+      });
+      form.reset();
+      setLocation("/");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Submission Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSelectPlan = (planId: "foundations" | "formation" | "stewardship") => {
+    setSelectedPlan(planId);
+    form.setValue("plan", planId);
+    const formSection = document.getElementById("registration-form");
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const onSubmit = (data: MinistryRequestFormData) => {
+    submitMutation.mutate(data);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <PublicNav />
+
+      <main className="flex-1">
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
+          <div className="container mx-auto px-4 text-center">
+            <Button
+              variant="ghost"
+              className="mb-6 gap-2"
+              onClick={() => setLocation("/")}
+              data-testid="button-back-home"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Home
+            </Button>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+              Choose a Plan to{" "}
+              <span className="text-primary">Start Your Ministry</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Select the tier that best fits your ministry's needs. You can always upgrade later as you grow.
+            </p>
+          </div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        </section>
+
+        <section className="py-12 md:py-20">
+          <div className="container mx-auto px-4">
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {tiers.map((tier) => {
+                const isSelected = selectedPlan === tier.id;
+                const TierIcon = tier.icon;
+                return (
+                  <Card
+                    key={tier.id}
+                    className={`relative flex flex-col transition-shadow duration-200 ${
+                      tier.highlighted
+                        ? "border-primary shadow-lg ring-2 ring-primary/20"
+                        : ""
+                    } ${isSelected ? "ring-2 ring-primary" : ""}`}
+                    data-testid={`card-plan-${tier.id}`}
+                  >
+                    {tier.highlighted && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <Badge className="gap-1 bg-primary text-primary-foreground">
+                          <Star className="h-3 w-3" />
+                          Most Popular
+                        </Badge>
+                      </div>
+                    )}
+                    <CardHeader className="text-center pb-2">
+                      <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mx-auto mb-3">
+                        <TierIcon className="h-7 w-7 text-primary" />
+                      </div>
+                      <CardTitle className="text-2xl">{tier.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">{tier.tagline}</p>
+                    </CardHeader>
+                    <CardContent className="flex-1 flex flex-col">
+                      <Button
+                        className="w-full mb-6"
+                        variant={isSelected ? "default" : tier.highlighted ? "default" : "outline"}
+                        onClick={() => handleSelectPlan(tier.id)}
+                        data-testid={`button-select-${tier.id}`}
+                      >
+                        {isSelected ? "Selected" : `Select ${tier.name}`}
+                      </Button>
+                      <ul className="space-y-3 flex-1">
+                        {tier.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-12 md:py-16 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center mb-10">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">What Every Ministry Gets</h2>
+              <p className="text-muted-foreground">
+                All tiers include the core tools you need to manage and grow your ministry.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+              {[
+                { icon: Users, title: "Member Tracking", desc: "Track converts, new members, and existing members in one place" },
+                { icon: Mail, title: "Email Notifications", desc: "Automated follow-up reminders and status updates" },
+                { icon: BarChart3, title: "Dashboard Analytics", desc: "At-a-glance statistics about your ministry's growth" },
+                { icon: Video, title: "Video Conferencing", desc: "Built-in video call links for remote follow-ups" },
+              ].map((item, idx) => {
+                const ItemIcon = item.icon;
+                return (
+                  <Card key={idx} className="text-center">
+                    <CardContent className="pt-6">
+                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
+                        <ItemIcon className="h-6 w-6 text-primary" />
+                      </div>
+                      <h3 className="font-semibold mb-1">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section id="registration-form" className="py-12 md:py-20 scroll-mt-8">
+          <div className="container mx-auto px-4">
+            <div className="max-w-xl mx-auto">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2">Register Your Ministry</h2>
+                <p className="text-muted-foreground">
+                  Fill out the form below and a platform administrator will review your request.
+                </p>
+                <div className="mt-4 inline-flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Selected Plan:</span>
+                  <Badge variant="secondary" className="gap-1" data-testid="badge-selected-plan">
+                    <Sparkles className="h-3 w-3" />
+                    {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
+                  </Badge>
+                </div>
+              </div>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="ministryName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ministry Name *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Grace Community Church" {...field} data-testid="input-ministry-name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Location</FormLabel>
+                            <FormControl>
+                              <Input placeholder="City, State/Country" {...field} data-testid="input-ministry-location" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="adminFirstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>First Name *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="John" {...field} data-testid="input-ministry-admin-first-name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="adminLastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Last Name *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Doe" {...field} data-testid="input-ministry-admin-last-name" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="adminEmail"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Your Email *</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="admin@ministry.org" {...field} data-testid="input-ministry-admin-email" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="adminPhone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Your Phone</FormLabel>
+                            <FormControl>
+                              <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-ministry-admin-phone" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>About Your Ministry</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Tell us about your ministry and its mission..."
+                                className="resize-none"
+                                {...field}
+                                data-testid="input-ministry-description"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <input type="hidden" {...form.register("plan")} />
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={submitMutation.isPending}
+                        data-testid="button-submit-ministry-request"
+                      >
+                        {submitMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          "Submit Registration Request"
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <PublicFooter />
+    </div>
+  );
+}

@@ -53,7 +53,7 @@ export function PublicFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/?registerMinistry=true" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/register-ministry" className="text-muted-foreground hover:text-foreground transition-colors">
                   Register a Ministry
                 </Link>
               </li>

@@ -41,6 +41,7 @@ import MassFollowUp from "@/pages/leader/mass-followup";
 import ConvertDetail from "@/pages/leader/convert-detail";
 import NewMemberDetail from "@/pages/leader/new-member-detail";
 import MemberDetail from "@/pages/leader/member-detail";
+import RegisterMinistry from "@/pages/register-ministry";
 import NewConvert from "@/pages/new-convert";
 import NewMemberForm from "@/pages/new-member-form";
 import MemberForm from "@/pages/member-form";
@@ -121,6 +122,7 @@ function Router() {
       <Route path="/journey" component={Journey} />
       <Route path="/contact" component={Contact} />
       <Route path="/contact-us" component={ContactUs} />
+      <Route path="/register-ministry" component={RegisterMinistry} />
       <Route path="/connect/:token" component={NewConvert} />
       <Route path="/new-member/:token" component={NewMemberForm} />
       <Route path="/member/:token" component={MemberForm} />
