@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import Cropper from "react-easy-crop";
+import type { Area } from "react-easy-crop";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useToast } from "@/hooks/use-toast";
+import { useUpload } from "@/hooks/use-upload";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
-import { Settings, MapPin, AlertTriangle, Loader2, Trash2, Users } from "lucide-react";
+import { Settings, MapPin, AlertTriangle, Loader2, Trash2, Users, Upload, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 
@@ -32,6 +36,47 @@ interface LeaderQuota {
   canAddMore: boolean;
 }
 
+async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
+  const image = new Image();
+  image.src = imageSrc;
+  await new Promise((resolve) => {
+    image.onload = resolve;
+  });
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Failed to get canvas context");
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  );
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Failed to create blob"));
+        }
+      },
+      "image/png",
+      1
+    );
+  });
+}
+
 export default function MinistryAdminSettings() {
   const { toast } = useToast();
   const { logout } = useAuth();
@@ -41,12 +86,70 @@ export default function MinistryAdminSettings() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
 
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
   const { data: church, isLoading } = useQuery<Church>({
     queryKey: ["/api/ministry-admin/church"],
   });
 
   const { data: leaderQuota, isLoading: isLoadingQuota } = useQuery<LeaderQuota>({
     queryKey: ["/api/ministry-admin/leader-quota"],
+  });
+
+  const { uploadFile } = useUpload({
+    onSuccess: async (response) => {
+      try {
+        await apiRequest("PATCH", "/api/ministry-admin/church/logo", {
+          logoUrl: response.objectPath,
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/church"] });
+        toast({
+          title: "Logo Updated",
+          description: "Your ministry logo has been updated successfully.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to save logo. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploadingLogo(false);
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload logo. Please try again.",
+        variant: "destructive",
+      });
+      setIsUploadingLogo(false);
+    },
+  });
+
+  const removeLogo = useMutation({
+    mutationFn: async () => {
+      await apiRequest("PATCH", "/api/ministry-admin/church/logo", { logoUrl: "" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/church"] });
+      toast({
+        title: "Logo Removed",
+        description: "Your ministry logo has been removed.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to remove logo. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const deleteMutation = useMutation({
@@ -94,6 +197,71 @@ export default function MinistryAdminSettings() {
     if (confirmText === "Cancel Account") {
       deleteMutation.mutate();
     }
+  };
+
+  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid File",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please select an image under 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageSrc(reader.result as string);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCropDialogOpen(true);
+    };
+    reader.readAsDataURL(file);
+    
+    e.target.value = "";
+  };
+
+  const handleCropSave = async () => {
+    if (!imageSrc || !croppedAreaPixels) return;
+
+    try {
+      setIsUploadingLogo(true);
+      setCropDialogOpen(false);
+
+      const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      const croppedFile = new File([croppedBlob], "church-logo.png", { type: "image/png" });
+      
+      await uploadFile(croppedFile);
+      setImageSrc(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to crop image. Please try again.",
+        variant: "destructive",
+      });
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setCropDialogOpen(false);
+    setImageSrc(null);
   };
 
   if (isLoading) {
@@ -149,6 +317,86 @@ export default function MinistryAdminSettings() {
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
                 <Badge variant="secondary">Active</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Ministry Logo
+            </CardTitle>
+            <CardDescription>
+              Upload your ministry logo. It will appear next to your ministry name in the sidebar and on all public registration forms.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-4">
+              <div className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/50 shrink-0">
+                {church?.logoUrl ? (
+                  <img
+                    src={church.logoUrl}
+                    alt={`${church.name} logo`}
+                    className="w-full h-full object-cover"
+                    data-testid="img-church-logo"
+                  />
+                ) : (
+                  <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="admin-logo-upload">
+                  <input
+                    id="admin-logo-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    disabled={isUploadingLogo}
+                    data-testid="input-logo-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isUploadingLogo}
+                    onClick={() => document.getElementById("admin-logo-upload")?.click()}
+                    data-testid="button-upload-logo"
+                  >
+                    {isUploadingLogo ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Logo
+                      </>
+                    )}
+                  </Button>
+                </label>
+
+                {church?.logoUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => removeLogo.mutate()}
+                    disabled={removeLogo.isPending}
+                    data-testid="button-remove-logo"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remove Logo
+                  </Button>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  Recommended: Square image, at least 200x200px, under 5MB
+                </p>
               </div>
             </div>
           </CardContent>
@@ -238,6 +486,57 @@ export default function MinistryAdminSettings() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Image Crop Dialog */}
+      <Dialog open={cropDialogOpen} onOpenChange={(open) => !open && handleCropCancel()}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Adjust Your Logo</DialogTitle>
+            <DialogDescription>
+              Drag to reposition and use the slider to zoom in or out
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="relative h-64 w-full bg-muted rounded-lg overflow-hidden">
+              {imageSrc && (
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  cropShape="round"
+                  showGrid={false}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                />
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Zoom</label>
+              <Slider
+                value={[zoom]}
+                min={1}
+                max={3}
+                step={0.1}
+                onValueChange={(value) => setZoom(value[0])}
+                data-testid="slider-zoom"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={handleCropCancel}>
+                Cancel
+              </Button>
+              <Button onClick={handleCropSave} data-testid="button-save-crop">
+                Save Logo
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={(open) => !open && closeDeleteDialog()}>

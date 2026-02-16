@@ -2882,6 +2882,23 @@ export async function registerRoutes(
     }
   });
 
+  // Update church logo - Ministry Admin
+  app.patch("/api/ministry-admin/church/logo", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { logoUrl } = req.body;
+
+      if (typeof logoUrl !== "string") {
+        return res.status(400).json({ message: "Invalid logo URL" });
+      }
+
+      await storage.updateChurchLogo(user.churchId, logoUrl);
+      res.json({ message: "Logo updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update logo" });
+    }
+  });
+
   // Cancel (archive) ministry account - Ministry Admin
   app.delete("/api/ministry-admin/church/cancel", requireMinistryAdmin, async (req, res) => {
     try {
