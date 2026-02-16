@@ -102,12 +102,19 @@ export default function MinistryProfile() {
             </Button>
             <div>
               <h2 className="text-2xl font-bold tracking-tight">{church.name}</h2>
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 flex-wrap text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>{church.location || "Location not specified"}</span>
                 <span className="mx-2">•</span>
                 <Calendar className="h-4 w-4" />
                 <span>Created {format(new Date(church.createdAt), "MMM d, yyyy")}</span>
+                <span className="mx-2">•</span>
+                <Badge
+                  variant={church.plan === "stewardship" ? "default" : church.plan === "formation" ? "secondary" : "outline"}
+                  data-testid="badge-ministry-plan"
+                >
+                  {church.plan ? church.plan.charAt(0).toUpperCase() + church.plan.slice(1) : "Foundations"} Plan
+                </Badge>
               </div>
             </div>
           </div>

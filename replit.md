@@ -63,6 +63,13 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Resend claim tokens for accounts that haven't been claimed yet
     - Suspend or activate member accounts (Ministry Admins only)
     - View member affiliation type (convert, new_member, member) and last login
+- **Ministry Plan Model**: A 3-tier plan system per ministry (structural foundation only, no enforcement):
+    - **Foundations** (default): Base tier for all ministries
+    - **Formation**: Mid tier
+    - **Stewardship**: Top tier
+    - Plan is stored on the `churches` table as a `ministry_plan` enum column
+    - Platform Admins can view and change a ministry's plan from the Ministries page and edit dialog
+    - Plan is displayed as a badge on the ministry list table and ministry profile page
 - **Remove from Ministry**: Leaders and Admins can remove converts, new members, and members from their ministry:
     - Removes the ministry affiliation only (does NOT deactivate member portal account)
     - Person is notified via email about removal (if email is on file)

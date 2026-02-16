@@ -11,9 +11,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { insertChurchSchema, type Church } from "@shared/schema";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, MapPin, Users, Loader2, Pencil, Church as ChurchIcon, Eye, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -22,6 +24,7 @@ import { format } from "date-fns";
 const churchFormSchema = insertChurchSchema.extend({
   name: z.string().min(2, "Name must be at least 2 characters"),
   location: z.string().min(2, "Location is required"),
+  plan: z.enum(["foundations", "formation", "stewardship"]).default("foundations"),
 });
 
 type ChurchFormData = z.infer<typeof churchFormSchema>;
@@ -52,6 +55,7 @@ export default function AdminChurches() {
     defaultValues: {
       name: "",
       location: "",
+      plan: "foundations",
     },
   });
 
@@ -136,13 +140,14 @@ export default function AdminChurches() {
     form.reset({
       name: church.name,
       location: church.location || "",
+      plan: church.plan || "foundations",
     });
     setDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingChurch(null);
-    form.reset({ name: "", location: "" });
+    form.reset({ name: "", location: "", plan: "foundations" });
     setDialogOpen(true);
   };
 
@@ -212,6 +217,28 @@ export default function AdminChurches() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="plan"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Plan</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-church-plan">
+                              <SelectValue placeholder="Select a plan" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="foundations">Foundations</SelectItem>
+                            <SelectItem value="formation">Formation</SelectItem>
+                            <SelectItem value="stewardship">Stewardship</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <div className="flex justify-end gap-2">
                     <Button
                       type="button"
@@ -257,6 +284,7 @@ export default function AdminChurches() {
                   <TableRow>
                     <TableHead>Ministry Name</TableHead>
                     <TableHead>Location</TableHead>
+                    <TableHead>Plan</TableHead>
                     <TableHead className="text-center">Leaders</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -271,6 +299,14 @@ export default function AdminChurches() {
                           <MapPin className="h-3 w-3" />
                           {church.location}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={church.plan === "stewardship" ? "default" : church.plan === "formation" ? "secondary" : "outline"}
+                          data-testid={`badge-plan-${church.id}`}
+                        >
+                          {church.plan ? church.plan.charAt(0).toUpperCase() + church.plan.slice(1) : "Foundations"}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1">
