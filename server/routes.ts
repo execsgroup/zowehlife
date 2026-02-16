@@ -33,6 +33,18 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
+function getMaxLeadersForPlan(plan: string | null | undefined): number {
+  switch (plan) {
+    case "stewardship":
+      return 10;
+    case "formation":
+      return 3;
+    case "foundations":
+    default:
+      return 1;
+  }
+}
+
 declare module "express-session" {
   interface SessionData {
     userId?: string;
@@ -1991,6 +2003,15 @@ export async function registerRoutes(
       // Find or create the church
       const { church, created: churchCreated } = await storage.findOrCreateChurch(finalChurchName);
 
+      // Check leader limit based on ministry plan
+      const adminMaxLeaders = getMaxLeadersForPlan(church.plan);
+      const adminCurrentLeaders = await storage.getLeadersByChurch(church.id);
+      if (adminCurrentLeaders.length >= adminMaxLeaders) {
+        return res.status(400).json({ 
+          message: `This ministry has reached its leader limit of ${adminMaxLeaders} for the ${(church.plan || 'foundations').charAt(0).toUpperCase() + (church.plan || 'foundations').slice(1)} plan. Update the ministry's plan before approving more leaders.` 
+        });
+      }
+
       // Generate temporary password
       const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
       const passwordHash = await bcrypt.hash(tempPassword, 10);
@@ -2311,12 +2332,13 @@ export async function registerRoutes(
       const { id } = req.params;
       const ministryAdmin = (req as any).user;
 
-      // Check leader limit (max 3 leaders per ministry)
-      const MAX_LEADERS_PER_MINISTRY = 3;
+      // Check leader limit based on ministry plan
+      const maChurch = await storage.getChurch(ministryAdmin.churchId);
+      const maxLeaders = getMaxLeadersForPlan(maChurch?.plan);
       const currentLeaders = await storage.getLeadersByChurch(ministryAdmin.churchId);
-      if (currentLeaders.length >= MAX_LEADERS_PER_MINISTRY) {
+      if (currentLeaders.length >= maxLeaders) {
         return res.status(400).json({ 
-          message: `You have reached the maximum limit of ${MAX_LEADERS_PER_MINISTRY} leaders for your ministry. Please remove a leader before adding a new one.` 
+          message: `You have reached the maximum limit of ${maxLeaders} leader${maxLeaders !== 1 ? 's' : ''} for your ministry's ${(maChurch?.plan || 'foundations').charAt(0).toUpperCase() + (maChurch?.plan || 'foundations').slice(1)} plan. Please upgrade your plan or remove a leader before adding a new one.` 
         });
       }
 
@@ -2499,13 +2521,15 @@ export async function registerRoutes(
   app.get("/api/ministry-admin/leader-quota", requireMinistryAdmin, async (req, res) => {
     try {
       const user = (req as any).user;
-      const MAX_LEADERS_PER_MINISTRY = 3;
+      const church = await storage.getChurch(user.churchId);
+      const maxLeaders = getMaxLeadersForPlan(church?.plan);
       const leaders = await storage.getLeadersByChurch(user.churchId);
       res.json({
         currentCount: leaders.length,
-        maxAllowed: MAX_LEADERS_PER_MINISTRY,
-        remaining: Math.max(0, MAX_LEADERS_PER_MINISTRY - leaders.length),
-        canAddMore: leaders.length < MAX_LEADERS_PER_MINISTRY,
+        maxAllowed: maxLeaders,
+        remaining: Math.max(0, maxLeaders - leaders.length),
+        canAddMore: leaders.length < maxLeaders,
+        plan: church?.plan || "foundations",
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to get leader quota" });
@@ -2516,13 +2540,14 @@ export async function registerRoutes(
   app.post("/api/ministry-admin/leaders", requireMinistryAdmin, async (req, res) => {
     try {
       const ministryAdmin = (req as any).user;
-      const MAX_LEADERS_PER_MINISTRY = 3;
+      const maChurch = await storage.getChurch(ministryAdmin.churchId);
+      const maxLeaders = getMaxLeadersForPlan(maChurch?.plan);
 
       // Check leader quota
       const existingLeaders = await storage.getLeadersByChurch(ministryAdmin.churchId);
-      if (existingLeaders.length >= MAX_LEADERS_PER_MINISTRY) {
+      if (existingLeaders.length >= maxLeaders) {
         return res.status(400).json({ 
-          message: `Maximum number of leaders (${MAX_LEADERS_PER_MINISTRY}) reached for this ministry. Remove an existing leader to add a new one.` 
+          message: `Maximum number of leaders (${maxLeaders}) reached for your ministry's ${(maChurch?.plan || 'foundations').charAt(0).toUpperCase() + (maChurch?.plan || 'foundations').slice(1)} plan. Upgrade your plan or remove an existing leader to add a new one.` 
         });
       }
 
