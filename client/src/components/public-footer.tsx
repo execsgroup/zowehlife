@@ -49,17 +49,12 @@ export function PublicFooter() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Leader Login
+                  Ministry Login
                 </Link>
               </li>
               <li>
                 <Link href="/register-ministry" className="text-muted-foreground hover:text-foreground transition-colors">
                   Register a Ministry
-                </Link>
-              </li>
-              <li>
-                <Link href="/setup" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-admin-setup">
-                  Admin Setup
                 </Link>
               </li>
             </ul>
