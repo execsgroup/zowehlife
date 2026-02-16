@@ -16,10 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
   Check,
-  Church,
   Users,
-  BookOpen,
-  Shield,
   BarChart3,
   Video,
   Mail,
@@ -55,10 +52,10 @@ interface StripePlan {
   interval: string;
 }
 
-const tierMeta: Record<string, { icon: typeof Church; highlighted: boolean; leaderLimit: string }> = {
-  foundations: { icon: Church, highlighted: false, leaderLimit: "1 Leader Account" },
-  formation: { icon: BookOpen, highlighted: true, leaderLimit: "Up to 3 Leader Accounts" },
-  stewardship: { icon: Shield, highlighted: false, leaderLimit: "Up to 10 Leader Accounts" },
+const tierMeta: Record<string, { highlighted: boolean; leaderLimit: string }> = {
+  foundations: { highlighted: false, leaderLimit: "1 Leader Account" },
+  formation: { highlighted: true, leaderLimit: "Up to 3 Leader Accounts" },
+  stewardship: { highlighted: false, leaderLimit: "Up to 10 Leader Accounts" },
 };
 
 const sharedFeatures = [
@@ -193,7 +190,6 @@ export default function RegisterMinistry() {
                     {(sortedPlans || []).map((plan) => {
                       const meta = tierMeta[plan.planId];
                       if (!meta) return null;
-                      const TierIcon = meta.icon;
                       return (
                         <Card
                           key={plan.planId}
@@ -213,9 +209,6 @@ export default function RegisterMinistry() {
                             </div>
                           )}
                           <CardHeader className="text-center pb-2">
-                            <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mx-auto mb-3">
-                              <TierIcon className="h-7 w-7 text-primary" />
-                            </div>
                             <CardTitle className="text-2xl">{plan.name}</CardTitle>
                             <div className="mt-2">
                               <span className="text-3xl font-bold">{formatPrice(plan.amount)}</span>
