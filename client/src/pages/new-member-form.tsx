@@ -148,11 +148,14 @@ export default function NewMemberForm() {
         <Card>
           <CardHeader className="text-center">
             {church.logoUrl && (
-              <img
-                src={church.logoUrl}
-                alt={church.name}
-                className="h-16 w-auto mx-auto mb-4 object-contain"
-              />
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden">
+                <img
+                  src={church.logoUrl}
+                  alt={church.name}
+                  className="w-full h-full object-cover"
+                  data-testid="img-church-logo"
+                />
+              </div>
             )}
             <CardTitle className="text-2xl">New Member Registration</CardTitle>
             <CardDescription>

@@ -183,11 +183,11 @@ export default function NewConvert() {
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="text-center mb-8">
             {church.logoUrl ? (
-              <div className="w-24 h-24 mx-auto mb-4 rounded-lg overflow-hidden">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden">
                 <img
                   src={church.logoUrl}
                   alt={`${church.name} logo`}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                   data-testid="img-church-logo"
                 />
               </div>
