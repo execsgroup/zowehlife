@@ -2137,6 +2137,7 @@ export async function registerRoutes(
       const finalAdminEmail = editedData.adminEmail;
       const finalAdminPhone = editedData.adminPhone;
       const finalDescription = editedData.description;
+      const finalPlan = editedData.plan || request.plan || "foundations";
 
       // Check if admin email already taken (could have been created since request)
       const existingUser = await storage.getUserByEmail(finalAdminEmail);
@@ -2165,6 +2166,7 @@ export async function registerRoutes(
       const church = await storage.createChurch({
         name: finalMinistryName,
         location: finalLocation,
+        plan: finalPlan as "foundations" | "formation" | "stewardship",
       });
 
       // Generate temporary password

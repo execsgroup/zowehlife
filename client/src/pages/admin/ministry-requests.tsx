@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Check, X, Mail, Phone, MapPin, Calendar, Loader2, FileText, Edit, User } from "lucide-react";
 
 interface MinistryRequest {
@@ -25,6 +26,7 @@ interface MinistryRequest {
   adminEmail: string;
   adminPhone: string | null;
   description: string | null;
+  plan: "foundations" | "formation" | "stewardship";
   status: "PENDING" | "APPROVED" | "DENIED";
   reviewedByUserId: string | null;
   reviewedAt: string | null;
@@ -45,6 +47,7 @@ const reviewFormSchema = z.object({
   adminEmail: z.string().email("Please enter a valid email"),
   adminPhone: z.string().optional(),
   description: z.string().optional(),
+  plan: z.enum(["foundations", "formation", "stewardship"]).default("foundations"),
 });
 
 type ReviewFormData = z.infer<typeof reviewFormSchema>;
@@ -67,6 +70,7 @@ export default function MinistryRequests() {
       adminEmail: "",
       adminPhone: "",
       description: "",
+      plan: "foundations",
     },
   });
 
@@ -133,6 +137,7 @@ export default function MinistryRequests() {
       adminEmail: request.adminEmail,
       adminPhone: request.adminPhone || "",
       description: request.description || "",
+      plan: request.plan || "foundations",
     });
     setReviewingRequest(request);
   };
@@ -411,6 +416,28 @@ export default function MinistryRequests() {
                         data-testid="input-review-description"
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="plan"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Membership Tier</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-review-plan">
+                          <SelectValue placeholder="Select a plan" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="foundations">Foundations</SelectItem>
+                        <SelectItem value="formation">Formation</SelectItem>
+                        <SelectItem value="stewardship">Stewardship</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

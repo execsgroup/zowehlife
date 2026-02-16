@@ -279,6 +279,7 @@ export const ministryRequests = pgTable("ministry_requests", {
   adminEmail: text("admin_email").notNull(),
   adminPhone: text("admin_phone"),
   description: text("description"),
+  plan: ministryPlanEnum("plan").notNull().default("foundations"),
   status: accountRequestStatusEnum("status").notNull().default("PENDING"),
   reviewedByUserId: varchar("reviewed_by_user_id").references(() => users.id),
   reviewedAt: timestamp("reviewed_at"),

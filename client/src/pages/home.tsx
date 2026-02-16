@@ -14,6 +14,7 @@ import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Heart, BookOpen, Users, ArrowRight, Sparkles, HandHeart, Church, Loader2 } from "lucide-react";
 
 const ministryRequestSchema = z.object({
@@ -24,6 +25,7 @@ const ministryRequestSchema = z.object({
   adminEmail: z.string().email("Please enter a valid email"),
   adminPhone: z.string().optional(),
   description: z.string().optional(),
+  plan: z.enum(["foundations", "formation", "stewardship"]).default("foundations"),
 });
 
 type MinistryRequestFormData = z.infer<typeof ministryRequestSchema>;
@@ -51,6 +53,7 @@ export default function Home() {
       adminEmail: "",
       adminPhone: "",
       description: "",
+      plan: "foundations",
     },
   });
 
@@ -349,6 +352,31 @@ export default function Home() {
                         data-testid="input-ministry-description"
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={ministryForm.control}
+                name="plan"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Membership Tier</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-ministry-plan">
+                          <SelectValue placeholder="Select a plan" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="foundations">Foundations</SelectItem>
+                        <SelectItem value="formation">Formation</SelectItem>
+                        <SelectItem value="stewardship">Stewardship</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose the membership tier for your ministry
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
