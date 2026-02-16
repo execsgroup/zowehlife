@@ -3,13 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { QRCodeDialog } from "@/components/qr-code-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Church, UserPlus, Calendar, ArrowRight, Clock, User, LinkIcon, Copy, Check, Video } from "lucide-react";
+import { Church, UserPlus, Calendar, ArrowRight, Clock, User, LinkIcon, Copy, Check, Video, QrCode } from "lucide-react";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
 interface LeaderStats {
@@ -39,6 +40,7 @@ export default function LeaderDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [qrDialog, setQrDialog] = useState<{ url: string; title: string } | null>(null);
 
   const { data: stats, isLoading } = useQuery<LeaderStats>({
     queryKey: ["/api/leader/stats"],
@@ -207,6 +209,14 @@ export default function LeaderDashboard() {
                       </>
                     )}
                   </Button>
+                  <Button
+                    onClick={() => setQrDialog({ url: convertFormLink, title: "Salvation Form" })}
+                    variant="outline"
+                    size="icon"
+                    data-testid="button-qr-convert-link"
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
                 </div>
               ) : (
                 <Skeleton className="h-10 w-full" />
@@ -242,6 +252,14 @@ export default function LeaderDashboard() {
                       </>
                     )}
                   </Button>
+                  <Button
+                    onClick={() => setQrDialog({ url: newMemberFormLink, title: "New Member Form" })}
+                    variant="outline"
+                    size="icon"
+                    data-testid="button-qr-new-member-link"
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
                 </div>
               ) : (
                 <Skeleton className="h-10 w-full" />
@@ -276,6 +294,14 @@ export default function LeaderDashboard() {
                         Copy
                       </>
                     )}
+                  </Button>
+                  <Button
+                    onClick={() => setQrDialog({ url: memberFormLink, title: "Member Form" })}
+                    variant="outline"
+                    size="icon"
+                    data-testid="button-qr-member-link"
+                  >
+                    <QrCode className="h-4 w-4" />
                   </Button>
                 </div>
               ) : (
@@ -378,6 +404,15 @@ export default function LeaderDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {qrDialog && (
+        <QRCodeDialog
+          open={!!qrDialog}
+          onOpenChange={(open) => !open && setQrDialog(null)}
+          url={qrDialog.url}
+          title={qrDialog.title}
+        />
+      )}
     </DashboardLayout>
   );
 }

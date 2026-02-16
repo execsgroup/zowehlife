@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { QRCodeDialog } from "@/components/qr-code-dialog";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, ClipboardList, Heart, UserCheck, UsersRound, Link, Copy, ExternalLink } from "lucide-react";
+import { Users, UserPlus, ClipboardList, Heart, UserCheck, UsersRound, Link, Copy, ExternalLink, QrCode } from "lucide-react";
 
 interface Stats {
   totalConverts: number;
@@ -60,6 +62,8 @@ export default function MinistryAdminDashboard() {
       path: "member",
     },
   ];
+
+  const [qrDialog, setQrDialog] = useState<{ url: string; title: string } | null>(null);
 
   const copyToClipboard = (url: string, formName: string) => {
     navigator.clipboard.writeText(url);
@@ -188,6 +192,14 @@ export default function MinistryAdminDashboard() {
                       >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
+                      <Button
+                        size="icon"
+                        variant="default"
+                        onClick={() => setQrDialog({ url, title: form.title })}
+                        data-testid={`button-qr-${form.path}`}
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </Button>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground italic">Link not available</p>
@@ -198,6 +210,15 @@ export default function MinistryAdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {qrDialog && (
+        <QRCodeDialog
+          open={!!qrDialog}
+          onOpenChange={(open) => !open && setQrDialog(null)}
+          url={qrDialog.url}
+          title={qrDialog.title}
+        />
+      )}
     </DashboardLayout>
   );
 }
