@@ -706,19 +706,6 @@ export default function LeaderNewMembers() {
                                 <Button
                                   size="icon"
                                   variant="default"
-                                  onClick={() => handleScheduleFollowUp(nm)}
-                                  data-testid={`button-schedule-followup-${nm.id}`}
-                                >
-                                  <CalendarPlus className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Schedule Follow Up</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="default"
                                   onClick={() => handleFollowUpNote(nm)}
                                   data-testid={`button-followup-note-${nm.id}`}
                                 >
@@ -752,19 +739,6 @@ export default function LeaderNewMembers() {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>Move to Members</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="icon"
-                                  variant="default"
-                                  onClick={() => handleConvertToGuest(nm)}
-                                  data-testid={`button-move-to-guest-${nm.id}`}
-                                >
-                                  <Users2 className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Move to Guest List</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
