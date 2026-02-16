@@ -334,8 +334,8 @@ export const checkinsRelations = relations(checkins, ({ one }) => ({
 // Email reminders tracking table
 export const emailReminders = pgTable("email_reminders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  checkinId: varchar("checkin_id").notNull().references(() => checkins.id),
-  reminderType: text("reminder_type").notNull(), // 'INITIAL' or 'DAY_BEFORE'
+  checkinId: varchar("checkin_id").notNull(),
+  reminderType: text("reminder_type").notNull(),
   sentAt: timestamp("sent_at").defaultNow().notNull(),
 });
 

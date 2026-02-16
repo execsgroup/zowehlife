@@ -1060,7 +1060,12 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(converts, eq(checkins.convertId, converts.id))
       .innerJoin(users, eq(checkins.createdByUserId, users.id))
       .innerJoin(churches, eq(checkins.churchId, churches.id))
-      .where(eq(checkins.nextFollowupDate, tomorrowStr));
+      .where(
+        and(
+          eq(checkins.nextFollowupDate, tomorrowStr),
+          eq(checkins.outcome, "SCHEDULED_VISIT")
+        )
+      );
 
     return results.map(r => ({
       checkinId: r.checkinId,
@@ -1163,7 +1168,12 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(newMembers, eq(newMemberCheckins.newMemberId, newMembers.id))
       .innerJoin(users, eq(newMemberCheckins.createdByUserId, users.id))
       .innerJoin(churches, eq(newMemberCheckins.churchId, churches.id))
-      .where(eq(newMemberCheckins.nextFollowupDate, tomorrowStr));
+      .where(
+        and(
+          eq(newMemberCheckins.nextFollowupDate, tomorrowStr),
+          eq(newMemberCheckins.outcome, "SCHEDULED_VISIT")
+        )
+      );
 
     return results.map(r => ({
       checkinId: r.checkinId,
