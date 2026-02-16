@@ -1254,7 +1254,7 @@ export async function registerRoutes(
     }
   });
 
-  // Submit ministry registration request with Stripe checkout
+  // Submit ministry registration - validates data and creates Stripe checkout (no DB record yet)
   app.post("/api/ministry-requests", async (req, res) => {
     try {
       const data = insertMinistryRequestSchema.parse(req.body);
@@ -1269,102 +1269,109 @@ export async function registerRoutes(
         return res.status(400).json({ message: "A ministry with this name already exists" });
       }
 
-      const request = await storage.createMinistryRequest(data);
+      const stripe = await getUncachableStripeClient();
 
-      // Create Stripe checkout session
-      try {
-        const stripe = await getUncachableStripeClient();
+      const products = await stripe.products.list({ active: true, limit: 10 });
+      const planProduct = products.data.find(p => p.metadata?.plan_id === data.plan);
 
-        const products = await stripe.products.list({ active: true, limit: 10 });
-        const planProduct = products.data.find(p => p.metadata?.plan_id === data.plan);
-
-        if (!planProduct) {
-          return res.status(201).json({
-            message: "Ministry registration request submitted. Payment setup will be configured by admin.",
-            requestId: request.id,
-          });
-        }
-
-        const prices = await stripe.prices.list({
-          product: planProduct.id,
-          active: true,
-          limit: 1,
-        });
-        const price = prices.data[0];
-
-        if (!price) {
-          return res.status(201).json({
-            message: "Ministry registration request submitted. Payment setup will be configured by admin.",
-            requestId: request.id,
-          });
-        }
-
-        const baseUrl = buildUrl("");
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ['card'],
-          line_items: [{ price: price.id, quantity: 1 }],
-          mode: 'subscription',
-          success_url: `${baseUrl}/register-ministry/success?request_id=${request.id}&session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${baseUrl}/register-ministry/cancel?request_id=${request.id}`,
-          customer_email: data.adminEmail,
-          metadata: {
-            ministry_request_id: request.id,
-            plan: data.plan,
-          },
-        });
-
-        await storage.updateMinistryRequestPayment(request.id, session.id);
-
-        res.status(201).json({
-          message: "Ministry registration request submitted. Redirecting to payment.",
-          requestId: request.id,
-          checkoutUrl: session.url,
-        });
-      } catch (stripeError) {
-        console.error("Stripe checkout creation failed:", stripeError);
-        res.status(201).json({
-          message: "Ministry registration request submitted successfully. You will be notified once reviewed.",
-          requestId: request.id,
-        });
+      if (!planProduct) {
+        return res.status(400).json({ message: "Selected plan not found. Please try again." });
       }
+
+      const prices = await stripe.prices.list({
+        product: planProduct.id,
+        active: true,
+        limit: 1,
+      });
+      const price = prices.data[0];
+
+      if (!price) {
+        return res.status(400).json({ message: "Plan pricing not available. Please try again." });
+      }
+
+      const baseUrl = buildUrl("");
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [{ price: price.id, quantity: 1 }],
+        mode: 'subscription',
+        success_url: `${baseUrl}/register-ministry/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/register-ministry/cancel`,
+        customer_email: data.adminEmail,
+        metadata: {
+          ministry_name: data.ministryName,
+          location: data.location || "",
+          admin_first_name: data.adminFirstName,
+          admin_last_name: data.adminLastName,
+          admin_email: data.adminEmail,
+          admin_phone: data.adminPhone || "",
+          description: data.description || "",
+          plan: data.plan,
+        },
+      });
+
+      res.status(200).json({
+        checkoutUrl: session.url,
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
-      res.status(500).json({ message: "Failed to submit ministry request" });
+      console.error("Ministry request checkout error:", error);
+      res.status(500).json({ message: "Failed to start checkout. Please try again." });
     }
   });
 
-  // Verify payment status for a ministry request
-  app.get("/api/ministry-requests/:id/payment-status", async (req, res) => {
+  // Confirm ministry registration after successful Stripe payment
+  app.post("/api/ministry-requests/confirm", async (req, res) => {
     try {
-      const { id } = req.params;
-      const request = await storage.getMinistryRequest(id);
-      if (!request) {
-        return res.status(404).json({ message: "Ministry request not found" });
+      const { sessionId } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ message: "Missing session ID" });
       }
 
-      if (request.stripeSessionId) {
-        try {
-          const stripe = await getUncachableStripeClient();
-          const session = await stripe.checkout.sessions.retrieve(request.stripeSessionId);
+      const stripe = await getUncachableStripeClient();
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-          if (session.payment_status === 'paid' && request.paymentStatus !== 'paid') {
-            await storage.updateMinistryRequestPaymentStatus(id, 'paid');
-          }
-
-          res.json({
-            paymentStatus: session.payment_status === 'paid' ? 'paid' : request.paymentStatus,
-            plan: request.plan,
-          });
-        } catch {
-          res.json({ paymentStatus: request.paymentStatus, plan: request.plan });
-        }
-      } else {
-        res.json({ paymentStatus: request.paymentStatus, plan: request.plan });
+      if (session.payment_status !== 'paid') {
+        return res.status(400).json({ message: "Payment not completed", paymentStatus: session.payment_status });
       }
+
+      const meta = session.metadata || {};
+
+      const existingBySession = await storage.getMinistryRequestByStripeSession(sessionId);
+      if (existingBySession) {
+        return res.json({
+          message: "Registration already confirmed",
+          requestId: existingBySession.id,
+          paymentStatus: "paid",
+          plan: existingBySession.plan,
+        });
+      }
+
+      const requestData = {
+        ministryName: meta.ministry_name || "Unknown Ministry",
+        location: meta.location || null,
+        adminFirstName: meta.admin_first_name || "Unknown",
+        adminLastName: meta.admin_last_name || "Unknown",
+        adminEmail: meta.admin_email || "",
+        adminPhone: meta.admin_phone || null,
+        description: meta.description || null,
+        plan: (meta.plan as "foundations" | "formation" | "stewardship") || "foundations",
+      };
+
+      const request = await storage.createMinistryRequest(requestData);
+      await storage.updateMinistryRequestPayment(request.id, sessionId);
+      await storage.updateMinistryRequestPaymentStatus(request.id, "paid");
+
+      res.status(201).json({
+        message: "Ministry registration confirmed",
+        requestId: request.id,
+        paymentStatus: "paid",
+        plan: request.plan,
+      });
     } catch (error) {
-      res.status(500).json({ message: "Failed to get payment status" });
+      console.error("Ministry request confirmation error:", error);
+      res.status(500).json({ message: "Failed to confirm registration" });
     }
   });
 

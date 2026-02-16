@@ -104,15 +104,9 @@ export default function RegisterMinistry() {
       const response = await apiRequest("POST", "/api/ministry-requests", data);
       return response.json();
     },
-    onSuccess: (data: { checkoutUrl?: string; requestId?: string; message: string }) => {
+    onSuccess: (data: { checkoutUrl?: string }) => {
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
-      } else {
-        toast({
-          title: "Request Submitted",
-          description: data.message,
-        });
-        setLocation("/");
       }
     },
     onError: (error: Error) => {

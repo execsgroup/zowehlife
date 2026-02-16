@@ -1,43 +1,39 @@
 import { useState, useEffect } from "react";
 import { useLocation, useSearch } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { CheckCircle, Loader2, ArrowRight, AlertCircle } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function RegisterMinistrySuccess() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const params = new URLSearchParams(searchString);
-  const requestId = params.get("request_id");
-  const [timedOut, setTimedOut] = useState(false);
+  const sessionId = params.get("session_id");
+  const [confirmed, setConfirmed] = useState(false);
+  const [planName, setPlanName] = useState<string | null>(null);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setTimedOut(true), 30000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const { data: paymentData, isLoading, isError } = useQuery<{ paymentStatus: string; plan: string }>({
-    queryKey: ["/api/ministry-requests", requestId, "payment-status"],
-    queryFn: async () => {
-      if (!requestId) throw new Error("No request ID");
-      const res = await fetch(`/api/ministry-requests/${requestId}/payment-status`);
-      if (!res.ok) throw new Error("Failed to verify payment");
+  const confirmMutation = useMutation({
+    mutationFn: async (sid: string) => {
+      const res = await apiRequest("POST", "/api/ministry-requests/confirm", { sessionId: sid });
       return res.json();
     },
-    enabled: !!requestId,
-    refetchInterval: (query) => {
-      if (query.state.data?.paymentStatus === "paid") return false;
-      return 3000;
+    onSuccess: (data: { plan?: string }) => {
+      setConfirmed(true);
+      if (data.plan) setPlanName(data.plan);
     },
-    retry: 3,
   });
 
-  const isPaid = paymentData?.paymentStatus === "paid";
+  useEffect(() => {
+    if (sessionId && !confirmed && !confirmMutation.isPending && !confirmMutation.isError) {
+      confirmMutation.mutate(sessionId);
+    }
+  }, [sessionId]);
 
-  if (!requestId) {
+  if (!sessionId) {
     return (
       <div className="min-h-screen flex flex-col">
         <PublicNav />
@@ -46,19 +42,19 @@ export default function RegisterMinistrySuccess() {
             <div className="max-w-lg mx-auto">
               <Card>
                 <CardContent className="pt-8 pb-8 text-center space-y-6">
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
-                    <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 mx-auto">
+                    <AlertCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <h2 className="text-2xl font-bold" data-testid="text-success-title">Thank You</h2>
+                  <h2 className="text-2xl font-bold">Missing Payment Information</h2>
                   <p className="text-muted-foreground">
-                    Your ministry registration has been submitted. A platform administrator will review your request and you'll receive an email once approved.
+                    We couldn't verify your payment. Please try registering again.
                   </p>
                   <Button
-                    onClick={() => setLocation("/")}
+                    onClick={() => setLocation("/register-ministry")}
                     className="gap-2"
-                    data-testid="button-back-home"
+                    data-testid="button-try-again"
                   >
-                    Back to Home
+                    Try Again
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </CardContent>
@@ -80,18 +76,18 @@ export default function RegisterMinistrySuccess() {
           <div className="max-w-lg mx-auto">
             <Card>
               <CardContent className="pt-8 pb-8 text-center space-y-6">
-                {isPaid || timedOut ? (
+                {confirmed ? (
                   <>
                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
                       <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                     </div>
                     <h2 className="text-2xl font-bold" data-testid="text-success-title">Registration Submitted</h2>
                     <p className="text-muted-foreground">
-                      Your ministry registration and payment have been received. A platform administrator will review your request and you'll receive an email once approved.
+                      Your payment was successful and your ministry registration has been submitted. A platform administrator will review your request and you'll receive an email once approved.
                     </p>
-                    {paymentData?.plan && (
+                    {planName && (
                       <p className="text-sm text-muted-foreground">
-                        Plan: <span className="font-medium capitalize">{paymentData.plan}</span>
+                        Plan: <span className="font-medium capitalize">{planName}</span>
                       </p>
                     )}
                     <Button
@@ -103,30 +99,39 @@ export default function RegisterMinistrySuccess() {
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </>
-                ) : isError ? (
+                ) : confirmMutation.isError ? (
                   <>
                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 mx-auto">
                       <AlertCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                     </div>
                     <h2 className="text-2xl font-bold">Verification Issue</h2>
                     <p className="text-muted-foreground">
-                      We had trouble verifying your payment, but don't worry - your registration has been submitted. A platform administrator will review your request shortly.
+                      We had trouble confirming your payment. If you were charged, don't worry - please contact us and we'll sort it out.
                     </p>
-                    <Button
-                      onClick={() => setLocation("/")}
-                      className="gap-2"
-                      data-testid="button-back-home"
-                    >
-                      Back to Home
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => setLocation("/")}
+                        className="gap-2"
+                        data-testid="button-back-home"
+                      >
+                        Back to Home
+                      </Button>
+                      <Button
+                        onClick={() => confirmMutation.mutate(sessionId)}
+                        className="gap-2"
+                        data-testid="button-retry"
+                      >
+                        Retry Verification
+                      </Button>
+                    </div>
                   </>
                 ) : (
                   <>
                     <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-                    <h2 className="text-2xl font-bold">Verifying Payment...</h2>
+                    <h2 className="text-2xl font-bold">Confirming Your Registration...</h2>
                     <p className="text-muted-foreground">
-                      We're confirming your payment. This should only take a moment.
+                      We're verifying your payment and setting up your registration. This should only take a moment.
                     </p>
                   </>
                 )}
