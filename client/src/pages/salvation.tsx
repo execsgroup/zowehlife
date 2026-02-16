@@ -38,7 +38,7 @@ export default function Salvation() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-chart-1/10 text-chart-1 font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
                         1
                       </div>
                       <CardTitle className="text-xl md:text-2xl">God Loves You</CardTitle>
@@ -60,7 +60,7 @@ export default function Salvation() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-chart-2/10 text-chart-2 font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent font-bold">
                         2
                       </div>
                       <CardTitle className="text-xl md:text-2xl">We All Have Sinned</CardTitle>
@@ -82,7 +82,7 @@ export default function Salvation() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-chart-3/10 text-chart-3 font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-coral/10 text-coral font-bold">
                         3
                       </div>
                       <CardTitle className="text-xl md:text-2xl">Jesus Paid the Price</CardTitle>
@@ -105,7 +105,7 @@ export default function Salvation() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-chart-4/10 text-chart-4 font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gold/10 text-gold font-bold">
                         4
                       </div>
                       <CardTitle className="text-xl md:text-2xl">Receive Jesus Today</CardTitle>
@@ -154,7 +154,7 @@ export default function Salvation() {
 
                   <div className="space-y-3">
                     <h4 className="font-semibold flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-chart-3" />
+                      <CheckCircle2 className="h-5 w-5 text-coral" />
                       If You Prayed This Prayer
                     </h4>
                     <p className="text-muted-foreground">

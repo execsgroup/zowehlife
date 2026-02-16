@@ -78,10 +78,10 @@ export default function LeaderDashboard() {
       return <Badge variant="destructive" className="text-xs">Overdue</Badge>;
     }
     if (isToday(date)) {
-      return <Badge className="bg-chart-2/10 text-chart-2 border-chart-2/20 text-xs">Today</Badge>;
+      return <Badge className="bg-accent/10 text-accent border-accent/20 text-xs">Today</Badge>;
     }
     if (isTomorrow(date)) {
-      return <Badge className="bg-chart-1/10 text-chart-1 border-chart-1/20 text-xs">Tomorrow</Badge>;
+      return <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Tomorrow</Badge>;
     }
     return null;
   };
@@ -90,7 +90,8 @@ export default function LeaderDashboard() {
     <DashboardLayout title="Dashboard">
       <div className="space-y-6">
         {/* Welcome Banner */}
-        <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
+        <Card className="overflow-hidden">
+          <div className="gradient-strip" />
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">

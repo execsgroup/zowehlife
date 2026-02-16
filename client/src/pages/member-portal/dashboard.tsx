@@ -128,11 +128,11 @@ export default function MemberDashboard() {
   const getRelationshipBadge = (type: string) => {
     switch (type) {
       case "convert":
-        return <Badge variant="secondary">New Believer</Badge>;
+        return <Badge className="bg-coral/10 text-coral border-coral/20">New Believer</Badge>;
       case "new_member":
-        return <Badge variant="outline">New Member</Badge>;
+        return <Badge className="bg-gold/10 text-gold border-gold/20">New Member</Badge>;
       case "member":
-        return <Badge>Member</Badge>;
+        return <Badge className="bg-accent/10 text-accent border-accent/20">Member</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
@@ -224,8 +224,8 @@ export default function MemberDashboard() {
             <Card className="hover-elevate cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <HandHeart className="h-5 w-5 text-primary" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-coral/10">
+                    <HandHeart className="h-5 w-5 text-coral" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">Prayer Requests</CardTitle>
@@ -243,8 +243,8 @@ export default function MemberDashboard() {
             <Card className="hover-elevate cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <BookOpen className="h-5 w-5 text-primary" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
+                    <BookOpen className="h-5 w-5 text-accent" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">My Journal</CardTitle>

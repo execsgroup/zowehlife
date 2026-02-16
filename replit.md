@@ -15,7 +15,12 @@ The application is built with a clear separation of concerns, utilizing a React 
 - **Styling**: TailwindCSS for utility-first styling.
 - **UI Components**: `shadcn/ui` for accessible and customizable UI components.
 - **Responsiveness**: Mobile-responsive design is a core principle, ensuring usability across various devices.
-- **Theming**: Dark/light theme toggle is implemented for user preference.
+- **Theming**: "Radiant Journey" vibrant color template with dark/light theme toggle.
+  - **Light**: Primary Royal Indigo (#4F46E5), Accent Vibrant Teal (#14B8A6), Coral (#FB7185), Gold (#F59E0B)
+  - **Dark**: Bright Indigo (#6D67FF), Teal (#2DD4BF), Coral (#FB7185), Gold (#FBBF24)
+  - Semantic tokens: `coral`, `gold`, `success` in tailwind.config.ts
+  - Gradient utilities: `.bg-gradient-primary`, `.bg-gradient-secondary`, `.bg-gradient-warm`, `.text-gradient-primary`, `.gradient-strip` in index.css
+  - Sidebar uses neutral background (card color) with indigo active indicator.
 
 ### Technical Implementations
 - **Authentication**: Session-based authentication is used with `bcrypt` for secure password hashing. Member accounts use a separate session namespace (`memberAccountId`, `personId`, `currentMinistryId`).

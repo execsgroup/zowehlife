@@ -129,7 +129,7 @@ export default function MemberForm() {
         <div className="container max-w-lg mx-auto py-16 px-4">
           <Card>
             <CardContent className="pt-6 text-center">
-              <CheckCircle2 className="h-16 w-16 mx-auto text-chart-3" />
+              <CheckCircle2 className="h-16 w-16 mx-auto text-coral" />
               <h2 className="mt-4 text-2xl font-bold">Thank You!</h2>
               <p className="text-muted-foreground mt-2">
                 Your registration has been submitted successfully. Welcome to {church.name}!

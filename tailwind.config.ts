@@ -75,10 +75,22 @@ export default {
           foreground: "hsl(var(--sidebar-accent-foreground) / <alpha-value>)",
           border: "var(--sidebar-accent-border)"
         },
+        coral: {
+          DEFAULT: "hsl(var(--coral) / <alpha-value>)",
+          foreground: "hsl(var(--coral-foreground) / <alpha-value>)",
+        },
+        gold: {
+          DEFAULT: "hsl(var(--gold) / <alpha-value>)",
+          foreground: "hsl(var(--gold-foreground) / <alpha-value>)",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success) / <alpha-value>)",
+          foreground: "hsl(var(--success-foreground) / <alpha-value>)",
+        },
         status: {
-          online: "rgb(34 197 94)",
-          away: "rgb(245 158 11)",
-          busy: "rgb(239 68 68)",
+          online: "hsl(var(--success) / 1)",
+          away: "hsl(var(--gold) / 1)",
+          busy: "hsl(var(--destructive) / 1)",
           offline: "rgb(156 163 175)",
         },
       },

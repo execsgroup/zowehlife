@@ -235,10 +235,10 @@ export default function MinistryAdminLeaders() {
         </Card>
 
         {!isLoadingQuota && quota && !quota.canAddMore && (
-          <Card className="border-chart-2/50">
+          <Card className="border-accent/50">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-chart-2 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium">Leader Limit Reached</p>
                   <p className="text-sm text-muted-foreground mt-1">

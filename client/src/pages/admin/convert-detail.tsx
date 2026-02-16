@@ -77,9 +77,9 @@ type UpdateConvertData = z.infer<typeof updateConvertSchema>;
 
 const statusColors: Record<string, string> = {
   NEW: "bg-accent/10 text-accent border-accent/20",
-  ACTIVE: "bg-chart-3/10 text-chart-3 border-chart-3/20",
-  IN_PROGRESS: "bg-chart-2/10 text-chart-2 border-chart-2/20",
-  CONNECTED: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  ACTIVE: "bg-coral/10 text-coral border-coral/20",
+  IN_PROGRESS: "bg-accent/10 text-accent border-accent/20",
+  CONNECTED: "bg-coral/10 text-coral border-coral/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 

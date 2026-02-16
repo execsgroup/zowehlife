@@ -111,14 +111,17 @@ export default function MinistryAdminDashboard() {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-page-title">
-            {church?.name || "Ministry"} Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Welcome back, {user?.firstName}. Manage your ministry and approve new leaders.
-          </p>
-        </div>
+        <Card className="overflow-hidden">
+          <div className="gradient-strip" />
+          <CardContent className="p-6">
+            <h1 className="text-2xl font-bold" data-testid="text-page-title">
+              {church?.name || "Ministry"} Dashboard
+            </h1>
+            <p className="text-muted-foreground">
+              Welcome back, {user?.firstName}. Manage your ministry and approve new leaders.
+            </p>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {statCards.map((stat, index) => (

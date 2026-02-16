@@ -79,8 +79,8 @@ export default function Contact() {
           <div className="container mx-auto px-4">
             <Card className="max-w-md mx-auto text-center">
               <CardContent className="pt-8 pb-6">
-                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-chart-3/10 mb-4">
-                  <CheckCircle2 className="h-8 w-8 text-chart-3" />
+                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-coral/10 mb-4">
+                  <CheckCircle2 className="h-8 w-8 text-coral" />
                 </div>
                 <h2 className="text-2xl font-bold mb-2">Request Submitted</h2>
                 <p className="text-muted-foreground mb-6">
@@ -105,11 +105,11 @@ export default function Contact() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="bg-gradient-to-br from-chart-3/10 via-background to-background py-16 md:py-24">
+        <section className="bg-gradient-to-br from-coral/10 via-background to-background py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-chart-3/10 mb-6">
-                <HandHeart className="h-8 w-8 text-chart-3" />
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-coral/10 mb-6">
+                <HandHeart className="h-8 w-8 text-coral" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
                 Prayer Requests

@@ -33,8 +33,8 @@ interface AccountRequest {
 }
 
 const statusColors: Record<string, string> = {
-  PENDING: "bg-chart-2/10 text-chart-2 border-chart-2/20",
-  APPROVED: "bg-chart-4/10 text-chart-4 border-chart-4/20",
+  PENDING: "bg-accent/10 text-accent border-accent/20",
+  APPROVED: "bg-gold/10 text-gold border-gold/20",
   DENIED: "bg-destructive/10 text-destructive border-destructive/20",
 };
 

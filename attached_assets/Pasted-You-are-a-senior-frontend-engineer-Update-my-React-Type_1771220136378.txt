@@ -1,0 +1,86 @@
+You are a senior frontend engineer. Update my React + TypeScript + TailwindCSS + shadcn/ui app (Zoweh Life) to a vibrant, colorful, modern template called “Radiant Journey” while keeping the UI clean and readable.
+
+IMPORTANT:
+- Keep layouts/components structurally the same.
+- Implement the color system via shadcn theme tokens (CSS variables) + a small set of gradient utility classes.
+- Do NOT turn the whole UI into gradients; color should be accents + highlights.
+
+PALETTE (Light Mode)
+Neutrals:
+- background: #F8FAFC
+- card/surface: #FFFFFF
+- border/input: #E5E7EB
+- foreground/text: #0F172A
+- muted foreground: #64748B
+
+Brand:
+- primary (Royal Indigo): #4F46E5
+- accent (Vibrant Teal): #14B8A6
+- secondary accent (Warm Coral): #FB7185
+- highlight (Sun Gold): #F59E0B
+
+States:
+- destructive: #DC2626
+- success: #14B8A6
+- warning: #F59E0B
+
+Dark Mode (keep vibrant but not neon)
+- background: #0B1220
+- card/surface: #111827
+- border/input: #1F2937
+- foreground: #E5E7EB
+- muted foreground: #94A3B8
+- primary: #6D67FF (slightly brighter indigo)
+- accent: #2DD4BF (teal for contrast)
+- coral: #FB7185 (same)
+- highlight: #FBBF24 (gold for dark mode)
+
+THEMING REQUIREMENTS
+1) Implement shadcn CSS variables in global stylesheet (:root and .dark). Convert the hex colors into HSL values for shadcn variables:
+   --background, --foreground,
+   --card, --card-foreground,
+   --popover, --popover-foreground,
+   --primary, --primary-foreground,
+   --secondary, --secondary-foreground,
+   --muted, --muted-foreground,
+   --accent, --accent-foreground,
+   --destructive, --destructive-foreground,
+   --border, --input, --ring.
+   Set --ring to the primary indigo in both modes.
+
+2) Ensure tailwind.config.ts uses shadcn token mapping (hsl(var(--...))) for colors.
+
+VIBRANT TEMPLATE UTILITIES
+3) Add a few gradient utility classes in a global CSS file (or Tailwind plugin if preferred), for use in banners/chips only:
+   - .bg-gradient-primary = indigo → teal (135deg)
+   - .bg-gradient-secondary = indigo → coral (135deg)
+   - .bg-gradient-warm = coral → gold (135deg)
+   - .text-gradient-primary (optional) for headings (use background-clip)
+
+UI STYLE RULES (to keep it clean)
+4) Sidebar:
+   - Keep sidebar background neutral (card or background).
+   - Active item: subtle tint + left border indicator in primary indigo (no full gradient fills).
+5) Cards:
+   - White cards with border + shadow-sm.
+   - Allow small “header chip” or top strip gradient (8–12px height) for key sections like Dashboard, Zoweh Path, Prayer.
+6) Buttons:
+   - Primary button uses primary indigo.
+   - Secondary buttons are outline/ghost.
+7) Badges:
+   - Use accent teal, coral, and gold for status badges consistently across app.
+8) Replace hardcoded colors with semantic tokens (primary/accent/muted) wherever possible.
+
+TARGET PAGES TO APPLY VIBRANT TEMPLATE FIRST
+- Staff dashboards (Admin/Ministry Admin/Leader)
+- Person profile pages (Convert/New Member/Member/Guest)
+- Prayer request pages
+- Member portal home/journey
+- Any “Zoweh Path™” section
+
+OUTPUT
+After changes, list:
+- files edited
+- where the gradient utilities live
+- quick checklist to verify (sidebar active state, buttons, badges, banner strip, dark mode, focus rings)
+Proceed by scanning theme files, tailwind config, and layout components, then implement.

@@ -17,7 +17,7 @@ const journeySteps = [
       "Take notes and highlight meaningful verses",
       "Consider joining a Bible study group",
     ],
-    color: "chart-1",
+    color: "primary",
   },
   {
     icon: MessageCircle,
@@ -30,7 +30,7 @@ const journeySteps = [
       "Pray for others",
       "Listen for God's guidance",
     ],
-    color: "chart-2",
+    color: "accent",
   },
   {
     icon: Users,
@@ -43,7 +43,7 @@ const journeySteps = [
       "Build friendships with fellow believers",
       "Be open to mentorship",
     ],
-    color: "chart-3",
+    color: "coral",
   },
   {
     icon: Droplets,
@@ -56,7 +56,7 @@ const journeySteps = [
       "Share your testimony",
       "Celebrate this milestone",
     ],
-    color: "chart-4",
+    color: "gold",
   },
   {
     icon: GraduationCap,
@@ -69,7 +69,7 @@ const journeySteps = [
       "Serve in ministry",
       "Develop spiritual disciplines",
     ],
-    color: "chart-5",
+    color: "destructive",
   },
 ];
 
@@ -193,19 +193,19 @@ export default function Journey() {
                   <CardContent>
                     <ul className="space-y-3 text-sm">
                       <li className="flex items-start gap-2">
-                        <span className="text-chart-3 mt-0.5">✓</span>
+                        <span className="text-coral mt-0.5">✓</span>
                         <span><strong>Morning:</strong> Start with prayer and Bible reading</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-chart-3 mt-0.5">✓</span>
+                        <span className="text-coral mt-0.5">✓</span>
                         <span><strong>Throughout day:</strong> Practice gratitude and thankfulness</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-chart-3 mt-0.5">✓</span>
+                        <span className="text-coral mt-0.5">✓</span>
                         <span><strong>Evening:</strong> Reflect on your day with God</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-chart-3 mt-0.5">✓</span>
+                        <span className="text-coral mt-0.5">✓</span>
                         <span><strong>Weekly:</strong> Attend church and connect with believers</span>
                       </li>
                     </ul>

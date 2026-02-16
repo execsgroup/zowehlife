@@ -74,8 +74,8 @@ export default function Setup() {
         <div className="w-full max-w-md">
           <Card className="text-center">
             <CardContent className="pt-8 pb-6">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-chart-3/10 mb-4">
-                <CheckCircle2 className="h-8 w-8 text-chart-3" />
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-coral/10 mb-4">
+                <CheckCircle2 className="h-8 w-8 text-coral" />
               </div>
               <h2 className="text-2xl font-bold mb-2">Setup Complete</h2>
               <p className="text-muted-foreground mb-6">

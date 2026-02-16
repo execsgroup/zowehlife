@@ -2,77 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - Confident Authority color scheme */
+/* LIGHT MODE - Radiant Journey color scheme */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
 
-  /* Automatic computation of border around primary / danger buttons */
-  --opaque-button-border-intensity: -8; /* In terms of percentages */
+  --opaque-button-border-intensity: -8;
 
-  /* Backgrounds applied on top of other backgrounds when hovered/active */
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Background: Soft Pearl #F5F7FB */
-  --background: 220 43% 97%;
-  /* Text Primary: Ink Black #0F172A */
+  /* Background: #F8FAFC */
+  --background: 210 40% 98%;
+  /* Foreground: #0F172A */
   --foreground: 222 47% 11%;
 
-  /* Border/Divider: #D9DEE7 */
-  --border: 220 24% 88%;
+  /* Border: #E5E7EB */
+  --border: 220 13% 91%;
 
-  /* Card/Surface: #FFFFFF */
+  /* Card: #FFFFFF */
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
-  --card-border: 220 24% 90%;
+  --card-border: 220 13% 93%;
 
-  /* Sidebar: Midnight Blue #0D1B2A */
-  --sidebar: 210 52% 11%;
-  --sidebar-foreground: 220 14% 96%;
-  --sidebar-border: 210 40% 18%;
-  /* Sidebar primary: Electric Indigo #3F5BFF */
-  --sidebar-primary: 231 100% 62%;
+  /* Sidebar: neutral card background */
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-border: 220 13% 91%;
+  /* Sidebar primary: Royal Indigo #4F46E5 */
+  --sidebar-primary: 239 84% 59%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 210 40% 18%;
-  --sidebar-accent-foreground: 220 14% 96%;
-  --sidebar-ring: 231 100% 62%;
+  --sidebar-accent: 210 40% 96%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-ring: 239 84% 59%;
 
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
-  --popover-border: 220 24% 88%;
+  --popover-border: 220 13% 91%;
 
-  /* Primary: Midnight Blue #0D1B2A */
-  --primary: 210 52% 11%;
-  --primary-foreground: 220 14% 96%;
+  /* Primary: Royal Indigo #4F46E5 */
+  --primary: 239 84% 59%;
+  --primary-foreground: 0 0% 100%;
 
-  /* Secondary: light gray */
-  --secondary: 220 20% 94%;
-  /* Text Secondary: Steel Gray #475569 */
+  /* Secondary */
+  --secondary: 220 14% 94%;
   --secondary-foreground: 215 19% 35%;
 
   /* Muted */
-  --muted: 220 16% 92%;
-  /* Muted/Metadata: #94A3B8 */
+  --muted: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
 
-  /* Accent: Electric Indigo #3F5BFF */
-  --accent: 231 100% 62%;
+  /* Accent: Vibrant Teal #14B8A6 */
+  --accent: 173 80% 40%;
   --accent-foreground: 0 0% 100%;
 
   /* Destructive: #DC2626 */
   --destructive: 0 84% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 220 24% 85%;
-  --ring: 231 100% 62%;
+  --input: 220 13% 91%;
+  --ring: 239 84% 59%;
 
-  /* Chart colors using Confident Authority palette */
-  --chart-1: 231 100% 62%; /* Electric Indigo */
-  --chart-2: 182 56% 43%; /* Teal Slate */
-  --chart-3: 142 76% 36%; /* Success Green */
-  --chart-4: 32 95% 44%; /* Warning Amber */
-  --chart-5: 0 84% 50%; /* Destructive Red */
+  /* Semantic status colors */
+  --coral: 353 96% 72%;
+  --coral-foreground: 0 0% 100%;
+  --gold: 38 92% 50%;
+  --gold-foreground: 0 0% 100%;
+  --success: 173 80% 40%;
+  --success-foreground: 0 0% 100%;
+
+  /* Chart colors */
+  --chart-1: 239 84% 59%;
+  --chart-2: 173 80% 40%;
+  --chart-3: 353 96% 72%;
+  --chart-4: 38 92% 50%;
+  --chart-5: 0 84% 50%;
 
   --font-sans: 'Inter', sans-serif;
   --font-serif: Georgia, serif;
@@ -89,7 +93,6 @@
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
-  /* Automatically computed borders */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 
@@ -112,47 +115,46 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-/* DARK MODE - Confident Authority color scheme */
+/* DARK MODE - Radiant Journey */
 .dark {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
 
   --opaque-button-border-intensity: 9;
 
-  /* Backgrounds applied on top of other backgrounds when hovered/active */
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
   /* Background: #0B1220 */
   --background: 216 48% 8%;
-  /* Text Primary: #E5E7EB */
+  /* Foreground: #E5E7EB */
   --foreground: 220 14% 91%;
 
   /* Border: #1F2937 */
   --border: 216 28% 17%;
 
-  /* Card/Surface: #111827 */
+  /* Card: #111827 */
   --card: 221 39% 11%;
   --card-foreground: 220 14% 91%;
   --card-border: 216 28% 20%;
 
-  /* Sidebar: Darker background */
-  --sidebar: 216 50% 6%;
+  /* Sidebar: darker surface */
+  --sidebar: 221 42% 9%;
   --sidebar-foreground: 220 14% 91%;
   --sidebar-border: 216 28% 15%;
-  /* Sidebar primary: Electric Indigo lighter #5B7CFF */
-  --sidebar-primary: 229 100% 68%;
+  /* Sidebar primary: Bright Indigo #6D67FF */
+  --sidebar-primary: 243 100% 70%;
   --sidebar-primary-foreground: 216 50% 8%;
   --sidebar-accent: 216 28% 15%;
   --sidebar-accent-foreground: 220 14% 91%;
-  --sidebar-ring: 229 100% 68%;
+  --sidebar-ring: 243 100% 70%;
 
   --popover: 221 39% 11%;
   --popover-foreground: 220 14% 91%;
   --popover-border: 216 28% 20%;
 
-  /* Primary: Electric Indigo for better visibility in dark mode */
-  --primary: 229 100% 68%;
+  /* Primary: Bright Indigo #6D67FF */
+  --primary: 243 100% 70%;
   --primary-foreground: 216 50% 8%;
 
   /* Secondary */
@@ -161,25 +163,33 @@
 
   /* Muted */
   --muted: 216 25% 14%;
-  --muted-foreground: 215 16% 55%;
+  --muted-foreground: 215 16% 65%;
 
-  /* Accent: Electric Indigo lighter #5B7CFF */
-  --accent: 229 100% 68%;
+  /* Accent: Teal #2DD4BF */
+  --accent: 174 72% 51%;
   --accent-foreground: 216 50% 8%;
 
-  /* Destructive: lighter for dark mode */
+  /* Destructive */
   --destructive: 0 72% 55%;
   --destructive-foreground: 0 0% 100%;
 
   --input: 216 28% 20%;
-  --ring: 229 100% 68%;
+  --ring: 243 100% 70%;
+
+  /* Semantic status colors - dark mode */
+  --coral: 353 96% 72%;
+  --coral-foreground: 0 0% 100%;
+  --gold: 45 97% 56%;
+  --gold-foreground: 222 47% 11%;
+  --success: 174 72% 51%;
+  --success-foreground: 216 50% 8%;
 
   /* Chart colors for dark mode */
-  --chart-1: 229 100% 68%; /* Electric Indigo lighter */
-  --chart-2: 177 51% 46%; /* Teal lighter */
-  --chart-3: 142 70% 45%; /* Success Green lighter */
-  --chart-4: 32 90% 55%; /* Warning Amber lighter */
-  --chart-5: 0 72% 55%; /* Destructive Red lighter */
+  --chart-1: 243 100% 70%;
+  --chart-2: 174 72% 51%;
+  --chart-3: 353 96% 72%;
+  --chart-4: 45 97% 56%;
+  --chart-5: 0 72% 55%;
 
   --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.15);
   --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.20);
@@ -201,17 +211,12 @@
   }
 }
 
-/**
- * Using the elevate system.
- */
 @layer utilities {
 
-  /* Hide ugly search cancel button in Chrome until we can style it properly */
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }
 
-  /* Placeholder styling for contentEditable div */
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
     color: hsl(var(--muted-foreground));
@@ -275,5 +280,31 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
+  }
+
+  /* Radiant Journey gradient utilities */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  }
+
+  .bg-gradient-secondary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--coral)));
+  }
+
+  .bg-gradient-warm {
+    background: linear-gradient(135deg, hsl(var(--coral)), hsl(var(--gold)));
+  }
+
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-strip {
+    height: 3px;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--coral)), hsl(var(--gold)));
+    border-radius: 9999px;
   }
 }

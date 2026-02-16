@@ -111,8 +111,8 @@ export default function Home() {
 
               <Card className="text-center hover-elevate">
                 <CardContent className="pt-8 pb-6">
-                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-chart-3/10 mb-4">
-                    <Users className="h-7 w-7 text-chart-3" />
+                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-coral/10 mb-4">
+                    <Users className="h-7 w-7 text-coral" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">Find Community</h3>
                   <p className="text-muted-foreground mb-4">

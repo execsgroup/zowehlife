@@ -31,7 +31,7 @@ interface Member {
 }
 
 const statusColors: Record<string, string> = {
-  ACTIVE: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  ACTIVE: "bg-coral/10 text-coral border-coral/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
