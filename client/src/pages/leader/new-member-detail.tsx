@@ -7,7 +7,7 @@ import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -387,105 +387,6 @@ export default function NewMemberDetail() {
                   newMemberFirstName={newMember.firstName}
                   newMemberLastName={newMember.lastName}
                 />
-                {/* Only show Add Note when there's an active scheduled follow-up */}
-                {newMember.checkins && newMember.checkins.some(c => 
-                  c.outcome === "SCHEDULED_VISIT" || 
-                  (c.nextFollowupDate && new Date(c.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))
-                ) && (
-                  <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="gap-2" data-testid="button-add-checkin">
-                        <Plus className="h-4 w-4" />
-                        Add Note
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Record Follow-up Note</DialogTitle>
-                        <DialogDescription>
-                          Log a follow-up interaction with {newMember.firstName}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <Form {...checkinForm}>
-                        <form
-                          onSubmit={checkinForm.handleSubmit((data) => checkinMutation.mutate(data))}
-                          className="space-y-4"
-                        >
-                          <FormField
-                            control={checkinForm.control}
-                            name="checkinDate"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Date</FormLabel>
-                                <FormControl>
-                                  <Input type="date" {...field} data-testid="input-checkin-date" />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={checkinForm.control}
-                            name="outcome"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Outcome</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-checkin-outcome">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="CONNECTED">Connected</SelectItem>
-                                    <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                                    <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                                    <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                                    <SelectItem value="REFERRED">Referred</SelectItem>
-                                    <SelectItem value="OTHER">Other</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={checkinForm.control}
-                            name="notes"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Notes</FormLabel>
-                                <FormControl>
-                                  <Textarea
-                                    placeholder="Details about the interaction..."
-                                    className="resize-none"
-                                    {...field}
-                                    data-testid="input-checkin-notes"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <Button
-                            type="submit"
-                            className="w-full"
-                            disabled={checkinMutation.isPending}
-                          >
-                            {checkinMutation.isPending ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                Saving...
-                              </>
-                            ) : (
-                              "Save Note"
-                            )}
-                          </Button>
-                        </form>
-                      </Form>
-                    </DialogContent>
-                  </Dialog>
-                )}
               </div>
             </div>
           </CardHeader>
@@ -524,25 +425,36 @@ export default function NewMemberDetail() {
                             </span>
                           </div>
                         )}
-                        {/* Join Meeting button for active scheduled follow-ups with video links */}
-                        {checkin.videoLink && (checkin.outcome === "SCHEDULED_VISIT" || 
+                        {(checkin.outcome === "SCHEDULED_VISIT" || 
                           (checkin.nextFollowupDate && new Date(checkin.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))) && (
-                          <div className="mt-2">
-                            <a
-                              href={checkin.videoLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Button
-                                variant="default"
-                                size="sm"
-                                className="gap-2"
-                                data-testid={`button-join-meeting-${checkin.id}`}
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            {checkin.videoLink && (
+                              <a
+                                href={checkin.videoLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
                               >
-                                <Video className="h-4 w-4" />
-                                Join Meeting
-                              </Button>
-                            </a>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="gap-2"
+                                  data-testid={`button-join-meeting-${checkin.id}`}
+                                >
+                                  <Video className="h-4 w-4" />
+                                  Join Meeting
+                                </Button>
+                              </a>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-2"
+                              onClick={() => setCheckinDialogOpen(true)}
+                              data-testid={`button-add-note-${checkin.id}`}
+                            >
+                              <Plus className="h-4 w-4" />
+                              Add Note
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -558,6 +470,94 @@ export default function NewMemberDetail() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Record Follow-up Note</DialogTitle>
+              <DialogDescription>
+                Log a follow-up interaction with {newMember.firstName}
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...checkinForm}>
+              <form
+                onSubmit={checkinForm.handleSubmit((data) => checkinMutation.mutate(data))}
+                className="space-y-4"
+              >
+                <FormField
+                  control={checkinForm.control}
+                  name="checkinDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} data-testid="input-checkin-date" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={checkinForm.control}
+                  name="outcome"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Outcome</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-checkin-outcome">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="CONNECTED">Connected</SelectItem>
+                          <SelectItem value="NO_RESPONSE">No Response</SelectItem>
+                          <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
+                          <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
+                          <SelectItem value="REFERRED">Referred</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={checkinForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Details about the interaction..."
+                          className="resize-none"
+                          {...field}
+                          data-testid="input-checkin-notes"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={checkinMutation.isPending}
+                >
+                  {checkinMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Note"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">

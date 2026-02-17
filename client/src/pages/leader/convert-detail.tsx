@@ -446,20 +446,6 @@ END:VCALENDAR`;
                   <Calendar className="h-4 w-4" />
                   Schedule Follow-up
                 </Button>
-                {/* Only show Add Note when there's an active scheduled follow-up */}
-                {convert.checkins && convert.checkins.some(c => 
-                  c.outcome === "SCHEDULED_VISIT" || 
-                  (c.nextFollowupDate && new Date(c.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))
-                ) && (
-                  <Button
-                    className="gap-2"
-                    onClick={() => setNoteDialogOpen(true)}
-                    data-testid="button-add-note"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Note
-                  </Button>
-                )}
               </div>
             </div>
           </CardHeader>
@@ -508,25 +494,36 @@ END:VCALENDAR`;
                             </Button>
                           </div>
                         )}
-                        {/* Join Meeting button for active scheduled follow-ups with video links */}
-                        {checkin.videoLink && (checkin.outcome === "SCHEDULED_VISIT" || 
+                        {(checkin.outcome === "SCHEDULED_VISIT" || 
                           (checkin.nextFollowupDate && new Date(checkin.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))) && (
-                          <div className="mt-2">
-                            <a
-                              href={checkin.videoLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Button
-                                variant="default"
-                                size="sm"
-                                className="gap-2"
-                                data-testid={`button-join-meeting-${checkin.id}`}
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            {checkin.videoLink && (
+                              <a
+                                href={checkin.videoLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
                               >
-                                <Video className="h-4 w-4" />
-                                Join Meeting
-                              </Button>
-                            </a>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="gap-2"
+                                  data-testid={`button-join-meeting-${checkin.id}`}
+                                >
+                                  <Video className="h-4 w-4" />
+                                  Join Meeting
+                                </Button>
+                              </a>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-2"
+                              onClick={() => setNoteDialogOpen(true)}
+                              data-testid={`button-add-note-${checkin.id}`}
+                            >
+                              <Plus className="h-4 w-4" />
+                              Add Note
+                            </Button>
                           </div>
                         )}
                       </div>
