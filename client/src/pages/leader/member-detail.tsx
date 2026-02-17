@@ -17,14 +17,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
+import { MemberScheduleFollowUpDialog } from "@/components/member-schedule-followup-dialog";
 import {
   ArrowLeft,
   Phone,
   Mail,
   MapPin,
   Calendar,
+  Clock,
+  Plus,
   Loader2,
   Edit,
   User,
@@ -32,8 +36,36 @@ import {
   Users,
   Cake,
   Church,
+  Video,
 } from "lucide-react";
 import { format } from "date-fns";
+
+interface MemberCheckin {
+  id: string;
+  checkinDate: string;
+  notes: string | null;
+  outcome: string;
+  nextFollowupDate: string | null;
+  nextFollowupTime: string | null;
+  videoLink: string | null;
+  createdAt: string;
+}
+
+const outcomeLabels: Record<string, string> = {
+  CONNECTED: "Connected",
+  NO_RESPONSE: "No Response",
+  NEEDS_PRAYER: "Needs Prayer",
+  SCHEDULED_VISIT: "Scheduled Visit",
+  REFERRED: "Referred",
+  NOT_COMPLETED: "Not Completed",
+  OTHER: "Other",
+};
+
+const checkinFormSchema = z.object({
+  checkinDate: z.string().min(1, "Date is required"),
+  notes: z.string().optional(),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+});
 
 const updateMemberSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -56,17 +88,26 @@ const countries = [
 ];
 
 type UpdateMemberData = z.infer<typeof updateMemberSchema>;
+type CheckinFormData = z.infer<typeof checkinFormSchema>;
 
 export default function MemberDetail() {
   const { toast } = useToast();
   const basePath = useBasePath();
+  const apiBasePath = useApiBasePath();
   const [location] = useLocation();
   const memberId = location.split('/').pop();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
 
   const { data: member, isLoading } = useQuery<Member>({
-    queryKey: ["/api/leader/members", memberId],
+    queryKey: [`${apiBasePath}/members`, memberId],
+    enabled: !!memberId,
+  });
+
+  const { data: checkins } = useQuery<MemberCheckin[]>({
+    queryKey: [`${apiBasePath}/members/${memberId}/checkins`],
     enabled: !!memberId,
   });
 
@@ -108,21 +149,61 @@ export default function MemberDetail() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateMemberData) => {
-      await apiRequest("PATCH", `/api/leader/members/${memberId}`, data);
+      await apiRequest("PATCH", `${apiBasePath}/members/${memberId}`, data);
     },
     onSuccess: () => {
       toast({
         title: "Member updated",
         description: "The member information has been updated.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/members", memberId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, memberId] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
       setEditDialogOpen(false);
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message || "Failed to update member",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const checkinForm = useForm<CheckinFormData>({
+    resolver: zodResolver(checkinFormSchema),
+    defaultValues: {
+      checkinDate: new Date().toISOString().split("T")[0],
+      notes: "",
+      outcome: "CONNECTED",
+    },
+  });
+
+  const checkinMutation = useMutation({
+    mutationFn: async (data: CheckinFormData) => {
+      await apiRequest("POST", `${apiBasePath}/members/${memberId}/checkins`, {
+        checkinDate: data.checkinDate,
+        outcome: data.outcome,
+        notes: data.notes || "",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Note added",
+        description: "Follow-up note has been recorded.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members/${memberId}/checkins`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, memberId] });
+      setCheckinDialogOpen(false);
+      checkinForm.reset({
+        checkinDate: new Date().toISOString().split("T")[0],
+        notes: "",
+        outcome: "CONNECTED",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add note",
         variant: "destructive",
       });
     },
@@ -287,6 +368,205 @@ export default function MemberDetail() {
             )}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between flex-wrap gap-4">
+              <div>
+                <CardTitle>Follow-up Timeline</CardTitle>
+                <CardDescription>
+                  Record and track follow-ups with this member
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => setScheduleDialogOpen(true)}
+                  data-testid="button-schedule-followup"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Schedule Follow-up
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {checkins && checkins.length > 0 ? (
+              <div className="space-y-4">
+                {checkins.map((checkin) => (
+                  <div
+                    key={checkin.id}
+                    className="relative pl-6 pb-4 border-l-2 border-muted last:pb-0"
+                    data-testid={`checkin-${checkin.id}`}
+                  >
+                    <div className="absolute left-[-9px] top-0 h-4 w-4 rounded-full bg-primary border-2 border-background" />
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="font-medium">
+                            {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
+                          </span>
+                          <Badge variant="secondary" className="text-xs">
+                            {outcomeLabels[checkin.outcome] || checkin.outcome}
+                          </Badge>
+                        </div>
+                        {checkin.notes && (
+                          <p className="text-muted-foreground text-sm mb-2">
+                            {checkin.notes}
+                          </p>
+                        )}
+                        {checkin.nextFollowupDate && (
+                          <div className="flex items-center gap-2 text-sm flex-wrap">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-muted-foreground">
+                              Next follow-up:{" "}
+                              {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
+                              {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
+                            </span>
+                          </div>
+                        )}
+                        {(checkin.outcome === "SCHEDULED_VISIT" ||
+                          (checkin.nextFollowupDate && new Date(checkin.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))) && (
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            {checkin.videoLink && (
+                              <a
+                                href={checkin.videoLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="gap-2"
+                                  data-testid={`button-join-meeting-${checkin.id}`}
+                                >
+                                  <Video className="h-4 w-4" />
+                                  Join Meeting
+                                </Button>
+                              </a>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-2"
+                              onClick={() => setCheckinDialogOpen(true)}
+                              data-testid={`button-add-note-${checkin.id}`}
+                            >
+                              <Plus className="h-4 w-4" />
+                              Add Note
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">No follow-up notes yet</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <MemberScheduleFollowUpDialog
+          open={scheduleDialogOpen}
+          onOpenChange={setScheduleDialogOpen}
+          memberId={memberId || ""}
+          memberFirstName={member.firstName}
+          memberLastName={member.lastName}
+        />
+
+        <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Record Follow-up Note</DialogTitle>
+              <DialogDescription>
+                Log a follow-up interaction with {member.firstName}
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...checkinForm}>
+              <form
+                onSubmit={checkinForm.handleSubmit((data) => checkinMutation.mutate(data))}
+                className="space-y-4"
+              >
+                <FormField
+                  control={checkinForm.control}
+                  name="checkinDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} data-testid="input-checkin-date" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={checkinForm.control}
+                  name="outcome"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Outcome</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-checkin-outcome">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="CONNECTED">Connected</SelectItem>
+                          <SelectItem value="NO_RESPONSE">No Response</SelectItem>
+                          <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
+                          <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
+                          <SelectItem value="REFERRED">Referred</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={checkinForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Details about the interaction..."
+                          className="resize-none"
+                          {...field}
+                          data-testid="input-checkin-notes"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={checkinMutation.isPending}
+                >
+                  {checkinMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Note"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
