@@ -706,6 +706,22 @@ export default function LeaderNewMembers() {
                                 <Button
                                   size="icon"
                                   variant="default"
+                                  onClick={() => {
+                                    setSelectedNewMember(nm);
+                                    setFollowUpDialogOpen(true);
+                                  }}
+                                  data-testid={`button-schedule-followup-${nm.id}`}
+                                >
+                                  <CalendarPlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Schedule Follow Up</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="default"
                                   onClick={() => handleFollowUpNote(nm)}
                                   data-testid={`button-followup-note-${nm.id}`}
                                 >
