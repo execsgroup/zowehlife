@@ -8,7 +8,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/salvation", label: "Salvation" },
   { href: "/journey", label: "Journey" },
-  { href: "/contact", label: "Contact" },
+  { href: "/contact-us", label: "Contact" },
 ];
 
 export function PublicNav() {
