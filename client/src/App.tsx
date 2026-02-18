@@ -26,6 +26,7 @@ import AdminMinistryProfile from "@/pages/admin/ministry-profile";
 import AdminDeletedAccounts from "@/pages/admin/deleted-accounts";
 import MinistryAdminDashboard from "@/pages/ministry-admin/dashboard";
 import MinistryAdminLeaders from "@/pages/ministry-admin/leaders";
+import MinistryAdminBilling from "@/pages/ministry-admin/billing";
 import MinistryAdminSettings from "@/pages/ministry-admin/settings";
 import LeaderDashboard from "@/pages/leader/dashboard";
 import LeaderConverts from "@/pages/leader/converts";
@@ -182,6 +183,9 @@ function Router() {
       </Route>
       <Route path="/ministry-admin/leaders">
         <ProtectedRoute component={MinistryAdminLeaders} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
+      <Route path="/ministry-admin/billing">
+        <ProtectedRoute component={MinistryAdminBilling} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
       <Route path="/ministry-admin/settings">
         <ProtectedRoute component={MinistryAdminSettings} allowedRoles={["MINISTRY_ADMIN"]} />

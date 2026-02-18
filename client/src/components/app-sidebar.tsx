@@ -41,6 +41,7 @@ import {
   Archive,
   UserCog,
   UsersRound,
+  CreditCard,
 } from "lucide-react";
 
 interface ChurchData {
@@ -71,6 +72,7 @@ const ministryAdminNavItems = [
   { title: "Prayer Requests", url: "/ministry-admin/prayer-requests", icon: HandHeart },
   { title: "Contact Requests", url: "/ministry-admin/contact-requests", icon: MessageSquare },
   { title: "Manage Leaders", url: "/ministry-admin/leaders", icon: ClipboardList },
+  { title: "Billing", url: "/ministry-admin/billing", icon: CreditCard },
   { title: "Settings", url: "/ministry-admin/settings", icon: Settings },
 ];
 

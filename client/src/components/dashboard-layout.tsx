@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
 import { ThemeToggle } from "./theme-toggle";
+import { SubscriptionBanner } from "./subscription-banner";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -26,7 +27,10 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
             </div>
             <ThemeToggle />
           </header>
-          <main className="flex-1 overflow-auto p-6">{children}</main>
+          <main className="flex-1 overflow-auto p-6">
+            <SubscriptionBanner />
+            {children}
+          </main>
         </div>
       </div>
     </SidebarProvider>

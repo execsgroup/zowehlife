@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import { CheckCircle, ArrowRight, Mail } from "lucide-react";
 
 export default function RegisterMinistryFreeSuccess() {
   const [, setLocation] = useLocation();
@@ -20,19 +20,23 @@ export default function RegisterMinistryFreeSuccess() {
                 <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
                   <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h2 className="text-2xl font-bold" data-testid="text-free-success-title">Registration Submitted</h2>
+                <h2 className="text-2xl font-bold" data-testid="text-free-success-title">Ministry Created!</h2>
                 <p className="text-muted-foreground">
-                  Your free ministry registration has been submitted successfully. A platform administrator will review your request and you'll receive an email once approved.
+                  Your free ministry has been created and is ready to use. Check your email for your login credentials to get started.
                 </p>
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  <span>Login credentials sent to your email</span>
+                </div>
                 <p className="text-sm text-muted-foreground">
                   Plan: <span className="font-medium">Free</span>
                 </p>
                 <Button
-                  onClick={() => setLocation("/")}
+                  onClick={() => setLocation("/login")}
                   className="gap-2"
-                  data-testid="button-back-home"
+                  data-testid="button-login"
                 >
-                  Back to Home
+                  Go to Login
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </CardContent>

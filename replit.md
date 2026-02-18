@@ -68,7 +68,8 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Resend claim tokens for accounts that haven't been claimed yet
     - Suspend or activate member accounts (Ministry Admins only)
     - View member affiliation type (convert, new_member, member) and last login
-- **Ministry Plan Model**: A 3-tier subscription plan system per ministry with Stripe payment integration:
+- **Ministry Plan Model**: A 4-tier subscription plan system per ministry with Stripe payment integration:
+    - **Free** ($0/mo): 1 Admin + 1 Leader account, all platform features, auto-approved immediately
     - **Foundations** ($19.99/mo): 1 Admin + 1 Leader account, all platform features
     - **Formation** ($29.99/mo): 1 Admin + up to 3 Leader accounts, all platform features
     - **Stewardship** ($59.99/mo): 1 Admin + up to 10 Leader accounts, all platform features
@@ -76,10 +77,16 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Leader limits are enforced at all creation points (direct add, account requests)
     - Platform Admins can view and change a ministry's plan from the Ministries page and edit dialog
     - Plan is displayed as a badge on the ministry list table and ministry profile page
-    - **Stripe Payment Flow**: Ministry registration requires Stripe checkout before admin review
+    - **Auto-Approval System**: Ministries are auto-approved upon successful payment (free tier approves immediately without Stripe checkout). The `autoApproveMinistry()` helper in `server/routes.ts` creates the church, generates a temporary password, creates the admin user account, and sends credentials via email.
+    - **Subscription Lifecycle**: Tracked via `stripeCustomerId`, `stripeSubscriptionId`, and `subscriptionStatus` columns on the `churches` table. Status values: `active`, `free`, `past_due`, `suspended`, `canceled`.
+    - **Stripe Webhook Integration**: Handles `invoice.payment_failed` (sets status to `past_due`), `invoice.payment_succeeded` (restores to `active`), `customer.subscription.deleted` (sets to `suspended`), and `checkout.session.completed` (auto-approves pending ministries).
+    - **Read-Only Enforcement**: Middleware blocks POST/PATCH/DELETE operations for ministries with inactive subscriptions (`past_due`, `suspended`, `canceled`). Billing endpoints are excluded to allow payment updates.
+    - **Billing Management**: Ministry admins can access their Stripe Customer Portal via `/api/ministry-admin/billing/portal` to update payment methods and view invoices. Dedicated billing page at `/ministry-admin/billing`.
+    - **Subscription Status Banner**: Dashboard-wide banner component alerts users of inactive subscriptions with quick-fix actions for admins.
+    - **Stripe Payment Flow**: Ministry registration requires Stripe checkout before auto-approval
       - Plans/prices fetched from Stripe API at `/api/stripe/ministry-plans`
       - Registration creates ministry_request, then Stripe checkout session
-      - On payment success, redirects to `/register-ministry/success` with payment verification
+      - On payment success, webhook auto-approves and creates ministry + admin account
       - Stripe credentials managed via Replit connector (sandbox mode)
       - Products seeded via `server/seed-stripe-products.ts`
 - **Remove from Ministry**: Leaders and Admins can remove converts, new members, and members from their ministry:

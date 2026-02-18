@@ -117,6 +117,46 @@ async function requireMinistryAdmin(req: Request, res: Response, next: NextFunct
   next();
 }
 
+// Middleware to check subscription status and enforce read-only for past_due/suspended ministries
+async function requireActiveSubscription(req: Request, res: Response, next: NextFunction) {
+  if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") {
+    return next();
+  }
+
+  if (!req.session.userId) {
+    return next();
+  }
+
+  const user = await storage.getUser(req.session.userId);
+  if (!user || !user.churchId || user.role === "ADMIN") {
+    return next();
+  }
+
+  const billingExclusions = [
+    "/api/ministry-admin/billing/portal",
+    "/api/ministry-admin/subscription",
+    "/api/leader/subscription",
+  ];
+  if (billingExclusions.some(p => req.path === p)) {
+    return next();
+  }
+
+  const church = await storage.getChurch(user.churchId);
+  if (!church) {
+    return next();
+  }
+
+  if (church.subscriptionStatus === "past_due" || church.subscriptionStatus === "suspended" || church.subscriptionStatus === "canceled") {
+    return res.status(403).json({
+      message: "Your ministry subscription is inactive. Please update your payment method to regain full access.",
+      subscriptionStatus: church.subscriptionStatus,
+      readOnly: true,
+    });
+  }
+
+  next();
+}
+
 // Rate limiting for login
 const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
 
@@ -147,6 +187,77 @@ function rateLimitLogin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+async function autoApproveMinistry(data: {
+  ministryName: string;
+  location: string | null;
+  adminFirstName: string;
+  adminLastName: string;
+  adminEmail: string;
+  adminPhone: string | null;
+  description: string | null;
+  plan: "free" | "foundations" | "formation" | "stewardship";
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
+}): Promise<{ church: any; user: any; tempPassword: string }> {
+  const existingUser = await storage.getUserByEmail(data.adminEmail);
+  if (existingUser) {
+    throw new Error("An account with this email already exists");
+  }
+
+  const existingChurch = await storage.getChurchByName(data.ministryName);
+  if (existingChurch) {
+    throw new Error("A ministry with this name already exists");
+  }
+
+  const church = await storage.createChurch({
+    name: data.ministryName,
+    location: data.location,
+    plan: data.plan,
+  });
+
+  if (data.plan === "free") {
+    await storage.updateChurchSubscription(church.id, { subscriptionStatus: "free" });
+  } else if (data.stripeCustomerId || data.stripeSubscriptionId) {
+    await storage.updateChurchSubscription(church.id, {
+      stripeCustomerId: data.stripeCustomerId || undefined,
+      stripeSubscriptionId: data.stripeSubscriptionId || undefined,
+      subscriptionStatus: "active",
+    });
+  }
+
+  const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+  const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+  const newUser = await storage.createUser({
+    role: "MINISTRY_ADMIN",
+    firstName: data.adminFirstName,
+    lastName: data.adminLastName,
+    email: data.adminEmail,
+    passwordHash,
+    churchId: church.id,
+  });
+
+  await storage.createAuditLog({
+    actorUserId: newUser.id,
+    action: "AUTO_APPROVE_MINISTRY",
+    entityType: "CHURCH",
+    entityId: church.id,
+  });
+
+  const emailResult = await sendMinistryAdminApprovalEmail({
+    adminName: `${data.adminFirstName} ${data.adminLastName}`,
+    adminEmail: data.adminEmail,
+    ministryName: church.name,
+    temporaryPassword: tempPassword,
+  });
+
+  if (!emailResult.success) {
+    console.error("Failed to send auto-approval email:", emailResult.error);
+  }
+
+  return { church, user: newUser, tempPassword };
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -167,6 +278,10 @@ export async function registerRoutes(
 
   // Register object storage routes
   registerObjectStorageRoutes(app);
+
+  // Apply subscription enforcement middleware to leader and ministry-admin write routes
+  app.use("/api/leader", requireActiveSubscription);
+  app.use("/api/ministry-admin", requireActiveSubscription);
 
   // ==================== TEST EMAIL ROUTE ====================
   // Debug endpoint to test email sending
@@ -1276,11 +1391,29 @@ export async function registerRoutes(
           stripeSessionId: null,
           paymentStatus: "free",
         });
-        return res.status(200).json({
-          free: true,
-          requestId: request.id,
-          message: "Your free ministry registration has been submitted for review.",
-        });
+        await storage.updateMinistryRequestStatus(request.id, "APPROVED", null);
+
+        try {
+          const result = await autoApproveMinistry({
+            ministryName: data.ministryName,
+            location: data.location || null,
+            adminFirstName: data.adminFirstName,
+            adminLastName: data.adminLastName,
+            adminEmail: data.adminEmail,
+            adminPhone: data.adminPhone || null,
+            description: data.description || null,
+            plan: "free",
+          });
+          return res.status(200).json({
+            free: true,
+            requestId: request.id,
+            approved: true,
+            message: "Your free ministry has been created! Check your email for login credentials.",
+          });
+        } catch (approvalError: any) {
+          console.error("Free tier auto-approval failed:", approvalError);
+          return res.status(400).json({ message: approvalError.message || "Failed to create ministry" });
+        }
       }
 
       const stripe = await getUncachableStripeClient();
@@ -1335,7 +1468,7 @@ export async function registerRoutes(
     }
   });
 
-  // Confirm ministry registration after successful Stripe payment
+  // Confirm ministry registration after successful Stripe payment - auto-approves
   app.post("/api/ministry-requests/confirm", async (req, res) => {
     try {
       const { sessionId } = req.body;
@@ -1344,7 +1477,9 @@ export async function registerRoutes(
       }
 
       const stripe = await getUncachableStripeClient();
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const session = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['subscription', 'customer'],
+      });
 
       if (session.payment_status !== 'paid') {
         return res.status(400).json({ message: "Payment not completed", paymentStatus: session.payment_status });
@@ -1358,10 +1493,12 @@ export async function registerRoutes(
           message: "Registration already confirmed",
           requestId: existingBySession.id,
           paymentStatus: "paid",
+          approved: true,
           plan: existingBySession.plan,
         });
       }
 
+      const plan = (meta.plan as "free" | "foundations" | "formation" | "stewardship") || "foundations";
       const requestData = {
         ministryName: meta.ministry_name || "Unknown Ministry",
         location: meta.location || null,
@@ -1370,22 +1507,46 @@ export async function registerRoutes(
         adminEmail: meta.admin_email || "",
         adminPhone: meta.admin_phone || null,
         description: meta.description || null,
-        plan: (meta.plan as "foundations" | "formation" | "stewardship") || "foundations",
+        plan,
       };
 
       const request = await storage.createMinistryRequest(requestData);
       await storage.updateMinistryRequestPayment(request.id, sessionId);
       await storage.updateMinistryRequestPaymentStatus(request.id, "paid");
+      await storage.updateMinistryRequestStatus(request.id, "APPROVED", null);
+
+      const stripeCustomerId = typeof session.customer === 'string' ? session.customer : session.customer?.id || null;
+      const stripeSubscriptionId = typeof session.subscription === 'string' ? session.subscription : (session.subscription as any)?.id || null;
+
+      try {
+        const result = await autoApproveMinistry({
+          ...requestData,
+          stripeCustomerId,
+          stripeSubscriptionId,
+        });
+      } catch (approvalError: any) {
+        if (approvalError.message?.includes("already exists")) {
+          return res.json({
+            message: "Ministry has already been created. Check your email for login credentials.",
+            requestId: request.id,
+            paymentStatus: "paid",
+            approved: true,
+            plan: request.plan,
+          });
+        }
+        throw approvalError;
+      }
 
       res.status(201).json({
-        message: "Ministry registration confirmed",
+        message: "Ministry registration confirmed and approved! Check your email for login credentials.",
         requestId: request.id,
         paymentStatus: "paid",
+        approved: true,
         plan: request.plan,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Ministry request confirmation error:", error);
-      res.status(500).json({ message: "Failed to confirm registration" });
+      res.status(500).json({ message: error.message || "Failed to confirm registration" });
     }
   });
 
@@ -2643,6 +2804,69 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to deny account request:", error);
       res.status(500).json({ message: "Failed to deny account request" });
+    }
+  });
+
+  // Get subscription status for current ministry
+  app.get("/api/ministry-admin/subscription", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+      res.json({
+        plan: church.plan,
+        subscriptionStatus: church.subscriptionStatus,
+        hasStripeSubscription: !!church.stripeSubscriptionId,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get subscription status" });
+    }
+  });
+
+  // Create Stripe Customer Portal session for billing management
+  app.post("/api/ministry-admin/billing/portal", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+
+      if (!church.stripeCustomerId) {
+        return res.status(400).json({ message: "No billing account found for this ministry. Free plan ministries do not have billing." });
+      }
+
+      const stripe = await getUncachableStripeClient();
+      const returnUrl = buildUrl("/ministry-admin/billing");
+
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: church.stripeCustomerId,
+        return_url: returnUrl,
+      });
+
+      res.json({ url: portalSession.url });
+    } catch (error) {
+      console.error("Failed to create billing portal session:", error);
+      res.status(500).json({ message: "Failed to open billing portal" });
+    }
+  });
+
+  // Get subscription status for leader view
+  app.get("/api/leader/subscription", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+      res.json({
+        plan: church.plan,
+        subscriptionStatus: church.subscriptionStatus,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get subscription status" });
     }
   });
 
