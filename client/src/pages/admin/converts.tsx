@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -363,9 +364,11 @@ export default function AdminConverts() {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <AITextarea
                         placeholder="Add any notes about this check-in..."
-                        {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        context="Follow-up note for a convert (admin view)"
                         data-testid="input-admin-followup-notes"
                       />
                     </FormControl>

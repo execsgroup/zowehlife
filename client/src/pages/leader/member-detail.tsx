@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -538,10 +539,11 @@ export default function MemberDetail() {
                     <FormItem>
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <AITextarea
                           placeholder="Details about the interaction..."
-                          className="resize-none"
-                          {...field}
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          context="Follow-up note for a member in a ministry"
                           data-testid="input-checkin-notes"
                         />
                       </FormControl>
@@ -703,7 +705,11 @@ export default function MemberDetail() {
                     <FormItem>
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Textarea className="resize-none" {...field} />
+                        <AITextarea
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          context="Notes about a member in a ministry"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

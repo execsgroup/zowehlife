@@ -799,10 +799,11 @@ export default function LeaderFollowups() {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <AITextarea
                         placeholder="What happened during this follow-up? Any prayer requests or next steps?"
-                        className="resize-none min-h-[120px]"
-                        {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        context="Follow-up note for a convert interaction"
                         data-testid="input-notes-content"
                       />
                     </FormControl>

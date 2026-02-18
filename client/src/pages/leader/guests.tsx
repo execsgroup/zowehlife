@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -408,7 +409,13 @@ export default function LeaderGuests() {
                       <FormItem>
                         <FormLabel>Notes</FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={3} data-testid="input-notes" />
+                          <AITextarea
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            context="Notes about a guest/convert in a ministry"
+                            rows={3}
+                            data-testid="input-notes"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -791,7 +798,12 @@ export default function LeaderGuests() {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea {...field} rows={3} />
+                      <AITextarea
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        context="Notes about a guest/convert in a ministry"
+                        rows={3}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

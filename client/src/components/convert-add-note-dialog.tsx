@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
@@ -129,10 +129,11 @@ export function ConvertAddNoteDialog({
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <AITextarea
                       placeholder="What happened during this follow-up? Any prayer requests or next steps?"
-                      className="resize-none min-h-[120px]"
-                      {...field}
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      context="Follow-up note for a convert in a ministry"
                       data-testid="input-note-content"
                     />
                   </FormControl>

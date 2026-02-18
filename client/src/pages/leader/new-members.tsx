@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -574,9 +575,11 @@ export default function LeaderNewMembers() {
                         <FormItem>
                           <FormLabel>Notes</FormLabel>
                           <FormControl>
-                            <Textarea
+                            <AITextarea
                               placeholder="Additional notes..."
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              context="Notes about a new member in a ministry"
                               data-testid="input-new-member-notes"
                             />
                           </FormControl>
@@ -970,9 +973,11 @@ export default function LeaderNewMembers() {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <AITextarea
                         placeholder="Notes about the follow-up..."
-                        {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        context="Follow-up note for a new member in a ministry"
                         data-testid="input-note-notes"
                       />
                     </FormControl>

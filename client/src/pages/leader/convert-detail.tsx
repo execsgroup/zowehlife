@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -771,10 +772,11 @@ END:VCALENDAR`;
                     <FormItem>
                       <FormLabel>Prayer Request / Additional Information</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <AITextarea
                           placeholder="Share any prayer requests or additional information..."
-                          className="resize-none"
-                          {...field}
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          context="Prayer request or additional information for a convert"
                           data-testid="input-edit-prayer-request"
                         />
                       </FormControl>
@@ -790,7 +792,12 @@ END:VCALENDAR`;
                     <FormItem>
                       <FormLabel>Additional Notes (Leader Only)</FormLabel>
                       <FormControl>
-                        <Textarea className="resize-none" {...field} data-testid="input-edit-notes" />
+                        <AITextarea
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          context="Leader notes about a convert"
+                          data-testid="input-edit-notes"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
