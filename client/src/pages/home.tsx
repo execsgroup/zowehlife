@@ -149,7 +149,7 @@ export default function Home() {
                       with a local ministry, we're here for you.
                     </p>
                   </div>
-                  <Link href="/contact">
+                  <Link href="/contact-us">
                     <Button
                       size="lg"
                       variant="secondary"
