@@ -40,6 +40,7 @@ function getMaxLeadersForPlan(plan: string | null | undefined): number {
       return 10;
     case "formation":
       return 3;
+    case "free":
     case "foundations":
     default:
       return 1;
