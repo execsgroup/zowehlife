@@ -16,7 +16,7 @@ export const affiliationTypeEnum = pgEnum("affiliation_type", ["convert", "new_m
 export const prayerRequestStatusEnum = pgEnum("prayer_request_status", ["SUBMITTED", "BEING_PRAYED_FOR", "FOLLOWUP_SCHEDULED", "ANSWERED", "CLOSED"]);
 export const massFollowupStatusEnum = pgEnum("mass_followup_status", ["SCHEDULED", "COMPLETED", "CANCELLED"]);
 export const massFollowupCategoryEnum = pgEnum("mass_followup_category", ["converts", "new_members", "members", "guests"]);
-export const ministryPlanEnum = pgEnum("ministry_plan", ["foundations", "formation", "stewardship"]);
+export const ministryPlanEnum = pgEnum("ministry_plan", ["free", "foundations", "formation", "stewardship"]);
 
 // Churches table
 export const churches = pgTable("churches", {
