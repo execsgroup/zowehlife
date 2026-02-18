@@ -95,6 +95,9 @@ export interface IStorage {
   createChurch(church: InsertChurch): Promise<Church>;
   findOrCreateChurch(name: string): Promise<{ church: Church; created: boolean }>;
   updateChurch(id: string, church: Partial<InsertChurch>): Promise<Church>;
+  updateChurchSubscription(id: string, data: { stripeCustomerId?: string; stripeSubscriptionId?: string; subscriptionStatus?: "active" | "past_due" | "suspended" | "canceled" | "free" }): Promise<Church>;
+  getChurchByStripeCustomerId(customerId: string): Promise<Church | undefined>;
+  getChurchByStripeSubscriptionId(subscriptionId: string): Promise<Church | undefined>;
   updateChurchLogo(id: string, logoUrl: string): Promise<void>;
   generateTokenForChurch(id: string): Promise<Church>;
 
@@ -534,6 +537,25 @@ export class DatabaseStorage implements IStorage {
       .set(updateData)
       .where(eq(churches.id, id))
       .returning();
+    return church;
+  }
+
+  async updateChurchSubscription(id: string, data: { stripeCustomerId?: string; stripeSubscriptionId?: string; subscriptionStatus?: "active" | "past_due" | "suspended" | "canceled" | "free" }): Promise<Church> {
+    const [church] = await db
+      .update(churches)
+      .set(data)
+      .where(eq(churches.id, id))
+      .returning();
+    return church;
+  }
+
+  async getChurchByStripeCustomerId(customerId: string): Promise<Church | undefined> {
+    const [church] = await db.select().from(churches).where(eq(churches.stripeCustomerId, customerId)).limit(1);
+    return church;
+  }
+
+  async getChurchByStripeSubscriptionId(subscriptionId: string): Promise<Church | undefined> {
+    const [church] = await db.select().from(churches).where(eq(churches.stripeSubscriptionId, subscriptionId)).limit(1);
     return church;
   }
 
