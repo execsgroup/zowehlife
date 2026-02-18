@@ -26,7 +26,7 @@ interface MinistryRequest {
   adminEmail: string;
   adminPhone: string | null;
   description: string | null;
-  plan: "foundations" | "formation" | "stewardship";
+  plan: "free" | "foundations" | "formation" | "stewardship";
   status: "PENDING" | "APPROVED" | "DENIED";
   reviewedByUserId: string | null;
   reviewedAt: string | null;
@@ -47,7 +47,7 @@ const reviewFormSchema = z.object({
   adminEmail: z.string().email("Please enter a valid email"),
   adminPhone: z.string().optional(),
   description: z.string().optional(),
-  plan: z.enum(["foundations", "formation", "stewardship"]).default("foundations"),
+  plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
 });
 
 type ReviewFormData = z.infer<typeof reviewFormSchema>;
@@ -433,6 +433,7 @@ export default function MinistryRequests() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="free">Free</SelectItem>
                         <SelectItem value="foundations">Foundations</SelectItem>
                         <SelectItem value="formation">Formation</SelectItem>
                         <SelectItem value="stewardship">Stewardship</SelectItem>

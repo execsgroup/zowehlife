@@ -24,7 +24,7 @@ import { format } from "date-fns";
 const churchFormSchema = insertChurchSchema.extend({
   name: z.string().min(2, "Name must be at least 2 characters"),
   location: z.string().min(2, "Location is required"),
-  plan: z.enum(["foundations", "formation", "stewardship"]).default("foundations"),
+  plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
 });
 
 type ChurchFormData = z.infer<typeof churchFormSchema>;
@@ -230,6 +230,7 @@ export default function AdminChurches() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="free">Free</SelectItem>
                             <SelectItem value="foundations">Foundations</SelectItem>
                             <SelectItem value="formation">Formation</SelectItem>
                             <SelectItem value="stewardship">Stewardship</SelectItem>

@@ -44,6 +44,7 @@ import MemberDetail from "@/pages/leader/member-detail";
 import RegisterMinistry from "@/pages/register-ministry";
 import RegisterMinistrySuccess from "@/pages/register-ministry-success";
 import RegisterMinistryCancel from "@/pages/register-ministry-cancel";
+import RegisterMinistryFreeSuccess from "@/pages/register-ministry-free-success";
 import NewConvert from "@/pages/new-convert";
 import NewMemberForm from "@/pages/new-member-form";
 import MemberForm from "@/pages/member-form";
@@ -127,6 +128,7 @@ function Router() {
       <Route path="/register-ministry" component={RegisterMinistry} />
       <Route path="/register-ministry/success" component={RegisterMinistrySuccess} />
       <Route path="/register-ministry/cancel" component={RegisterMinistryCancel} />
+      <Route path="/register-ministry/free-success" component={RegisterMinistryFreeSuccess} />
       <Route path="/connect/:token" component={NewConvert} />
       <Route path="/new-member/:token" component={NewMemberForm} />
       <Route path="/member/:token" component={MemberForm} />

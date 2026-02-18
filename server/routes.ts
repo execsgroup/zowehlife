@@ -1270,6 +1270,19 @@ export async function registerRoutes(
         return res.status(400).json({ message: "A ministry with this name already exists" });
       }
 
+      if (data.plan === "free") {
+        const request = await storage.createMinistryRequest({
+          ...data,
+          stripeSessionId: null,
+          paymentStatus: "free",
+        });
+        return res.status(200).json({
+          free: true,
+          requestId: request.id,
+          message: "Your free ministry registration has been submitted for review.",
+        });
+      }
+
       const stripe = await getUncachableStripeClient();
 
       const products = await stripe.products.list({ active: true, limit: 10 });

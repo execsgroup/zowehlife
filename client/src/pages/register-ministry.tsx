@@ -36,7 +36,7 @@ const ministryRequestSchema = z.object({
   adminEmail: z.string().email("Please enter a valid email"),
   adminPhone: z.string().optional(),
   description: z.string().optional(),
-  plan: z.enum(["foundations", "formation", "stewardship"]).default("foundations"),
+  plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
 });
 
 type MinistryRequestFormData = z.infer<typeof ministryRequestSchema>;
@@ -53,6 +53,7 @@ interface StripePlan {
 }
 
 const tierMeta: Record<string, { highlighted: boolean; leaderLimit: string }> = {
+  free: { highlighted: false, leaderLimit: "1 Leader Account" },
   foundations: { highlighted: false, leaderLimit: "1 Leader Account" },
   formation: { highlighted: true, leaderLimit: "Up to 3 Leader Accounts" },
   stewardship: { highlighted: false, leaderLimit: "Up to 10 Leader Accounts" },
@@ -74,7 +75,7 @@ function formatPrice(amount: number): string {
 
 export default function RegisterMinistry() {
   const [step, setStep] = useState<"plan" | "form">("plan");
-  const [selectedPlan, setSelectedPlan] = useState<"foundations" | "formation" | "stewardship" | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "foundations" | "formation" | "stewardship" | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -101,8 +102,10 @@ export default function RegisterMinistry() {
       const response = await apiRequest("POST", "/api/ministry-requests", data);
       return response.json();
     },
-    onSuccess: (data: { checkoutUrl?: string }) => {
-      if (data.checkoutUrl) {
+    onSuccess: (data: { checkoutUrl?: string; free?: boolean; message?: string }) => {
+      if (data.free) {
+        setLocation("/register-ministry/free-success");
+      } else if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       }
     },
@@ -115,7 +118,7 @@ export default function RegisterMinistry() {
     },
   });
 
-  const handleSelectPlan = (planId: "foundations" | "formation" | "stewardship") => {
+  const handleSelectPlan = (planId: "free" | "foundations" | "formation" | "stewardship") => {
     setSelectedPlan(planId);
     form.setValue("plan", planId);
     setStep("form");
@@ -126,9 +129,10 @@ export default function RegisterMinistry() {
     submitMutation.mutate(data);
   };
 
-  const selectedStripePlan = plans?.find(p => p.planId === selectedPlan);
+  const selectedStripePlan = selectedPlan !== "free" ? plans?.find(p => p.planId === selectedPlan) : null;
   const planOrder = ["foundations", "formation", "stewardship"];
   const sortedPlans = plans?.slice().sort((a, b) => planOrder.indexOf(a.planId) - planOrder.indexOf(b.planId));
+  const isFreePlan = selectedPlan === "free";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -168,7 +172,9 @@ export default function RegisterMinistry() {
                   Register Your Ministry
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Fill out the details below. After submitting, you'll be directed to complete payment.
+                  {isFreePlan
+                    ? "Fill out the details below to register your ministry for free."
+                    : "Fill out the details below. After submitting, you'll be directed to complete payment."}
                 </p>
               </>
             )}
@@ -186,7 +192,47 @@ export default function RegisterMinistry() {
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                    <Card
+                      className="relative flex flex-col transition-shadow duration-200"
+                      data-testid="card-plan-free"
+                    >
+                      <CardHeader className="text-center pb-2">
+                        <CardTitle className="text-2xl">Free</CardTitle>
+                        <div className="mt-2">
+                          <span className="text-3xl font-bold">$0</span>
+                          <span className="text-muted-foreground">/month</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">Get started at no cost</p>
+                      </CardHeader>
+                      <CardContent className="flex-1 flex flex-col">
+                        <Button
+                          className="w-full mb-6 gap-2"
+                          variant="outline"
+                          onClick={() => handleSelectPlan("free")}
+                          data-testid="button-select-free"
+                        >
+                          Get Started
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                        <ul className="space-y-3 flex-1">
+                          <li className="flex items-start gap-2 text-sm font-medium">
+                            <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                            <span>1 Admin Account</span>
+                          </li>
+                          <li className="flex items-start gap-2 text-sm font-medium">
+                            <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                            <span>1 Leader Account</span>
+                          </li>
+                          {sharedFeatures.map((feature, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm">
+                              <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
                     {(sortedPlans || []).map((plan) => {
                       const meta = tierMeta[plan.planId];
                       if (!meta) return null;
@@ -220,7 +266,7 @@ export default function RegisterMinistry() {
                             <Button
                               className="w-full mb-6 gap-2"
                               variant={meta.highlighted ? "default" : "outline"}
-                              onClick={() => handleSelectPlan(plan.planId as "foundations" | "formation" | "stewardship")}
+                              onClick={() => handleSelectPlan(plan.planId as "free" | "foundations" | "formation" | "stewardship")}
                               data-testid={`button-select-${plan.planId}`}
                             >
                               Get Started
@@ -290,13 +336,17 @@ export default function RegisterMinistry() {
             <div className="container mx-auto px-4">
               <div className="max-w-xl mx-auto">
                 <div className="text-center mb-8">
-                  <div className="inline-flex items-center gap-2 mb-4">
+                  <div className="inline-flex items-center gap-2 mb-4 flex-wrap">
                     <span className="text-sm text-muted-foreground">Selected Plan:</span>
                     <Badge variant="secondary" className="gap-1" data-testid="badge-selected-plan">
                       <Sparkles className="h-3 w-3" />
-                      {selectedStripePlan?.name || selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)}
+                      {isFreePlan ? "Free" : (selectedStripePlan?.name || selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1))}
                     </Badge>
-                    {selectedStripePlan && (
+                    {isFreePlan ? (
+                      <Badge variant="outline" data-testid="badge-plan-price">
+                        $0/month
+                      </Badge>
+                    ) : selectedStripePlan && (
                       <Badge variant="outline" data-testid="badge-plan-price">
                         {formatPrice(selectedStripePlan.amount)}/{selectedStripePlan.interval}
                       </Badge>
@@ -408,15 +458,29 @@ export default function RegisterMinistry() {
                         />
                         <input type="hidden" {...form.register("plan")} />
 
-                        <div className="border rounded-md p-4 bg-muted/30 space-y-2">
-                          <div className="flex items-center gap-2 text-sm font-medium">
-                            <CreditCard className="h-4 w-4 text-primary" />
-                            <span>Payment Information</span>
+                        {!isFreePlan && (
+                          <div className="border rounded-md p-4 bg-muted/30 space-y-2">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                              <CreditCard className="h-4 w-4 text-primary" />
+                              <span>Payment Information</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              After submitting, you'll be securely redirected to Stripe to complete your {selectedStripePlan ? formatPrice(selectedStripePlan.amount) + "/" + selectedStripePlan.interval : ""} subscription payment.
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            After submitting, you'll be securely redirected to Stripe to complete your {selectedStripePlan ? formatPrice(selectedStripePlan.amount) + "/" + selectedStripePlan.interval : ""} subscription payment.
-                          </p>
-                        </div>
+                        )}
+
+                        {isFreePlan && (
+                          <div className="border rounded-md p-4 bg-muted/30 space-y-2">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                              <Check className="h-4 w-4 text-primary" />
+                              <span>No Payment Required</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              The Free plan requires no payment. Your registration will be submitted for admin review.
+                            </p>
+                          </div>
+                        )}
 
                         <Button
                           type="submit"
@@ -428,6 +492,11 @@ export default function RegisterMinistry() {
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Processing...
+                            </>
+                          ) : isFreePlan ? (
+                            <>
+                              Submit Registration
+                              <ArrowRight className="h-4 w-4" />
                             </>
                           ) : (
                             <>
