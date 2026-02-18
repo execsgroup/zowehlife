@@ -1,28 +1,24 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Mail, Phone, MessageSquare, CheckCircle2, Loader2 } from "lucide-react";
-import type { Church } from "@shared/schema";
-
 const contactUsSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   phone: z.string().optional(),
   subject: z.string().min(3, "Subject must be at least 3 characters"),
   message: z.string().min(10, "Message must be at least 10 characters"),
-  churchPreference: z.string().min(1, "Please select a ministry"),
 });
 
 type ContactUsFormData = z.infer<typeof contactUsSchema>;
@@ -30,10 +26,6 @@ type ContactUsFormData = z.infer<typeof contactUsSchema>;
 export default function ContactUs() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
-
-  const { data: churches } = useQuery<Church[]>({
-    queryKey: ["/api/public/churches"],
-  });
 
   const form = useForm<ContactUsFormData>({
     resolver: zodResolver(contactUsSchema),
@@ -43,7 +35,6 @@ export default function ContactUs() {
       phone: "",
       subject: "",
       message: "",
-      churchPreference: "",
     },
   });
 
@@ -196,31 +187,6 @@ export default function ContactUs() {
                           )}
                         />
                       </div>
-
-                      <FormField
-                        control={form.control}
-                        name="churchPreference"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ministry Preference *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-contact-ministry">
-                                  <SelectValue placeholder="Select a ministry" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {churches?.map((church) => (
-                                  <SelectItem key={church.id} value={church.name} data-testid={`option-ministry-${church.id}`}>
-                                    {church.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
 
                       <FormField
                         control={form.control}

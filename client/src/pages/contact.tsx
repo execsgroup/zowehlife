@@ -8,17 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const CHURCHES = [
-  "Dominion Cathedral",
-  "House of Glory",
-  "Lighthouse",
-  "Rehoboth Chapel",
-  "Sanctuary of Praise",
-  "Tabernacle of Peace",
-  "Victory House Parish",
-];
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
@@ -30,7 +19,6 @@ const contactSchema = z.object({
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   phone: z.string().optional(),
   message: z.string().min(10, "Message must be at least 10 characters"),
-  churchPreference: z.string().min(1, "Please select a ministry"),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -46,7 +34,6 @@ export default function Contact() {
       email: "",
       phone: "",
       message: "",
-      churchPreference: "",
     },
   });
 
@@ -200,31 +187,6 @@ export default function Contact() {
                           )}
                         />
                       </div>
-
-                      <FormField
-                        control={form.control}
-                        name="churchPreference"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ministry Preference *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-church-preference">
-                                  <SelectValue placeholder="Select a ministry" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {CHURCHES.map((church) => (
-                                  <SelectItem key={church} value={church} data-testid={`option-church-${church.toLowerCase().replace(/\s+/g, '-')}`}>
-                                    {church}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
 
                       <FormField
                         control={form.control}
