@@ -18,6 +18,9 @@ export const massFollowupStatusEnum = pgEnum("mass_followup_status", ["SCHEDULED
 export const massFollowupCategoryEnum = pgEnum("mass_followup_category", ["converts", "new_members", "members", "guests"]);
 export const ministryPlanEnum = pgEnum("ministry_plan", ["free", "foundations", "formation", "stewardship"]);
 
+// Subscription status enum
+export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "past_due", "suspended", "canceled", "free"]);
+
 // Churches table
 export const churches = pgTable("churches", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -28,6 +31,9 @@ export const churches = pgTable("churches", {
   newMemberToken: text("new_member_token").unique(),
   memberToken: text("member_token").unique(),
   plan: ministryPlanEnum("plan").notNull().default("foundations"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionStatus: subscriptionStatusEnum("subscription_status").notNull().default("active"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
