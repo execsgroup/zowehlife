@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, Send, Mail, MessageSquare, Image, ArrowLeft, Clock, X, CalendarClock } from "lucide-react";
 import { MmsImageUpload } from "@/components/mms-image-upload";
+import { AITextarea } from "@/components/ai-text-helper";
 import { Link } from "wouter";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -504,10 +505,13 @@ export default function AnnouncementsPage() {
                   <FormItem>
                     <FormLabel>Message</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <AITextarea
+                        value={field.value}
+                        onChange={field.onChange}
                         placeholder="Write your announcement message..."
-                        className="min-h-[150px]"
-                        {...field}
+                        rows={6}
+                        context="Ministry announcement email to church members, converts, and guests. Keep the tone warm, encouraging, and faith-based."
+                        aiPlaceholder="e.g., Write an encouraging announcement about..."
                         data-testid="input-announcement-message"
                       />
                     </FormControl>
@@ -543,10 +547,13 @@ export default function AnnouncementsPage() {
                     <FormItem>
                       <FormLabel>{notificationMethod === "mms" ? "MMS Text" : "SMS Text"}</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <AITextarea
+                          value={field.value || ""}
+                          onChange={field.onChange}
                           placeholder={`Write your ${notificationMethod === "mms" ? "MMS" : "SMS"} message...`}
-                          className="min-h-[100px]"
-                          {...field}
+                          rows={4}
+                          context={`Short ${notificationMethod === "mms" ? "MMS" : "SMS"} text message for ministry members. Keep it brief, warm, and faith-based. SMS messages should be concise (under 160 characters ideally).`}
+                          aiPlaceholder={`e.g., Write a brief ${notificationMethod === "mms" ? "MMS" : "SMS"} about...`}
                           data-testid="input-announcement-sms-message"
                         />
                       </FormControl>
