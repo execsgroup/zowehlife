@@ -21,6 +21,7 @@ export const scheduleFollowUpSchema = z.object({
   customConvertMessage: z.string().optional(),
   customReminderSubject: z.string().optional(),
   customReminderMessage: z.string().optional(),
+  smsMessage: z.string().optional(),
   includeVideoLink: z.boolean().optional(),
   notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
 });
@@ -56,6 +57,7 @@ export function NewMemberScheduleFollowUpDialog({
       customConvertMessage: "",
       customReminderSubject: "",
       customReminderMessage: "",
+      smsMessage: "",
       includeVideoLink: true,
       notificationMethod: "email",
     },
@@ -69,9 +71,10 @@ export function NewMemberScheduleFollowUpDialog({
     },
     onSuccess: () => {
       const method = form.getValues("notificationMethod");
+      const methodLabel = method === "email" ? "email" : `email and ${method?.toUpperCase()}`;
       toast({
         title: "Follow-up scheduled",
-        description: `The follow-up has been scheduled and ${method === "email" ? "email" : method?.toUpperCase()} notifications sent.`,
+        description: `The follow-up has been scheduled and ${methodLabel} notifications sent.`,
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`, newMemberId] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
@@ -165,105 +168,101 @@ export function NewMemberScheduleFollowUpDialog({
               )}
             />
 
-            {notificationMethod === "email" && (
-              <>
-                <div className="space-y-4 pt-4 border-t">
-                  <h4 className="font-medium text-sm">Initial Email to New Member (Optional)</h4>
-                  <p className="text-xs text-muted-foreground">Sent immediately when scheduling the follow-up</p>
-                  
-                  <FormField
-                    control={form.control}
-                    name="customConvertSubject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Custom subject for initial email" {...field} data-testid="input-initial-email-subject" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <div className="space-y-4 pt-4 border-t">
+              <h4 className="font-medium text-sm">Initial Email to New Member (Optional)</h4>
+              <p className="text-xs text-muted-foreground">Sent immediately when scheduling the follow-up</p>
+              
+              <FormField
+                control={form.control}
+                name="customConvertSubject"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subject</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Custom subject for initial email" {...field} data-testid="input-initial-email-subject" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <FormField
-                    control={form.control}
-                    name="customConvertMessage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message</FormLabel>
-                        <FormControl>
-                          <AITextarea
-                            value={field.value || ""}
-                            onChange={(text) => form.setValue("customConvertMessage", text)}
-                            placeholder="Custom message for initial email"
-                            context={`Writing an initial follow-up email to a new church member named ${newMemberFirstName} ${newMemberLastName}.`}
-                            aiPlaceholder="e.g., Write a warm welcome message..."
-                            rows={4}
-                            data-testid="input-initial-email-message"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              <FormField
+                control={form.control}
+                name="customConvertMessage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Message</FormLabel>
+                    <FormControl>
+                      <AITextarea
+                        value={field.value || ""}
+                        onChange={(text) => form.setValue("customConvertMessage", text)}
+                        placeholder="Custom message for initial email"
+                        context={`Writing an initial follow-up email to a new church member named ${newMemberFirstName} ${newMemberLastName}.`}
+                        aiPlaceholder="e.g., Write a warm welcome message..."
+                        rows={4}
+                        data-testid="input-initial-email-message"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                <div className="space-y-4 pt-4 border-t">
-                  <h4 className="font-medium text-sm">Day-Before Reminder (Optional)</h4>
-                  <p className="text-xs text-muted-foreground">Sent one day before the scheduled follow-up</p>
-                  
-                  <FormField
-                    control={form.control}
-                    name="customReminderSubject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Custom subject for reminder email" {...field} data-testid="input-reminder-email-subject" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <div className="space-y-4 pt-4 border-t">
+              <h4 className="font-medium text-sm">Day-Before Reminder (Optional)</h4>
+              <p className="text-xs text-muted-foreground">Sent one day before the scheduled follow-up</p>
+              
+              <FormField
+                control={form.control}
+                name="customReminderSubject"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subject</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Custom subject for reminder email" {...field} data-testid="input-reminder-email-subject" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <FormField
-                    control={form.control}
-                    name="customReminderMessage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message</FormLabel>
-                        <FormControl>
-                          <AITextarea
-                            value={field.value || ""}
-                            onChange={(text) => form.setValue("customReminderMessage", text)}
-                            placeholder="Custom message for reminder email"
-                            context={`Writing a reminder email to ${newMemberFirstName} ${newMemberLastName} about an upcoming follow-up meeting from a church ministry.`}
-                            aiPlaceholder="e.g., Write a friendly reminder..."
-                            rows={4}
-                            data-testid="input-reminder-email-message"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </>
-            )}
+              <FormField
+                control={form.control}
+                name="customReminderMessage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Message</FormLabel>
+                    <FormControl>
+                      <AITextarea
+                        value={field.value || ""}
+                        onChange={(text) => form.setValue("customReminderMessage", text)}
+                        placeholder="Custom message for reminder email"
+                        context={`Writing a reminder email to ${newMemberFirstName} ${newMemberLastName} about an upcoming follow-up meeting from a church ministry.`}
+                        aiPlaceholder="e.g., Write a friendly reminder..."
+                        rows={4}
+                        data-testid="input-reminder-email-message"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {(notificationMethod === "sms" || notificationMethod === "mms") && (
               <div className="space-y-3 p-3 bg-muted/50 rounded-lg border-t pt-4">
                 <p className="text-sm font-medium">Custom {notificationMethod.toUpperCase()} Message (optional)</p>
-                <p className="text-xs text-muted-foreground">Leave blank for a default message with follow-up details</p>
+                <p className="text-xs text-muted-foreground">An additional {notificationMethod.toUpperCase()} will be sent alongside the email above</p>
                 <FormField
                   control={form.control}
-                  name="customConvertMessage"
+                  name="smsMessage"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <AITextarea
                           value={field.value || ""}
-                          onChange={(text) => form.setValue("customConvertMessage", text)}
+                          onChange={(text) => form.setValue("smsMessage", text)}
                           placeholder="Leave blank for default SMS message..."
                           context={`Writing a short SMS follow-up message to ${newMemberFirstName} ${newMemberLastName} from a church ministry. Keep it under 160 characters.`}
                           aiPlaceholder="e.g., Write a brief follow-up text..."

@@ -65,7 +65,7 @@ export function NotificationMethodSelector({
                 <SelectItem value="email" data-testid="option-email">
                   <span className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
-                    Email
+                    Email Only
                   </span>
                 </SelectItem>
                 <SelectItem
@@ -74,8 +74,9 @@ export function NotificationMethodSelector({
                   data-testid="option-sms"
                 >
                   <span className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
                     <MessageSquare className="h-4 w-4" />
-                    SMS
+                    Email + SMS
                     {isFree && (
                       <Badge variant="secondary" className="text-xs">
                         Upgrade
@@ -99,8 +100,9 @@ export function NotificationMethodSelector({
                   data-testid="option-mms"
                 >
                   <span className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
                     <Image className="h-4 w-4" />
-                    MMS
+                    Email + MMS
                     {isFree && (
                       <Badge variant="secondary" className="text-xs">
                         Upgrade

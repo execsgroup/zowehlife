@@ -54,12 +54,9 @@ async function processUpcomingFollowUpReminders() {
       }
 
       const method = followup.notificationMethod || "email";
+      let reminderSent = false;
 
-      if (method === "email") {
-        if (!followup.convertEmail) {
-          console.log(`[Scheduler] Skipping email reminder for ${followup.convertFirstName} ${followup.convertLastName} - no email`);
-          continue;
-        }
+      if (followup.convertEmail) {
         const contactUrl = `${getBaseUrl()}/contact`;
         const result = await sendFollowUpReminderEmail({
           convertName: `${followup.convertFirstName} ${followup.convertLastName}`,
@@ -71,43 +68,51 @@ async function processUpcomingFollowUpReminders() {
           contactUrl,
         });
         if (result.success) {
-          await storage.recordReminderSent(followup.checkinId, "DAY_BEFORE");
+          reminderSent = true;
           console.log(`[Scheduler] Email reminder sent for ${followup.convertFirstName} ${followup.convertLastName}`);
         }
       } else {
+        console.log(`[Scheduler] No email for ${followup.convertFirstName} ${followup.convertLastName}, skipping email reminder`);
+      }
+
+      if (method === "sms" || method === "mms") {
         const phone = followup.convertPhone ? formatPhoneForSms(followup.convertPhone) : null;
         if (!phone) {
           console.log(`[Scheduler] Skipping ${method} reminder for ${followup.convertFirstName} - no phone`);
-          continue;
-        }
-        const church = await storage.getChurch(followup.churchId);
-        const plan = (church?.plan || "free") as string;
-        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
-        const billingPeriod = getCurrentBillingPeriod();
-        const usage = await storage.getSmsUsage(followup.churchId, billingPeriod);
-        const smsType = method as "sms" | "mms";
-        const used = smsType === "sms" ? usage.smsCount : usage.mmsCount;
-        const limit = smsType === "sms" ? limits.sms : limits.mms;
-        if (used >= limit) {
-          console.log(`[Scheduler] ${smsType.toUpperCase()} limit reached for church ${followup.churchId}, skipping reminder`);
-          continue;
-        }
-        const msg = buildFollowUpSmsMessage({
-          recipientName: followup.convertFirstName,
-          churchName: followup.churchName,
-          followUpDate: followup.nextFollowupDate,
-          followUpTime: followup.nextFollowupTime || undefined,
-          videoCallLink: followup.videoLink || undefined,
-        });
-        const sendFn = smsType === "sms" ? sendSms : sendMms;
-        const result = await sendFn({ to: phone, body: msg });
-        if (result.success) {
-          await storage.incrementSmsUsage(followup.churchId, billingPeriod, smsType);
-          await storage.recordReminderSent(followup.checkinId, "DAY_BEFORE");
-          console.log(`[Scheduler] ${smsType.toUpperCase()} reminder sent to ${followup.convertFirstName}`);
         } else {
-          console.error(`[Scheduler] ${smsType.toUpperCase()} reminder failed:`, result.error);
+          const church = await storage.getChurch(followup.churchId);
+          const plan = (church?.plan || "free") as string;
+          const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+          const billingPeriod = getCurrentBillingPeriod();
+          const usage = await storage.getSmsUsage(followup.churchId, billingPeriod);
+          const smsType = method as "sms" | "mms";
+          const used = smsType === "sms" ? usage.smsCount : usage.mmsCount;
+          const limit = smsType === "sms" ? limits.sms : limits.mms;
+          if (used >= limit) {
+            console.log(`[Scheduler] ${smsType.toUpperCase()} limit reached for church ${followup.churchId}, skipping SMS reminder`);
+          } else {
+            const msg = buildFollowUpSmsMessage({
+              recipientName: followup.convertFirstName,
+              churchName: followup.churchName,
+              followUpDate: followup.nextFollowupDate,
+              followUpTime: followup.nextFollowupTime || undefined,
+              videoCallLink: followup.videoLink || undefined,
+            });
+            const sendFn = smsType === "sms" ? sendSms : sendMms;
+            const result = await sendFn({ to: phone, body: msg });
+            if (result.success) {
+              await storage.incrementSmsUsage(followup.churchId, billingPeriod, smsType);
+              reminderSent = true;
+              console.log(`[Scheduler] ${smsType.toUpperCase()} reminder sent to ${followup.convertFirstName}`);
+            } else {
+              console.error(`[Scheduler] ${smsType.toUpperCase()} reminder failed:`, result.error);
+            }
+          }
         }
+      }
+
+      if (reminderSent) {
+        await storage.recordReminderSent(followup.checkinId, "DAY_BEFORE");
       }
     }
     
@@ -132,12 +137,9 @@ async function processNewMemberUpcomingFollowUpReminders() {
       }
 
       const method = followup.notificationMethod || "email";
+      let reminderSent = false;
 
-      if (method === "email") {
-        if (!followup.newMemberEmail) {
-          console.log(`[Scheduler] Skipping email reminder for ${followup.newMemberFirstName} ${followup.newMemberLastName} - no email`);
-          continue;
-        }
+      if (followup.newMemberEmail) {
         const contactUrl = `${getBaseUrl()}/contact`;
         const result = await sendFollowUpReminderEmail({
           convertName: `${followup.newMemberFirstName} ${followup.newMemberLastName}`,
@@ -151,44 +153,52 @@ async function processNewMemberUpcomingFollowUpReminders() {
           customMessage: followup.customReminderMessage || undefined,
         });
         if (result.success) {
-          await storage.recordReminderSent(reminderKey, "DAY_BEFORE");
+          reminderSent = true;
           console.log(`[Scheduler] Email reminder sent for new member ${followup.newMemberFirstName} ${followup.newMemberLastName}`);
         }
       } else {
+        console.log(`[Scheduler] No email for ${followup.newMemberFirstName} ${followup.newMemberLastName}, skipping email reminder`);
+      }
+
+      if (method === "sms" || method === "mms") {
         const phone = followup.newMemberPhone ? formatPhoneForSms(followup.newMemberPhone) : null;
         if (!phone) {
           console.log(`[Scheduler] Skipping ${method} reminder for ${followup.newMemberFirstName} - no phone`);
-          continue;
-        }
-        const church = await storage.getChurch(followup.churchId);
-        const plan = (church?.plan || "free") as string;
-        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
-        const billingPeriod = getCurrentBillingPeriod();
-        const usage = await storage.getSmsUsage(followup.churchId, billingPeriod);
-        const smsType = method as "sms" | "mms";
-        const used = smsType === "sms" ? usage.smsCount : usage.mmsCount;
-        const limit = smsType === "sms" ? limits.sms : limits.mms;
-        if (used >= limit) {
-          console.log(`[Scheduler] ${smsType.toUpperCase()} limit reached for church ${followup.churchId}, skipping reminder`);
-          continue;
-        }
-        const msg = buildFollowUpSmsMessage({
-          recipientName: followup.newMemberFirstName,
-          churchName: followup.churchName,
-          followUpDate: followup.nextFollowupDate,
-          followUpTime: followup.nextFollowupTime || undefined,
-          videoCallLink: followup.videoLink || undefined,
-          customMessage: followup.customReminderMessage || undefined,
-        });
-        const sendFn = smsType === "sms" ? sendSms : sendMms;
-        const result = await sendFn({ to: phone, body: msg });
-        if (result.success) {
-          await storage.incrementSmsUsage(followup.churchId, billingPeriod, smsType);
-          await storage.recordReminderSent(reminderKey, "DAY_BEFORE");
-          console.log(`[Scheduler] ${smsType.toUpperCase()} reminder sent to new member ${followup.newMemberFirstName}`);
         } else {
-          console.error(`[Scheduler] ${smsType.toUpperCase()} reminder failed:`, result.error);
+          const church = await storage.getChurch(followup.churchId);
+          const plan = (church?.plan || "free") as string;
+          const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+          const billingPeriod = getCurrentBillingPeriod();
+          const usage = await storage.getSmsUsage(followup.churchId, billingPeriod);
+          const smsType = method as "sms" | "mms";
+          const used = smsType === "sms" ? usage.smsCount : usage.mmsCount;
+          const limit = smsType === "sms" ? limits.sms : limits.mms;
+          if (used >= limit) {
+            console.log(`[Scheduler] ${smsType.toUpperCase()} limit reached for church ${followup.churchId}, skipping SMS reminder`);
+          } else {
+            const msg = buildFollowUpSmsMessage({
+              recipientName: followup.newMemberFirstName,
+              churchName: followup.churchName,
+              followUpDate: followup.nextFollowupDate,
+              followUpTime: followup.nextFollowupTime || undefined,
+              videoCallLink: followup.videoLink || undefined,
+              customMessage: followup.customReminderMessage || undefined,
+            });
+            const sendFn = smsType === "sms" ? sendSms : sendMms;
+            const result = await sendFn({ to: phone, body: msg });
+            if (result.success) {
+              await storage.incrementSmsUsage(followup.churchId, billingPeriod, smsType);
+              reminderSent = true;
+              console.log(`[Scheduler] ${smsType.toUpperCase()} reminder sent to new member ${followup.newMemberFirstName}`);
+            } else {
+              console.error(`[Scheduler] ${smsType.toUpperCase()} reminder failed:`, result.error);
+            }
+          }
         }
+      }
+
+      if (reminderSent) {
+        await storage.recordReminderSent(reminderKey, "DAY_BEFORE");
       }
     }
     

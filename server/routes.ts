@@ -3926,6 +3926,7 @@ export async function registerRoutes(
         customLeaderMessage: z.string().optional(),
         customConvertSubject: z.string().optional(),
         customConvertMessage: z.string().optional(),
+        smsMessage: z.string().optional(),
         includeVideoLink: z.boolean().optional(),
         notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
@@ -3979,27 +3980,27 @@ export async function registerRoutes(
 
       const contactUrl = buildUrl("/contact", req);
 
-      if (data.notificationMethod === "email") {
-        console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
-        sendFollowUpNotification({
-          convertName: `${convert.firstName} ${convert.lastName}`,
-          convertEmail: convert.email || undefined,
-          leaderName: `${user.firstName} ${user.lastName}`,
-          leaderEmail: user.email,
-          churchName: church?.name || "Ministry",
-          followUpDate: data.nextFollowupDate,
-          followUpTime: data.nextFollowupTime || undefined,
-          notes: data.notes || undefined,
-          videoCallLink,
-          contactUrl,
-          customLeaderMessage: data.customLeaderMessage || undefined,
-          customConvertMessage: data.customConvertMessage || undefined,
-          customLeaderSubject: data.customLeaderSubject || undefined,
-          customConvertSubject: data.customConvertSubject || undefined,
-        }).then(result => {
-          console.log(`Follow-up email result:`, result);
-        }).catch(err => console.error("Email notification failed:", err));
-      } else {
+      console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
+      sendFollowUpNotification({
+        convertName: `${convert.firstName} ${convert.lastName}`,
+        convertEmail: convert.email || undefined,
+        leaderName: `${user.firstName} ${user.lastName}`,
+        leaderEmail: user.email,
+        churchName: church?.name || "Ministry",
+        followUpDate: data.nextFollowupDate,
+        followUpTime: data.nextFollowupTime || undefined,
+        notes: data.notes || undefined,
+        videoCallLink,
+        contactUrl,
+        customLeaderMessage: data.customLeaderMessage || undefined,
+        customConvertMessage: data.customConvertMessage || undefined,
+        customLeaderSubject: data.customLeaderSubject || undefined,
+        customConvertSubject: data.customConvertSubject || undefined,
+      }).then(result => {
+        console.log(`Follow-up email result:`, result);
+      }).catch(err => console.error("Email notification failed:", err));
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
         const smsType = data.notificationMethod as "sms" | "mms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = convert.phone ? formatPhoneForSms(convert.phone) : null;
@@ -4012,7 +4013,7 @@ export async function registerRoutes(
             followUpDate: data.nextFollowupDate,
             followUpTime: data.nextFollowupTime,
             videoCallLink,
-            customMessage: data.customConvertMessage,
+            customMessage: data.smsMessage,
           });
 
           const sendFn = smsType === "sms" ? sendSms : sendMms;
@@ -4564,6 +4565,7 @@ export async function registerRoutes(
         customConvertSubject: z.string().optional(),
         customReminderSubject: z.string().optional(),
         customReminderMessage: z.string().optional(),
+        smsMessage: z.string().optional(),
         notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
       
@@ -4630,22 +4632,22 @@ export async function registerRoutes(
       
       const contactUrl = buildUrl("/contact", req);
       
-      if (data.notificationMethod === "email") {
-        sendFollowUpNotification({
-          convertName: `${newMember.firstName} ${newMember.lastName}`,
-          convertEmail: newMember.email || undefined,
-          leaderName: `${user.firstName} ${user.lastName}`,
-          leaderEmail: user.email,
-          churchName: church?.name || "Ministry",
-          followUpDate: data.nextFollowupDate,
-          followUpTime: data.nextFollowupTime || undefined,
-          notes: undefined,
-          videoCallLink: videoLink,
-          contactUrl,
-          customConvertMessage: data.customConvertMessage || undefined,
-          customConvertSubject: data.customConvertSubject || undefined,
-        }).catch(err => console.error("Email notification failed:", err));
-      } else {
+      sendFollowUpNotification({
+        convertName: `${newMember.firstName} ${newMember.lastName}`,
+        convertEmail: newMember.email || undefined,
+        leaderName: `${user.firstName} ${user.lastName}`,
+        leaderEmail: user.email,
+        churchName: church?.name || "Ministry",
+        followUpDate: data.nextFollowupDate,
+        followUpTime: data.nextFollowupTime || undefined,
+        notes: undefined,
+        videoCallLink: videoLink,
+        contactUrl,
+        customConvertMessage: data.customConvertMessage || undefined,
+        customConvertSubject: data.customConvertSubject || undefined,
+      }).catch(err => console.error("Email notification failed:", err));
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
         const smsType = data.notificationMethod as "sms" | "mms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = newMember.phone ? formatPhoneForSms(newMember.phone) : null;
@@ -4658,7 +4660,7 @@ export async function registerRoutes(
             followUpDate: data.nextFollowupDate,
             followUpTime: data.nextFollowupTime,
             videoCallLink: videoLink,
-            customMessage: data.customConvertMessage,
+            customMessage: data.smsMessage,
           });
           const sendFn = smsType === "sms" ? sendSms : sendMms;
           sendFn({ to: recipientPhone, body: msg }).then(async (result) => {
@@ -5188,6 +5190,7 @@ export async function registerRoutes(
         customConvertMessage: z.string().optional(),
         customLeaderSubject: z.string().optional(),
         customConvertSubject: z.string().optional(),
+        smsMessage: z.string().optional(),
         notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
       
@@ -5237,24 +5240,24 @@ export async function registerRoutes(
       
       const contactUrl = buildUrl("/contact", req);
       
-      if (data.notificationMethod === "email") {
-        sendFollowUpNotification({
-          convertName: `${member.firstName} ${member.lastName}`,
-          convertEmail: member.email || undefined,
-          leaderName: `${user.firstName} ${user.lastName}`,
-          leaderEmail: user.email,
-          churchName: church?.name || "Ministry",
-          followUpDate: data.nextFollowupDate,
-          followUpTime: data.nextFollowupTime || undefined,
-          notes: data.notes || undefined,
-          videoCallLink: videoLink,
-          contactUrl,
-          customLeaderMessage: data.customLeaderMessage || undefined,
-          customConvertMessage: data.customConvertMessage || undefined,
-          customLeaderSubject: data.customLeaderSubject || undefined,
-          customConvertSubject: data.customConvertSubject || undefined,
-        }).catch(err => console.error("Email notification failed:", err));
-      } else {
+      sendFollowUpNotification({
+        convertName: `${member.firstName} ${member.lastName}`,
+        convertEmail: member.email || undefined,
+        leaderName: `${user.firstName} ${user.lastName}`,
+        leaderEmail: user.email,
+        churchName: church?.name || "Ministry",
+        followUpDate: data.nextFollowupDate,
+        followUpTime: data.nextFollowupTime || undefined,
+        notes: data.notes || undefined,
+        videoCallLink: videoLink,
+        contactUrl,
+        customLeaderMessage: data.customLeaderMessage || undefined,
+        customConvertMessage: data.customConvertMessage || undefined,
+        customLeaderSubject: data.customLeaderSubject || undefined,
+        customConvertSubject: data.customConvertSubject || undefined,
+      }).catch(err => console.error("Email notification failed:", err));
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
         const smsType = data.notificationMethod as "sms" | "mms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = member.phone ? formatPhoneForSms(member.phone) : null;
@@ -5267,7 +5270,7 @@ export async function registerRoutes(
             followUpDate: data.nextFollowupDate,
             followUpTime: data.nextFollowupTime,
             videoCallLink: videoLink,
-            customMessage: data.customConvertMessage,
+            customMessage: data.smsMessage,
           });
           const sendFn = smsType === "sms" ? sendSms : sendMms;
           sendFn({ to: recipientPhone, body: msg }).then(async (result) => {

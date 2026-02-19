@@ -21,6 +21,7 @@ const scheduleFollowUpSchema = z.object({
   customLeaderMessage: z.string().optional(),
   customConvertSubject: z.string().optional(),
   customConvertMessage: z.string().optional(),
+  smsMessage: z.string().optional(),
   includeVideoLink: z.boolean().optional(),
   notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
 });
@@ -58,6 +59,7 @@ export function ConvertScheduleFollowUpDialog({
       customLeaderMessage: "",
       customConvertSubject: "",
       customConvertMessage: "",
+      smsMessage: "",
       includeVideoLink: true,
       notificationMethod: "email",
     },
@@ -74,7 +76,7 @@ export function ConvertScheduleFollowUpDialog({
       const method = form.getValues("notificationMethod");
       toast({
         title: "Follow-up scheduled",
-        description: `The follow-up has been scheduled and ${method === "email" ? "email" : method?.toUpperCase()} notifications will be sent.`,
+        description: `The follow-up has been scheduled and ${method === "email" ? "email" : `email and ${method?.toUpperCase()}`} notifications will be sent.`,
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
@@ -88,6 +90,7 @@ export function ConvertScheduleFollowUpDialog({
         customLeaderMessage: "",
         customConvertSubject: "",
         customConvertMessage: "",
+        smsMessage: "",
         includeVideoLink: true,
         notificationMethod: "email",
       });
@@ -175,11 +178,10 @@ export function ConvertScheduleFollowUpDialog({
               )}
             />
 
-            {notificationMethod === "email" && (
-              <div className="space-y-4 border-t pt-4">
-                <p className="text-sm text-muted-foreground">
-                  Customize the email notifications (leave blank for defaults):
-                </p>
+            <div className="space-y-4 border-t pt-4">
+              <p className="text-sm text-muted-foreground">
+                Customize the email notifications (leave blank for defaults):
+              </p>
                 
                 {convert?.email && (
                   <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
@@ -271,22 +273,21 @@ export function ConvertScheduleFollowUpDialog({
                     )}
                   />
                 </div>
-              </div>
-            )}
+            </div>
 
             {(notificationMethod === "sms" || notificationMethod === "mms") && (
               <div className="space-y-3 p-3 bg-muted/50 rounded-lg border-t pt-4">
                 <p className="text-sm font-medium">Custom {notificationMethod.toUpperCase()} Message (optional)</p>
-                <p className="text-xs text-muted-foreground">Leave blank for a default message with follow-up details</p>
+                <p className="text-xs text-muted-foreground">An additional {notificationMethod.toUpperCase()} will be sent alongside the email above</p>
                 <FormField
                   control={form.control}
-                  name="customConvertMessage"
+                  name="smsMessage"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <AITextarea
                           value={field.value || ""}
-                          onChange={(text) => form.setValue("customConvertMessage", text)}
+                          onChange={(text) => form.setValue("smsMessage", text)}
                           placeholder="Leave blank for default SMS message..."
                           context={`Writing a short SMS follow-up message to ${convert?.firstName} ${convert?.lastName} from a church ministry. Keep it under 160 characters.`}
                           aiPlaceholder="e.g., Write a brief follow-up text..."
