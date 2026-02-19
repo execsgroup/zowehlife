@@ -270,6 +270,153 @@ async function processNewMemberFinalFollowUp() {
   }
 }
 
+async function processScheduledAnnouncements() {
+  try {
+    console.log("[Scheduler] Checking for scheduled announcements to send...");
+    const now = new Date();
+    const dueAnnouncements = await storage.getPendingScheduledAnnouncements(now);
+
+    if (dueAnnouncements.length === 0) return;
+    console.log(`[Scheduler] Found ${dueAnnouncements.length} scheduled announcement(s) to process`);
+
+    const { getUncachableResendClient } = await import("./email");
+
+    for (const announcement of dueAnnouncements) {
+      try {
+        const church = await storage.getChurch(announcement.churchId);
+        const churchName = church?.name || "Ministry";
+
+        const recipients: { firstName: string; email?: string | null; phone?: string | null }[] = [];
+        const groups = announcement.recipientGroups as string[];
+
+        if (groups.includes("converts")) {
+          const converts = await storage.getConvertsByChurch(announcement.churchId);
+          converts.forEach(c => recipients.push({ firstName: c.firstName, email: c.email, phone: c.phone }));
+        }
+        if (groups.includes("new_members")) {
+          const newMembers = await storage.getNewMembersByChurch(announcement.churchId);
+          newMembers.forEach(nm => recipients.push({ firstName: nm.firstName, email: nm.email, phone: nm.phone }));
+        }
+        if (groups.includes("members")) {
+          const members = await storage.getMembersByChurch(announcement.churchId);
+          members.forEach(m => recipients.push({ firstName: m.firstName, email: m.email, phone: m.phone }));
+        }
+        if (groups.includes("guests")) {
+          const guestList = await storage.getGuestsByChurch(announcement.churchId);
+          guestList.forEach(g => recipients.push({ firstName: g.firstName, email: g.email, phone: g.phone }));
+        }
+
+        if (recipients.length === 0) {
+          await storage.updateScheduledAnnouncementStatus(announcement.id, "SENT", "No recipients found in selected groups");
+          console.log(`[Scheduler] Scheduled announcement ${announcement.id}: no recipients found, marking as sent`);
+          continue;
+        }
+
+        const uniqueEmails = new Set<string>();
+        const uniqueRecipients = recipients.filter(r => {
+          if (!r.email) return false;
+          const key = r.email.toLowerCase();
+          if (uniqueEmails.has(key)) return false;
+          uniqueEmails.add(key);
+          return true;
+        });
+
+        const { client, fromEmail } = await getUncachableResendClient();
+        const emailMatch = (fromEmail || "noreply@resend.dev").match(/<([^>]+)>/) || (fromEmail || "noreply@resend.dev").match(/([^\s<>]+@[^\s<>]+)/);
+        const emailAddress = emailMatch ? emailMatch[1] : fromEmail || "noreply@resend.dev";
+        const safeName = churchName.replace(/[<>"]/g, "").trim();
+        const fromWithMinistry = `${safeName} <${emailAddress}>`;
+
+        const imageSection = announcement.imageUrl
+          ? `<div style="margin: 20px 0; text-align: center;">
+              <img src="${announcement.imageUrl}" alt="Announcement" style="max-width: 100%; border-radius: 8px;" />
+            </div>`
+          : "";
+
+        let emailsSent = 0;
+        let emailsFailed = 0;
+        const emailPromises = uniqueRecipients.map(recipient =>
+          client.emails.send({
+            from: fromWithMinistry,
+            to: recipient.email!,
+            subject: announcement.subject,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">${announcement.subject}</h2>
+                <p>Hello ${recipient.firstName},</p>
+                ${imageSection}
+                <div style="white-space: pre-wrap; margin: 20px 0;">${announcement.message}</div>
+                <p>Blessings,<br>${churchName}</p>
+              </div>
+            `,
+          }).then(() => { emailsSent++; }).catch((err: any) => {
+            console.error(`[Scheduler] Scheduled announcement email failed for ${recipient.email}:`, err?.message);
+            emailsFailed++;
+          })
+        );
+
+        await Promise.all(emailPromises);
+
+        let smsSent = 0;
+        let smsFailed = 0;
+        const smsType = announcement.notificationMethod === "sms" || announcement.notificationMethod === "mms" ? announcement.notificationMethod : null;
+
+        if (smsType && announcement.smsMessage) {
+          const billingPeriod = getCurrentBillingPeriod();
+          const usage = await storage.getSmsUsage(announcement.churchId, billingPeriod);
+          const plan = (church as any)?.plan || "free";
+          const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+          const currentCount = smsType === "sms" ? usage.smsCount : usage.mmsCount;
+          const limit = smsType === "sms" ? limits.sms : limits.mms;
+
+          const phoneRecipients = recipients.filter(r => r.phone).map(r => ({
+            ...r,
+            formattedPhone: formatPhoneForSms(r.phone!),
+          })).filter(r => r.formattedPhone);
+
+          const uniquePhones = new Set<string>();
+          const uniquePhoneRecipients = phoneRecipients.filter(r => {
+            if (uniquePhones.has(r.formattedPhone!)) return false;
+            uniquePhones.add(r.formattedPhone!);
+            return true;
+          });
+
+          let remaining = limit - currentCount;
+
+          for (const recipient of uniquePhoneRecipients) {
+            if (remaining <= 0) break;
+
+            const result = smsType === "sms"
+              ? await sendSms({ to: recipient.formattedPhone!, body: announcement.smsMessage })
+              : await sendMms({ to: recipient.formattedPhone!, body: announcement.smsMessage, mediaUrl: announcement.mmsMediaUrl || undefined });
+
+            if (result.success) {
+              await storage.incrementSmsUsage(announcement.churchId, billingPeriod, smsType);
+              smsSent++;
+              remaining--;
+            } else {
+              smsFailed++;
+            }
+          }
+        }
+
+        const anySuccess = emailsSent > 0 || smsSent > 0;
+        const finalStatus = anySuccess ? "SENT" : "FAILED";
+        const errorMsg = !anySuccess ? `All sends failed: ${emailsFailed} email(s), ${smsFailed} SMS/MMS` : undefined;
+        await storage.updateScheduledAnnouncementStatus(announcement.id, finalStatus, errorMsg);
+        console.log(`[Scheduler] Scheduled announcement ${announcement.id} ${finalStatus}: ${emailsSent} emails sent, ${emailsFailed} failed, ${smsSent} SMS sent, ${smsFailed} SMS failed`);
+      } catch (annError: any) {
+        console.error(`[Scheduler] Failed to send scheduled announcement ${announcement.id}:`, annError);
+        await storage.updateScheduledAnnouncementStatus(announcement.id, "FAILED", annError.message || "Unknown error");
+      }
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error processing scheduled announcements:", error);
+  }
+}
+
+const SCHEDULED_ANNOUNCEMENT_CHECK_INTERVAL = 60 * 1000; // Check every minute
+
 export function startReminderScheduler() {
   console.log("[Scheduler] Starting follow-up reminder scheduler...");
   
@@ -281,6 +428,7 @@ export function startReminderScheduler() {
   processNewMemberContactReminders();
   processNewMemberSecondFollowUp();
   processNewMemberFinalFollowUp();
+  processScheduledAnnouncements();
   
   // Then run periodically
   setInterval(() => {
@@ -292,4 +440,9 @@ export function startReminderScheduler() {
     processNewMemberSecondFollowUp();
     processNewMemberFinalFollowUp();
   }, REMINDER_CHECK_INTERVAL);
+
+  // Check scheduled announcements more frequently (every minute)
+  setInterval(() => {
+    processScheduledAnnouncements();
+  }, SCHEDULED_ANNOUNCEMENT_CHECK_INTERVAL);
 }

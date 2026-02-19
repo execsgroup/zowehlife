@@ -96,8 +96,11 @@ The application is built with a clear separation of concerns, utilizing a React 
     - SMS/MMS message with optional MMS image attachment
     - Deduplication of recipients across groups for both email and phone
     - SMS/MMS limits enforced per billing period with skipped count reporting
+    - Schedule announcements for future delivery with date/time picker
+    - Scheduled announcements listed on page with cancel option, auto-removed after sending
+    - Scheduler checks every minute for due announcements and sends them automatically
     - Routes: `/leader/announcements` and `/ministry-admin/announcements`
-    - API: `POST /api/{role}/announcements/send`, `GET /api/{role}/announcements/recipient-counts`
+    - API: `POST /api/{role}/announcements/send`, `POST /api/{role}/announcements/schedule`, `GET /api/{role}/announcements/scheduled`, `PATCH /api/{role}/announcements/scheduled/:id/cancel`, `GET /api/{role}/announcements/recipient-counts`
 - **Remove from Ministry**: Leaders and Admins can remove converts, new members, and members from their ministry:
     - Removes the ministry affiliation only (does NOT deactivate member portal account)
     - Person is notified via email about removal (if email is on file)

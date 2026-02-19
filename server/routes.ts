@@ -5898,7 +5898,7 @@ Provide only the message text, without any explanations or quotes.`;
       if (smsType && smsMessage) {
         const billingPeriod = getCurrentBillingPeriod();
         const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
-        const plan = church?.ministryPlan || "free";
+        const plan = church?.plan || "free";
         const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
         const currentCount = smsType === "sms" ? usage.smsCount : usage.mmsCount;
         const limit = smsType === "sms" ? limits.sms : limits.mms;
@@ -5982,6 +5982,116 @@ Provide only the message text, without any explanations or quotes.`;
 
   app.get("/api/leader/announcements/recipient-counts", requireLeader, handleAnnouncementRecipientCounts);
   app.get("/api/ministry-admin/announcements/recipient-counts", requireMinistryAdmin, handleAnnouncementRecipientCounts);
+
+  // Scheduled Announcements
+  async function handleScheduleAnnouncement(req: Request, res: Response) {
+    const user = (req as any).user;
+    if (!user?.churchId) {
+      return res.status(403).json({ message: "Not assigned to a church" });
+    }
+
+    try {
+      const { subject, message, notificationMethod, smsMessage, mmsMediaUrl, imageUrl, recipientGroups, scheduledAt } = req.body;
+
+      if (!subject || !message || !recipientGroups || !Array.isArray(recipientGroups) || recipientGroups.length === 0) {
+        return res.status(400).json({ message: "Subject, message, and at least one recipient group are required" });
+      }
+
+      const validGroups = ["converts", "new_members", "members", "guests"];
+      const invalidGroups = recipientGroups.filter((g: string) => !validGroups.includes(g));
+      if (invalidGroups.length > 0) {
+        return res.status(400).json({ message: `Invalid recipient groups: ${invalidGroups.join(", ")}` });
+      }
+
+      const validMethods = ["email", "sms", "mms"];
+      if (notificationMethod && !validMethods.includes(notificationMethod)) {
+        return res.status(400).json({ message: `Invalid notification method: ${notificationMethod}` });
+      }
+
+      if (!scheduledAt) {
+        return res.status(400).json({ message: "Scheduled date/time is required" });
+      }
+
+      const scheduledDate = new Date(scheduledAt);
+      if (isNaN(scheduledDate.getTime()) || scheduledDate <= new Date()) {
+        return res.status(400).json({ message: "Scheduled time must be in the future" });
+      }
+
+      const smsType = notificationMethod === "sms" || notificationMethod === "mms" ? notificationMethod : null;
+      if (smsType && !smsMessage?.trim()) {
+        return res.status(400).json({ message: `${smsType === "mms" ? "MMS" : "SMS"} message text is required when using ${smsType === "mms" ? "Email + MMS" : "Email + SMS"}` });
+      }
+
+      const scheduled = await storage.createScheduledAnnouncement({
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        subject,
+        message,
+        notificationMethod: notificationMethod || "email",
+        smsMessage: smsMessage || null,
+        mmsMediaUrl: mmsMediaUrl || null,
+        imageUrl: imageUrl || null,
+        recipientGroups,
+        scheduledAt: scheduledDate,
+        status: "PENDING",
+      });
+
+      res.json({ success: true, scheduled });
+    } catch (error: any) {
+      console.error("[Scheduled Announcement] Error:", error);
+      res.status(500).json({ message: error.message || "Failed to schedule announcement" });
+    }
+  }
+
+  async function handleGetScheduledAnnouncements(req: Request, res: Response) {
+    const user = (req as any).user;
+    if (!user?.churchId) {
+      return res.status(403).json({ message: "Not assigned to a church" });
+    }
+
+    try {
+      const announcements = await storage.getScheduledAnnouncementsByChurch(user.churchId);
+      res.json(announcements);
+    } catch (error: any) {
+      console.error("[Scheduled Announcement] Error fetching:", error);
+      res.status(500).json({ message: "Failed to fetch scheduled announcements" });
+    }
+  }
+
+  async function handleCancelScheduledAnnouncement(req: Request, res: Response) {
+    const user = (req as any).user;
+    if (!user?.churchId) {
+      return res.status(403).json({ message: "Not assigned to a church" });
+    }
+
+    try {
+      const { id } = req.params;
+      const announcement = await storage.getScheduledAnnouncement(id);
+
+      if (!announcement) {
+        return res.status(404).json({ message: "Scheduled announcement not found" });
+      }
+      if (announcement.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      if (announcement.status !== "PENDING") {
+        return res.status(400).json({ message: "Only pending announcements can be cancelled" });
+      }
+
+      await storage.updateScheduledAnnouncementStatus(id, "CANCELLED");
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[Scheduled Announcement] Cancel error:", error);
+      res.status(500).json({ message: "Failed to cancel scheduled announcement" });
+    }
+  }
+
+  app.post("/api/leader/announcements/schedule", requireLeader, handleScheduleAnnouncement);
+  app.post("/api/ministry-admin/announcements/schedule", requireMinistryAdmin, handleScheduleAnnouncement);
+  app.get("/api/leader/announcements/scheduled", requireLeader, handleGetScheduledAnnouncements);
+  app.get("/api/ministry-admin/announcements/scheduled", requireMinistryAdmin, handleGetScheduledAnnouncements);
+  app.patch("/api/leader/announcements/scheduled/:id/cancel", requireLeader, handleCancelScheduledAnnouncement);
+  app.patch("/api/ministry-admin/announcements/scheduled/:id/cancel", requireMinistryAdmin, handleCancelScheduledAnnouncement);
 
   // Start the reminder email scheduler
   startReminderScheduler();

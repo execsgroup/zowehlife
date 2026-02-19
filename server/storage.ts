@@ -72,6 +72,9 @@ import {
   type MassFollowupParticipant,
   type InsertMassFollowupParticipant,
   smsUsage,
+  scheduledAnnouncements,
+  type ScheduledAnnouncement,
+  type InsertScheduledAnnouncement,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -414,6 +417,13 @@ export interface IStorage {
   createMassFollowupParticipant(data: InsertMassFollowupParticipant): Promise<MassFollowupParticipant>;
   getMassFollowupParticipants(massFollowupId: string): Promise<MassFollowupParticipant[]>;
   updateMassFollowupParticipant(id: string, data: Partial<InsertMassFollowupParticipant>): Promise<MassFollowupParticipant>;
+
+  // Scheduled Announcements
+  createScheduledAnnouncement(data: InsertScheduledAnnouncement): Promise<ScheduledAnnouncement>;
+  getScheduledAnnouncementsByChurch(churchId: string): Promise<ScheduledAnnouncement[]>;
+  getScheduledAnnouncement(id: string): Promise<ScheduledAnnouncement | undefined>;
+  updateScheduledAnnouncementStatus(id: string, status: "PENDING" | "SENT" | "FAILED" | "CANCELLED", errorMessage?: string): Promise<void>;
+  getPendingScheduledAnnouncements(beforeDate: Date): Promise<ScheduledAnnouncement[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2299,6 +2309,45 @@ export class DatabaseStorage implements IStorage {
   async updateMassFollowupParticipant(id: string, data: Partial<InsertMassFollowupParticipant>): Promise<MassFollowupParticipant> {
     const [updated] = await db.update(massFollowupParticipants).set(data).where(eq(massFollowupParticipants.id, id)).returning();
     return updated;
+  }
+
+  async createScheduledAnnouncement(data: InsertScheduledAnnouncement): Promise<ScheduledAnnouncement> {
+    const [created] = await db.insert(scheduledAnnouncements).values(data).returning();
+    return created;
+  }
+
+  async getScheduledAnnouncementsByChurch(churchId: string): Promise<ScheduledAnnouncement[]> {
+    return await db.select().from(scheduledAnnouncements)
+      .where(and(
+        eq(scheduledAnnouncements.churchId, churchId),
+        eq(scheduledAnnouncements.status, "PENDING")
+      ))
+      .orderBy(scheduledAnnouncements.scheduledAt);
+  }
+
+  async getScheduledAnnouncement(id: string): Promise<ScheduledAnnouncement | undefined> {
+    const [result] = await db.select().from(scheduledAnnouncements)
+      .where(eq(scheduledAnnouncements.id, id));
+    return result || undefined;
+  }
+
+  async updateScheduledAnnouncementStatus(id: string, status: "PENDING" | "SENT" | "FAILED" | "CANCELLED", errorMessage?: string): Promise<void> {
+    const updateData: any = { status };
+    if (status === "SENT") {
+      updateData.sentAt = new Date();
+    }
+    if (errorMessage) {
+      updateData.errorMessage = errorMessage;
+    }
+    await db.update(scheduledAnnouncements).set(updateData).where(eq(scheduledAnnouncements.id, id));
+  }
+
+  async getPendingScheduledAnnouncements(beforeDate: Date): Promise<ScheduledAnnouncement[]> {
+    return await db.select().from(scheduledAnnouncements)
+      .where(and(
+        eq(scheduledAnnouncements.status, "PENDING"),
+        lte(scheduledAnnouncements.scheduledAt, beforeDate)
+      ));
   }
 }
 

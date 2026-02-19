@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
+import { useBasePath } from "@/hooks/use-base-path";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Send, Mail, MessageSquare, Image } from "lucide-react";
+import { Loader2, Send, Mail, MessageSquare, Image, ArrowLeft, Clock, X, CalendarClock } from "lucide-react";
 import { MmsImageUpload } from "@/components/mms-image-upload";
+import { Link } from "wouter";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface GroupCount {
   email: number;
@@ -39,6 +43,17 @@ interface SmsUsageData {
   mmsLimit: number;
   smsRemaining: number;
   mmsRemaining: number;
+}
+
+interface ScheduledAnnouncement {
+  id: string;
+  subject: string;
+  message: string;
+  notificationMethod: string;
+  recipientGroups: string[];
+  scheduledAt: string;
+  status: string;
+  createdAt: string;
 }
 
 const announcementSchema = z.object({
@@ -68,10 +83,38 @@ const recipientGroupOptions = [
   { id: "guests", label: "Guests" },
 ];
 
+const groupLabels: Record<string, string> = {
+  converts: "Converts",
+  new_members: "New Members",
+  members: "Members",
+  guests: "Guests",
+};
+
+const methodLabels: Record<string, string> = {
+  email: "Email",
+  sms: "Email + SMS",
+  mms: "Email + MMS",
+};
+
+function formatScheduledDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export default function AnnouncementsPage() {
   const apiBasePath = useApiBasePath();
+  const basePath = useBasePath();
   const { toast } = useToast();
   const [emailImageUrl, setEmailImageUrl] = useState<string>("");
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
 
   const form = useForm<AnnouncementForm>({
     resolver: zodResolver(announcementSchema),
@@ -107,6 +150,15 @@ export default function AnnouncementsPage() {
     },
   });
 
+  const { data: scheduledAnnouncements, isLoading: scheduledLoading } = useQuery<ScheduledAnnouncement[]>({
+    queryKey: [apiBasePath, "announcements", "scheduled"],
+    queryFn: async () => {
+      const res = await fetch(`${apiBasePath}/announcements/scheduled`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch scheduled announcements");
+      return res.json();
+    },
+  });
+
   const isFree = smsUsage?.plan === "free";
   const smsAvailable = (smsUsage?.smsRemaining ?? 0) > 0;
   const mmsAvailable = (smsUsage?.mmsRemaining ?? 0) > 0;
@@ -138,27 +190,70 @@ export default function AnnouncementsPage() {
       if (emailImageUrl) {
         payload.imageUrl = emailImageUrl;
       }
-      const res = await apiRequest("POST", `${apiBasePath}/announcements/send`, payload);
-      return res.json();
+
+      if (isScheduled) {
+        if (!scheduleDate || !scheduleTime) {
+          throw new Error("Please select both a date and time for scheduling");
+        }
+        const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`);
+        if (scheduledAt <= new Date()) {
+          throw new Error("Scheduled time must be in the future");
+        }
+        payload.scheduledAt = scheduledAt.toISOString();
+        const res = await apiRequest("POST", `${apiBasePath}/announcements/schedule`, payload);
+        return res.json();
+      } else {
+        const res = await apiRequest("POST", `${apiBasePath}/announcements/send`, payload);
+        return res.json();
+      }
     },
     onSuccess: (data) => {
-      const smsLabel = notificationMethod === "mms" ? "MMS" : "SMS";
-      let desc = `${data.emailsSent} email(s) sent`;
-      if (data.smsSent > 0) desc += `, ${data.smsSent} ${smsLabel} sent`;
-      if (data.emailsFailed > 0) desc += `. ${data.emailsFailed} email(s) failed`;
-      if (data.smsFailed > 0) desc += `. ${data.smsFailed} ${smsLabel} failed`;
-      if (data.smsSkipped > 0) desc += `. ${data.smsSkipped} ${smsLabel} skipped (plan limit reached)`;
-      toast({
-        title: "Announcement Sent",
-        description: desc,
-      });
+      if (isScheduled) {
+        toast({
+          title: "Announcement Scheduled",
+          description: `Your announcement has been scheduled for ${formatScheduledDate(`${scheduleDate}T${scheduleTime}`)}`,
+        });
+        queryClient.invalidateQueries({ queryKey: [apiBasePath, "announcements", "scheduled"] });
+      } else {
+        const smsLabel = notificationMethod === "mms" ? "MMS" : "SMS";
+        let desc = `${data.emailsSent} email(s) sent`;
+        if (data.smsSent > 0) desc += `, ${data.smsSent} ${smsLabel} sent`;
+        if (data.emailsFailed > 0) desc += `. ${data.emailsFailed} email(s) failed`;
+        if (data.smsFailed > 0) desc += `. ${data.smsFailed} ${smsLabel} failed`;
+        if (data.smsSkipped > 0) desc += `. ${data.smsSkipped} ${smsLabel} skipped (plan limit reached)`;
+        toast({
+          title: "Announcement Sent",
+          description: desc,
+        });
+      }
       form.reset();
       setEmailImageUrl("");
+      setIsScheduled(false);
+      setScheduleDate("");
+      setScheduleTime("");
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to send",
-        description: error.message || "Could not send announcement",
+        title: "Failed",
+        description: error.message || "Could not process announcement",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("PATCH", `${apiBasePath}/announcements/scheduled/${id}/cancel`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Cancelled", description: "Scheduled announcement has been cancelled" });
+      queryClient.invalidateQueries({ queryKey: [apiBasePath, "announcements", "scheduled"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cancel",
         variant: "destructive",
       });
     },
@@ -170,10 +265,70 @@ export default function AnnouncementsPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold" data-testid="text-announcements-title">Announcements</h1>
-        <p className="text-muted-foreground mt-1">Send communications to your ministry members</p>
+      <div className="flex items-center gap-3">
+        <Link href={`${basePath}/dashboard`}>
+          <Button variant="ghost" size="icon" data-testid="button-back-announcements">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold" data-testid="text-announcements-title">Announcements</h1>
+          <p className="text-muted-foreground mt-1">Send communications to your ministry members</p>
+        </div>
       </div>
+
+      {(scheduledLoading || (scheduledAnnouncements && scheduledAnnouncements.length > 0)) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CalendarClock className="h-5 w-5" />
+              Scheduled Announcements
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {scheduledLoading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading scheduled announcements...
+              </div>
+            )}
+            {scheduledAnnouncements?.map((sa) => (
+              <div
+                key={sa.id}
+                className="flex items-start justify-between gap-3 p-3 rounded-md border"
+                data-testid={`scheduled-announcement-${sa.id}`}
+              >
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="font-medium truncate" data-testid={`text-scheduled-subject-${sa.id}`}>{sa.subject}</p>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <Badge variant="secondary" className="text-xs">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {formatScheduledDate(sa.scheduledAt)}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {methodLabels[sa.notificationMethod] || sa.notificationMethod}
+                    </Badge>
+                    {sa.recipientGroups.map((g: string) => (
+                      <Badge key={g} variant="outline" className="text-xs">
+                        {groupLabels[g] || g}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => cancelMutation.mutate(sa.id)}
+                  disabled={cancelMutation.isPending}
+                  data-testid={`button-cancel-scheduled-${sa.id}`}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -417,6 +572,51 @@ export default function AnnouncementsPage() {
             </Card>
           )}
 
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Delivery</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="schedule-toggle"
+                  checked={isScheduled}
+                  onCheckedChange={setIsScheduled}
+                  data-testid="switch-schedule-toggle"
+                />
+                <Label htmlFor="schedule-toggle" className="cursor-pointer">
+                  Schedule for later
+                </Label>
+              </div>
+
+              {isScheduled && (
+                <div className="flex flex-wrap gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="schedule-date" className="text-sm">Date</Label>
+                    <Input
+                      id="schedule-date"
+                      type="date"
+                      value={scheduleDate}
+                      onChange={(e) => setScheduleDate(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                      data-testid="input-schedule-date"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="schedule-time" className="text-sm">Time</Label>
+                    <Input
+                      id="schedule-time"
+                      type="time"
+                      value={scheduleTime}
+                      onChange={(e) => setScheduleTime(e.target.value)}
+                      data-testid="input-schedule-time"
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <div className="flex justify-end">
             <Button
               type="submit"
@@ -426,12 +626,17 @@ export default function AnnouncementsPage() {
               {sendMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Sending...
+                  {isScheduled ? "Scheduling..." : "Sending..."}
+                </>
+              ) : isScheduled ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2" />
+                  Schedule Announcement
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Send Announcement
+                  Send Now
                 </>
               )}
             </Button>
