@@ -22,6 +22,9 @@ export const notificationMethodEnum = pgEnum("notification_method", ["email", "s
 // Subscription status enum
 export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "past_due", "suspended", "canceled", "free"]);
 
+// Scheduled announcement status enum
+export const scheduledAnnouncementStatusEnum = pgEnum("scheduled_announcement_status", ["PENDING", "SENT", "FAILED", "CANCELLED"]);
+
 // Churches table
 export const churches = pgTable("churches", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -218,6 +221,35 @@ export const smsUsage = pgTable("sms_usage", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Scheduled announcements table
+export const scheduledAnnouncements = pgTable("scheduled_announcements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  createdByUserId: varchar("created_by_user_id").notNull().references(() => users.id),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  notificationMethod: notificationMethodEnum("notification_method").notNull().default("email"),
+  smsMessage: text("sms_message"),
+  mmsMediaUrl: text("mms_media_url"),
+  imageUrl: text("image_url"),
+  recipientGroups: text("recipient_groups").array().notNull(),
+  scheduledAt: timestamp("scheduled_at").notNull(),
+  status: scheduledAnnouncementStatusEnum("status").notNull().default("PENDING"),
+  sentAt: timestamp("sent_at"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertScheduledAnnouncementSchema = createInsertSchema(scheduledAnnouncements).omit({
+  id: true,
+  sentAt: true,
+  errorMessage: true,
+  createdAt: true,
+});
+
+export type ScheduledAnnouncement = typeof scheduledAnnouncements.$inferSelect;
+export type InsertScheduledAnnouncement = z.infer<typeof insertScheduledAnnouncementSchema>;
 
 // Mass follow-ups table - groups multiple people into one follow-up session
 export const massFollowups = pgTable("mass_followups", {
