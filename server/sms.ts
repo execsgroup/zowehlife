@@ -59,7 +59,7 @@ export async function sendSms(message: SmsMessage): Promise<SendResult> {
     }
 
     const errorMsg = data.data?.messages?.[0]?.status || data.response_msg || "SMS send failed";
-    console.error("[SMS] Send failed:", errorMsg);
+    console.error("[SMS] Send failed:", errorMsg, "HTTP:", response.status, "Full response:", JSON.stringify(data));
     return { success: false, error: errorMsg };
   } catch (error: any) {
     console.error("[SMS] Error sending SMS:", error);
@@ -99,7 +99,7 @@ export async function sendMms(message: MmsMessage): Promise<SendResult> {
     }
 
     const errorMsg = data.data?.messages?.[0]?.status || data.response_msg || "MMS send failed";
-    console.error("[MMS] Send failed:", errorMsg);
+    console.error("[MMS] Send failed:", errorMsg, "HTTP:", response.status, "Full response:", JSON.stringify(data));
     return { success: false, error: errorMsg };
   } catch (error: any) {
     console.error("[MMS] Error sending MMS:", error);
