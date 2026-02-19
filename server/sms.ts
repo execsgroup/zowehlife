@@ -155,7 +155,11 @@ export function buildFollowUpSmsMessage(data: {
   const dateTime = formattedTime ? `${formattedDate} at ${formattedTime}` : formattedDate;
 
   if (data.customMessage) {
-    return data.customMessage;
+    let msg = data.customMessage;
+    if (data.videoCallLink) {
+      msg += `\nJoin video call: ${data.videoCallLink}`;
+    }
+    return msg;
   }
 
   if (data.isLeader) {
