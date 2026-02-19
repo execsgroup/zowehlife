@@ -89,6 +89,15 @@ The application is built with a clear separation of concerns, utilizing a React 
       - On payment success, webhook auto-approves and creates ministry + admin account
       - Stripe credentials managed via Replit connector (sandbox mode)
       - Products seeded via `server/seed-stripe-products.ts`
+- **Announcements**: Ministry Admins and Leaders can send mass communications:
+    - Select recipient groups: Converts, New Members & Guests, Members, Guests (with email/phone counts per group)
+    - Notification methods: Email Only, Email + SMS, Email + MMS (plan-based restrictions apply)
+    - Email content with subject, message body, and optional image attachment
+    - SMS/MMS message with optional MMS image attachment
+    - Deduplication of recipients across groups for both email and phone
+    - SMS/MMS limits enforced per billing period with skipped count reporting
+    - Routes: `/leader/announcements` and `/ministry-admin/announcements`
+    - API: `POST /api/{role}/announcements/send`, `GET /api/{role}/announcements/recipient-counts`
 - **Remove from Ministry**: Leaders and Admins can remove converts, new members, and members from their ministry:
     - Removes the ministry affiliation only (does NOT deactivate member portal account)
     - Person is notified via email about removal (if email is on file)

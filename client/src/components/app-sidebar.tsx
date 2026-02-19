@@ -27,7 +27,6 @@ import {
   LayoutDashboard,
   Church,
   Users,
-  Users2,
   UserPlus,
   HandHeart,
   ClipboardList,
@@ -42,6 +41,7 @@ import {
   UserCog,
   UsersRound,
   CreditCard,
+  Megaphone,
 } from "lucide-react";
 
 interface ChurchData {
@@ -65,11 +65,11 @@ const ministryAdminNavItems = [
   { title: "Converts", url: "/ministry-admin/converts", icon: UserPlus },
   { title: "New Members & Guests", url: "/ministry-admin/new-members", icon: Users },
   { title: "Members", url: "/ministry-admin/members", icon: Church },
-  { title: "Guest List", url: "/ministry-admin/guests", icon: Users2 },
   { title: "Follow-ups", url: "/ministry-admin/followups", icon: CalendarClock },
   { title: "Mass Follow-Up", url: "/ministry-admin/mass-followup", icon: UsersRound },
   { title: "Member Accounts", url: "/ministry-admin/member-accounts", icon: UserCog },
   { title: "Prayer Requests", url: "/ministry-admin/prayer-requests", icon: HandHeart },
+  { title: "Announcements", url: "/ministry-admin/announcements", icon: Megaphone },
   { title: "Contact Requests", url: "/ministry-admin/contact-requests", icon: MessageSquare },
   { title: "Manage Leaders", url: "/ministry-admin/leaders", icon: ClipboardList },
   { title: "Billing", url: "/ministry-admin/billing", icon: CreditCard },
@@ -81,11 +81,11 @@ const leaderNavItems = [
   { title: "My Converts", url: "/leader/converts", icon: UserPlus },
   { title: "New Members & Guests", url: "/leader/new-members", icon: Users },
   { title: "Members", url: "/leader/members", icon: Church },
-  { title: "Guest List", url: "/leader/guests", icon: Users2 },
   { title: "Follow-ups", url: "/leader/followups", icon: CalendarClock },
   { title: "Mass Follow-Up", url: "/leader/mass-followup", icon: UsersRound },
   { title: "Member Accounts", url: "/leader/member-accounts", icon: UserCog },
   { title: "Prayer Requests", url: "/leader/prayer-requests", icon: HandHeart },
+  { title: "Announcements", url: "/leader/announcements", icon: Megaphone },
   { title: "Contact Requests", url: "/leader/contact-requests", icon: MessageSquare },
   { title: "Ministry Settings", url: "/leader/settings", icon: Settings },
 ];

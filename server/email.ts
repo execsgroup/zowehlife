@@ -45,7 +45,7 @@ async function getCredentials() {
   }
 }
 
-async function getUncachableResendClient() {
+export async function getUncachableResendClient() {
   const { apiKey, fromEmail } = await getCredentials();
   return {
     client: new Resend(apiKey),

@@ -55,6 +55,7 @@ import MemberPortalDashboard from "@/pages/member-portal/dashboard";
 import MemberPortalPrayerRequests from "@/pages/member-portal/prayer-requests";
 import MemberPortalJourney from "@/pages/member-portal/journey";
 import MemberPortalJournal from "@/pages/member-portal/journal";
+import AnnouncementsPage from "@/pages/announcements";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 
@@ -226,6 +227,9 @@ function Router() {
       <Route path="/ministry-admin/contact-requests">
         <ProtectedRoute component={LeaderContactRequests} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
+      <Route path="/ministry-admin/announcements">
+        <ProtectedRoute component={AnnouncementsPage} allowedRoles={["MINISTRY_ADMIN"]} />
+      </Route>
       
       {/* Leader routes */}
       <Route path="/leader">
@@ -272,6 +276,9 @@ function Router() {
       </Route>
       <Route path="/leader/mass-followup">
         <ProtectedRoute component={MassFollowUp} allowedRoles={["LEADER"]} />
+      </Route>
+      <Route path="/leader/announcements">
+        <ProtectedRoute component={AnnouncementsPage} allowedRoles={["LEADER"]} />
       </Route>
       
       {/* Member Portal routes */}

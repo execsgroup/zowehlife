@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
-import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail, sendMinistryRemovalEmail } from "./email";
+import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail, sendMinistryRemovalEmail, getUncachableResendClient } from "./email";
 import { startReminderScheduler } from "./scheduler";
 import { SMS_PLAN_LIMITS, getCurrentBillingPeriod, sendSms, sendMms, formatPhoneForSms, buildFollowUpSmsMessage } from "./sms";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
@@ -5800,6 +5800,188 @@ Provide only the message text, without any explanations or quotes.`;
       res.status(500).json({ message: "Failed to generate text" });
     }
   });
+
+  // ---- Announcements API (for Leader and Ministry Admin) ----
+  async function handleAnnouncementSend(req: Request, res: Response) {
+    const user = (req as any).user;
+    if (!user?.churchId) {
+      return res.status(403).json({ message: "Not assigned to a church" });
+    }
+
+    try {
+      const { subject, message, notificationMethod, smsMessage, mmsMediaUrl, recipientGroups, imageUrl } = req.body;
+
+      if (!subject || !message || !recipientGroups || !Array.isArray(recipientGroups) || recipientGroups.length === 0) {
+        return res.status(400).json({ message: "Subject, message, and at least one recipient group are required" });
+      }
+
+      const smsType = notificationMethod === "sms" || notificationMethod === "mms" ? notificationMethod : null;
+      if (smsType && !smsMessage) {
+        return res.status(400).json({ message: `${smsType === "mms" ? "MMS" : "SMS"} message text is required when using ${smsType === "mms" ? "Email + MMS" : "Email + SMS"}` });
+      }
+
+      const church = await storage.getChurch(user.churchId);
+      const churchName = church?.name || "Ministry";
+
+      const recipients: { firstName: string; email?: string | null; phone?: string | null }[] = [];
+
+      if (recipientGroups.includes("converts")) {
+        const converts = await storage.getConvertsByChurch(user.churchId);
+        converts.forEach(c => recipients.push({ firstName: c.firstName, email: c.email, phone: c.phone }));
+      }
+      if (recipientGroups.includes("new_members")) {
+        const newMembers = await storage.getNewMembersByChurch(user.churchId);
+        newMembers.forEach(nm => recipients.push({ firstName: nm.firstName, email: nm.email, phone: nm.phone }));
+      }
+      if (recipientGroups.includes("members")) {
+        const members = await storage.getMembersByChurch(user.churchId);
+        members.forEach(m => recipients.push({ firstName: m.firstName, email: m.email, phone: m.phone }));
+      }
+      if (recipientGroups.includes("guests")) {
+        const guestList = await storage.getGuestsByChurch(user.churchId);
+        guestList.forEach(g => recipients.push({ firstName: g.firstName, email: g.email, phone: g.phone }));
+      }
+
+      if (recipients.length === 0) {
+        return res.status(400).json({ message: "No recipients found in the selected groups" });
+      }
+
+      const uniqueEmails = new Set<string>();
+      const uniqueRecipients = recipients.filter(r => {
+        if (!r.email) return false;
+        const key = r.email.toLowerCase();
+        if (uniqueEmails.has(key)) return false;
+        uniqueEmails.add(key);
+        return true;
+      });
+
+      const { client, fromEmail } = await getUncachableResendClient();
+      const emailMatch = (fromEmail || "noreply@resend.dev").match(/<([^>]+)>/) || (fromEmail || "noreply@resend.dev").match(/([^\s<>]+@[^\s<>]+)/);
+      const emailAddress = emailMatch ? emailMatch[1] : fromEmail || "noreply@resend.dev";
+      const safeName = churchName.replace(/[<>"]/g, "").trim();
+      const fromWithMinistry = `${safeName} <${emailAddress}>`;
+
+      const imageSection = imageUrl
+        ? `<div style="margin: 20px 0; text-align: center;">
+            <img src="${imageUrl}" alt="Announcement" style="max-width: 100%; border-radius: 8px;" />
+          </div>`
+        : "";
+
+      let emailsSent = 0;
+      let emailsFailed = 0;
+      const emailPromises = uniqueRecipients.map(recipient =>
+        client.emails.send({
+          from: fromWithMinistry,
+          to: recipient.email!,
+          subject,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">${subject}</h2>
+              <p>Hello ${recipient.firstName},</p>
+              ${imageSection}
+              <div style="white-space: pre-wrap; margin: 20px 0;">${message}</div>
+              <p>Blessings,<br>${churchName}</p>
+            </div>
+          `,
+        }).then(() => { emailsSent++; }).catch((err: any) => {
+          console.error(`[Announcement] Email failed for ${recipient.email}:`, err?.message);
+          emailsFailed++;
+        })
+      );
+
+      await Promise.all(emailPromises);
+
+      let smsSent = 0;
+      let smsFailed = 0;
+      let smsSkipped = 0;
+
+      if (smsType && smsMessage) {
+        const billingPeriod = getCurrentBillingPeriod();
+        const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
+        const plan = church?.ministryPlan || "free";
+        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+        const currentCount = smsType === "sms" ? usage.smsCount : usage.mmsCount;
+        const limit = smsType === "sms" ? limits.sms : limits.mms;
+
+        const phoneRecipients = recipients.filter(r => r.phone).map(r => ({
+          ...r,
+          formattedPhone: formatPhoneForSms(r.phone!),
+        })).filter(r => r.formattedPhone);
+
+        const uniquePhones = new Set<string>();
+        const uniquePhoneRecipients = phoneRecipients.filter(r => {
+          if (uniquePhones.has(r.formattedPhone!)) return false;
+          uniquePhones.add(r.formattedPhone!);
+          return true;
+        });
+
+        let remaining = limit - currentCount;
+
+        for (const recipient of uniquePhoneRecipients) {
+          if (remaining <= 0) {
+            smsSkipped++;
+            continue;
+          }
+
+          const result = smsType === "sms"
+            ? await sendSms({ to: recipient.formattedPhone!, body: smsMessage })
+            : await sendMms({ to: recipient.formattedPhone!, body: smsMessage, mediaUrl: mmsMediaUrl });
+
+          if (result.success) {
+            await storage.incrementSmsUsage(user.churchId, billingPeriod, smsType);
+            smsSent++;
+            remaining--;
+          } else {
+            smsFailed++;
+          }
+        }
+      }
+
+      res.json({
+        success: true,
+        emailsSent,
+        emailsFailed,
+        smsSent,
+        smsFailed,
+        smsSkipped,
+        totalEmailRecipients: uniqueRecipients.length,
+      });
+    } catch (error: any) {
+      console.error("[Announcement] Error:", error);
+      res.status(500).json({ message: error.message || "Failed to send announcement" });
+    }
+  }
+
+  app.post("/api/leader/announcements/send", requireLeader, handleAnnouncementSend);
+  app.post("/api/ministry-admin/announcements/send", requireMinistryAdmin, handleAnnouncementSend);
+
+  // Announcement recipient counts
+  async function handleAnnouncementRecipientCounts(req: Request, res: Response) {
+    const user = (req as any).user;
+    if (!user?.churchId) {
+      return res.status(403).json({ message: "Not assigned to a church" });
+    }
+
+    try {
+      const converts = await storage.getConvertsByChurch(user.churchId);
+      const newMembers = await storage.getNewMembersByChurch(user.churchId);
+      const members = await storage.getMembersByChurch(user.churchId);
+      const guestList = await storage.getGuestsByChurch(user.churchId);
+
+      res.json({
+        converts: { email: converts.filter(c => c.email).length, phone: converts.filter(c => c.phone).length, total: converts.length },
+        new_members: { email: newMembers.filter(nm => nm.email).length, phone: newMembers.filter(nm => nm.phone).length, total: newMembers.length },
+        members: { email: members.filter(m => m.email).length, phone: members.filter(m => m.phone).length, total: members.length },
+        guests: { email: guestList.filter(g => g.email).length, phone: guestList.filter(g => g.phone).length, total: guestList.length },
+      });
+    } catch (error: any) {
+      console.error("[Announcement] Error fetching counts:", error);
+      res.status(500).json({ message: "Failed to fetch recipient counts" });
+    }
+  }
+
+  app.get("/api/leader/announcements/recipient-counts", requireLeader, handleAnnouncementRecipientCounts);
+  app.get("/api/ministry-admin/announcements/recipient-counts", requireMinistryAdmin, handleAnnouncementRecipientCounts);
 
   // Start the reminder email scheduler
   startReminderScheduler();
