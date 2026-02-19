@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +14,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
 import { AITextarea } from "@/components/ai-text-helper";
 import { NotificationMethodSelector } from "@/components/notification-method-selector";
+import { MmsImageUpload } from "@/components/mms-image-upload";
 
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
@@ -22,6 +24,7 @@ const scheduleFollowUpSchema = z.object({
   customConvertSubject: z.string().optional(),
   customConvertMessage: z.string().optional(),
   smsMessage: z.string().optional(),
+  mmsMediaUrl: z.string().optional(),
   includeVideoLink: z.boolean().optional(),
   notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
 });
@@ -60,6 +63,7 @@ export function ConvertScheduleFollowUpDialog({
       customConvertSubject: "",
       customConvertMessage: "",
       smsMessage: "",
+      mmsMediaUrl: "",
       includeVideoLink: true,
       notificationMethod: "email",
     },
@@ -91,6 +95,7 @@ export function ConvertScheduleFollowUpDialog({
         customConvertSubject: "",
         customConvertMessage: "",
         smsMessage: "",
+        mmsMediaUrl: "",
         includeVideoLink: true,
         notificationMethod: "email",
       });
@@ -226,53 +231,6 @@ export function ConvertScheduleFollowUpDialog({
                     />
                   </div>
                 )}
-
-                <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm font-medium">
-                    Your Reminder Email{" "}
-                    <span className="italic text-muted-foreground font-normal">
-                      (Email will be sent to {convert?.firstName} {convert?.lastName} a day before the scheduled follow up)
-                    </span>
-                  </p>
-                  <FormField
-                    control={form.control}
-                    name="customLeaderSubject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject Line</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Leave blank for default subject..."
-                            {...field}
-                            data-testid="input-leader-subject"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="customLeaderMessage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message Body</FormLabel>
-                        <FormControl>
-                          <AITextarea
-                            value={field.value || ""}
-                            onChange={(text) => form.setValue("customLeaderMessage", text)}
-                            placeholder="Leave blank for default message..."
-                            context={`Writing a reminder email to ${convert?.firstName} ${convert?.lastName} about an upcoming follow-up meeting from a church ministry.`}
-                            aiPlaceholder="e.g., Write a friendly reminder..."
-                            rows={4}
-                            data-testid="input-leader-message"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
             </div>
 
             {(notificationMethod === "sms" || notificationMethod === "mms") && (
@@ -299,6 +257,13 @@ export function ConvertScheduleFollowUpDialog({
                     </FormItem>
                   )}
                 />
+                {notificationMethod === "mms" && (
+                  <MmsImageUpload
+                    onImageUploaded={(url) => form.setValue("mmsMediaUrl", url)}
+                    onImageRemoved={() => form.setValue("mmsMediaUrl", "")}
+                    currentUrl={form.watch("mmsMediaUrl") || undefined}
+                  />
+                )}
               </div>
             )}
 

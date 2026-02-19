@@ -280,6 +280,21 @@ export async function registerRoutes(
   // Register object storage routes
   registerObjectStorageRoutes(app);
 
+  app.post("/api/mms-image/upload-url", requireAuth, async (req, res) => {
+    try {
+      const { ObjectStorageService } = await import("./replit_integrations/object_storage/objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      const baseUrl = buildUrl("", req);
+      const publicUrl = `${baseUrl}${objectPath}`;
+      res.json({ uploadURL, objectPath, publicUrl });
+    } catch (error) {
+      console.error("Error generating MMS upload URL:", error);
+      res.status(500).json({ error: "Failed to generate upload URL" });
+    }
+  });
+
   // Apply subscription enforcement middleware to leader and ministry-admin write routes
   app.use("/api/leader", requireActiveSubscription);
   app.use("/api/ministry-admin", requireActiveSubscription);
@@ -3927,6 +3942,7 @@ export async function registerRoutes(
         customConvertSubject: z.string().optional(),
         customConvertMessage: z.string().optional(),
         smsMessage: z.string().optional(),
+        mmsMediaUrl: z.string().optional(),
         includeVideoLink: z.boolean().optional(),
         notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
@@ -3935,7 +3951,6 @@ export async function registerRoutes(
 
       const church = await storage.getChurch(user.churchId);
 
-      // Validate SMS/MMS limits
       if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
         const plan = (church?.plan || "free") as string;
         const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
@@ -4016,15 +4031,25 @@ export async function registerRoutes(
             customMessage: data.smsMessage,
           });
 
-          const sendFn = smsType === "sms" ? sendSms : sendMms;
-          sendFn({ to: recipientPhone, body: msg }).then(async (result) => {
-            if (result.success) {
-              await storage.incrementSmsUsage(user.churchId, billingPeriod, smsType);
-              console.log(`${smsType.toUpperCase()} sent to convert ${convert.firstName}: ${result.messageId}`);
-            } else {
-              console.error(`${smsType.toUpperCase()} failed for convert:`, result.error);
-            }
-          }).catch(err => console.error(`${smsType.toUpperCase()} send error:`, err));
+          if (smsType === "sms") {
+            sendSms({ to: recipientPhone, body: msg }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "sms");
+                console.log(`SMS sent to convert ${convert.firstName}: ${result.messageId}`);
+              } else {
+                console.error(`SMS failed for convert:`, result.error);
+              }
+            }).catch(err => console.error(`SMS send error:`, err));
+          } else {
+            sendMms({ to: recipientPhone, body: msg, mediaUrl: data.mmsMediaUrl }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "mms");
+                console.log(`MMS sent to convert ${convert.firstName}: ${result.messageId}`);
+              } else {
+                console.error(`MMS failed for convert:`, result.error);
+              }
+            }).catch(err => console.error(`MMS send error:`, err));
+          }
         }
       }
 
@@ -4566,6 +4591,7 @@ export async function registerRoutes(
         customReminderSubject: z.string().optional(),
         customReminderMessage: z.string().optional(),
         smsMessage: z.string().optional(),
+        mmsMediaUrl: z.string().optional(),
         notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
       
@@ -4662,14 +4688,23 @@ export async function registerRoutes(
             videoCallLink: videoLink,
             customMessage: data.smsMessage,
           });
-          const sendFn = smsType === "sms" ? sendSms : sendMms;
-          sendFn({ to: recipientPhone, body: msg }).then(async (result) => {
-            if (result.success) {
-              await storage.incrementSmsUsage(user.churchId, billingPeriod, smsType);
-            } else {
-              console.error(`${smsType.toUpperCase()} failed for new member:`, result.error);
-            }
-          }).catch(err => console.error(`${smsType.toUpperCase()} send error:`, err));
+          if (smsType === "sms") {
+            sendSms({ to: recipientPhone, body: msg }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "sms");
+              } else {
+                console.error(`SMS failed for new member:`, result.error);
+              }
+            }).catch(err => console.error(`SMS send error:`, err));
+          } else {
+            sendMms({ to: recipientPhone, body: msg, mediaUrl: data.mmsMediaUrl }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "mms");
+              } else {
+                console.error(`MMS failed for new member:`, result.error);
+              }
+            }).catch(err => console.error(`MMS send error:`, err));
+          }
         }
       }
       
@@ -5191,6 +5226,7 @@ export async function registerRoutes(
         customLeaderSubject: z.string().optional(),
         customConvertSubject: z.string().optional(),
         smsMessage: z.string().optional(),
+        mmsMediaUrl: z.string().optional(),
         notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
       
@@ -5272,14 +5308,23 @@ export async function registerRoutes(
             videoCallLink: videoLink,
             customMessage: data.smsMessage,
           });
-          const sendFn = smsType === "sms" ? sendSms : sendMms;
-          sendFn({ to: recipientPhone, body: msg }).then(async (result) => {
-            if (result.success) {
-              await storage.incrementSmsUsage(user.churchId, billingPeriod, smsType);
-            } else {
-              console.error(`${smsType.toUpperCase()} failed for member:`, result.error);
-            }
-          }).catch(err => console.error(`${smsType.toUpperCase()} send error:`, err));
+          if (smsType === "sms") {
+            sendSms({ to: recipientPhone, body: msg }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "sms");
+              } else {
+                console.error(`SMS failed for member:`, result.error);
+              }
+            }).catch(err => console.error(`SMS send error:`, err));
+          } else {
+            sendMms({ to: recipientPhone, body: msg, mediaUrl: data.mmsMediaUrl }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "mms");
+              } else {
+                console.error(`MMS failed for member:`, result.error);
+              }
+            }).catch(err => console.error(`MMS send error:`, err));
+          }
         }
       }
       

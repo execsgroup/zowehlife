@@ -13,6 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
 import { AITextarea } from "@/components/ai-text-helper";
 import { NotificationMethodSelector } from "@/components/notification-method-selector";
+import { MmsImageUpload } from "@/components/mms-image-upload";
 
 export const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
@@ -22,6 +23,7 @@ export const scheduleFollowUpSchema = z.object({
   customReminderSubject: z.string().optional(),
   customReminderMessage: z.string().optional(),
   smsMessage: z.string().optional(),
+  mmsMediaUrl: z.string().optional(),
   includeVideoLink: z.boolean().optional(),
   notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
 });
@@ -58,6 +60,7 @@ export function NewMemberScheduleFollowUpDialog({
       customReminderSubject: "",
       customReminderMessage: "",
       smsMessage: "",
+      mmsMediaUrl: "",
       includeVideoLink: true,
       notificationMethod: "email",
     },
@@ -209,47 +212,6 @@ export function NewMemberScheduleFollowUpDialog({
               />
             </div>
 
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium text-sm">Day-Before Reminder (Optional)</h4>
-              <p className="text-xs text-muted-foreground">Sent one day before the scheduled follow-up</p>
-              
-              <FormField
-                control={form.control}
-                name="customReminderSubject"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subject</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Custom subject for reminder email" {...field} data-testid="input-reminder-email-subject" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="customReminderMessage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Message</FormLabel>
-                    <FormControl>
-                      <AITextarea
-                        value={field.value || ""}
-                        onChange={(text) => form.setValue("customReminderMessage", text)}
-                        placeholder="Custom message for reminder email"
-                        context={`Writing a reminder email to ${newMemberFirstName} ${newMemberLastName} about an upcoming follow-up meeting from a church ministry.`}
-                        aiPlaceholder="e.g., Write a friendly reminder..."
-                        rows={4}
-                        data-testid="input-reminder-email-message"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             {(notificationMethod === "sms" || notificationMethod === "mms") && (
               <div className="space-y-3 p-3 bg-muted/50 rounded-lg border-t pt-4">
                 <p className="text-sm font-medium">Custom {notificationMethod.toUpperCase()} Message (optional)</p>
@@ -274,6 +236,13 @@ export function NewMemberScheduleFollowUpDialog({
                     </FormItem>
                   )}
                 />
+                {notificationMethod === "mms" && (
+                  <MmsImageUpload
+                    onImageUploaded={(url) => form.setValue("mmsMediaUrl", url)}
+                    onImageRemoved={() => form.setValue("mmsMediaUrl", "")}
+                    currentUrl={form.watch("mmsMediaUrl") || undefined}
+                  />
+                )}
               </div>
             )}
 
