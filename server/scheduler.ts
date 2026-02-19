@@ -1,6 +1,7 @@
 import { storage } from "./storage";
 import { sendFollowUpReminderEmail } from "./email";
 import { getBaseUrl } from "./utils/url";
+import { sendSms, sendMms, formatPhoneForSms, buildFollowUpSmsMessage, getCurrentBillingPeriod, SMS_PLAN_LIMITS } from "./sms";
 
 const REMINDER_CHECK_INTERVAL = 60 * 60 * 1000; // Check every hour
 const CONTACT_REMINDER_DAYS = 14; // Days before auto-changing to CONTACT_NEW_MEMBER
@@ -46,37 +47,67 @@ async function processUpcomingFollowUpReminders() {
     const upcomingFollowups = await storage.getCheckinsWithUpcomingFollowups();
     
     for (const followup of upcomingFollowups) {
-      // Skip if convert doesn't have an email
-      if (!followup.convertEmail) {
-        console.log(`[Scheduler] Skipping reminder for ${followup.convertFirstName} ${followup.convertLastName} - no email`);
-        continue;
-      }
-
-      // Check if reminder was already sent
       const alreadySent = await storage.hasReminderBeenSent(followup.checkinId, "DAY_BEFORE");
       if (alreadySent) {
         console.log(`[Scheduler] Reminder already sent for checkin ${followup.checkinId}`);
         continue;
       }
 
-      // Build contact URL
-      const contactUrl = `${getBaseUrl()}/contact`;
-      
-      // Send reminder email
-      const result = await sendFollowUpReminderEmail({
-        convertName: `${followup.convertFirstName} ${followup.convertLastName}`,
-        convertEmail: followup.convertEmail,
-        leaderName: followup.leaderName,
-        churchName: followup.churchName,
-        followUpDate: followup.nextFollowupDate,
-        followUpTime: followup.nextFollowupTime || undefined,
-        contactUrl,
-      });
+      const method = followup.notificationMethod || "email";
 
-      if (result.success) {
-        // Record that reminder was sent
-        await storage.recordReminderSent(followup.checkinId, "DAY_BEFORE");
-        console.log(`[Scheduler] Reminder sent for ${followup.convertFirstName} ${followup.convertLastName}`);
+      if (method === "email") {
+        if (!followup.convertEmail) {
+          console.log(`[Scheduler] Skipping email reminder for ${followup.convertFirstName} ${followup.convertLastName} - no email`);
+          continue;
+        }
+        const contactUrl = `${getBaseUrl()}/contact`;
+        const result = await sendFollowUpReminderEmail({
+          convertName: `${followup.convertFirstName} ${followup.convertLastName}`,
+          convertEmail: followup.convertEmail,
+          leaderName: followup.leaderName,
+          churchName: followup.churchName,
+          followUpDate: followup.nextFollowupDate,
+          followUpTime: followup.nextFollowupTime || undefined,
+          contactUrl,
+        });
+        if (result.success) {
+          await storage.recordReminderSent(followup.checkinId, "DAY_BEFORE");
+          console.log(`[Scheduler] Email reminder sent for ${followup.convertFirstName} ${followup.convertLastName}`);
+        }
+      } else {
+        const phone = followup.convertPhone ? formatPhoneForSms(followup.convertPhone) : null;
+        if (!phone) {
+          console.log(`[Scheduler] Skipping ${method} reminder for ${followup.convertFirstName} - no phone`);
+          continue;
+        }
+        const church = await storage.getChurch(followup.churchId);
+        const plan = (church?.plan || "free") as string;
+        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+        const billingPeriod = getCurrentBillingPeriod();
+        const usage = await storage.getSmsUsage(followup.churchId, billingPeriod);
+        const smsType = method as "sms" | "mms";
+        const used = smsType === "sms" ? usage.smsCount : usage.mmsCount;
+        const limit = smsType === "sms" ? limits.sms : limits.mms;
+        if (used >= limit) {
+          console.log(`[Scheduler] ${smsType.toUpperCase()} limit reached for church ${followup.churchId}, skipping reminder`);
+          continue;
+        }
+        const msg = buildFollowUpSmsMessage({
+          recipientName: followup.convertFirstName,
+          churchName: followup.churchName,
+          followUpDate: followup.nextFollowupDate,
+          followUpTime: followup.nextFollowupTime || undefined,
+          videoCallLink: followup.videoLink || undefined,
+        });
+        const sendFn = smsType === "sms" ? sendSms : sendMms;
+        const result = await sendFn({ to: phone, body: msg });
+        if (result.success) {
+          await storage.incrementSmsUsage(followup.churchId, billingPeriod, smsType);
+          await storage.recordReminderSent(followup.checkinId, "DAY_BEFORE");
+          console.log(`[Scheduler] ${smsType.toUpperCase()} reminder sent to ${followup.convertFirstName}`);
+        } else {
+          console.error(`[Scheduler] ${smsType.toUpperCase()} reminder failed:`, result.error);
+        }
       }
     }
     
@@ -93,13 +124,6 @@ async function processNewMemberUpcomingFollowUpReminders() {
     const upcomingFollowups = await storage.getNewMemberCheckinsWithUpcomingFollowups();
     
     for (const followup of upcomingFollowups) {
-      // Skip if new member doesn't have an email
-      if (!followup.newMemberEmail) {
-        console.log(`[Scheduler] Skipping reminder for ${followup.newMemberFirstName} ${followup.newMemberLastName} - no email`);
-        continue;
-      }
-
-      // Check if reminder was already sent (using checkinId with "new_member_" prefix)
       const reminderKey = `new_member_${followup.checkinId}`;
       const alreadySent = await storage.hasReminderBeenSent(reminderKey, "DAY_BEFORE");
       if (alreadySent) {
@@ -107,26 +131,64 @@ async function processNewMemberUpcomingFollowUpReminders() {
         continue;
       }
 
-      // Build contact URL
-      const contactUrl = `${getBaseUrl()}/contact`;
-      
-      // Send reminder email with custom subject/message if available
-      const result = await sendFollowUpReminderEmail({
-        convertName: `${followup.newMemberFirstName} ${followup.newMemberLastName}`,
-        convertEmail: followup.newMemberEmail,
-        leaderName: followup.leaderName,
-        churchName: followup.churchName,
-        followUpDate: followup.nextFollowupDate,
-        followUpTime: followup.nextFollowupTime || undefined,
-        contactUrl,
-        customSubject: followup.customReminderSubject || undefined,
-        customMessage: followup.customReminderMessage || undefined,
-      });
+      const method = followup.notificationMethod || "email";
 
-      if (result.success) {
-        // Record that reminder was sent
-        await storage.recordReminderSent(reminderKey, "DAY_BEFORE");
-        console.log(`[Scheduler] Reminder sent for new member ${followup.newMemberFirstName} ${followup.newMemberLastName}`);
+      if (method === "email") {
+        if (!followup.newMemberEmail) {
+          console.log(`[Scheduler] Skipping email reminder for ${followup.newMemberFirstName} ${followup.newMemberLastName} - no email`);
+          continue;
+        }
+        const contactUrl = `${getBaseUrl()}/contact`;
+        const result = await sendFollowUpReminderEmail({
+          convertName: `${followup.newMemberFirstName} ${followup.newMemberLastName}`,
+          convertEmail: followup.newMemberEmail,
+          leaderName: followup.leaderName,
+          churchName: followup.churchName,
+          followUpDate: followup.nextFollowupDate,
+          followUpTime: followup.nextFollowupTime || undefined,
+          contactUrl,
+          customSubject: followup.customReminderSubject || undefined,
+          customMessage: followup.customReminderMessage || undefined,
+        });
+        if (result.success) {
+          await storage.recordReminderSent(reminderKey, "DAY_BEFORE");
+          console.log(`[Scheduler] Email reminder sent for new member ${followup.newMemberFirstName} ${followup.newMemberLastName}`);
+        }
+      } else {
+        const phone = followup.newMemberPhone ? formatPhoneForSms(followup.newMemberPhone) : null;
+        if (!phone) {
+          console.log(`[Scheduler] Skipping ${method} reminder for ${followup.newMemberFirstName} - no phone`);
+          continue;
+        }
+        const church = await storage.getChurch(followup.churchId);
+        const plan = (church?.plan || "free") as string;
+        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+        const billingPeriod = getCurrentBillingPeriod();
+        const usage = await storage.getSmsUsage(followup.churchId, billingPeriod);
+        const smsType = method as "sms" | "mms";
+        const used = smsType === "sms" ? usage.smsCount : usage.mmsCount;
+        const limit = smsType === "sms" ? limits.sms : limits.mms;
+        if (used >= limit) {
+          console.log(`[Scheduler] ${smsType.toUpperCase()} limit reached for church ${followup.churchId}, skipping reminder`);
+          continue;
+        }
+        const msg = buildFollowUpSmsMessage({
+          recipientName: followup.newMemberFirstName,
+          churchName: followup.churchName,
+          followUpDate: followup.nextFollowupDate,
+          followUpTime: followup.nextFollowupTime || undefined,
+          videoCallLink: followup.videoLink || undefined,
+          customMessage: followup.customReminderMessage || undefined,
+        });
+        const sendFn = smsType === "sms" ? sendSms : sendMms;
+        const result = await sendFn({ to: phone, body: msg });
+        if (result.success) {
+          await storage.incrementSmsUsage(followup.churchId, billingPeriod, smsType);
+          await storage.recordReminderSent(reminderKey, "DAY_BEFORE");
+          console.log(`[Scheduler] ${smsType.toUpperCase()} reminder sent to new member ${followup.newMemberFirstName}`);
+        } else {
+          console.error(`[Scheduler] ${smsType.toUpperCase()} reminder failed:`, result.error);
+        }
       }
     }
     

@@ -479,6 +479,7 @@ export default function MemberDetail() {
           memberId={memberId || ""}
           memberFirstName={member.firstName}
           memberLastName={member.lastName}
+          memberPhone={member.phone}
         />
 
         <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>

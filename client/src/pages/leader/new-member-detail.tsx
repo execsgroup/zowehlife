@@ -387,6 +387,7 @@ export default function NewMemberDetail() {
                   newMemberId={newMemberId || ""}
                   newMemberFirstName={newMember.firstName}
                   newMemberLastName={newMember.lastName}
+                  newMemberPhone={newMember.phone}
                 />
               </div>
             </div>

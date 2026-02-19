@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail, sendMinistryRemovalEmail } from "./email";
 import { startReminderScheduler } from "./scheduler";
+import { SMS_PLAN_LIMITS, getCurrentBillingPeriod, sendSms, sendMms, formatPhoneForSms, buildFollowUpSmsMessage } from "./sms";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { buildUrl } from "./utils/url";
 import OpenAI from "openai";
@@ -2870,6 +2871,61 @@ export async function registerRoutes(
     }
   });
 
+  // Get SMS usage and limits for the current ministry
+  app.get("/api/leader/sms-usage", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+      const billingPeriod = getCurrentBillingPeriod();
+      const usage = await storage.getSmsUsage(church.id, billingPeriod);
+      const plan = (church.plan || "free") as string;
+      const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+      res.json({
+        billingPeriod,
+        plan,
+        smsUsed: usage.smsCount,
+        mmsUsed: usage.mmsCount,
+        smsLimit: limits.sms,
+        mmsLimit: limits.mms,
+        smsRemaining: Math.max(0, limits.sms - usage.smsCount),
+        mmsRemaining: Math.max(0, limits.mms - usage.mmsCount),
+      });
+    } catch (error) {
+      console.error("Failed to get SMS usage:", error);
+      res.status(500).json({ message: "Failed to get SMS usage" });
+    }
+  });
+
+  app.get("/api/ministry-admin/sms-usage", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const church = await storage.getChurch(user.churchId);
+      if (!church) {
+        return res.status(404).json({ message: "Ministry not found" });
+      }
+      const billingPeriod = getCurrentBillingPeriod();
+      const usage = await storage.getSmsUsage(church.id, billingPeriod);
+      const plan = (church.plan || "free") as string;
+      const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+      res.json({
+        billingPeriod,
+        plan,
+        smsUsed: usage.smsCount,
+        mmsUsed: usage.mmsCount,
+        smsLimit: limits.sms,
+        mmsLimit: limits.mms,
+        smsRemaining: Math.max(0, limits.sms - usage.smsCount),
+        mmsRemaining: Math.max(0, limits.mms - usage.mmsCount),
+      });
+    } catch (error) {
+      console.error("Failed to get SMS usage:", error);
+      res.status(500).json({ message: "Failed to get SMS usage" });
+    }
+  });
+
   // Get ministry info for ministry admin
   app.get("/api/ministry-admin/church", requireMinistryAdmin, async (req, res) => {
     try {
@@ -3871,14 +3927,27 @@ export async function registerRoutes(
         customConvertSubject: z.string().optional(),
         customConvertMessage: z.string().optional(),
         includeVideoLink: z.boolean().optional(),
+        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
 
       const data = schema.parse(req.body);
 
-      // Fetch church info for video link and email
       const church = await storage.getChurch(user.churchId);
 
-      // Generate video call link if requested
+      // Validate SMS/MMS limits
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+        const plan = (church?.plan || "free") as string;
+        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+        const billingPeriod = getCurrentBillingPeriod();
+        const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
+        const type = data.notificationMethod;
+        const used = type === "sms" ? usage.smsCount : usage.mmsCount;
+        const limit = type === "sms" ? limits.sms : limits.mms;
+        if (used >= limit) {
+          return res.status(403).json({ message: `${type.toUpperCase()} limit reached for this billing period (${used}/${limit}). Please upgrade your plan or use email.` });
+        }
+      }
+
       let videoCallLink: string | undefined;
       if (data.includeVideoLink) {
         const sanitizedMinistry = (church?.name || 'zoweh').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -3886,7 +3955,6 @@ export async function registerRoutes(
         videoCallLink = `https://meet.jit.si/${roomName}`;
       }
 
-      // Create a checkin record to track the scheduled follow-up
       const checkin = await storage.createCheckin({
         convertId,
         churchId: user.churchId,
@@ -3897,9 +3965,9 @@ export async function registerRoutes(
         nextFollowupDate: data.nextFollowupDate,
         nextFollowupTime: data.nextFollowupTime || null,
         videoLink: videoCallLink || null,
+        notificationMethod: data.notificationMethod,
       });
 
-      // Update convert status to SCHEDULED
       await storage.updateConvert(convertId, { status: "SCHEDULED" });
 
       await storage.createAuditLog({
@@ -3909,29 +3977,55 @@ export async function registerRoutes(
         entityId: checkin.id,
       });
 
-      // Build contact form URL
       const contactUrl = buildUrl("/contact", req);
-      
-      // Send follow-up notification emails
-      console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
-      sendFollowUpNotification({
-        convertName: `${convert.firstName} ${convert.lastName}`,
-        convertEmail: convert.email || undefined,
-        leaderName: `${user.firstName} ${user.lastName}`,
-        leaderEmail: user.email,
-        churchName: church?.name || "Ministry",
-        followUpDate: data.nextFollowupDate,
-        followUpTime: data.nextFollowupTime || undefined,
-        notes: data.notes || undefined,
-        videoCallLink,
-        contactUrl,
-        customLeaderMessage: data.customLeaderMessage || undefined,
-        customConvertMessage: data.customConvertMessage || undefined,
-        customLeaderSubject: data.customLeaderSubject || undefined,
-        customConvertSubject: data.customConvertSubject || undefined,
-      }).then(result => {
-        console.log(`Follow-up email result:`, result);
-      }).catch(err => console.error("Email notification failed:", err));
+
+      if (data.notificationMethod === "email") {
+        console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
+        sendFollowUpNotification({
+          convertName: `${convert.firstName} ${convert.lastName}`,
+          convertEmail: convert.email || undefined,
+          leaderName: `${user.firstName} ${user.lastName}`,
+          leaderEmail: user.email,
+          churchName: church?.name || "Ministry",
+          followUpDate: data.nextFollowupDate,
+          followUpTime: data.nextFollowupTime || undefined,
+          notes: data.notes || undefined,
+          videoCallLink,
+          contactUrl,
+          customLeaderMessage: data.customLeaderMessage || undefined,
+          customConvertMessage: data.customConvertMessage || undefined,
+          customLeaderSubject: data.customLeaderSubject || undefined,
+          customConvertSubject: data.customConvertSubject || undefined,
+        }).then(result => {
+          console.log(`Follow-up email result:`, result);
+        }).catch(err => console.error("Email notification failed:", err));
+      } else {
+        const smsType = data.notificationMethod as "sms" | "mms";
+        const billingPeriod = getCurrentBillingPeriod();
+        const recipientPhone = convert.phone ? formatPhoneForSms(convert.phone) : null;
+        const churchName = church?.name || "Ministry";
+
+        if (recipientPhone) {
+          const msg = buildFollowUpSmsMessage({
+            recipientName: convert.firstName,
+            churchName,
+            followUpDate: data.nextFollowupDate,
+            followUpTime: data.nextFollowupTime,
+            videoCallLink,
+            customMessage: data.customConvertMessage,
+          });
+
+          const sendFn = smsType === "sms" ? sendSms : sendMms;
+          sendFn({ to: recipientPhone, body: msg }).then(async (result) => {
+            if (result.success) {
+              await storage.incrementSmsUsage(user.churchId, billingPeriod, smsType);
+              console.log(`${smsType.toUpperCase()} sent to convert ${convert.firstName}: ${result.messageId}`);
+            } else {
+              console.error(`${smsType.toUpperCase()} failed for convert:`, result.error);
+            }
+          }).catch(err => console.error(`${smsType.toUpperCase()} send error:`, err));
+        }
+      }
 
       res.status(201).json({ ...checkin, videoCallLink });
     } catch (error) {
@@ -4470,19 +4564,31 @@ export async function registerRoutes(
         customConvertSubject: z.string().optional(),
         customReminderSubject: z.string().optional(),
         customReminderMessage: z.string().optional(),
+        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
       
       const data = schema.parse(req.body);
       const church = await storage.getChurch(user.churchId);
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+        const plan = (church?.plan || "free") as string;
+        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+        const billingPeriod = getCurrentBillingPeriod();
+        const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
+        const type = data.notificationMethod;
+        const used = type === "sms" ? usage.smsCount : usage.mmsCount;
+        const limit = type === "sms" ? limits.sms : limits.mms;
+        if (used >= limit) {
+          return res.status(403).json({ message: `${type.toUpperCase()} limit reached for this billing period (${used}/${limit}). Please upgrade your plan or use email.` });
+        }
+      }
       
-      // Generate video link if requested
       let videoLink: string | undefined;
       if (data.includeVideoLink) {
         const roomName = `${church?.name || "ministry"}-${newMember.firstName}-${newMember.lastName}-${Date.now()}`.replace(/[^a-zA-Z0-9-]/g, "-");
         videoLink = `https://meet.jit.si/${roomName}`;
       }
       
-      // Create a checkin with SCHEDULED_VISIT outcome
       const checkin = await storage.createNewMemberCheckin({
         newMemberId,
         churchId: user.churchId,
@@ -4495,12 +4601,11 @@ export async function registerRoutes(
         videoLink: videoLink || null,
         customReminderSubject: data.customReminderSubject || null,
         customReminderMessage: data.customReminderMessage || null,
+        notificationMethod: data.notificationMethod,
       });
       
-      // Update new member status
       await storage.updateNewMember(newMemberId, { status: "SCHEDULED" });
       
-      // Update follow-up stage based on current stage
       const currentStage = newMember.followUpStage || "NEW";
       let newFollowUpStage = currentStage;
       
@@ -4523,24 +4628,48 @@ export async function registerRoutes(
         entityId: newMemberId,
       });
       
-      // Build contact form URL
       const contactUrl = buildUrl("/contact", req);
       
-      // Send notification emails
-      sendFollowUpNotification({
-        convertName: `${newMember.firstName} ${newMember.lastName}`,
-        convertEmail: newMember.email || undefined,
-        leaderName: `${user.firstName} ${user.lastName}`,
-        leaderEmail: user.email,
-        churchName: church?.name || "Ministry",
-        followUpDate: data.nextFollowupDate,
-        followUpTime: data.nextFollowupTime || undefined,
-        notes: undefined,
-        videoCallLink: videoLink,
-        contactUrl,
-        customConvertMessage: data.customConvertMessage || undefined,
-        customConvertSubject: data.customConvertSubject || undefined,
-      }).catch(err => console.error("Email notification failed:", err));
+      if (data.notificationMethod === "email") {
+        sendFollowUpNotification({
+          convertName: `${newMember.firstName} ${newMember.lastName}`,
+          convertEmail: newMember.email || undefined,
+          leaderName: `${user.firstName} ${user.lastName}`,
+          leaderEmail: user.email,
+          churchName: church?.name || "Ministry",
+          followUpDate: data.nextFollowupDate,
+          followUpTime: data.nextFollowupTime || undefined,
+          notes: undefined,
+          videoCallLink: videoLink,
+          contactUrl,
+          customConvertMessage: data.customConvertMessage || undefined,
+          customConvertSubject: data.customConvertSubject || undefined,
+        }).catch(err => console.error("Email notification failed:", err));
+      } else {
+        const smsType = data.notificationMethod as "sms" | "mms";
+        const billingPeriod = getCurrentBillingPeriod();
+        const recipientPhone = newMember.phone ? formatPhoneForSms(newMember.phone) : null;
+        const churchName = church?.name || "Ministry";
+
+        if (recipientPhone) {
+          const msg = buildFollowUpSmsMessage({
+            recipientName: newMember.firstName,
+            churchName,
+            followUpDate: data.nextFollowupDate,
+            followUpTime: data.nextFollowupTime,
+            videoCallLink: videoLink,
+            customMessage: data.customConvertMessage,
+          });
+          const sendFn = smsType === "sms" ? sendSms : sendMms;
+          sendFn({ to: recipientPhone, body: msg }).then(async (result) => {
+            if (result.success) {
+              await storage.incrementSmsUsage(user.churchId, billingPeriod, smsType);
+            } else {
+              console.error(`${smsType.toUpperCase()} failed for new member:`, result.error);
+            }
+          }).catch(err => console.error(`${smsType.toUpperCase()} send error:`, err));
+        }
+      }
       
       res.status(201).json(checkin);
     } catch (error) {
@@ -5059,19 +5188,31 @@ export async function registerRoutes(
         customConvertMessage: z.string().optional(),
         customLeaderSubject: z.string().optional(),
         customConvertSubject: z.string().optional(),
+        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
       });
       
       const data = schema.parse(req.body);
       const church = await storage.getChurch(user.churchId);
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+        const plan = (church?.plan || "free") as string;
+        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+        const billingPeriod = getCurrentBillingPeriod();
+        const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
+        const type = data.notificationMethod;
+        const used = type === "sms" ? usage.smsCount : usage.mmsCount;
+        const limit = type === "sms" ? limits.sms : limits.mms;
+        if (used >= limit) {
+          return res.status(403).json({ message: `${type.toUpperCase()} limit reached for this billing period (${used}/${limit}). Please upgrade your plan or use email.` });
+        }
+      }
       
-      // Generate video link if requested
       let videoLink: string | undefined;
       if (data.includeVideoLink) {
         const roomName = `${church?.name || "ministry"}-${member.firstName}-${member.lastName}-${Date.now()}`.replace(/[^a-zA-Z0-9-]/g, "-");
         videoLink = `https://meet.jit.si/${roomName}`;
       }
       
-      // Create a checkin with SCHEDULED_VISIT outcome
       const checkin = await storage.createMemberCheckin({
         memberId,
         churchId: user.churchId,
@@ -5082,9 +5223,9 @@ export async function registerRoutes(
         nextFollowupDate: data.nextFollowupDate,
         nextFollowupTime: data.nextFollowupTime || null,
         videoLink: videoLink || null,
+        notificationMethod: data.notificationMethod,
       });
       
-      // Update member status
       await storage.updateMember(memberId, { status: "SCHEDULED" });
       
       await storage.createAuditLog({
@@ -5094,26 +5235,50 @@ export async function registerRoutes(
         entityId: memberId,
       });
       
-      // Build contact form URL
       const contactUrl = buildUrl("/contact", req);
       
-      // Send notification emails
-      sendFollowUpNotification({
-        convertName: `${member.firstName} ${member.lastName}`,
-        convertEmail: member.email || undefined,
-        leaderName: `${user.firstName} ${user.lastName}`,
-        leaderEmail: user.email,
-        churchName: church?.name || "Ministry",
-        followUpDate: data.nextFollowupDate,
-        followUpTime: data.nextFollowupTime || undefined,
-        notes: data.notes || undefined,
-        videoCallLink: videoLink,
-        contactUrl,
-        customLeaderMessage: data.customLeaderMessage || undefined,
-        customConvertMessage: data.customConvertMessage || undefined,
-        customLeaderSubject: data.customLeaderSubject || undefined,
-        customConvertSubject: data.customConvertSubject || undefined,
-      }).catch(err => console.error("Email notification failed:", err));
+      if (data.notificationMethod === "email") {
+        sendFollowUpNotification({
+          convertName: `${member.firstName} ${member.lastName}`,
+          convertEmail: member.email || undefined,
+          leaderName: `${user.firstName} ${user.lastName}`,
+          leaderEmail: user.email,
+          churchName: church?.name || "Ministry",
+          followUpDate: data.nextFollowupDate,
+          followUpTime: data.nextFollowupTime || undefined,
+          notes: data.notes || undefined,
+          videoCallLink: videoLink,
+          contactUrl,
+          customLeaderMessage: data.customLeaderMessage || undefined,
+          customConvertMessage: data.customConvertMessage || undefined,
+          customLeaderSubject: data.customLeaderSubject || undefined,
+          customConvertSubject: data.customConvertSubject || undefined,
+        }).catch(err => console.error("Email notification failed:", err));
+      } else {
+        const smsType = data.notificationMethod as "sms" | "mms";
+        const billingPeriod = getCurrentBillingPeriod();
+        const recipientPhone = member.phone ? formatPhoneForSms(member.phone) : null;
+        const churchName = church?.name || "Ministry";
+
+        if (recipientPhone) {
+          const msg = buildFollowUpSmsMessage({
+            recipientName: member.firstName,
+            churchName,
+            followUpDate: data.nextFollowupDate,
+            followUpTime: data.nextFollowupTime,
+            videoCallLink: videoLink,
+            customMessage: data.customConvertMessage,
+          });
+          const sendFn = smsType === "sms" ? sendSms : sendMms;
+          sendFn({ to: recipientPhone, body: msg }).then(async (result) => {
+            if (result.success) {
+              await storage.incrementSmsUsage(user.churchId, billingPeriod, smsType);
+            } else {
+              console.error(`${smsType.toUpperCase()} failed for member:`, result.error);
+            }
+          }).catch(err => console.error(`${smsType.toUpperCase()} send error:`, err));
+        }
+      }
       
       res.status(201).json(checkin);
     } catch (error) {

@@ -12,6 +12,7 @@ import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
 import { AITextarea } from "@/components/ai-text-helper";
+import { NotificationMethodSelector } from "@/components/notification-method-selector";
 
 const scheduleFollowUpSchema = z.object({
   nextFollowupDate: z.string().min(1, "Follow-up date is required"),
@@ -21,6 +22,7 @@ const scheduleFollowUpSchema = z.object({
   customConvertSubject: z.string().optional(),
   customConvertMessage: z.string().optional(),
   includeVideoLink: z.boolean().optional(),
+  notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
 });
 
 type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
@@ -30,6 +32,7 @@ interface ConvertInfo {
   firstName: string;
   lastName: string;
   email?: string | null;
+  phone?: string | null;
 }
 
 interface ConvertScheduleFollowUpDialogProps {
@@ -56,8 +59,11 @@ export function ConvertScheduleFollowUpDialog({
       customConvertSubject: "",
       customConvertMessage: "",
       includeVideoLink: true,
+      notificationMethod: "email",
     },
   });
+
+  const notificationMethod = form.watch("notificationMethod");
 
   const scheduleFollowUpMutation = useMutation({
     mutationFn: async (data: ScheduleFollowUpData) => {
@@ -65,13 +71,15 @@ export function ConvertScheduleFollowUpDialog({
       await apiRequest("POST", `${apiBasePath}/converts/${convert.id}/schedule-followup`, data);
     },
     onSuccess: () => {
+      const method = form.getValues("notificationMethod");
       toast({
         title: "Follow-up scheduled",
-        description: "The follow-up has been scheduled and email notifications will be sent.",
+        description: `The follow-up has been scheduled and ${method === "email" ? "email" : method?.toUpperCase()} notifications will be sent.`,
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
+      queryClient.invalidateQueries({ queryKey: [apiBasePath, "sms-usage"] });
       onOpenChange(false);
       form.reset({
         nextFollowupDate: "",
@@ -81,6 +89,7 @@ export function ConvertScheduleFollowUpDialog({
         customConvertSubject: "",
         customConvertMessage: "",
         includeVideoLink: true,
+        notificationMethod: "email",
       });
     },
     onError: (error: Error) => {
@@ -99,7 +108,7 @@ export function ConvertScheduleFollowUpDialog({
           <DialogTitle>Schedule Follow Up</DialogTitle>
           <DialogDescription>
             {convert && (
-              <>Schedule a follow-up with {convert.firstName} {convert.lastName} and send email notifications</>
+              <>Schedule a follow-up with {convert.firstName} {convert.lastName}</>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -136,6 +145,11 @@ export function ConvertScheduleFollowUpDialog({
               )}
             />
 
+            <NotificationMethodSelector
+              form={form}
+              hasPhone={!!convert?.phone}
+            />
+
             <FormField
               control={form.control}
               name="includeVideoLink"
@@ -154,24 +168,73 @@ export function ConvertScheduleFollowUpDialog({
                       Include video call link
                     </FormLabel>
                     <p className="text-sm text-muted-foreground">
-                      Add a free Jitsi Meet video call link to the email
+                      Add a free Jitsi Meet video call link to the notification
                     </p>
                   </div>
                 </FormItem>
               )}
             />
 
-            <div className="space-y-4 border-t pt-4">
-              <p className="text-sm text-muted-foreground">
-                Customize the email notifications (leave blank for defaults):
-              </p>
-              
-              {convert?.email && (
+            {notificationMethod === "email" && (
+              <div className="space-y-4 border-t pt-4">
+                <p className="text-sm text-muted-foreground">
+                  Customize the email notifications (leave blank for defaults):
+                </p>
+                
+                {convert?.email && (
+                  <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm font-medium">Email to {convert.firstName} {convert.lastName}</p>
+                    <FormField
+                      control={form.control}
+                      name="customConvertSubject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subject Line</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Leave blank for default subject..."
+                              {...field}
+                              data-testid="input-convert-subject"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="customConvertMessage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Message Body</FormLabel>
+                          <FormControl>
+                            <AITextarea
+                              value={field.value || ""}
+                              onChange={(text) => form.setValue("customConvertMessage", text)}
+                              placeholder="Leave blank for default message..."
+                              context={`Writing an initial follow-up email to a new convert named ${convert?.firstName} ${convert?.lastName} from a church ministry.`}
+                              aiPlaceholder="e.g., Write a warm welcome message..."
+                              rows={4}
+                              data-testid="input-convert-message"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
                 <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm font-medium">Email to {convert.firstName} {convert.lastName}</p>
+                  <p className="text-sm font-medium">
+                    Your Reminder Email{" "}
+                    <span className="italic text-muted-foreground font-normal">
+                      (Email will be sent to {convert?.firstName} {convert?.lastName} a day before the scheduled follow up)
+                    </span>
+                  </p>
                   <FormField
                     control={form.control}
-                    name="customConvertSubject"
+                    name="customLeaderSubject"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Subject Line</FormLabel>
@@ -179,7 +242,7 @@ export function ConvertScheduleFollowUpDialog({
                           <Input
                             placeholder="Leave blank for default subject..."
                             {...field}
-                            data-testid="input-convert-subject"
+                            data-testid="input-leader-subject"
                           />
                         </FormControl>
                         <FormMessage />
@@ -188,19 +251,19 @@ export function ConvertScheduleFollowUpDialog({
                   />
                   <FormField
                     control={form.control}
-                    name="customConvertMessage"
+                    name="customLeaderMessage"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Message Body</FormLabel>
                         <FormControl>
                           <AITextarea
                             value={field.value || ""}
-                            onChange={(text) => form.setValue("customConvertMessage", text)}
+                            onChange={(text) => form.setValue("customLeaderMessage", text)}
                             placeholder="Leave blank for default message..."
-                            context={`Writing an initial follow-up email to a new convert named ${convert?.firstName} ${convert?.lastName} from a church ministry.`}
-                            aiPlaceholder="e.g., Write a warm welcome message..."
+                            context={`Writing a reminder email to ${convert?.firstName} ${convert?.lastName} about an upcoming follow-up meeting from a church ministry.`}
+                            aiPlaceholder="e.g., Write a friendly reminder..."
                             rows={4}
-                            data-testid="input-convert-message"
+                            data-testid="input-leader-message"
                           />
                         </FormControl>
                         <FormMessage />
@@ -208,47 +271,27 @@ export function ConvertScheduleFollowUpDialog({
                     )}
                   />
                 </div>
-              )}
+              </div>
+            )}
 
-              <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                <p className="text-sm font-medium">
-                  Your Reminder Email{" "}
-                  <span className="italic text-muted-foreground font-normal">
-                    (Email will be sent to {convert?.firstName} {convert?.lastName} a day before the scheduled follow up)
-                  </span>
-                </p>
+            {(notificationMethod === "sms" || notificationMethod === "mms") && (
+              <div className="space-y-3 p-3 bg-muted/50 rounded-lg border-t pt-4">
+                <p className="text-sm font-medium">Custom {notificationMethod.toUpperCase()} Message (optional)</p>
+                <p className="text-xs text-muted-foreground">Leave blank for a default message with follow-up details</p>
                 <FormField
                   control={form.control}
-                  name="customLeaderSubject"
+                  name="customConvertMessage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Subject Line</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Leave blank for default subject..."
-                          {...field}
-                          data-testid="input-leader-subject"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="customLeaderMessage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Message Body</FormLabel>
                       <FormControl>
                         <AITextarea
                           value={field.value || ""}
-                          onChange={(text) => form.setValue("customLeaderMessage", text)}
-                          placeholder="Leave blank for default message..."
-                          context={`Writing a reminder email to ${convert?.firstName} ${convert?.lastName} about an upcoming follow-up meeting from a church ministry.`}
-                          aiPlaceholder="e.g., Write a friendly reminder..."
-                          rows={4}
-                          data-testid="input-leader-message"
+                          onChange={(text) => form.setValue("customConvertMessage", text)}
+                          placeholder="Leave blank for default SMS message..."
+                          context={`Writing a short SMS follow-up message to ${convert?.firstName} ${convert?.lastName} from a church ministry. Keep it under 160 characters.`}
+                          aiPlaceholder="e.g., Write a brief follow-up text..."
+                          rows={3}
+                          data-testid="input-sms-message"
                         />
                       </FormControl>
                       <FormMessage />
@@ -256,7 +299,7 @@ export function ConvertScheduleFollowUpDialog({
                   )}
                 />
               </div>
-            </div>
+            )}
 
             <div className="flex justify-end gap-2 pt-2">
               <Button

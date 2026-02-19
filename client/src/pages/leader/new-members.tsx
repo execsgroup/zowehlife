@@ -909,6 +909,7 @@ export default function LeaderNewMembers() {
           newMemberId={selectedNewMember.id}
           newMemberFirstName={selectedNewMember.firstName}
           newMemberLastName={selectedNewMember.lastName}
+          newMemberPhone={selectedNewMember.phone}
         />
       )}
 

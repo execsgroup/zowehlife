@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, date, pgEnum, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, date, pgEnum, jsonb, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -17,6 +17,7 @@ export const prayerRequestStatusEnum = pgEnum("prayer_request_status", ["SUBMITT
 export const massFollowupStatusEnum = pgEnum("mass_followup_status", ["SCHEDULED", "COMPLETED", "CANCELLED"]);
 export const massFollowupCategoryEnum = pgEnum("mass_followup_category", ["converts", "new_members", "members", "guests"]);
 export const ministryPlanEnum = pgEnum("ministry_plan", ["free", "foundations", "formation", "stewardship"]);
+export const notificationMethodEnum = pgEnum("notification_method", ["email", "sms", "mms"]);
 
 // Subscription status enum
 export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "past_due", "suspended", "canceled", "free"]);
@@ -88,6 +89,7 @@ export const checkins = pgTable("checkins", {
   nextFollowupDate: date("next_followup_date"),
   nextFollowupTime: text("next_followup_time"),
   videoLink: text("video_link"),
+  notificationMethod: notificationMethodEnum("notification_method").notNull().default("email"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -126,6 +128,7 @@ export const newMemberCheckins = pgTable("new_member_checkins", {
   nextFollowupDate: date("next_followup_date"),
   nextFollowupTime: text("next_followup_time"),
   videoLink: text("video_link"),
+  notificationMethod: notificationMethodEnum("notification_method").notNull().default("email"),
   customReminderSubject: text("custom_reminder_subject"),
   customReminderMessage: text("custom_reminder_message"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -164,6 +167,7 @@ export const memberCheckins = pgTable("member_checkins", {
   nextFollowupDate: date("next_followup_date"),
   nextFollowupTime: text("next_followup_time"),
   videoLink: text("video_link"),
+  notificationMethod: notificationMethodEnum("notification_method").notNull().default("email"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -200,7 +204,19 @@ export const guestCheckins = pgTable("guest_checkins", {
   nextFollowupDate: date("next_followup_date"),
   nextFollowupTime: text("next_followup_time"),
   videoLink: text("video_link"),
+  notificationMethod: notificationMethodEnum("notification_method").notNull().default("email"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// SMS/MMS Usage tracking per ministry per billing period
+export const smsUsage = pgTable("sms_usage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  billingPeriod: text("billing_period").notNull(),
+  smsCount: integer("sms_count").notNull().default(0),
+  mmsCount: integer("mms_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Mass follow-ups table - groups multiple people into one follow-up session
@@ -530,6 +546,12 @@ export const insertGuestCheckinSchema = createInsertSchema(guestCheckins).omit({
   createdAt: true,
 });
 
+export const insertSmsUsageSchema = createInsertSchema(smsUsage).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertMassFollowupSchema = createInsertSchema(massFollowups).omit({
   id: true,
   createdAt: true,
@@ -687,6 +709,9 @@ export type InsertGuest = z.infer<typeof insertGuestSchema>;
 
 export type GuestCheckin = typeof guestCheckins.$inferSelect;
 export type InsertGuestCheckin = z.infer<typeof insertGuestCheckinSchema>;
+
+export type SmsUsage = typeof smsUsage.$inferSelect;
+export type InsertSmsUsage = z.infer<typeof insertSmsUsageSchema>;
 
 export type MassFollowup = typeof massFollowups.$inferSelect;
 export type InsertMassFollowup = z.infer<typeof insertMassFollowupSchema>;

@@ -71,6 +71,7 @@ import {
   type InsertMassFollowup,
   type MassFollowupParticipant,
   type InsertMassFollowupParticipant,
+  smsUsage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -100,6 +101,10 @@ export interface IStorage {
   getChurchByStripeSubscriptionId(subscriptionId: string): Promise<Church | undefined>;
   updateChurchLogo(id: string, logoUrl: string): Promise<void>;
   generateTokenForChurch(id: string): Promise<Church>;
+
+  // SMS Usage
+  getSmsUsage(churchId: string, billingPeriod: string): Promise<{ smsCount: number; mmsCount: number }>;
+  incrementSmsUsage(churchId: string, billingPeriod: string, type: "sms" | "mms"): Promise<void>;
 
   // Converts
   getConvert(id: string): Promise<Convert | undefined>;
@@ -185,11 +190,15 @@ export interface IStorage {
     convertFirstName: string;
     convertLastName: string;
     convertEmail: string | null;
+    convertPhone: string | null;
     leaderName: string;
     leaderEmail: string;
+    churchId: string;
     churchName: string;
     nextFollowupDate: string;
     nextFollowupTime: string | null;
+    notificationMethod: string;
+    videoLink: string | null;
   }>>;
   getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>>;
   updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void>;
@@ -200,13 +209,17 @@ export interface IStorage {
     newMemberFirstName: string;
     newMemberLastName: string;
     newMemberEmail: string | null;
+    newMemberPhone: string | null;
     leaderName: string;
     leaderEmail: string;
+    churchId: string;
     churchName: string;
     nextFollowupDate: string;
     nextFollowupTime: string | null;
     customReminderSubject: string | null;
     customReminderMessage: string | null;
+    notificationMethod: string;
+    videoLink: string | null;
   }>>;
 
   // Archived Ministries
@@ -587,6 +600,36 @@ export class DatabaseStorage implements IStorage {
     }
     
     throw new Error(`Failed to generate unique token after ${maxRetries} attempts`);
+  }
+
+  // SMS Usage
+  async getSmsUsage(churchId: string, billingPeriod: string): Promise<{ smsCount: number; mmsCount: number }> {
+    const [usage] = await db
+      .select()
+      .from(smsUsage)
+      .where(and(eq(smsUsage.churchId, churchId), eq(smsUsage.billingPeriod, billingPeriod)));
+    return usage ? { smsCount: usage.smsCount, mmsCount: usage.mmsCount } : { smsCount: 0, mmsCount: 0 };
+  }
+
+  async incrementSmsUsage(churchId: string, billingPeriod: string, type: "sms" | "mms"): Promise<void> {
+    const [existing] = await db
+      .select()
+      .from(smsUsage)
+      .where(and(eq(smsUsage.churchId, churchId), eq(smsUsage.billingPeriod, billingPeriod)));
+
+    if (existing) {
+      const updateData = type === "sms"
+        ? { smsCount: existing.smsCount + 1, updatedAt: new Date() }
+        : { mmsCount: existing.mmsCount + 1, updatedAt: new Date() };
+      await db.update(smsUsage).set(updateData).where(eq(smsUsage.id, existing.id));
+    } else {
+      await db.insert(smsUsage).values({
+        churchId,
+        billingPeriod,
+        smsCount: type === "sms" ? 1 : 0,
+        mmsCount: type === "mms" ? 1 : 0,
+      });
+    }
   }
 
   // Converts
@@ -1054,11 +1097,15 @@ export class DatabaseStorage implements IStorage {
     convertFirstName: string;
     convertLastName: string;
     convertEmail: string | null;
+    convertPhone: string | null;
     leaderName: string;
     leaderEmail: string;
+    churchId: string;
     churchName: string;
     nextFollowupDate: string;
     nextFollowupTime: string | null;
+    notificationMethod: string;
+    videoLink: string | null;
   }>> {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1071,12 +1118,16 @@ export class DatabaseStorage implements IStorage {
         convertFirstName: converts.firstName,
         convertLastName: converts.lastName,
         convertEmail: converts.email,
+        convertPhone: converts.phone,
         leaderFirstName: users.firstName,
         leaderLastName: users.lastName,
         leaderEmail: users.email,
+        churchId: churches.id,
         churchName: churches.name,
         nextFollowupDate: checkins.nextFollowupDate,
         nextFollowupTime: checkins.nextFollowupTime,
+        notificationMethod: checkins.notificationMethod,
+        videoLink: checkins.videoLink,
       })
       .from(checkins)
       .innerJoin(converts, eq(checkins.convertId, converts.id))
@@ -1095,11 +1146,15 @@ export class DatabaseStorage implements IStorage {
       convertFirstName: r.convertFirstName,
       convertLastName: r.convertLastName,
       convertEmail: r.convertEmail,
+      convertPhone: r.convertPhone,
       leaderName: `${r.leaderFirstName} ${r.leaderLastName}`,
       leaderEmail: r.leaderEmail,
+      churchId: r.churchId,
       churchName: r.churchName,
       nextFollowupDate: r.nextFollowupDate || "",
       nextFollowupTime: r.nextFollowupTime,
+      notificationMethod: r.notificationMethod || "email",
+      videoLink: r.videoLink,
     }));
   }
 
@@ -1158,13 +1213,17 @@ export class DatabaseStorage implements IStorage {
     newMemberFirstName: string;
     newMemberLastName: string;
     newMemberEmail: string | null;
+    newMemberPhone: string | null;
     leaderName: string;
     leaderEmail: string;
+    churchId: string;
     churchName: string;
     nextFollowupDate: string;
     nextFollowupTime: string | null;
     customReminderSubject: string | null;
     customReminderMessage: string | null;
+    notificationMethod: string;
+    videoLink: string | null;
   }>> {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -1177,14 +1236,18 @@ export class DatabaseStorage implements IStorage {
         newMemberFirstName: newMembers.firstName,
         newMemberLastName: newMembers.lastName,
         newMemberEmail: newMembers.email,
+        newMemberPhone: newMembers.phone,
         leaderFirstName: users.firstName,
         leaderLastName: users.lastName,
         leaderEmail: users.email,
+        churchId: churches.id,
         churchName: churches.name,
         nextFollowupDate: newMemberCheckins.nextFollowupDate,
         nextFollowupTime: newMemberCheckins.nextFollowupTime,
         customReminderSubject: newMemberCheckins.customReminderSubject,
         customReminderMessage: newMemberCheckins.customReminderMessage,
+        notificationMethod: newMemberCheckins.notificationMethod,
+        videoLink: newMemberCheckins.videoLink,
       })
       .from(newMemberCheckins)
       .innerJoin(newMembers, eq(newMemberCheckins.newMemberId, newMembers.id))
@@ -1203,13 +1266,17 @@ export class DatabaseStorage implements IStorage {
       newMemberFirstName: r.newMemberFirstName,
       newMemberLastName: r.newMemberLastName,
       newMemberEmail: r.newMemberEmail,
+      newMemberPhone: r.newMemberPhone,
       leaderName: `${r.leaderFirstName} ${r.leaderLastName}`,
       leaderEmail: r.leaderEmail,
+      churchId: r.churchId,
       churchName: r.churchName,
       nextFollowupDate: r.nextFollowupDate || "",
       nextFollowupTime: r.nextFollowupTime,
       customReminderSubject: r.customReminderSubject,
       customReminderMessage: r.customReminderMessage,
+      notificationMethod: r.notificationMethod || "email",
+      videoLink: r.videoLink,
     }));
   }
 
