@@ -3,7 +3,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -155,160 +157,151 @@ export default function MinistryRequests() {
   const processedRequests = requests?.filter(r => r.status !== "PENDING") || [];
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-page-title">Ministry Registration Requests</h1>
-          <p className="text-muted-foreground">Review and approve new ministry registrations</p>
-        </div>
+        <PageHeader
+          title="Ministry Registration Requests"
+          description="Review and approve new ministry registrations"
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Pending Registrations
-              {pendingRequests.length > 0 && (
-                <Badge variant="secondary" data-testid="badge-pending-count">{pendingRequests.length}</Badge>
-              )}
-            </CardTitle>
-            <CardDescription>
-              New ministry registration requests awaiting your review
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-20 w-full" />
-                ))}
-              </div>
-            ) : pendingRequests.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p>No pending ministry registrations</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ministry</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Admin Contact</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingRequests.map((request) => (
-                    <TableRow key={request.id} data-testid={`row-ministry-request-${request.id}`}>
-                      <TableCell className="font-medium">{request.ministryName}</TableCell>
-                      <TableCell>
-                        {request.location ? (
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
-                            {request.location}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-1 text-sm">
-                            <User className="h-3 w-3 text-muted-foreground" />
-                            {request.adminFirstName} {request.adminLastName}
-                          </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Mail className="h-3 w-3" />
-                            {request.adminEmail}
-                          </div>
-                          {request.adminPhone && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Phone className="h-3 w-3" />
-                              {request.adminPhone}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {request.description ? (
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground max-w-[200px]">
-                            <FileText className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate">{request.description}</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
+        <Section
+          title="Pending Registrations"
+          description="New ministry registration requests awaiting your review"
+          actions={
+            pendingRequests.length > 0 ? (
+              <Badge variant="secondary" data-testid="badge-pending-count">{pendingRequests.length}</Badge>
+            ) : undefined
+          }
+          noPadding
+        >
+          {isLoading ? (
+            <div className="space-y-4 p-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          ) : pendingRequests.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground p-4">
+              <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">No pending ministry registrations</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ministry</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Admin Contact</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingRequests.map((request) => (
+                  <TableRow key={request.id} data-testid={`row-ministry-request-${request.id}`}>
+                    <TableCell className="font-medium text-sm">{request.ministryName}</TableCell>
+                    <TableCell>
+                      {request.location ? (
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(request.createdAt).toLocaleDateString()}
+                          <MapPin className="h-3 w-3" />
+                          {request.location}
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          className="gap-1"
-                          onClick={() => handleReview(request)}
-                          data-testid={`button-review-ministry-${request.id}`}
-                        >
-                          <Edit className="h-4 w-4" />
-                          Review
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1 text-sm">
+                          <User className="h-3 w-3 text-muted-foreground" />
+                          {request.adminFirstName} {request.adminLastName}
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Mail className="h-3 w-3" />
+                          {request.adminEmail}
+                        </div>
+                        {request.adminPhone && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {request.adminPhone}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {request.description ? (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground max-w-[200px]">
+                          <FileText className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{request.description}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        className="gap-1"
+                        onClick={() => handleReview(request)}
+                        data-testid={`button-review-ministry-${request.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                        Review
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Section>
 
         {processedRequests.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Registration History</CardTitle>
-              <CardDescription>
-                Previously processed ministry registration requests
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ministry</TableHead>
-                    <TableHead>Admin</TableHead>
-                    <TableHead>Admin Email</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Reviewed</TableHead>
+          <Section
+            title="Registration History"
+            description="Previously processed ministry registration requests"
+            noPadding
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ministry</TableHead>
+                  <TableHead>Admin</TableHead>
+                  <TableHead>Admin Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead>Reviewed</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {processedRequests.map((request) => (
+                  <TableRow key={request.id} data-testid={`row-ministry-history-${request.id}`}>
+                    <TableCell className="font-medium text-sm">{request.ministryName}</TableCell>
+                    <TableCell className="text-sm">{request.adminFirstName} {request.adminLastName}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{request.adminEmail}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={statusColors[request.status]}>
+                        {request.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(request.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {request.reviewedAt ? new Date(request.reviewedAt).toLocaleDateString() : "—"}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {processedRequests.map((request) => (
-                    <TableRow key={request.id} data-testid={`row-ministry-history-${request.id}`}>
-                      <TableCell className="font-medium">{request.ministryName}</TableCell>
-                      <TableCell>{request.adminFirstName} {request.adminLastName}</TableCell>
-                      <TableCell className="text-muted-foreground">{request.adminEmail}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={statusColors[request.status]}>
-                          {request.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(request.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {request.reviewedAt ? new Date(request.reviewedAt).toLocaleDateString() : "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </Section>
         )}
       </div>
 
@@ -478,6 +471,6 @@ export default function MinistryRequests() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }

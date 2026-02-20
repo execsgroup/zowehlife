@@ -2,7 +2,6 @@ import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,11 +9,13 @@ import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { useToast } from "@/hooks/use-toast";
 import { useUpload } from "@/hooks/use-upload";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
-import { Settings, MapPin, AlertTriangle, Loader2, Trash2, Users, Upload, ImageIcon } from "lucide-react";
+import { MapPin, AlertTriangle, Loader2, Trash2, Upload, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 
@@ -278,216 +279,169 @@ export default function MinistryAdminSettings() {
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
-            <Settings className="h-6 w-6" />
-            Ministry Settings
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your ministry account settings.
-          </p>
-        </div>
+        <PageHeader
+          title="Ministry Settings"
+          description="Manage your ministry account settings."
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ministry Information</CardTitle>
-            <CardDescription>
-              Details about your ministry account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Ministry Name</p>
-                <p className="font-medium">{church?.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Location</p>
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                  <span className="font-medium">{church?.location || "Not specified"}</span>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Created</p>
-                <p className="font-medium">
-                  {church?.createdAt ? format(new Date(church.createdAt), "PPP") : "N/A"}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <Badge variant="secondary">Active</Badge>
+        <Section title="Ministry Information" description="Details about your ministry account.">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="text-xs text-muted-foreground">Ministry Name</p>
+              <p className="text-sm font-medium">{church?.name}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Location</p>
+              <div className="flex items-center gap-1">
+                <MapPin className="h-3 w-3 text-muted-foreground" />
+                <span className="text-sm font-medium">{church?.location || "Not specified"}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5" />
-              Ministry Logo
-            </CardTitle>
-            <CardDescription>
-              Upload your ministry logo. It will appear next to your ministry name in the sidebar and on all public registration forms.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start gap-4">
-              <div className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/50 shrink-0">
-                {church?.logoUrl ? (
-                  <img
-                    src={church.logoUrl}
-                    alt={`${church.name} logo`}
-                    className="w-full h-full object-cover"
-                    data-testid="img-church-logo"
-                  />
-                ) : (
-                  <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label htmlFor="admin-logo-upload">
-                  <input
-                    id="admin-logo-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileSelect}
-                    disabled={isUploadingLogo}
-                    data-testid="input-logo-upload"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isUploadingLogo}
-                    onClick={() => document.getElementById("admin-logo-upload")?.click()}
-                    data-testid="button-upload-logo"
-                  >
-                    {isUploadingLogo ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Upload Logo
-                      </>
-                    )}
-                  </Button>
-                </label>
-
-                {church?.logoUrl && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => removeLogo.mutate()}
-                    disabled={removeLogo.isPending}
-                    data-testid="button-remove-logo"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Remove Logo
-                  </Button>
-                )}
-
-                <p className="text-xs text-muted-foreground">
-                  Recommended: Square image, at least 200x200px, under 5MB
-                </p>
-              </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Created</p>
+              <p className="text-sm font-medium">
+                {church?.createdAt ? format(new Date(church.createdAt), "PPP") : "N/A"}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-xs text-muted-foreground">Status</p>
+              <Badge variant="secondary">Active</Badge>
+            </div>
+          </div>
+        </Section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Leader Quota
-            </CardTitle>
-            <CardDescription>
-              Manage how many leaders can be added to your ministry.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingQuota ? (
-              <Skeleton className="h-20 w-full" />
-            ) : leaderQuota ? (
-              <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="p-4 rounded-lg border bg-card">
-                    <p className="text-sm text-muted-foreground">Current Leaders</p>
-                    <p className="text-3xl font-bold" data-testid="text-current-leaders">
-                      {leaderQuota.currentCount}
-                    </p>
-                  </div>
-                  <div className="p-4 rounded-lg border bg-card">
-                    <p className="text-sm text-muted-foreground">Maximum Allowed</p>
-                    <p className="text-3xl font-bold" data-testid="text-max-leaders">
-                      {leaderQuota.maxAllowed}
-                    </p>
-                  </div>
-                  <div className="p-4 rounded-lg border bg-card">
-                    <p className="text-sm text-muted-foreground">Remaining Slots</p>
-                    <p className="text-3xl font-bold" data-testid="text-remaining-leaders">
-                      {leaderQuota.remaining}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={leaderQuota.canAddMore ? "secondary" : "destructive"}>
-                    {leaderQuota.canAddMore 
-                      ? `${leaderQuota.remaining} slot${leaderQuota.remaining !== 1 ? 's' : ''} available` 
-                      : "No slots available"}
-                  </Badge>
-                  {!leaderQuota.canAddMore && (
-                    <span className="text-sm text-muted-foreground">
-                      Remove an existing leader to add a new one.
-                    </span>
+        <Section title="Ministry Logo" description="Upload your ministry logo. It will appear next to your ministry name in the sidebar and on all public registration forms.">
+          <div className="flex items-start gap-4">
+            <div className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/50 shrink-0">
+              {church?.logoUrl ? (
+                <img
+                  src={church.logoUrl}
+                  alt={`${church.name} logo`}
+                  className="w-full h-full object-cover"
+                  data-testid="img-church-logo"
+                />
+              ) : (
+                <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="admin-logo-upload">
+                <input
+                  id="admin-logo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  disabled={isUploadingLogo}
+                  data-testid="input-logo-upload"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isUploadingLogo}
+                  onClick={() => document.getElementById("admin-logo-upload")?.click()}
+                  data-testid="button-upload-logo"
+                >
+                  {isUploadingLogo ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Logo
+                    </>
                   )}
+                </Button>
+              </label>
+
+              {church?.logoUrl && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => removeLogo.mutate()}
+                  disabled={removeLogo.isPending}
+                  data-testid="button-remove-logo"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Remove Logo
+                </Button>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                Recommended: Square image, at least 200x200px, under 5MB
+              </p>
+            </div>
+          </div>
+        </Section>
+
+        <Section title="Leader Quota" description="Manage how many leaders can be added to your ministry.">
+          {isLoadingQuota ? (
+            <Skeleton className="h-20 w-full" />
+          ) : leaderQuota ? (
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="rounded-md border bg-card p-4">
+                  <p className="text-xs text-muted-foreground">Current Leaders</p>
+                  <p className="text-2xl font-bold" data-testid="text-current-leaders">
+                    {leaderQuota.currentCount}
+                  </p>
+                </div>
+                <div className="rounded-md border bg-card p-4">
+                  <p className="text-xs text-muted-foreground">Maximum Allowed</p>
+                  <p className="text-2xl font-bold" data-testid="text-max-leaders">
+                    {leaderQuota.maxAllowed}
+                  </p>
+                </div>
+                <div className="rounded-md border bg-card p-4">
+                  <p className="text-xs text-muted-foreground">Remaining Slots</p>
+                  <p className="text-2xl font-bold" data-testid="text-remaining-leaders">
+                    {leaderQuota.remaining}
+                  </p>
                 </div>
               </div>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        <Card className="border-destructive/50">
-          <CardHeader>
-            <CardTitle className="text-destructive flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Danger Zone
-            </CardTitle>
-            <CardDescription>
-              Irreversible actions that affect your entire ministry.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start justify-between gap-4 p-4 border border-destructive/30 rounded-lg bg-destructive/5">
-              <div>
-                <h3 className="font-medium text-destructive">Cancel Ministry Account</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Permanently cancel your ministry account. All data including leaders, converts, and members will be archived.
-                  The Platform Admin can restore your account if needed.
-                </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant={leaderQuota.canAddMore ? "secondary" : "destructive"}>
+                  {leaderQuota.canAddMore 
+                    ? `${leaderQuota.remaining} slot${leaderQuota.remaining !== 1 ? 's' : ''} available` 
+                    : "No slots available"}
+                </Badge>
+                {!leaderQuota.canAddMore && (
+                  <span className="text-xs text-muted-foreground">
+                    Remove an existing leader to add a new one.
+                  </span>
+                )}
               </div>
-              <Button
-                variant="destructive"
-                onClick={openDeleteDialog}
-                data-testid="button-cancel-account"
-                className="shrink-0"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Cancel Account
-              </Button>
             </div>
-          </CardContent>
-        </Card>
+          ) : null}
+        </Section>
+
+        <Section title="Danger Zone" description="Irreversible actions that affect your entire ministry." className="border-destructive/50">
+          <div className="flex items-start justify-between gap-4 flex-wrap p-4 border border-destructive/30 rounded-md bg-destructive/5">
+            <div>
+              <h3 className="text-sm font-medium text-destructive">Cancel Ministry Account</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Permanently cancel your ministry account. All data including leaders, converts, and members will be archived.
+                The Platform Admin can restore your account if needed.
+              </p>
+            </div>
+            <Button
+              variant="destructive"
+              onClick={openDeleteDialog}
+              data-testid="button-cancel-account"
+              className="shrink-0"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Cancel Account
+            </Button>
+          </div>
+        </Section>
       </div>
 
-      {/* Image Crop Dialog */}
       <Dialog open={cropDialogOpen} onOpenChange={(open) => !open && handleCropCancel()}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -498,7 +452,7 @@ export default function MinistryAdminSettings() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="relative h-64 w-full bg-muted rounded-lg overflow-hidden">
+            <div className="relative h-64 w-full bg-muted rounded-md overflow-hidden">
               {imageSrc && (
                 <Cropper
                   image={imageSrc}
@@ -515,7 +469,7 @@ export default function MinistryAdminSettings() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Zoom</label>
+              <label className="text-xs font-medium">Zoom</label>
               <Slider
                 value={[zoom]}
                 min={1}
@@ -538,7 +492,6 @@ export default function MinistryAdminSettings() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={(open) => !open && closeDeleteDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

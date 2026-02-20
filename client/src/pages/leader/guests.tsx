@@ -4,8 +4,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -220,20 +221,19 @@ export default function LeaderGuests() {
   });
 
   return (
-    <DashboardLayout title="Guest List">
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Users2 className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">Guest List</h1>
-          </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-add-guest">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Guest
-              </Button>
-            </DialogTrigger>
+        <PageHeader
+          title="Guest List"
+          description="Manage your ministry's guest list"
+          actions={
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-add-guest">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Guest
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Guest</DialogTitle>
@@ -435,22 +435,21 @@ export default function LeaderGuests() {
               </Form>
             </DialogContent>
           </Dialog>
+          }
+        />
+
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search guests..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+            data-testid="input-search-guests"
+          />
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search guests..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                  data-testid="input-search-guests"
-                />
-              </div>
-            </div>
+        <Section noPadding>
 
             {isLoading ? (
               <div className="space-y-2">
@@ -556,8 +555,7 @@ export default function LeaderGuests() {
                 </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </Section>
       </div>
 
       {/* View Guest Dialog */}

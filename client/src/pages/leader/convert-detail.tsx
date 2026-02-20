@@ -6,7 +6,8 @@ import { useRoute, Link, useLocation } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,6 @@ import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
@@ -216,7 +216,7 @@ END:VCALENDAR`;
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Convert Details">
+      <DashboardLayout>
         <div className="space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-48 w-full" />
@@ -228,26 +228,25 @@ END:VCALENDAR`;
 
   if (!convert) {
     return (
-      <DashboardLayout title="Convert Not Found">
-        <Card>
-          <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">Convert not found</h3>
-            <p className="text-muted-foreground mb-4">
+      <DashboardLayout>
+        <Section>
+          <div className="p-12 text-center">
+            <h3 className="text-sm font-semibold mb-2">Convert not found</h3>
+            <p className="text-xs text-muted-foreground mb-4">
               The convert you're looking for doesn't exist or you don't have access.
             </p>
             <Link href={`${basePath}/converts`}>
               <Button>Back to Converts</Button>
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout title="Convert Details">
+    <DashboardLayout>
       <div className="space-y-6">
-        {/* Back button */}
         <Link href={`${basePath}/converts`}>
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
@@ -255,202 +254,158 @@ END:VCALENDAR`;
           </Button>
         </Link>
 
-        {/* Profile Card */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <CardTitle className="text-2xl">
-                  {convert.firstName} {convert.lastName}
-                </CardTitle>
-                <CardDescription>
-                  Convert Date: {format(new Date(convert.createdAt), "MMMM d, yyyy")}
-                </CardDescription>
-              </div>
+        <PageHeader
+          title={`${convert.firstName} ${convert.lastName}`}
+          description={`Convert Date: ${format(new Date(convert.createdAt), "MMMM d, yyyy")}`}
+          actions={
+            <div className="flex items-center gap-2">
+              <Badge className={statusColors[convert.status]}>
+                {convert.status.replace("_", " ")}
+              </Badge>
+              <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1">
+                <Edit className="h-3 w-3" />
+                Edit
+              </Button>
+            </div>
+          }
+        />
+
+        <Section title="Contact Information">
+          <div className="grid gap-4 md:grid-cols-2 text-sm">
+            {convert.phone && (
               <div className="flex items-center gap-2">
-                <Badge className={statusColors[convert.status]}>
-                  {convert.status.replace("_", " ")}
-                </Badge>
-                <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1">
-                  <Edit className="h-3 w-3" />
-                  Edit
-                </Button>
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <a href={`tel:${convert.phone}`} className="hover:underline">
+                  {convert.phone}
+                </a>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Contact Information */}
-            <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Contact Information</h4>
-              <div className="grid gap-4 md:grid-cols-2">
-                {convert.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <a href={`tel:${convert.phone}`} className="hover:underline">
-                      {convert.phone}
-                    </a>
-                  </div>
-                )}
-                {convert.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <a href={`mailto:${convert.email}`} className="hover:underline">
-                      {convert.email}
-                    </a>
-                  </div>
-                )}
-                {convert.address && (
-                  <div className="flex items-center gap-2 md:col-span-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{convert.address}</span>
-                  </div>
-                )}
-                {convert.country && (
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span>{convert.country}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Personal Details */}
-            <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Personal Details</h4>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {convert.dateOfBirth && (
-                  <div className="flex items-center gap-2">
-                    <Cake className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Date of Birth:</span>
-                      {format(new Date(convert.dateOfBirth), "MMMM d, yyyy")}
-                    </span>
-                  </div>
-                )}
-                {convert.gender && (
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Gender:</span>
-                      {convert.gender}
-                    </span>
-                  </div>
-                )}
-                {convert.ageGroup && (
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Age Group:</span>
-                      {convert.ageGroup}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Faith Journey */}
-            <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Faith Journey</h4>
-              <div className="grid gap-4 md:grid-cols-2">
-                {convert.salvationDecision && (
-                  <div className="flex items-start gap-2 md:col-span-2">
-                    <Heart className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Decision:</span>
-                      {convert.salvationDecision}
-                    </span>
-                  </div>
-                )}
-                {convert.isChurchMember !== null && convert.isChurchMember !== undefined && (
-                  <div className="flex items-center gap-2">
-                    <Church className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Ministry Member:</span>
-                      {convert.isChurchMember}
-                    </span>
-                  </div>
-                )}
-                {convert.wantsContact !== null && convert.wantsContact !== undefined && (
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Wants Contact:</span>
-                      {convert.wantsContact}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Prayer Request */}
-            {convert.prayerRequest && (
-              <>
-                <Separator />
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Prayer Request</h4>
-                  <p className="whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">
-                    {convert.prayerRequest}
-                  </p>
-                </div>
-              </>
             )}
-
-            {/* Summary Notes */}
-            {convert.summaryNotes && (
-              <>
-                <Separator />
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Additional Notes
-                  </h4>
-                  <p className="text-muted-foreground whitespace-pre-wrap">
-                    {convert.summaryNotes}
-                  </p>
-                </div>
-              </>
-            )}
-
-            {/* Self-submitted indicator */}
-            {convert.selfSubmitted === "true" && (
-              <>
-                <Separator />
-                <Badge variant="secondary" className="w-fit">
-                  Self-submitted via public form
-                </Badge>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Follow-up Timeline Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between flex-wrap gap-4">
-              <div>
-                <CardTitle>Follow-up Timeline</CardTitle>
-                <CardDescription>
-                  Record and track follow-ups with this convert
-                </CardDescription>
-              </div>
+            {convert.email && (
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => setScheduleDialogOpen(true)}
-                  data-testid="button-schedule-followup"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Schedule Follow-up
-                </Button>
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <a href={`mailto:${convert.email}`} className="hover:underline">
+                  {convert.email}
+                </a>
               </div>
+            )}
+            {convert.address && (
+              <div className="flex items-center gap-2 md:col-span-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span>{convert.address}</span>
+              </div>
+            )}
+            {convert.country && (
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <span>{convert.country}</span>
+              </div>
+            )}
+          </div>
+        </Section>
+
+        <Section title="Personal Details">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 text-sm">
+            {convert.dateOfBirth && (
+              <div className="flex items-center gap-2">
+                <Cake className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Date of Birth:</span>
+                  {format(new Date(convert.dateOfBirth), "MMMM d, yyyy")}
+                </span>
+              </div>
+            )}
+            {convert.gender && (
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Gender:</span>
+                  {convert.gender}
+                </span>
+              </div>
+            )}
+            {convert.ageGroup && (
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Age Group:</span>
+                  {convert.ageGroup}
+                </span>
+              </div>
+            )}
+          </div>
+        </Section>
+
+        <Section title="Faith Journey">
+          <div className="grid gap-4 md:grid-cols-2 text-sm">
+            {convert.salvationDecision && (
+              <div className="flex items-start gap-2 md:col-span-2">
+                <Heart className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Decision:</span>
+                  {convert.salvationDecision}
+                </span>
+              </div>
+            )}
+            {convert.isChurchMember !== null && convert.isChurchMember !== undefined && (
+              <div className="flex items-center gap-2">
+                <Church className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Ministry Member:</span>
+                  {convert.isChurchMember}
+                </span>
+              </div>
+            )}
+            {convert.wantsContact !== null && convert.wantsContact !== undefined && (
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Wants Contact:</span>
+                  {convert.wantsContact}
+                </span>
+              </div>
+            )}
+          </div>
+          {convert.selfSubmitted === "true" && (
+            <div className="mt-3">
+              <Badge variant="secondary" className="w-fit">
+                Self-submitted via public form
+              </Badge>
             </div>
-          </CardHeader>
-          <CardContent>
+          )}
+        </Section>
+
+        {convert.prayerRequest && (
+          <Section title="Prayer Request">
+            <p className="text-sm whitespace-pre-wrap bg-muted/50 p-4 rounded-md">
+              {convert.prayerRequest}
+            </p>
+          </Section>
+        )}
+
+        {convert.summaryNotes && (
+          <Section title="Additional Notes">
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {convert.summaryNotes}
+            </p>
+          </Section>
+        )}
+
+        <Section
+          title="Follow-up Timeline"
+          description="Record and track follow-ups with this convert"
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setScheduleDialogOpen(true)}
+              data-testid="button-schedule-followup"
+            >
+              <Calendar className="h-4 w-4" />
+              Schedule Follow-up
+            </Button>
+          }
+        >
             {convert.checkins && convert.checkins.length > 0 ? (
               <div className="space-y-4">
                 {convert.checkins.map((checkin) => (
@@ -538,8 +493,7 @@ END:VCALENDAR`;
                 <p className="text-muted-foreground">No follow-up notes yet</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </Section>
 
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

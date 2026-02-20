@@ -4,9 +4,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -152,350 +153,342 @@ export default function AdminLeaders() {
   };
 
   return (
-    <DashboardLayout title="Leaders">
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Leader Management</h2>
-            <p className="text-muted-foreground">
-              Create and manage ministry leader accounts
-            </p>
-          </div>
+        <PageHeader
+          title="Leader Management"
+          description="Create and manage ministry leader accounts"
+          actions={
+            <Button className="gap-2" onClick={() => setDialogOpen(true)} data-testid="button-add-leader">
+              <Plus className="h-4 w-4" />
+              Add Leader
+            </Button>
+          }
+        />
 
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2" data-testid="button-add-leader">
-                <Plus className="h-4 w-4" />
-                Add Leader
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Leader</DialogTitle>
-                <DialogDescription>
-                  Create a new leader account and assign them to a ministry.
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit((data) => createMutation.mutate(data))}
-                  className="space-y-4"
-                >
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="First name"
-                              {...field}
-                              data-testid="input-leader-first-name"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Last name"
-                              {...field}
-                              data-testid="input-leader-last-name"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="leader@example.com"
-                            {...field}
-                            data-testid="input-leader-email"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Minimum 8 characters"
-                            {...field}
-                            data-testid="input-leader-password"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="churchId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Assign to Ministry</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-leader-church">
-                              <SelectValue placeholder="Select a ministry" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {churches?.map((church) => (
-                              <SelectItem key={church.id} value={church.id}>
-                                {church.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={createMutation.isPending}
-                      data-testid="button-save-leader"
-                    >
-                      {createMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
-                        </>
-                      ) : (
-                        "Create Leader"
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+        <Section noPadding>
+          {isLoading ? (
+            <div className="p-6 space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : leaders && leaders.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Leader</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Ministry</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {leaders.map((leader) => {
+                  const initials = `${leader.firstName?.[0] || ''}${leader.lastName?.[0] || ''}`.toUpperCase();
 
-          {/* Reset Password Dialog */}
-          <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Reset Password</DialogTitle>
-                <DialogDescription>
-                  Set a new password for {selectedLeader?.firstName} {selectedLeader?.lastName}
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...resetForm}>
-                <form
-                  onSubmit={resetForm.handleSubmit((data) => resetPasswordMutation.mutate(data))}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={resetForm.control}
-                    name="newPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>New Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Minimum 8 characters"
-                            {...field}
-                            data-testid="input-new-password"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setResetDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={resetPasswordMutation.isPending}
-                      data-testid="button-confirm-reset"
-                    >
-                      {resetPasswordMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Resetting...
-                        </>
-                      ) : (
-                        "Reset Password"
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+                  return (
+                    <TableRow key={leader.id} data-testid={`row-leader-${leader.id}`}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="text-xs">
+                              {initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-sm">{leader.firstName} {leader.lastName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Mail className="h-3 w-3" />
+                          {leader.email}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {leader.church ? (
+                          <Badge variant="secondary">{leader.church.name}</Badge>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {format(new Date(leader.createdAt), "MMM d, yyyy")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openResetDialog(leader)}
+                            className="gap-1"
+                            data-testid={`button-reset-password-${leader.id}`}
+                          >
+                            <KeyRound className="h-3 w-3" />
+                            Reset Password
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteDialog(leader)}
+                            className="gap-1 text-destructive hover:text-destructive"
+                            data-testid={`button-delete-leader-${leader.id}`}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-12 text-center">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-sm font-semibold mb-2">No leaders yet</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                {churches && churches.length > 0
+                  ? "Add your first ministry leader"
+                  : "Create a ministry first, then add leaders"}
+              </p>
+              {churches && churches.length > 0 && (
+                <Button onClick={() => setDialogOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Leader
+                </Button>
+              )}
+            </div>
+          )}
+        </Section>
+      </div>
 
-          {/* Delete Confirmation Dialog */}
-          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Leader Account</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete {selectedLeader?.firstName} {selectedLeader?.lastName}'s account? This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteMutation.mutate()}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  disabled={deleteMutation.isPending}
-                  data-testid="button-confirm-delete"
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Leader</DialogTitle>
+            <DialogDescription>
+              Create a new leader account and assign them to a ministry.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit((data) => createMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="First name"
+                          {...field}
+                          data-testid="input-leader-first-name"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Last name"
+                          {...field}
+                          data-testid="input-leader-last-name"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="leader@example.com"
+                        {...field}
+                        data-testid="input-leader-email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Minimum 8 characters"
+                        {...field}
+                        data-testid="input-leader-password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="churchId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign to Ministry</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-leader-church">
+                          <SelectValue placeholder="Select a ministry" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {churches?.map((church) => (
+                          <SelectItem key={church.id} value={church.id}>
+                            {church.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
                 >
-                  {deleteMutation.isPending ? (
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  data-testid="button-save-leader"
+                >
+                  {createMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Deleting...
+                      Creating...
                     </>
                   ) : (
-                    "Delete"
+                    "Create Leader"
                   )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-
-        <Card>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-6 space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
+                </Button>
               </div>
-            ) : leaders && leaders.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Leader</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Ministry</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {leaders.map((leader) => {
-                    const initials = `${leader.firstName?.[0] || ''}${leader.lastName?.[0] || ''}`.toUpperCase();
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
-                    return (
-                      <TableRow key={leader.id} data-testid={`row-leader-${leader.id}`}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="text-xs">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium">{leader.firstName} {leader.lastName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <Mail className="h-3 w-3" />
-                            {leader.email}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {leader.church ? (
-                            <Badge variant="secondary">{leader.church.name}</Badge>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {format(new Date(leader.createdAt), "MMM d, yyyy")}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openResetDialog(leader)}
-                              className="gap-1"
-                              data-testid={`button-reset-password-${leader.id}`}
-                            >
-                              <KeyRound className="h-3 w-3" />
-                              Reset Password
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDeleteDialog(leader)}
-                              className="gap-1 text-destructive hover:text-destructive"
-                              data-testid={`button-delete-leader-${leader.id}`}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              Delete
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="p-12 text-center">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No leaders yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  {churches && churches.length > 0
-                    ? "Add your first ministry leader"
-                    : "Create a ministry first, then add leaders"}
-                </p>
-                {churches && churches.length > 0 && (
-                  <Button onClick={() => setDialogOpen(true)} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add Leader
-                  </Button>
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Set a new password for {selectedLeader?.firstName} {selectedLeader?.lastName}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...resetForm}>
+            <form
+              onSubmit={resetForm.handleSubmit((data) => resetPasswordMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <FormField
+                control={resetForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Minimum 8 characters"
+                        {...field}
+                        data-testid="input-new-password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setResetDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={resetPasswordMutation.isPending}
+                  data-testid="button-confirm-reset"
+                >
+                  {resetPasswordMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Resetting...
+                    </>
+                  ) : (
+                    "Reset Password"
+                  )}
+                </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Leader Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedLeader?.firstName} {selectedLeader?.lastName}'s account? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

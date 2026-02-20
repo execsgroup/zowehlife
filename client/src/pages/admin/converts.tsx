@@ -4,12 +4,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -139,171 +139,161 @@ export default function AdminConverts() {
   });
 
   return (
-    <DashboardLayout title="All Converts">
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Converts Overview</h2>
-            <p className="text-muted-foreground">
-              View and filter all converts across ministries
-            </p>
-          </div>
+        <PageHeader
+          title="Converts Overview"
+          description="View and filter all converts across ministries"
+          actions={
+            <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
+              <FileSpreadsheet className="h-4 w-4" />
+              Export Excel
+            </Button>
+          }
+        />
 
-          <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
-            <FileSpreadsheet className="h-4 w-4" />
-            Export Excel
-          </Button>
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, phone, or email..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                  data-testid="input-search-converts"
-                />
-              </div>
-
-              <Select value={churchFilter} onValueChange={setChurchFilter}>
-                <SelectTrigger className="w-full sm:w-48" data-testid="select-church-filter">
-                  <SelectValue placeholder="All Ministries" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Ministries</SelectItem>
-                  {churches?.map((church) => (
-                    <SelectItem key={church.id} value={church.id}>
-                      {church.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-40" data-testid="select-status-filter">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="NEW">New</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="CONNECTED">Connected</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+        <Section>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, phone, or email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-converts"
+              />
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Results */}
-        <Card>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-6 space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+            <Select value={churchFilter} onValueChange={setChurchFilter}>
+              <SelectTrigger className="w-full sm:w-48" data-testid="select-church-filter">
+                <SelectValue placeholder="All Ministries" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Ministries</SelectItem>
+                {churches?.map((church) => (
+                  <SelectItem key={church.id} value={church.id}>
+                    {church.name}
+                  </SelectItem>
                 ))}
-              </div>
-            ) : filteredConverts && filteredConverts.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Ministry</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Convert Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredConverts.map((convert) => (
-                    <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
-                      <TableCell className="font-medium">
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-40" data-testid="select-status-filter">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="NEW">New</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="CONNECTED">Connected</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </Section>
+
+        <Section noPadding>
+          {isLoading ? (
+            <div className="p-6 space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : filteredConverts && filteredConverts.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Ministry</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Convert Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredConverts.map((convert) => (
+                  <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
+                    <TableCell className="font-medium text-sm">
+                      <Link href={`/admin/converts/${convert.id}`}>
+                        <span className="hover:underline cursor-pointer text-primary" data-testid={`link-convert-name-${convert.id}`}>
+                          {convert.firstName} {convert.lastName}
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {convert.phone && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {convert.phone}
+                          </div>
+                        )}
+                        {convert.email && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            {convert.email}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{convert.church?.name || "—"}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={statusColors[convert.status] || ""}>
+                        {convert.status.replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {format(new Date(convert.createdAt), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <Link href={`/admin/converts/${convert.id}`}>
-                          <span className="hover:underline cursor-pointer text-primary" data-testid={`link-convert-name-${convert.id}`}>
-                            {convert.firstName} {convert.lastName}
-                          </span>
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          {convert.phone && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Phone className="h-3 w-3" />
-                              {convert.phone}
-                            </div>
-                          )}
-                          {convert.email && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Mail className="h-3 w-3" />
-                              {convert.email}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{convert.church?.name || "—"}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={statusColors[convert.status] || ""}>
-                          {convert.status.replace("_", " ")}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(convert.createdAt), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Link href={`/admin/converts/${convert.id}`}>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="gap-1"
-                              data-testid={`button-view-convert-${convert.id}`}
-                            >
-                              <Eye className="h-3 w-3" />
-                              View
-                            </Button>
-                          </Link>
                           <Button
                             variant="ghost"
                             size="sm"
                             className="gap-1"
-                            onClick={() => handleFollowUp(convert)}
-                            data-testid={`button-followup-convert-${convert.id}`}
+                            data-testid={`button-view-convert-${convert.id}`}
                           >
-                            <MessageSquarePlus className="h-3 w-3" />
-                            Follow Up
+                            <Eye className="h-3 w-3" />
+                            View
                           </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="p-12 text-center">
-                <UserPlus className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No converts found</h3>
-                <p className="text-muted-foreground">
-                  {search || churchFilter !== "all" || statusFilter !== "all"
-                    ? "Try adjusting your filters"
-                    : "Converts will appear here once leaders add them"}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => handleFollowUp(convert)}
+                          data-testid={`button-followup-convert-${convert.id}`}
+                        >
+                          <MessageSquarePlus className="h-3 w-3" />
+                          Follow Up
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-12 text-center">
+              <UserPlus className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-sm font-semibold mb-2">No converts found</h3>
+              <p className="text-xs text-muted-foreground">
+                {search || churchFilter !== "all" || statusFilter !== "all"
+                  ? "Try adjusting your filters"
+                  : "Converts will appear here once leaders add them"}
+              </p>
+            </div>
+          )}
+        </Section>
       </div>
 
-      {/* Follow Up Check-in Dialog */}
       <Dialog open={followUpDialogOpen} onOpenChange={setFollowUpDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

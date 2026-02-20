@@ -6,7 +6,8 @@ import { useRoute, Link, useLocation } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,6 @@ import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -209,7 +209,7 @@ export default function NewMemberDetail() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="New Member & Guest Details">
+      <DashboardLayout>
         <div className="space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-48 w-full" />
@@ -221,24 +221,24 @@ export default function NewMemberDetail() {
 
   if (!newMember) {
     return (
-      <DashboardLayout title="New Member & Guest Not Found">
-        <Card>
-          <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">New member & guest not found</h3>
-            <p className="text-muted-foreground mb-4">
+      <DashboardLayout>
+        <Section>
+          <div className="p-12 text-center">
+            <h3 className="text-sm font-semibold mb-2">New member & guest not found</h3>
+            <p className="text-xs text-muted-foreground mb-4">
               The new member & guest you're looking for doesn't exist or you don't have access.
             </p>
             <Link href={`${basePath}/new-members`}>
               <Button>Back to New Members & Guests</Button>
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout title="New Member & Guest Details">
+    <DashboardLayout>
       <div className="space-y-6">
         <Link href={`${basePath}/new-members`}>
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
@@ -247,152 +247,126 @@ export default function NewMemberDetail() {
           </Button>
         </Link>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <CardTitle className="text-2xl">
-                  {newMember.firstName} {newMember.lastName}
-                </CardTitle>
-                <CardDescription>
-                  Joined: {format(new Date(newMember.createdAt), "MMMM d, yyyy")}
-                </CardDescription>
-              </div>
+        <PageHeader
+          title={`${newMember.firstName} ${newMember.lastName}`}
+          description={`Joined: ${format(new Date(newMember.createdAt), "MMMM d, yyyy")}`}
+          actions={
+            <div className="flex items-center gap-2">
+              <Badge className={statusColors[newMember.status]}>
+                {newMember.status.replace("_", " ")}
+              </Badge>
+              <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1">
+                <Edit className="h-3 w-3" />
+                Edit
+              </Button>
+            </div>
+          }
+        />
+
+        <Section title="Contact Information">
+          <div className="grid gap-4 md:grid-cols-2 text-sm">
+            {newMember.phone && (
               <div className="flex items-center gap-2">
-                <Badge className={statusColors[newMember.status]}>
-                  {newMember.status.replace("_", " ")}
-                </Badge>
-                <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1">
-                  <Edit className="h-3 w-3" />
-                  Edit
-                </Button>
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <a href={`tel:${newMember.phone}`} className="hover:underline">
+                  {newMember.phone}
+                </a>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Contact Information</h4>
-              <div className="grid gap-4 md:grid-cols-2">
-                {newMember.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <a href={`tel:${newMember.phone}`} className="hover:underline">
-                      {newMember.phone}
-                    </a>
-                  </div>
-                )}
-                {newMember.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <a href={`mailto:${newMember.email}`} className="hover:underline">
-                      {newMember.email}
-                    </a>
-                  </div>
-                )}
-                {newMember.address && (
-                  <div className="flex items-center gap-2 md:col-span-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{newMember.address}</span>
-                  </div>
-                )}
-                {newMember.country && (
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span>{newMember.country}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Personal Details</h4>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {newMember.dateOfBirth && (
-                  <div className="flex items-center gap-2">
-                    <Cake className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Date of Birth:</span>
-                      {format(new Date(newMember.dateOfBirth), "MMMM d, yyyy")}
-                    </span>
-                  </div>
-                )}
-                {newMember.gender && (
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Gender:</span>
-                      {newMember.gender}
-                    </span>
-                  </div>
-                )}
-                {newMember.ageGroup && (
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="text-muted-foreground mr-1">Age Group:</span>
-                      {newMember.ageGroup}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {newMember.notes && (
-              <>
-                <Separator />
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Notes</h4>
-                  <p className="whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">
-                    {newMember.notes}
-                  </p>
-                </div>
-              </>
             )}
-
-            {newMember.selfSubmitted === "true" && (
-              <>
-                <Separator />
-                <Badge variant="secondary" className="w-fit">
-                  Self-submitted via public form
-                </Badge>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between flex-wrap gap-4">
-              <div>
-                <CardTitle>Follow-up Timeline</CardTitle>
-                <CardDescription>
-                  Record and track follow-ups with this new member & guest
-                </CardDescription>
-              </div>
+            {newMember.email && (
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  className="gap-2" 
-                  onClick={() => setScheduleDialogOpen(true)}
-                  data-testid="button-schedule-followup"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Schedule Follow-up
-                </Button>
-                <NewMemberScheduleFollowUpDialog
-                  open={scheduleDialogOpen}
-                  onOpenChange={setScheduleDialogOpen}
-                  newMemberId={newMemberId || ""}
-                  newMemberFirstName={newMember.firstName}
-                  newMemberLastName={newMember.lastName}
-                  newMemberPhone={newMember.phone}
-                />
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <a href={`mailto:${newMember.email}`} className="hover:underline">
+                  {newMember.email}
+                </a>
               </div>
+            )}
+            {newMember.address && (
+              <div className="flex items-center gap-2 md:col-span-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span>{newMember.address}</span>
+              </div>
+            )}
+            {newMember.country && (
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <span>{newMember.country}</span>
+              </div>
+            )}
+          </div>
+        </Section>
+
+        <Section title="Personal Details">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 text-sm">
+            {newMember.dateOfBirth && (
+              <div className="flex items-center gap-2">
+                <Cake className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Date of Birth:</span>
+                  {format(new Date(newMember.dateOfBirth), "MMMM d, yyyy")}
+                </span>
+              </div>
+            )}
+            {newMember.gender && (
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Gender:</span>
+                  {newMember.gender}
+                </span>
+              </div>
+            )}
+            {newMember.ageGroup && (
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>
+                  <span className="text-xs text-muted-foreground mr-1">Age Group:</span>
+                  {newMember.ageGroup}
+                </span>
+              </div>
+            )}
+          </div>
+          {newMember.selfSubmitted === "true" && (
+            <div className="mt-3">
+              <Badge variant="secondary" className="w-fit">
+                Self-submitted via public form
+              </Badge>
             </div>
-          </CardHeader>
-          <CardContent>
+          )}
+        </Section>
+
+        {newMember.notes && (
+          <Section title="Notes">
+            <p className="text-sm whitespace-pre-wrap bg-muted/50 p-4 rounded-md">
+              {newMember.notes}
+            </p>
+          </Section>
+        )}
+
+        <Section
+          title="Follow-up Timeline"
+          description="Record and track follow-ups with this new member & guest"
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setScheduleDialogOpen(true)}
+              data-testid="button-schedule-followup"
+            >
+              <Calendar className="h-4 w-4" />
+              Schedule Follow-up
+            </Button>
+          }
+        >
+          <NewMemberScheduleFollowUpDialog
+            open={scheduleDialogOpen}
+            onOpenChange={setScheduleDialogOpen}
+            newMemberId={newMemberId || ""}
+            newMemberFirstName={newMember.firstName}
+            newMemberLastName={newMember.lastName}
+            newMemberPhone={newMember.phone}
+          />
             {newMember.checkins && newMember.checkins.length > 0 ? (
               <div className="space-y-4">
                 {newMember.checkins.map((checkin) => (
@@ -470,8 +444,7 @@ export default function NewMemberDetail() {
                 <p className="text-muted-foreground">No follow-up notes yet</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </Section>
 
         <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
           <DialogContent>

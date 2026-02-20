@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocation, Link } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -347,17 +349,12 @@ export default function LeaderNewMembers() {
   });
 
   return (
-    <DashboardLayout title="New Members & Guests">
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">New Members & Guests</h2>
-            <p className="text-muted-foreground">
-              Manage and track new members & guests of your ministry
-            </p>
-          </div>
-
-          <div className="flex gap-2">
+        <PageHeader
+          title="New Members & Guests"
+          description="Manage and track new members & guests of your ministry"
+          actions={
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2" data-testid="button-add-new-member">
@@ -607,12 +604,12 @@ export default function LeaderNewMembers() {
                 </Form>
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
+          }
+        />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-6 flex-wrap">
+        <Section>
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -783,8 +780,8 @@ export default function LeaderNewMembers() {
                 </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
       </div>
 
       {/* Convert to Member Confirmation Dialog */}

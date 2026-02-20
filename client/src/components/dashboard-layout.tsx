@@ -11,7 +11,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   const style = {
-    "--sidebar-width": "16rem",
+    "--sidebar-width": "15rem",
     "--sidebar-width-icon": "3rem",
   };
 
@@ -20,16 +20,18 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
       <div className="flex h-screen w-full">
         <AppSidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center justify-between gap-4 border-b px-4 h-14 flex-shrink-0">
-            <div className="flex items-center gap-4">
+          <header className="flex items-center justify-between gap-4 border-b bg-card px-4 h-12 flex-shrink-0">
+            <div className="flex items-center gap-3">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
-              {title && <h1 className="font-semibold text-lg">{title}</h1>}
+              {title && <h1 className="font-medium text-sm">{title}</h1>}
             </div>
             <ThemeToggle />
           </header>
-          <main className="flex-1 overflow-auto p-6">
+          <main className="flex-1 overflow-auto px-6 py-6">
             <SubscriptionBanner />
-            {children}
+            <div className="space-y-6">
+              {children}
+            </div>
           </main>
         </div>
       </div>

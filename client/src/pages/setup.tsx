@@ -59,7 +59,7 @@ export default function Setup() {
 
   if (checkingSetup) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="flex items-center gap-2">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>Checking setup status...</span>
@@ -70,12 +70,12 @@ export default function Setup() {
 
   if (setupStatus && !setupStatus.available) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-muted p-4">
         <div className="w-full max-w-md">
           <Card className="text-center">
             <CardContent className="pt-8 pb-6">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-coral/10 mb-4">
-                <CheckCircle2 className="h-8 w-8 text-coral" />
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
+                <CheckCircle2 className="h-8 w-8 text-primary" />
               </div>
               <h2 className="text-2xl font-bold mb-2">Setup Complete</h2>
               <p className="text-muted-foreground mb-6">
@@ -92,11 +92,11 @@ export default function Setup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
+            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary">
               <Heart className="h-6 w-6 text-primary-foreground" />
             </div>
           </Link>
@@ -112,7 +112,7 @@ export default function Setup() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-muted/50 rounded-lg p-4 mb-6 flex items-start gap-3">
+            <div className="bg-muted/50 rounded-md p-4 mb-6 flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
                 This setup page will be disabled after the first admin account is created. Make sure

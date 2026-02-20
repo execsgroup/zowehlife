@@ -3,7 +3,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,9 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { UserPlus, Mail, Phone, Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { UserPlus, Mail, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 
 interface Leader {
@@ -140,115 +141,106 @@ export default function MinistryAdminLeaders() {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">Manage Leaders</h1>
-            <p className="text-muted-foreground">Add and manage leaders for your ministry</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {quota && (
-              <Badge variant={quota.canAddMore ? "secondary" : "destructive"} data-testid="badge-quota">
-                {quota.currentCount}/{quota.maxAllowed} Leaders
-              </Badge>
-            )}
-            <Button
-              onClick={() => setAddDialogOpen(true)}
-              disabled={!quota?.canAddMore}
-              data-testid="button-add-leader"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Leader
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Manage Leaders"
+          description="Add and manage leaders for your ministry"
+          actions={
+            <div className="flex items-center gap-4 flex-wrap">
+              {quota && (
+                <Badge variant={quota.canAddMore ? "secondary" : "destructive"} data-testid="badge-quota">
+                  {quota.currentCount}/{quota.maxAllowed} Leaders
+                </Badge>
+              )}
+              <Button
+                onClick={() => setAddDialogOpen(true)}
+                disabled={!quota?.canAddMore}
+                data-testid="button-add-leader"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add Leader
+              </Button>
+            </div>
+          }
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Ministry Leaders
-            </CardTitle>
-            <CardDescription>
-              Leaders can manage converts, new members, and members for your ministry
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : !leaders || leaders.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="font-medium">No Leaders Yet</p>
-                <p className="text-sm mt-1">Add your first leader to get started</p>
-                {quota?.canAddMore && (
-                  <Button className="mt-4" onClick={() => setAddDialogOpen(true)} data-testid="button-add-first-leader">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add Leader
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Added</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+        <Section
+          title="Ministry Leaders"
+          description="Leaders can manage converts, new members, and members for your ministry"
+          noPadding
+        >
+          {isLoading ? (
+            <div className="space-y-4 p-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : !leaders || leaders.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground p-4">
+              <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm font-medium">No Leaders Yet</p>
+              <p className="text-xs mt-1">Add your first leader to get started</p>
+              {quota?.canAddMore && (
+                <Button className="mt-4" onClick={() => setAddDialogOpen(true)} data-testid="button-add-first-leader">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add Leader
+                </Button>
+              )}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Added</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {leaders.map((leader) => (
+                  <TableRow key={leader.id} data-testid={`row-leader-${leader.id}`}>
+                    <TableCell className="font-medium text-sm">
+                      {leader.firstName} {leader.lastName}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Mail className="h-3 w-3" />
+                        {leader.email}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {format(new Date(leader.createdAt), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClick(leader)}
+                        data-testid={`button-delete-leader-${leader.id}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {leaders.map((leader) => (
-                    <TableRow key={leader.id} data-testid={`row-leader-${leader.id}`}>
-                      <TableCell className="font-medium">
-                        {leader.firstName} {leader.lastName}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Mail className="h-3 w-3" />
-                          {leader.email}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(leader.createdAt), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteClick(leader)}
-                          data-testid={`button-delete-leader-${leader.id}`}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Section>
 
         {!isLoadingQuota && quota && !quota.canAddMore && (
-          <Card className="border-accent/50">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">Leader Limit Reached</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    You have reached the maximum of {quota.maxAllowed} leaders for your ministry. 
-                    Remove an existing leader to add a new one.
-                  </p>
-                </div>
+          <div className="rounded-md border border-accent/50 p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">Leader Limit Reached</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  You have reached the maximum of {quota.maxAllowed} leaders for your ministry. 
+                  Remove an existing leader to add a new one.
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
 

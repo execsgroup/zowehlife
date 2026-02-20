@@ -17,7 +17,6 @@ const journeySteps = [
       "Take notes and highlight meaningful verses",
       "Consider joining a Bible study group",
     ],
-    color: "primary",
   },
   {
     icon: MessageCircle,
@@ -30,7 +29,6 @@ const journeySteps = [
       "Pray for others",
       "Listen for God's guidance",
     ],
-    color: "accent",
   },
   {
     icon: Users,
@@ -43,7 +41,6 @@ const journeySteps = [
       "Build friendships with fellow believers",
       "Be open to mentorship",
     ],
-    color: "coral",
   },
   {
     icon: Droplets,
@@ -56,7 +53,6 @@ const journeySteps = [
       "Share your testimony",
       "Celebrate this milestone",
     ],
-    color: "gold",
   },
   {
     icon: GraduationCap,
@@ -69,7 +65,6 @@ const journeySteps = [
       "Serve in ministry",
       "Develop spiritual disciplines",
     ],
-    color: "destructive",
   },
 ];
 
@@ -80,16 +75,16 @@ export default function Journey() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="bg-gradient-to-br from-accent/10 via-background to-background py-16 md:py-24">
+        <section className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-accent/10 mb-6">
-                <Heart className="h-8 w-8 text-accent" />
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6">
+                <Heart className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold mb-6">
                 Your New Believer Journey
               </h1>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 Congratulations on your decision to follow Jesus! This is the beginning of an
                 amazing adventure. Here's a roadmap to help you grow in your faith.
               </p>
@@ -107,9 +102,9 @@ export default function Journey() {
                   return (
                     <Card key={step.title} className="overflow-hidden">
                       <div className="flex flex-col md:flex-row">
-                        <div className={`bg-${step.color}/10 p-6 md:p-8 flex flex-col items-center justify-center md:w-48`}>
+                        <div className="bg-muted p-6 md:p-8 flex flex-col items-center justify-center md:w-48">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background mb-2">
-                            <Icon className={`h-6 w-6 text-${step.color}`} />
+                            <Icon className="h-6 w-6 text-primary" />
                           </div>
                           <span className="text-sm font-medium text-muted-foreground">
                             Step {index + 1}
@@ -145,7 +140,7 @@ export default function Journey() {
         <section className="py-16 md:py-24 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
+              <h2 className="text-xl md:text-2xl font-bold text-center mb-8">
                 Recommended Resources
               </h2>
 
@@ -193,19 +188,19 @@ export default function Journey() {
                   <CardContent>
                     <ul className="space-y-3 text-sm">
                       <li className="flex items-start gap-2">
-                        <span className="text-coral mt-0.5">✓</span>
+                        <span className="text-primary mt-0.5">&#10003;</span>
                         <span><strong>Morning:</strong> Start with prayer and Bible reading</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-coral mt-0.5">✓</span>
+                        <span className="text-primary mt-0.5">&#10003;</span>
                         <span><strong>Throughout day:</strong> Practice gratitude and thankfulness</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-coral mt-0.5">✓</span>
+                        <span className="text-primary mt-0.5">&#10003;</span>
                         <span><strong>Evening:</strong> Reflect on your day with God</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-coral mt-0.5">✓</span>
+                        <span className="text-primary mt-0.5">&#10003;</span>
                         <span><strong>Weekly:</strong> Attend church and connect with believers</span>
                       </li>
                     </ul>
@@ -220,7 +215,7 @@ export default function Journey() {
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">
+              <h2 className="text-xl md:text-2xl font-bold mb-4">
                 Need Help Getting Started?
               </h2>
               <p className="text-muted-foreground mb-8">

@@ -65,7 +65,7 @@ export default function ClaimAccount() {
 
   if (claimed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-muted p-4">
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="pt-6">
@@ -91,11 +91,11 @@ export default function ClaimAccount() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
+            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary">
               <Heart className="h-6 w-6 text-primary-foreground" />
             </div>
           </Link>

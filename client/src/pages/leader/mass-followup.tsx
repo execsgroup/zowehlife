@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -172,19 +173,15 @@ export default function MassFollowUp() {
   const canSubmit = selectedIds.size > 0 && followUpDate && !massFollowUpMutation.isPending;
 
   return (
-    <DashboardLayout title="Mass Follow-Up">
+    <DashboardLayout>
       <div className="space-y-6 max-w-5xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Mass Follow-Up Scheduling
-            </CardTitle>
-            <CardDescription>
-              Schedule follow-ups for multiple people at once. Each person will receive a unique video call link and email notification.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <PageHeader
+          title="Mass Follow-Up"
+          description="Schedule follow-ups for multiple people at once. Each person will receive a unique video call link and email notification."
+        />
+
+        <Section>
+          <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
               <div className="space-y-2">
                 <Label>Category</Label>
@@ -247,56 +244,50 @@ export default function MassFollowUp() {
                 <span className="ml-2">Search</span>
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
 
         {isLoadingCandidates && (
-          <Card>
-            <CardContent className="py-6">
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map(i => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <Section>
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map(i => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          </Section>
         )}
 
         {!isLoadingCandidates && hasFetched && candidates.length === 0 && (
-          <Card>
-            <CardContent className="py-8 text-center">
+          <Section>
+            <div className="py-8 text-center">
               <Filter className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
               <p className="text-muted-foreground">
                 No {categoryLabels[category] || "people"} found matching your criteria. Try adjusting the date filters.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </Section>
         )}
 
         {!isLoadingCandidates && candidates.length > 0 && !results && (
           <>
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <CardTitle className="text-base">
-                    {categoryLabels[category]} ({candidates.length} found)
-                  </CardTitle>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary">
-                      {selectedIds.size} selected
-                    </Badge>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={toggleSelectAll}
-                      data-testid="button-select-all"
-                    >
-                      {selectedIds.size === candidates.length ? "Deselect All" : "Select All"}
-                    </Button>
-                  </div>
+            <Section
+              title={`${categoryLabels[category]} (${candidates.length} found)`}
+              actions={
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">
+                    {selectedIds.size} selected
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleSelectAll}
+                    data-testid="button-select-all"
+                  >
+                    {selectedIds.size === candidates.length ? "Deselect All" : "Select All"}
+                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
+              }
+            >
                 <div className="rounded-md border overflow-auto max-h-96">
                   <Table>
                     <TableHeader>
@@ -354,18 +345,13 @@ export default function MassFollowUp() {
                     </TableBody>
                   </Table>
                 </div>
-              </CardContent>
-            </Card>
+            </Section>
 
             {selectedIds.size > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <CalendarPlus className="h-5 w-5" />
-                    Schedule Follow-Up for {selectedIds.size} {selectedIds.size === 1 ? "Person" : "People"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <Section
+                title={`Schedule Follow-Up for ${selectedIds.size} ${selectedIds.size === 1 ? "Person" : "People"}`}
+              >
+                <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="followup-date" className="flex items-center gap-2">
@@ -446,23 +432,17 @@ export default function MassFollowUp() {
                     )}
                     Schedule Follow-Up for {selectedIds.size} {selectedIds.size === 1 ? "Person" : "People"}
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </Section>
             )}
           </>
         )}
 
         {results && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Results</CardTitle>
-              <CardDescription>
-                {results.filter(r => r.success).length} follow-ups scheduled successfully
-                {results.filter(r => !r.success).length > 0 &&
-                  `, ${results.filter(r => !r.success).length} failed`}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <Section
+            title="Results"
+            description={`${results.filter(r => r.success).length} follow-ups scheduled successfully${results.filter(r => !r.success).length > 0 ? `, ${results.filter(r => !r.success).length} failed` : ""}`}
+          >
               <div className="rounded-md border overflow-auto max-h-80">
                 <Table>
                   <TableHeader>
@@ -507,8 +487,7 @@ export default function MassFollowUp() {
                   Schedule More
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+          </Section>
         )}
       </div>
     </DashboardLayout>

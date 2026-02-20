@@ -139,7 +139,7 @@ export default function RegisterMinistry() {
       <PublicNav />
 
       <main className="flex-1">
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
+        <section className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4 text-center">
             <Button
               variant="ghost"
@@ -158,20 +158,20 @@ export default function RegisterMinistry() {
             </Button>
             {step === "plan" ? (
               <>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-4">
                   Choose a Plan to{" "}
                   <span className="text-primary">Start Your Ministry</span>
                 </h1>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-base text-muted-foreground max-w-2xl mx-auto">
                   Select the tier that best fits your ministry's needs. You can always upgrade later as you grow.
                 </p>
               </>
             ) : (
               <>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-4">
                   Register Your Ministry
                 </h1>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-base text-muted-foreground max-w-2xl mx-auto">
                   {isFreePlan
                     ? "Fill out the details below to register your ministry for free."
                     : "Fill out the details below. After submitting, you'll be directed to complete payment."}
@@ -179,8 +179,6 @@ export default function RegisterMinistry() {
               </>
             )}
           </div>
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
         </section>
 
         {step === "plan" && (

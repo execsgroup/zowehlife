@@ -12,16 +12,16 @@ export default function Salvation() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="bg-gradient-to-br from-primary/10 via-background to-background py-16 md:py-24">
+        <section className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6">
                 <Cross className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold mb-6">
                 The Gift of Salvation
               </h1>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 God loves you and has a wonderful plan for your life. Discover how you can
                 experience His love, forgiveness, and eternal life.
               </p>
@@ -60,7 +60,7 @@ export default function Salvation() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
                         2
                       </div>
                       <CardTitle className="text-xl md:text-2xl">We All Have Sinned</CardTitle>
@@ -82,7 +82,7 @@ export default function Salvation() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-coral/10 text-coral font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
                         3
                       </div>
                       <CardTitle className="text-xl md:text-2xl">Jesus Paid the Price</CardTitle>
@@ -105,7 +105,7 @@ export default function Salvation() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gold/10 text-gold font-bold">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
                         4
                       </div>
                       <CardTitle className="text-xl md:text-2xl">Receive Jesus Today</CardTitle>
@@ -135,7 +135,7 @@ export default function Salvation() {
               <Card className="overflow-hidden">
                 <div className="bg-primary p-6 md:p-8 text-primary-foreground text-center">
                   <Heart className="h-10 w-10 mx-auto mb-4" />
-                  <h2 className="text-2xl md:text-3xl font-bold">A Prayer for Salvation</h2>
+                  <h2 className="text-xl md:text-2xl font-bold">A Prayer for Salvation</h2>
                 </div>
                 <CardContent className="p-6 md:p-8">
                   <p className="text-muted-foreground mb-6">
@@ -143,7 +143,7 @@ export default function Salvation() {
                     prayer from your heart:
                   </p>
 
-                  <div className="bg-muted/50 rounded-lg p-6 mb-6">
+                  <div className="bg-muted/50 rounded-md p-6 mb-6">
                     <p className="text-lg italic leading-relaxed">
                       "Dear God, I know that I am a sinner and I need Your forgiveness. I believe
                       that Jesus Christ died for my sins and rose from the dead. I turn from my sins
@@ -154,7 +154,7 @@ export default function Salvation() {
 
                   <div className="space-y-3">
                     <h4 className="font-semibold flex items-center gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-coral" />
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
                       If You Prayed This Prayer
                     </h4>
                     <p className="text-muted-foreground">

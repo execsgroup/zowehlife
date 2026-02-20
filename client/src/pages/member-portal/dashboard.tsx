@@ -128,11 +128,11 @@ export default function MemberDashboard() {
   const getRelationshipBadge = (type: string) => {
     switch (type) {
       case "convert":
-        return <Badge className="bg-coral/10 text-coral border-coral/20">New Believer</Badge>;
+        return <Badge variant="secondary">New Believer</Badge>;
       case "new_member":
-        return <Badge className="bg-gold/10 text-gold border-gold/20">New Member & Guest</Badge>;
+        return <Badge variant="secondary">New Member & Guest</Badge>;
       case "member":
-        return <Badge className="bg-accent/10 text-accent border-accent/20">Member</Badge>;
+        return <Badge variant="default">Member</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
@@ -140,7 +140,7 @@ export default function MemberDashboard() {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+      <div className="min-h-screen bg-muted p-4">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
             <Skeleton className="h-10 w-48" />
@@ -154,11 +154,11 @@ export default function MemberDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+    <div className="min-h-screen bg-muted p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
+            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary">
               <Heart className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
@@ -207,7 +207,7 @@ export default function MemberDashboard() {
             <Card className="hover-elevate cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
                     <User className="h-5 w-5 text-primary" />
                   </div>
                   <div>
@@ -224,8 +224,8 @@ export default function MemberDashboard() {
             <Card className="hover-elevate cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-coral/10">
-                    <HandHeart className="h-5 w-5 text-coral" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
+                    <HandHeart className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">Prayer Requests</CardTitle>
@@ -243,8 +243,8 @@ export default function MemberDashboard() {
             <Card className="hover-elevate cursor-pointer h-full">
               <CardHeader className="flex flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
-                    <BookOpen className="h-5 w-5 text-accent" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
+                    <BookOpen className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">My Journal</CardTitle>
@@ -278,7 +278,7 @@ export default function MemberDashboard() {
                   .map((followUp) => (
                     <div
                       key={followUp.id}
-                      className="flex items-center justify-between p-3 rounded-lg border"
+                      className="flex items-center justify-between p-3 rounded-md border"
                     >
                       <div className="flex items-center gap-3">
                         <Calendar className="h-5 w-5 text-muted-foreground" />
@@ -344,7 +344,7 @@ export default function MemberDashboard() {
                 {journeyData.journey.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 rounded-lg border"
+                    className="flex items-center justify-between p-3 rounded-md border"
                   >
                     <div className="flex items-center gap-3">
                       <Church className="h-5 w-5 text-muted-foreground" />

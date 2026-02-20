@@ -5,8 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocation, Link } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -219,28 +220,24 @@ export default function LeaderConverts() {
   };
 
   return (
-    <DashboardLayout title="My Converts">
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Converts</h2>
-            <p className="text-muted-foreground">
-              Manage and track your ministry's new converts
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
-              <FileSpreadsheet className="h-4 w-4" />
-              Export Excel
-            </Button>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2" data-testid="button-add-convert">
-                <Plus className="h-4 w-4" />
-                Add Convert
+        <PageHeader
+          title="Converts"
+          description="Manage and track your ministry's new converts"
+          actions={
+            <div className="flex gap-2">
+              <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
+                <FileSpreadsheet className="h-4 w-4" />
+                Export Excel
               </Button>
-            </DialogTrigger>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2" data-testid="button-add-convert">
+                  <Plus className="h-4 w-4" />
+                  Add Convert
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Convert</DialogTitle>
@@ -560,47 +557,43 @@ export default function LeaderConverts() {
               </Form>
             </DialogContent>
           </Dialog>
-          </div>
-        </div>
+            </div>
+          }
+        />
 
         {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, phone, or email..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                  data-testid="input-search-converts"
-                />
-              </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, phone, or email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+              data-testid="input-search-converts"
+            />
+          </div>
 
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-40" data-testid="select-status-filter">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="NEW">New</SelectItem>
-                  <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                  <SelectItem value="CONNECTED">Connected</SelectItem>
-                  <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                  <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                  <SelectItem value="REFERRED">Referred</SelectItem>
-                  <SelectItem value="NOT_COMPLETED">Not Completed</SelectItem>
-                  <SelectItem value="NEVER_CONTACTED">Never Contacted</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-40" data-testid="select-status-filter">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="NEW">New</SelectItem>
+              <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+              <SelectItem value="CONNECTED">Connected</SelectItem>
+              <SelectItem value="NO_RESPONSE">No Response</SelectItem>
+              <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
+              <SelectItem value="REFERRED">Referred</SelectItem>
+              <SelectItem value="NOT_COMPLETED">Not Completed</SelectItem>
+              <SelectItem value="NEVER_CONTACTED">Never Contacted</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Results */}
-        <Card>
-          <CardContent className="p-0">
+        <Section noPadding>
             {isLoading ? (
               <div className="p-6 space-y-4">
                 {[...Array(5)].map((_, i) => (
@@ -724,8 +717,7 @@ export default function LeaderConverts() {
                 )}
               </div>
             )}
-          </CardContent>
-        </Card>
+        </Section>
       </div>
 
       <ConvertScheduleFollowUpDialog

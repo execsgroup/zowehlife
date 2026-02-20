@@ -122,46 +122,44 @@ export function AppSidebar() {
   };
 
   const getRoleLabel = () => {
-    if (user?.role === "ADMIN") return "Platform Administrator";
-    if (user?.role === "MINISTRY_ADMIN") return "Ministry Administrator";
-    return "Ministry Leader";
+    if (user?.role === "ADMIN") return "Platform Admin";
+    if (user?.role === "MINISTRY_ADMIN") return "Ministry Admin";
+    return "Leader";
   };
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4">
-        <Link href="/" className="flex items-center gap-3">
+      <SidebarHeader className="px-3 py-3 border-b">
+        <Link href="/" className="flex items-center gap-2.5">
           {showChurchLogo ? (
-            <Avatar className="h-9 w-9 rounded-full">
+            <Avatar className="h-7 w-7 rounded-md">
               <AvatarImage src={currentChurch.logoUrl!} alt={currentChurch.name} className="object-cover" />
-              <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
-                <Heart className="h-5 w-5" />
+              <AvatarFallback className="bg-primary text-primary-foreground rounded-md text-xs">
+                <Heart className="h-3.5 w-3.5" />
               </AvatarFallback>
             </Avatar>
           ) : (
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-sidebar-primary">
-              <Heart className="h-5 w-5 text-sidebar-primary-foreground" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
+              <Heart className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
           )}
-          <div className="flex flex-col">
-            <span className="font-semibold text-sm">
-              {getSidebarTitle()}
-            </span>
-          </div>
+          <span className="font-semibold text-sm truncate">
+            {getSidebarTitle()}
+          </span>
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location === item.url}>
+                  <SidebarMenuButton asChild isActive={location === item.url || (item.url !== "/admin/dashboard" && item.url !== "/ministry-admin/dashboard" && item.url !== "/leader/dashboard" && location.startsWith(item.url))}>
                     <Link href={item.url}>
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span className="text-sm">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -171,14 +169,14 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Quick Links</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Quick Links</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/">
                     <Home className="h-4 w-4" />
-                    <span>Public Site</span>
+                    <span className="text-sm">Public Site</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -187,26 +185,26 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-2 border-t">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 h-auto py-2 px-3"
+              className="w-full justify-start gap-2.5 h-auto py-2 px-2.5"
               data-testid="button-user-menu"
             >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs bg-sidebar-accent text-sidebar-accent-foreground">
+              <Avatar className="h-7 w-7">
+                <AvatarFallback className="text-xs bg-muted text-muted-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-start text-left flex-1 min-w-0">
                 <span className="text-sm font-medium truncate w-full">{user?.firstName} {user?.lastName}</span>
-                <span className="text-xs text-sidebar-foreground/70 truncate w-full">
+                <span className="text-xs text-muted-foreground truncate w-full">
                   {getRoleLabel()}
                 </span>
               </div>
-              <ChevronUp className="h-4 w-4 text-sidebar-foreground/70" />
+              <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

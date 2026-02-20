@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -392,26 +393,21 @@ export default function LeaderFollowups() {
   };
 
   return (
-    <DashboardLayout title="Follow-ups">
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">Follow-ups</h2>
-            <p className="text-muted-foreground" data-testid="text-page-description">
-              Your scheduled follow-ups with converts and new members
-            </p>
-          </div>
-          <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
-            <FileSpreadsheet className="h-4 w-4" />
-            Export Excel
-          </Button>
-        </div>
+        <PageHeader
+          title="Follow-ups"
+          description="Your scheduled follow-ups with converts and new members"
+          actions={
+            <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
+              <FileSpreadsheet className="h-4 w-4" />
+              Export Excel
+            </Button>
+          }
+        />
 
         {/* Mass Follow-ups Section */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold" data-testid="text-mass-followup-section-title">Mass Follow-ups</h3>
-          <Card>
-            <CardContent className="p-0">
+        <Section title="Mass Follow-ups" noPadding>
               {isLoadingMass ? (
                 <div className="p-6 space-y-4">
                   {[...Array(2)].map((_, i) => (
@@ -482,15 +478,10 @@ export default function LeaderFollowups() {
                   <p className="text-muted-foreground">No upcoming mass follow-ups</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+        </Section>
 
         {/* Convert Follow-ups Section */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold" data-testid="text-convert-section-title">Convert Follow-ups</h3>
-          <Card>
-            <CardContent className="p-0">
+        <Section title="Convert Follow-ups" noPadding>
               {isLoadingConverts ? (
                 <div className="p-6 space-y-4">
                   {[...Array(3)].map((_, i) => (
@@ -614,15 +605,10 @@ export default function LeaderFollowups() {
                   <p className="text-muted-foreground">No upcoming convert follow-ups</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+        </Section>
 
         {/* New Member Follow-ups Section */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold" data-testid="text-new-member-section-title">New Member & Guest Follow-ups</h3>
-          <Card>
-            <CardContent className="p-0">
+        <Section title="New Member & Guest Follow-ups" noPadding>
               {isLoadingNewMembers ? (
                 <div className="p-6 space-y-4">
                   {[...Array(3)].map((_, i) => (
@@ -746,9 +732,7 @@ export default function LeaderFollowups() {
                   <p className="text-muted-foreground">No upcoming new member follow-ups</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+        </Section>
       </div>
 
       {/* Follow Up Notes Dialog */}

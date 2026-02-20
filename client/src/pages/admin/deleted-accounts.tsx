@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -134,149 +135,138 @@ export default function DeletedAccounts() {
   };
 
   return (
-    <DashboardLayout title="Deleted Accounts">
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <p className="text-muted-foreground">
-              View and manage cancelled ministry accounts. You can restore accounts or permanently delete them.
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Deleted Accounts"
+          description="View and manage cancelled ministry accounts. You can restore accounts or permanently delete them."
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Archive className="h-5 w-5" />
-              Archived Ministries
-            </CardTitle>
-            <CardDescription>
-              Ministries that have been cancelled. Data is backed up and can be restored.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            ) : archivedMinistries && archivedMinistries.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ministry Name</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead className="text-center">Backed Up Data</TableHead>
-                    <TableHead>Deleted By</TableHead>
-                    <TableHead>Deleted On</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {archivedMinistries.map((archive) => {
-                    const stats = getBackupStats(archive);
-                    return (
-                      <TableRow key={archive.id} data-testid={`row-archive-${archive.id}`}>
-                        <TableCell className="font-medium">{archive.churchName}</TableCell>
-                        <TableCell>
-                          {archive.churchLocation && (
-                            <div className="flex items-center gap-1 text-muted-foreground">
-                              <MapPin className="h-3 w-3" />
-                              {archive.churchLocation}
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-center gap-2">
-                            <Badge variant="secondary" className="text-xs">
-                              {stats.users} users
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              {stats.converts} converts
-                            </Badge>
+        <Section
+          title="Archived Ministries"
+          description="Ministries that have been cancelled. Data is backed up and can be restored."
+          noPadding
+        >
+          {isLoading ? (
+            <div className="space-y-4 p-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : archivedMinistries && archivedMinistries.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ministry Name</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead className="text-center">Backed Up Data</TableHead>
+                  <TableHead>Deleted By</TableHead>
+                  <TableHead>Deleted On</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {archivedMinistries.map((archive) => {
+                  const stats = getBackupStats(archive);
+                  return (
+                    <TableRow key={archive.id} data-testid={`row-archive-${archive.id}`}>
+                      <TableCell className="font-medium text-sm">{archive.churchName}</TableCell>
+                      <TableCell>
+                        {archive.churchLocation && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            {archive.churchLocation}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {archive.deletedByRole === "ADMIN" ? "Platform Admin" : "Ministry Admin"}
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {stats.users} users
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {format(new Date(archive.archivedAt), "MMM d, yyyy")}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={() => openViewDetails(archive)}
-                                  data-testid={`button-view-archive-${archive.id}`}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>View backup details</p>
-                              </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={() => openReinstateDialog(archive)}
-                                  data-testid={`button-reinstate-${archive.id}`}
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  <RotateCcw className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Restore ministry account</p>
-                              </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="destructive"
-                                  size="icon"
-                                  onClick={() => openDeleteDialog(archive)}
-                                  data-testid={`button-permanent-delete-${archive.id}`}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Permanently delete</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="p-12 text-center">
-                <Archive className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No deleted accounts</h3>
-                <p className="text-muted-foreground">
-                  When ministry accounts are cancelled, they will appear here for restoration or permanent deletion.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                          <Badge variant="secondary" className="text-xs">
+                            {stats.converts} converts
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {archive.deletedByRole === "ADMIN" ? "Platform Admin" : "Ministry Admin"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {format(new Date(archive.archivedAt), "MMM d, yyyy")}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="default"
+                                size="icon"
+                                onClick={() => openViewDetails(archive)}
+                                data-testid={`button-view-archive-${archive.id}`}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View backup details</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="default"
+                                size="icon"
+                                onClick={() => openReinstateDialog(archive)}
+                                data-testid={`button-reinstate-${archive.id}`}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Restore ministry account</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => openDeleteDialog(archive)}
+                                data-testid={`button-permanent-delete-${archive.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Permanently delete</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-12 text-center">
+              <Archive className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-sm font-semibold mb-2">No deleted accounts</h3>
+              <p className="text-xs text-muted-foreground">
+                When ministry accounts are cancelled, they will appear here for restoration or permanent deletion.
+              </p>
+            </div>
+          )}
+        </Section>
       </div>
 
-      {/* View Details Dialog */}
       <Dialog open={viewDetailsOpen} onOpenChange={(open) => !open && closeViewDetails()}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -289,26 +279,26 @@ export default function DeletedAccounts() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Ministry Name</p>
-                  <p className="font-medium">{selectedArchive.churchName}</p>
+                  <p className="text-xs text-muted-foreground">Ministry Name</p>
+                  <p className="text-sm font-medium">{selectedArchive.churchName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Location</p>
-                  <p className="font-medium">{selectedArchive.churchLocation || "N/A"}</p>
+                  <p className="text-xs text-muted-foreground">Location</p>
+                  <p className="text-sm font-medium">{selectedArchive.churchLocation || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Deleted By</p>
+                  <p className="text-xs text-muted-foreground">Deleted By</p>
                   <Badge variant="outline">
                     {selectedArchive.deletedByRole === "ADMIN" ? "Platform Admin" : "Ministry Admin"}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Deleted On</p>
-                  <p className="font-medium">{format(new Date(selectedArchive.archivedAt), "PPP")}</p>
+                  <p className="text-xs text-muted-foreground">Deleted On</p>
+                  <p className="text-sm font-medium">{format(new Date(selectedArchive.archivedAt), "PPP")}</p>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground mb-2">Backed Up Data</p>
+                <p className="text-xs text-muted-foreground mb-2">Backed Up Data</p>
                 <div className="grid grid-cols-2 gap-2">
                   {(() => {
                     const stats = getBackupStats(selectedArchive);
@@ -316,19 +306,19 @@ export default function DeletedAccounts() {
                       <>
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{stats.users} Users</span>
+                          <span className="text-sm">{stats.users} Users</span>
                         </div>
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{stats.converts} Converts</span>
+                          <span className="text-sm">{stats.converts} Converts</span>
                         </div>
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{stats.newMembers} New Members & Guests</span>
+                          <span className="text-sm">{stats.newMembers} New Members & Guests</span>
                         </div>
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{stats.members} Members</span>
+                          <span className="text-sm">{stats.members} Members</span>
                         </div>
                       </>
                     );
@@ -345,7 +335,6 @@ export default function DeletedAccounts() {
         </DialogContent>
       </Dialog>
 
-      {/* Reinstate Confirmation Dialog */}
       <Dialog open={reinstateDialogOpen} onOpenChange={(open) => !open && closeReinstateDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -386,7 +375,6 @@ export default function DeletedAccounts() {
         </DialogContent>
       </Dialog>
 
-      {/* Permanent Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={(open) => !open && closeDeleteDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

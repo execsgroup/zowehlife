@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Church, Users, UserPlus, Calendar, ArrowRight, TrendingUp } from "lucide-react";
+import { Church, Users, UserPlus, Calendar, ArrowRight, TrendingUp, HandHeart } from "lucide-react";
 
 interface DashboardStats {
   totalChurches: number;
@@ -22,139 +23,80 @@ export default function AdminDashboard() {
   });
 
   return (
-    <DashboardLayout title="Admin Dashboard">
-      <div className="space-y-6">
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" data-testid="stats-grid">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Ministries</CardTitle>
-              <Church className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold" data-testid="text-total-churches">
-                  {stats?.totalChurches || 0}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+    <DashboardLayout>
+      <PageHeader
+        title="Platform Overview"
+        description="Monitor all ministries, leaders, and converts across the platform."
+      />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Leaders</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold" data-testid="text-total-leaders">
-                  {stats?.totalLeaders || 0}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="stats-grid">
+        {[
+          { label: "Total Ministries", value: stats?.totalChurches, icon: Church, testId: "text-total-churches" },
+          { label: "Total Leaders", value: stats?.totalLeaders, icon: Users, testId: "text-total-leaders" },
+          { label: "Total Converts", value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts", sub: stats?.convertsLast30Days },
+          { label: "Follow-ups Due", value: stats?.followupsDue, icon: Calendar, testId: "text-followups-due" },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-md border bg-card p-4">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
+            </div>
+            {isLoading ? (
+              <Skeleton className="h-7 w-14" />
+            ) : (
+              <>
+                <div className="text-2xl font-semibold" data-testid={stat.testId}>
+                  {stat.value || 0}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Converts</CardTitle>
-              <UserPlus className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold" data-testid="text-total-converts">
-                    {stats?.totalConverts || 0}
-                  </div>
+                {stat.sub !== undefined && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                     <TrendingUp className="h-3 w-3" />
-                    {stats?.convertsLast30Days || 0} in last 30 days
+                    {stat.sub || 0} in last 30 days
                   </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Follow-ups Due</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold" data-testid="text-followups-due">
-                  {stats?.followupsDue || 0}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="hover-elevate">
-            <CardHeader>
-              <CardTitle className="text-lg">Manage Ministries</CardTitle>
-              <CardDescription>
-                Add, edit, and view ministry information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/admin/churches">
-                <Button className="gap-2" data-testid="link-admin-churches">
-                  View Ministries
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-elevate">
-            <CardHeader>
-              <CardTitle className="text-lg">Manage Leaders</CardTitle>
-              <CardDescription>
-                Create and manage ministry leader accounts
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/admin/leaders">
-                <Button className="gap-2" data-testid="link-admin-leaders">
-                  View Leaders
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-elevate">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Prayer Requests</CardTitle>
-                {stats && stats.recentPrayerRequests > 0 && (
-                  <Badge variant="secondary">{stats.recentPrayerRequests} new</Badge>
                 )}
-              </div>
-              <CardDescription>
-                View and respond to prayer requests
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/admin/prayer-requests">
-                <Button variant="outline" className="gap-2" data-testid="link-admin-prayer-requests">
-                  View Requests
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Section title="Ministries">
+          <p className="text-sm text-muted-foreground mb-3">Add, edit, and view ministry information</p>
+          <Link href="/admin/churches">
+            <Button size="sm" className="gap-1.5" data-testid="link-admin-churches">
+              View Ministries
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </Section>
+
+        <Section title="Leaders">
+          <p className="text-sm text-muted-foreground mb-3">Create and manage ministry leader accounts</p>
+          <Link href="/admin/leaders">
+            <Button size="sm" className="gap-1.5" data-testid="link-admin-leaders">
+              View Leaders
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </Section>
+
+        <Section
+          title="Prayer Requests"
+          actions={
+            stats && stats.recentPrayerRequests > 0 ? (
+              <Badge variant="secondary">{stats.recentPrayerRequests} new</Badge>
+            ) : undefined
+          }
+        >
+          <p className="text-sm text-muted-foreground mb-3">View and respond to prayer requests</p>
+          <Link href="/admin/prayer-requests">
+            <Button size="sm" variant="outline" className="gap-1.5" data-testid="link-admin-prayer-requests">
+              View Requests
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </Section>
       </div>
     </DashboardLayout>
   );

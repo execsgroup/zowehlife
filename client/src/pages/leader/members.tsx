@@ -5,8 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -187,17 +188,13 @@ export default function LeaderMembers() {
   });
 
   return (
-    <DashboardLayout title="Members">
+    <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Members</h2>
-            <p className="text-muted-foreground">
-              Manage your ministry's existing members
-            </p>
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
+        <PageHeader
+          title="Members"
+          description="Manage your ministry's existing members"
+          actions={
+            <div className="flex gap-2 flex-wrap">
             {tokens?.memberToken ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -468,12 +465,13 @@ export default function LeaderMembers() {
                 </Form>
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
+            </div>
+          }
+        />
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4 mb-6 flex-wrap">
+        <Section>
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -583,8 +581,8 @@ export default function LeaderMembers() {
                 </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
       </div>
 
       <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>

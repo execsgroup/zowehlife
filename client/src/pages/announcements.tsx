@@ -7,10 +7,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -272,27 +272,21 @@ export default function AnnouncementsPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-announcements-title">Announcements</h1>
-          <p className="text-muted-foreground mt-1">Send communications to your ministry members</p>
-        </div>
+        <PageHeader
+          title="Announcements"
+          description="Send communications to your ministry members"
+        />
       </div>
 
       {(scheduledLoading || (scheduledAnnouncements && scheduledAnnouncements.length > 0)) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CalendarClock className="h-5 w-5" />
-              Scheduled Announcements
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {scheduledLoading && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading scheduled announcements...
-              </div>
-            )}
+        <Section title="Scheduled Announcements">
+          {scheduledLoading && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading scheduled announcements...
+            </div>
+          )}
+          <div className="space-y-3">
             {scheduledAnnouncements?.map((sa) => (
               <div
                 key={sa.id}
@@ -300,7 +294,7 @@ export default function AnnouncementsPage() {
                 data-testid={`scheduled-announcement-${sa.id}`}
               >
                 <div className="flex-1 min-w-0 space-y-1">
-                  <p className="font-medium truncate" data-testid={`text-scheduled-subject-${sa.id}`}>{sa.subject}</p>
+                  <p className="text-sm font-medium truncate" data-testid={`text-scheduled-subject-${sa.id}`}>{sa.subject}</p>
                   <div className="flex flex-wrap gap-2 items-center">
                     <Badge variant="secondary" className="text-xs">
                       <Clock className="h-3 w-3 mr-1" />
@@ -327,84 +321,76 @@ export default function AnnouncementsPage() {
                 </Button>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </Section>
       )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Recipients</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <FormField
-                control={form.control}
-                name="recipientGroups"
-                render={() => (
-                  <FormItem>
-                    <div className="grid grid-cols-2 gap-3">
-                      {recipientGroupOptions.map((group) => (
-                        <FormField
-                          key={group.id}
-                          control={form.control}
-                          name="recipientGroups"
-                          render={({ field }) => (
-                            <FormItem className="flex items-center gap-2 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(group.id)}
-                                  onCheckedChange={(checked) => {
-                                    const current = field.value || [];
-                                    field.onChange(
-                                      checked
-                                        ? [...current, group.id]
-                                        : current.filter((v: string) => v !== group.id)
-                                    );
-                                  }}
-                                  data-testid={`checkbox-group-${group.id}`}
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal cursor-pointer flex items-center gap-2 flex-wrap">
-                                {group.label}
-                                {recipientCounts && (
-                                  <>
+          <Section title="Recipients">
+            <FormField
+              control={form.control}
+              name="recipientGroups"
+              render={() => (
+                <FormItem>
+                  <div className="grid grid-cols-2 gap-3">
+                    {recipientGroupOptions.map((group) => (
+                      <FormField
+                        key={group.id}
+                        control={form.control}
+                        name="recipientGroups"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(group.id)}
+                                onCheckedChange={(checked) => {
+                                  const current = field.value || [];
+                                  field.onChange(
+                                    checked
+                                      ? [...current, group.id]
+                                      : current.filter((v: string) => v !== group.id)
+                                  );
+                                }}
+                                data-testid={`checkbox-group-${group.id}`}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer flex items-center gap-2 flex-wrap">
+                              {group.label}
+                              {recipientCounts && (
+                                <>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {recipientCounts[group.id as keyof RecipientCounts]?.email} email
+                                  </Badge>
+                                  {(notificationMethod === "sms" || notificationMethod === "mms") && (
                                     <Badge variant="secondary" className="text-xs">
-                                      {recipientCounts[group.id as keyof RecipientCounts]?.email} email
+                                      {recipientCounts[group.id as keyof RecipientCounts]?.phone} phone
                                     </Badge>
-                                    {(notificationMethod === "sms" || notificationMethod === "mms") && (
-                                      <Badge variant="secondary" className="text-xs">
-                                        {recipientCounts[group.id as keyof RecipientCounts]?.phone} phone
-                                      </Badge>
-                                    )}
-                                  </>
-                                )}
-                              </FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                      ))}
-                    </div>
-                    <FormMessage />
-                    {selectedGroups.length > 0 && (
-                      <div className="text-sm text-muted-foreground mt-2 space-y-1" data-testid="text-total-recipients">
-                        <p>Email recipients: {totalSelectedEmailRecipients}</p>
-                        {(notificationMethod === "sms" || notificationMethod === "mms") && (
-                          <p>{notificationMethod === "mms" ? "MMS" : "SMS"} recipients (with phone): {totalSelectedPhoneRecipients}</p>
+                                  )}
+                                </>
+                              )}
+                            </FormLabel>
+                          </FormItem>
                         )}
-                      </div>
-                    )}
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                  {selectedGroups.length > 0 && (
+                    <div className="text-xs text-muted-foreground mt-2 space-y-1" data-testid="text-total-recipients">
+                      <p>Email recipients: {totalSelectedEmailRecipients}</p>
+                      {(notificationMethod === "sms" || notificationMethod === "mms") && (
+                        <p>{notificationMethod === "mms" ? "MMS" : "SMS"} recipients (with phone): {totalSelectedPhoneRecipients}</p>
+                      )}
+                    </div>
+                  )}
+                </FormItem>
+              )}
+            />
+          </Section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Notification Method</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <Section title="Notification Method">
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="notificationMethod"
@@ -472,14 +458,11 @@ export default function AnnouncementsPage() {
                   SMS/MMS messaging is available on paid plans.
                 </p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </Section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Email Content</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <Section title="Email Content">
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="subject"
@@ -529,17 +512,12 @@ export default function AnnouncementsPage() {
                   currentUrl={emailImageUrl || undefined}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </Section>
 
           {(notificationMethod === "sms" || notificationMethod === "mms") && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {notificationMethod === "mms" ? "MMS Message" : "SMS Message"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <Section title={notificationMethod === "mms" ? "MMS Message" : "SMS Message"}>
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="smsMessage"
@@ -575,15 +553,12 @@ export default function AnnouncementsPage() {
                     />
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </Section>
           )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Delivery</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <Section title="Delivery">
+            <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Switch
                   id="schedule-toggle"
@@ -599,7 +574,7 @@ export default function AnnouncementsPage() {
               {isScheduled && (
                 <div className="flex flex-wrap gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-date" className="text-sm">Date</Label>
+                    <Label htmlFor="schedule-date" className="text-xs">Date</Label>
                     <Input
                       id="schedule-date"
                       type="date"
@@ -610,7 +585,7 @@ export default function AnnouncementsPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-time" className="text-sm">Time</Label>
+                    <Label htmlFor="schedule-time" className="text-xs">Time</Label>
                     <Input
                       id="schedule-time"
                       type="time"
@@ -621,8 +596,8 @@ export default function AnnouncementsPage() {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </Section>
 
           <div className="flex justify-end">
             <Button

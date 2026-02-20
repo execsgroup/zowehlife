@@ -92,16 +92,16 @@ export default function ContactUs() {
       <PublicNav />
 
       <main className="flex-1">
-        <section className="bg-gradient-to-br from-primary/10 via-background to-background py-16 md:py-24">
+        <section className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6">
                 <MessageSquare className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold mb-6">
                 Contact Us
               </h1>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 Have a question or want to get in touch? We'd love to hear from you.
                 Fill out the form below and we'll respond as soon as possible.
               </p>

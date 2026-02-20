@@ -66,7 +66,7 @@ export default function MemberJourney() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
+    <div className="min-h-screen bg-muted p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/member-portal">
@@ -157,7 +157,7 @@ export default function MemberJourney() {
                 {followUpsData.followUps.map((followUp) => (
                   <div
                     key={followUp.id}
-                    className="flex items-center justify-between p-3 rounded-lg border"
+                    className="flex items-center justify-between p-3 rounded-md border"
                   >
                     <div className="flex items-center gap-3">
                       {getStatusIcon(followUp.status)}

@@ -196,7 +196,7 @@ export default function NewConvert() {
                 <Heart className="h-8 w-8 text-primary" />
               </div>
             )}
-            <h1 className="text-3xl font-bold mb-2">Welcome to the Family!</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome to the Family!</h1>
           </div>
 
           <Card>

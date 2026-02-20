@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -133,41 +134,24 @@ export default function LeaderMemberAccounts() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold" data-testid="text-page-title">Member Accounts</h1>
-            <p className="text-muted-foreground">
-              View and manage member portal accounts for your ministry
-            </p>
-          </div>
+        <PageHeader
+          title="Member Accounts"
+          description="View and manage member portal accounts for your ministry"
+        />
+
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search members..."
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            data-testid="input-search"
+          />
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Portal Accounts
-                </CardTitle>
-                <CardDescription>
-                  Members who can access the member portal
-                </CardDescription>
-              </div>
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search members..."
-                  className="pl-8"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  data-testid="input-search"
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
+        <Section noPadding>
             {isLoading ? (
               <div className="space-y-2">
                 {[...Array(5)].map((_, i) => (
@@ -267,8 +251,7 @@ export default function LeaderMemberAccounts() {
                 </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </Section>
 
         <AlertDialog open={suspendDialog.open} onOpenChange={(open) => setSuspendDialog({ ...suspendDialog, open })}>
           <AlertDialogContent>

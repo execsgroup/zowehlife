@@ -3,14 +3,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { useUpload } from "@/hooks/use-upload";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Church, Upload, Loader2, ImageIcon, Trash2 } from "lucide-react";
+import { Upload, Loader2, ImageIcon, Trash2 } from "lucide-react";
 
 interface ChurchInfo {
   id: string;
@@ -191,119 +192,112 @@ export default function LeaderSettings() {
   };
 
   return (
-    <DashboardLayout title="Ministry Settings">
+    <DashboardLayout>
       <div className="space-y-6 max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Church className="h-5 w-5" />
-              Ministry Information
-            </CardTitle>
-            <CardDescription>
-              Manage your ministry's profile and branding
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <PageHeader
+          title="Ministry Settings"
+          description="Manage your ministry's profile and branding"
+        />
+
+        <Section title="Ministry Information">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : church ? (
+            <div className="space-y-6">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Ministry Name</p>
+                <p className="text-sm font-medium">{church.name}</p>
               </div>
-            ) : church ? (
-              <>
+
+              {church.location && (
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Ministry Name</h3>
-                  <p className="text-lg font-medium">{church.name}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Location</p>
+                  <p className="text-sm">{church.location}</p>
                 </div>
+              )}
 
-                {church.location && (
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Location</h3>
-                    <p>{church.location}</p>
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Ministry Logo</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Upload your ministry logo. It will be displayed on the registration form for new converts.
+                </p>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/50">
+                    {church.logoUrl ? (
+                      <img
+                        src={church.logoUrl}
+                        alt={`${church.name} logo`}
+                        className="w-full h-full object-cover"
+                        data-testid="img-church-logo"
+                      />
+                    ) : (
+                      <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
+                    )}
                   </div>
-                )}
 
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Ministry Logo</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Upload your ministry logo. It will be displayed on the registration form for new converts.
-                  </p>
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/50">
-                      {church.logoUrl ? (
-                        <img
-                          src={church.logoUrl}
-                          alt={`${church.name} logo`}
-                          className="w-full h-full object-cover"
-                          data-testid="img-church-logo"
-                        />
-                      ) : (
-                        <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-                      )}
-                    </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="logo-upload">
+                      <input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileSelect}
+                        disabled={isUploadingLogo}
+                        data-testid="input-logo-upload"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isUploadingLogo}
+                        onClick={() => document.getElementById("logo-upload")?.click()}
+                        data-testid="button-upload-logo"
+                      >
+                        {isUploadingLogo ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Upload Logo
+                          </>
+                        )}
+                      </Button>
+                    </label>
 
-                    <div className="flex flex-col gap-2">
-                      <label htmlFor="logo-upload">
-                        <input
-                          id="logo-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleFileSelect}
-                          disabled={isUploadingLogo}
-                          data-testid="input-logo-upload"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={isUploadingLogo}
-                          onClick={() => document.getElementById("logo-upload")?.click()}
-                          data-testid="button-upload-logo"
-                        >
-                          {isUploadingLogo ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="mr-2 h-4 w-4" />
-                              Upload Logo
-                            </>
-                          )}
-                        </Button>
-                      </label>
+                    {church.logoUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => removeLogo.mutate()}
+                        disabled={removeLogo.isPending}
+                        data-testid="button-remove-logo"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Remove Logo
+                      </Button>
+                    )}
 
-                      {church.logoUrl && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => removeLogo.mutate()}
-                          disabled={removeLogo.isPending}
-                          data-testid="button-remove-logo"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Remove Logo
-                        </Button>
-                      )}
-
-                      <p className="text-xs text-muted-foreground">
-                        Recommended: Square image, at least 200x200px, under 5MB
-                      </p>
-                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Recommended: Square image, at least 200x200px, under 5MB
+                    </p>
                   </div>
                 </div>
-              </>
-            ) : (
-              <p className="text-muted-foreground">Unable to load ministry information.</p>
-            )}
-          </CardContent>
-        </Card>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Unable to load ministry information.</p>
+          )}
+        </Section>
       </div>
 
-      {/* Image Crop Dialog */}
       <Dialog open={cropDialogOpen} onOpenChange={(open) => !open && handleCropCancel()}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -314,7 +308,7 @@ export default function LeaderSettings() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="relative h-64 w-full bg-muted rounded-lg overflow-hidden">
+            <div className="relative h-64 w-full bg-muted rounded-md overflow-hidden">
               {imageSrc && (
                 <Cropper
                   image={imageSrc}
@@ -331,7 +325,7 @@ export default function LeaderSettings() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Zoom</label>
+              <label className="text-xs font-medium">Zoom</label>
               <Slider
                 value={[zoom]}
                 min={1}
