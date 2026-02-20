@@ -8,13 +8,12 @@ import { Section } from "@/components/section";
 import { QRCodeDialog } from "@/components/qr-code-dialog";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, ClipboardList, Heart, UserCheck, UsersRound, Link, Copy, ExternalLink, QrCode } from "lucide-react";
+import { Users, UserPlus, Heart, UserCheck, UsersRound, Link, Copy, ExternalLink, QrCode } from "lucide-react";
 
 interface Stats {
   totalConverts: number;
   newConverts: number;
   totalLeaders: number;
-  pendingAccountRequests: number;
   totalNewMembers: number;
   totalMembers: number;
 }
@@ -80,7 +79,6 @@ export default function MinistryAdminDashboard() {
     { title: "New Members & Guests", value: stats?.totalNewMembers || 0, icon: UserCheck },
     { title: "Members", value: stats?.totalMembers || 0, icon: UsersRound },
     { title: "Leaders", value: stats?.totalLeaders || 0, icon: Users },
-    { title: "Pending Requests", value: stats?.pendingAccountRequests || 0, icon: ClipboardList },
   ];
 
   return (
