@@ -1,0 +1,58 @@
+You are a senior front-end engineer + product designer. Refactor this app’s UI to a clean ENTERPRISE look (think internal admin system), not “vibe coding”.
+
+GOALS (must follow):
+- Neutral-first design: slate/zinc grays + white surfaces. One accent color only (blue).
+- Borders/dividers over heavy shadows. Remove gradients.
+- Reduce roundness: default radius rounded-lg, inputs/buttons rounded-md.
+- Typography: Inter (or system sans), use smaller enterprise sizing: base text-sm, headings modest (page title text-xl or text-2xl max).
+- Standardize layout across pages: left sidebar + top bar + PageHeader + content sections.
+- Replace “cards everywhere” with Section containers (border, white background) and Tables for operational lists.
+- Consistent spacing: page padding px-6 py-6, section spacing gap-6, controls gap-2/3.
+- Accessibility: consistent focus ring, good contrast, sensible hover states.
+
+SCOPE:
+1) Create reusable layout components:
+   - AppShell: sidebar + topbar wrapper
+   - PageHeader: title, description, primary action button slot
+   - Section: bordered container with optional header row
+   - DataTable (or use existing table components) with filters row pattern
+
+2) Implement global styling changes:
+   - Update tailwind config OR global CSS variables (if shadcn/ui is used) to enforce enterprise theme.
+   - Remove gradient backgrounds, big shadows, and over-rounded styles.
+   - Ensure body background is slate-50 (or zinc-50), surfaces are white.
+
+3) Apply the new layout to the main routes/pages:
+   - Each page should use: PageHeader -> filters/tabs row (if applicable) -> Section(s)
+   - For lists (members/converts/journeys/etc.), use a Table with:
+     - search input
+     - 2–3 select filters (Status, Stage, Assigned Leader)
+     - “Bulk Actions” dropdown placeholder (even if non-functional for now)
+
+4) Do NOT change business logic, API calls, database, or routes unless required for layout wiring.
+   - Keep all existing functionality intact.
+   - Only refactor UI structure, styling, and component composition.
+
+5) Deliverables:
+   - Provide a summary of changed files.
+   - List new components created and where they’re used.
+   - Ensure the app compiles with no TypeScript errors.
+
+TECH CONTEXT (assume unless you detect otherwise):
+- React + TailwindCSS + (likely) shadcn/ui.
+- Use existing component library if present; do not introduce new UI libraries.
+- Keep styling in Tailwind utility classes + existing theme tokens.
+
+START HERE:
+- First, scan the project structure and identify:
+  - current layout components (if any)
+  - tailwind config / globals.css / shadcn theme files
+  - pages/routes that represent the main UI
+- Then implement AppShell + PageHeader + Section and migrate 1–2 core pages first (Members, Journeys or Dashboard).
+- After that, migrate remaining pages using the same pattern.
+
+QUALITY BAR:
+- The UI should look like a real enterprise tool: structured, calm, consistent, readable.
+- No flashy gradients, no oversized rounded cards, no “landing page” look.
+
+Proceed with the refactor now.
