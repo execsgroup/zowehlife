@@ -47,9 +47,9 @@ export default function RegisterMinistrySuccess() {
                   <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 mx-auto">
                     <AlertCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <h2 className="text-2xl font-bold">Missing Payment Information</h2>
+                  <h2 className="text-2xl font-bold">{t('registerMinistry.missingPaymentInfo')}</h2>
                   <p className="text-muted-foreground">
-                    We couldn't verify your payment. Please try registering again.
+                    {t('registerMinistry.paymentVerifyFailed')}
                   </p>
                   <Button
                     onClick={() => setLocation("/register-ministry")}
@@ -89,11 +89,11 @@ export default function RegisterMinistrySuccess() {
                     </p>
                     <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                       <Mail className="h-4 w-4" />
-                      <span>Login credentials sent to your email</span>
+                      <span>{t('registerMinistry.credentialsSentToEmail')}</span>
                     </div>
                     {planName && (
                       <p className="text-sm text-muted-foreground">
-                        Plan: <span className="font-medium capitalize">{planName}</span>
+                        {t('registerMinistry.plan')} <span className="font-medium capitalize">{planName}</span>
                       </p>
                     )}
                     <Button
@@ -110,9 +110,9 @@ export default function RegisterMinistrySuccess() {
                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 mx-auto">
                       <AlertCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                     </div>
-                    <h2 className="text-2xl font-bold">Verification Issue</h2>
+                    <h2 className="text-2xl font-bold">{t('registerMinistry.verificationIssue')}</h2>
                     <p className="text-muted-foreground">
-                      We had trouble confirming your payment. If you were charged, don't worry - please contact us and we'll sort it out.
+                      {t('registerMinistry.verificationIssueDescription')}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       <Button
@@ -121,23 +121,23 @@ export default function RegisterMinistrySuccess() {
                         className="gap-2"
                         data-testid="button-back-home"
                       >
-                        Back to Home
+                        {t('registerMinistry.backToHome')}
                       </Button>
                       <Button
                         onClick={() => confirmMutation.mutate(sessionId)}
                         className="gap-2"
                         data-testid="button-retry"
                       >
-                        Retry Verification
+                        {t('registerMinistry.retryVerification')}
                       </Button>
                     </div>
                   </>
                 ) : (
                   <>
                     <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-                    <h2 className="text-2xl font-bold">Setting Up Your Ministry...</h2>
+                    <h2 className="text-2xl font-bold">{t('registerMinistry.settingUpMinistry')}</h2>
                     <p className="text-muted-foreground">
-                      We're verifying your payment and creating your ministry account. This should only take a moment.
+                      {t('registerMinistry.settingUpDescription')}
                     </p>
                   </>
                 )}

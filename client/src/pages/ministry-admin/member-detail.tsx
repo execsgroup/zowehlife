@@ -19,8 +19,10 @@ import {
   Church,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 export default function MinistryAdminMemberDetail() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/ministry-admin/members/:id");
   const memberId = params?.id;
 
@@ -31,7 +33,7 @@ export default function MinistryAdminMemberDetail() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Member Details">
+      <DashboardLayout title={t('memberDetail.title')}>
         <div className="space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-48 w-full" />
@@ -42,15 +44,15 @@ export default function MinistryAdminMemberDetail() {
 
   if (!member) {
     return (
-      <DashboardLayout title="Member Not Found">
+      <DashboardLayout title={t('memberDetail.notFoundTitle')}>
         <Card>
           <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">Member not found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('memberDetail.notFound')}</h3>
             <p className="text-muted-foreground mb-4">
-              The member you're looking for doesn't exist or you don't have access.
+              {t('memberDetail.notFoundDescription')}
             </p>
             <Link href="/ministry-admin/members">
-              <Button>Back to Members</Button>
+              <Button>{t('memberDetail.backToMembers')}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -59,12 +61,12 @@ export default function MinistryAdminMemberDetail() {
   }
 
   return (
-    <DashboardLayout title="Member Details">
+    <DashboardLayout title={t('memberDetail.title')}>
       <div className="space-y-6">
         <Link href="/ministry-admin/members">
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
-            Back to Members
+            {t('memberDetail.backToMembers')}
           </Button>
         </Link>
 
@@ -76,14 +78,14 @@ export default function MinistryAdminMemberDetail() {
                   {member.firstName} {member.lastName}
                 </CardTitle>
                 <CardDescription>
-                  Added: {format(new Date(member.createdAt), "MMMM d, yyyy")}
+                  {t('memberDetail.added')} {format(new Date(member.createdAt), "MMMM d, yyyy")}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Contact Information</h4>
+              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">{t('memberDetail.contactInformation')}</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 {member.phone && (
                   <div className="flex items-center gap-2">
@@ -119,13 +121,13 @@ export default function MinistryAdminMemberDetail() {
             <Separator />
 
             <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Personal Details</h4>
+              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">{t('memberDetail.personalDetails')}</h4>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {member.dateOfBirth && (
                   <div className="flex items-center gap-2">
                     <Cake className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Date of Birth:</span>
+                      <span className="text-muted-foreground mr-1">{t('memberDetail.dateOfBirth')}</span>
                       {format(new Date(member.dateOfBirth), "MMMM d, yyyy")}
                     </span>
                   </div>
@@ -134,7 +136,7 @@ export default function MinistryAdminMemberDetail() {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Gender:</span>
+                      <span className="text-muted-foreground mr-1">{t('memberDetail.gender')}</span>
                       {member.gender}
                     </span>
                   </div>
@@ -143,7 +145,7 @@ export default function MinistryAdminMemberDetail() {
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Age Group:</span>
+                      <span className="text-muted-foreground mr-1">{t('memberDetail.ageGroup')}</span>
                       {member.ageGroup}
                     </span>
                   </div>
@@ -152,7 +154,7 @@ export default function MinistryAdminMemberDetail() {
                   <div className="flex items-center gap-2">
                     <Church className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Member Since:</span>
+                      <span className="text-muted-foreground mr-1">{t('memberDetail.memberSince')}</span>
                       {format(new Date(member.memberSince), "MMMM d, yyyy")}
                     </span>
                   </div>
@@ -164,7 +166,7 @@ export default function MinistryAdminMemberDetail() {
               <>
                 <Separator />
                 <div>
-                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Notes</h4>
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">{t('memberDetail.notes')}</h4>
                   <p className="whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">
                     {member.notes}
                   </p>
@@ -176,7 +178,7 @@ export default function MinistryAdminMemberDetail() {
               <>
                 <Separator />
                 <Badge variant="secondary" className="w-fit">
-                  Self-submitted via public form
+                  {t('memberDetail.selfSubmitted')}
                 </Badge>
               </>
             )}

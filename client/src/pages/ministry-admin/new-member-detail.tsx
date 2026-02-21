@@ -21,6 +21,7 @@ import {
   Cake,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface NewMemberCheckin {
   id: string;
@@ -48,16 +49,17 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const outcomeLabels: Record<string, string> = {
-  CONNECTED: "Connected",
-  NO_RESPONSE: "No Response",
-  NEEDS_PRAYER: "Needs Prayer",
-  SCHEDULED_VISIT: "Scheduled Visit",
-  REFERRED: "Referred",
-  OTHER: "Other",
+const outcomeKeys: Record<string, string> = {
+  CONNECTED: "newMemberDetail.outcomeConnected",
+  NO_RESPONSE: "newMemberDetail.outcomeNoResponse",
+  NEEDS_PRAYER: "newMemberDetail.outcomeNeedsPrayer",
+  SCHEDULED_VISIT: "newMemberDetail.outcomeScheduledVisit",
+  REFERRED: "newMemberDetail.outcomeReferred",
+  OTHER: "newMemberDetail.outcomeOther",
 };
 
 export default function MinistryAdminNewMemberDetail() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/ministry-admin/new-members/:id");
   const newMemberId = params?.id;
 
@@ -66,9 +68,14 @@ export default function MinistryAdminNewMemberDetail() {
     enabled: !!newMemberId,
   });
 
+  const getOutcomeLabel = (outcome: string) => {
+    const key = outcomeKeys[outcome];
+    return key ? t(key) : outcome;
+  };
+
   if (isLoading) {
     return (
-      <DashboardLayout title="New Member & Guest Details">
+      <DashboardLayout title={t('newMemberDetail.title')}>
         <div className="space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-48 w-full" />
@@ -80,15 +87,15 @@ export default function MinistryAdminNewMemberDetail() {
 
   if (!newMember) {
     return (
-      <DashboardLayout title="New Member & Guest Not Found">
+      <DashboardLayout title={t('newMemberDetail.notFoundTitle')}>
         <Card>
           <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-semibold mb-2">New member & guest not found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('newMemberDetail.notFound')}</h3>
             <p className="text-muted-foreground mb-4">
-              The new member & guest you're looking for doesn't exist or you don't have access.
+              {t('newMemberDetail.notFoundDescription')}
             </p>
             <Link href="/ministry-admin/new-members">
-              <Button>Back to New Members & Guests</Button>
+              <Button>{t('newMemberDetail.backToNewMembers')}</Button>
             </Link>
           </CardContent>
         </Card>
@@ -97,12 +104,12 @@ export default function MinistryAdminNewMemberDetail() {
   }
 
   return (
-    <DashboardLayout title="New Member & Guest Details">
+    <DashboardLayout title={t('newMemberDetail.title')}>
       <div className="space-y-6">
         <Link href="/ministry-admin/new-members">
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
-            Back to New Members & Guests
+            {t('newMemberDetail.backToNewMembers')}
           </Button>
         </Link>
 
@@ -114,7 +121,7 @@ export default function MinistryAdminNewMemberDetail() {
                   {newMember.firstName} {newMember.lastName}
                 </CardTitle>
                 <CardDescription>
-                  Joined: {format(new Date(newMember.createdAt), "MMMM d, yyyy")}
+                  {t('newMemberDetail.joined')} {format(new Date(newMember.createdAt), "MMMM d, yyyy")}
                 </CardDescription>
               </div>
               <Badge className={statusColors[newMember.status]}>
@@ -124,7 +131,7 @@ export default function MinistryAdminNewMemberDetail() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Contact Information</h4>
+              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">{t('newMemberDetail.contactInformation')}</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 {newMember.phone && (
                   <div className="flex items-center gap-2">
@@ -160,13 +167,13 @@ export default function MinistryAdminNewMemberDetail() {
             <Separator />
 
             <div>
-              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Personal Details</h4>
+              <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">{t('newMemberDetail.personalDetails')}</h4>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {newMember.dateOfBirth && (
                   <div className="flex items-center gap-2">
                     <Cake className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Date of Birth:</span>
+                      <span className="text-muted-foreground mr-1">{t('newMemberDetail.dateOfBirth')}</span>
                       {format(new Date(newMember.dateOfBirth), "MMMM d, yyyy")}
                     </span>
                   </div>
@@ -175,7 +182,7 @@ export default function MinistryAdminNewMemberDetail() {
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Gender:</span>
+                      <span className="text-muted-foreground mr-1">{t('newMemberDetail.gender')}</span>
                       {newMember.gender}
                     </span>
                   </div>
@@ -184,7 +191,7 @@ export default function MinistryAdminNewMemberDetail() {
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      <span className="text-muted-foreground mr-1">Age Group:</span>
+                      <span className="text-muted-foreground mr-1">{t('newMemberDetail.ageGroup')}</span>
                       {newMember.ageGroup}
                     </span>
                   </div>
@@ -196,7 +203,7 @@ export default function MinistryAdminNewMemberDetail() {
               <>
                 <Separator />
                 <div>
-                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Notes</h4>
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">{t('newMemberDetail.notes')}</h4>
                   <p className="whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">
                     {newMember.notes}
                   </p>
@@ -208,7 +215,7 @@ export default function MinistryAdminNewMemberDetail() {
               <>
                 <Separator />
                 <Badge variant="secondary" className="w-fit">
-                  Self-submitted via public form
+                  {t('newMemberDetail.selfSubmitted')}
                 </Badge>
               </>
             )}
@@ -217,9 +224,9 @@ export default function MinistryAdminNewMemberDetail() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Follow-up Timeline</CardTitle>
+            <CardTitle>{t('newMemberDetail.followUpTimeline')}</CardTitle>
             <CardDescription>
-              History of follow-ups with this new member & guest
+              {t('newMemberDetail.followUpHistory')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -231,14 +238,14 @@ export default function MinistryAdminNewMemberDetail() {
                       <Clock className="h-3 w-3" />
                       {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
                       <Badge variant="outline" className="ml-2">
-                        {outcomeLabels[checkin.outcome] || checkin.outcome}
+                        {getOutcomeLabel(checkin.outcome)}
                       </Badge>
                     </div>
                     {checkin.notes && <p className="text-sm">{checkin.notes}</p>}
                     {checkin.nextFollowupDate && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        Next follow-up: {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
-                        {checkin.nextFollowupTime && <span> at {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
+                        {t('newMemberDetail.nextFollowUp')} {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
+                        {checkin.nextFollowupTime && <span> {t('newMemberDetail.at')} {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
                       </p>
                     )}
                     {checkin.videoLink && (
@@ -249,7 +256,7 @@ export default function MinistryAdminNewMemberDetail() {
                         className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-1"
                       >
                         <Video className="h-3 w-3" />
-                        Join Meeting
+                        {t('newMemberDetail.joinMeeting')}
                       </a>
                     )}
                   </div>
@@ -258,7 +265,7 @@ export default function MinistryAdminNewMemberDetail() {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No follow-up notes yet</p>
+                <p>{t('newMemberDetail.noFollowUpNotes')}</p>
               </div>
             )}
           </CardContent>

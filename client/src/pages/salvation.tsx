@@ -42,17 +42,16 @@ export default function Salvation() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
                         1
                       </div>
-                      <CardTitle className="text-xl md:text-2xl">God Loves You</CardTitle>
+                      <CardTitle className="text-xl md:text-2xl">{t('salvation.godLovesYou')}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground mb-4">
-                      God created you and loves you deeply. He desires a personal relationship with you.
+                      {t('salvation.godLovesYouText')}
                     </p>
                     <blockquote className="border-l-4 border-primary pl-4 italic text-foreground">
-                      "For God so loved the world that he gave his one and only Son, that whoever
-                      believes in him shall not perish but have eternal life."
-                      <span className="block text-sm text-muted-foreground mt-1">— John 3:16</span>
+                      {t('salvation.john316')}
+                      <span className="block text-sm text-muted-foreground mt-1">{t('salvation.john316Ref')}</span>
                     </blockquote>
                   </CardContent>
                 </Card>
@@ -64,17 +63,16 @@ export default function Salvation() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
                         2
                       </div>
-                      <CardTitle className="text-xl md:text-2xl">We All Have Sinned</CardTitle>
+                      <CardTitle className="text-xl md:text-2xl">{t('salvation.weAllHaveSinned')}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground mb-4">
-                      Every person has sinned and fallen short of God's perfect standard. This sin
-                      separates us from God.
+                      {t('salvation.weAllHaveSinnedText')}
                     </p>
                     <blockquote className="border-l-4 border-primary pl-4 italic text-foreground">
-                      "For all have sinned and fall short of the glory of God."
-                      <span className="block text-sm text-muted-foreground mt-1">— Romans 3:23</span>
+                      {t('salvation.romans323')}
+                      <span className="block text-sm text-muted-foreground mt-1">{t('salvation.romans323Ref')}</span>
                     </blockquote>
                   </CardContent>
                 </Card>
@@ -86,18 +84,16 @@ export default function Salvation() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
                         3
                       </div>
-                      <CardTitle className="text-xl md:text-2xl">Jesus Paid the Price</CardTitle>
+                      <CardTitle className="text-xl md:text-2xl">{t('salvation.jesusPaidThePrice')}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground mb-4">
-                      Jesus Christ, God's Son, died on the cross to pay the penalty for our sins
-                      and rose again, conquering death.
+                      {t('salvation.jesusPaidThePriceText')}
                     </p>
                     <blockquote className="border-l-4 border-primary pl-4 italic text-foreground">
-                      "But God demonstrates his own love for us in this: While we were still
-                      sinners, Christ died for us."
-                      <span className="block text-sm text-muted-foreground mt-1">— Romans 5:8</span>
+                      {t('salvation.romans58')}
+                      <span className="block text-sm text-muted-foreground mt-1">{t('salvation.romans58Ref')}</span>
                     </blockquote>
                   </CardContent>
                 </Card>
@@ -109,18 +105,16 @@ export default function Salvation() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
                         4
                       </div>
-                      <CardTitle className="text-xl md:text-2xl">Receive Jesus Today</CardTitle>
+                      <CardTitle className="text-xl md:text-2xl">{t('salvation.receiveJesusToday')}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground mb-4">
-                      Salvation is a free gift. By believing in Jesus and accepting Him as your
-                      Lord and Savior, you can receive eternal life.
+                      {t('salvation.receiveJesusTodayText')}
                     </p>
                     <blockquote className="border-l-4 border-primary pl-4 italic text-foreground">
-                      "If you declare with your mouth, 'Jesus is Lord,' and believe in your heart
-                      that God raised him from the dead, you will be saved."
-                      <span className="block text-sm text-muted-foreground mt-1">— Romans 10:9</span>
+                      {t('salvation.romans109')}
+                      <span className="block text-sm text-muted-foreground mt-1">{t('salvation.romans109Ref')}</span>
                     </blockquote>
                   </CardContent>
                 </Card>
@@ -136,48 +130,43 @@ export default function Salvation() {
               <Card className="overflow-hidden">
                 <div className="bg-primary p-6 md:p-8 text-primary-foreground text-center">
                   <Heart className="h-10 w-10 mx-auto mb-4" />
-                  <h2 className="text-xl md:text-2xl font-bold">A Prayer for Salvation</h2>
+                  <h2 className="text-xl md:text-2xl font-bold">{t('salvation.prayerTitle')}</h2>
                 </div>
                 <CardContent className="p-6 md:p-8">
                   <p className="text-muted-foreground mb-6">
-                    If you're ready to accept Jesus as your Lord and Savior, you can pray this
-                    prayer from your heart:
+                    {t('salvation.prayerIntro')}
                   </p>
 
                   <div className="bg-muted/50 rounded-md p-6 mb-6">
                     <p className="text-lg italic leading-relaxed">
-                      "Dear God, I know that I am a sinner and I need Your forgiveness. I believe
-                      that Jesus Christ died for my sins and rose from the dead. I turn from my sins
-                      and invite Jesus to come into my heart and life. I want to trust and follow
-                      Jesus as my Lord and Savior. In Jesus' name, Amen."
+                      {t('salvation.prayerText')}
                     </p>
                   </div>
 
                   <div className="space-y-3">
                     <h4 className="font-semibold flex items-center gap-2">
                       <CheckCircle2 className="h-5 w-5 text-primary" />
-                      If You Prayed This Prayer
+                      {t('salvation.ifYouPrayed')}
                     </h4>
                     <p className="text-muted-foreground">
-                      Congratulations on the most important decision of your life! Here are your
-                      next steps:
+                      {t('salvation.congratulations')}
                     </p>
                     <ul className="space-y-2 text-muted-foreground">
                       <li className="flex items-start gap-2">
                         <span className="text-primary font-bold">1.</span>
-                        Tell someone about your decision
+                        {t('salvation.nextStep1')}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary font-bold">2.</span>
-                        Start reading the Bible (begin with the book of John)
+                        {t('salvation.nextStep2')}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary font-bold">3.</span>
-                        Find a local church to connect with
+                        {t('salvation.nextStep3')}
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary font-bold">4.</span>
-                        Learn about baptism as your next step
+                        {t('salvation.nextStep4')}
                       </li>
                     </ul>
                   </div>
@@ -186,12 +175,12 @@ export default function Salvation() {
                     <Link href="/journey" className="flex-1">
                       <Button className="w-full gap-2" data-testid="button-next-steps">
                         <BookOpen className="h-4 w-4" />
-                        View Next Steps
+                        {t('salvation.viewNextSteps')}
                       </Button>
                     </Link>
                     <Link href="/contact" className="flex-1">
                       <Button variant="outline" className="w-full gap-2" data-testid="button-tell-us">
-                        Tell Us About Your Decision
+                        {t('salvation.tellUsAboutDecision')}
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>

@@ -46,11 +46,11 @@ export default function MemberJourney() {
   const getRelationshipBadge = (type: string) => {
     switch (type) {
       case "convert":
-        return <Badge className="bg-blue-600">New Believer</Badge>;
+        return <Badge className="bg-blue-600">{t('memberPortal.newBeliever')}</Badge>;
       case "new_member":
-        return <Badge variant="secondary">New Member & Guest</Badge>;
+        return <Badge variant="secondary">{t('memberPortal.newMemberGuest')}</Badge>;
       case "member":
-        return <Badge>Full Member</Badge>;
+        return <Badge>{t('memberPortal.fullMember')}</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }

@@ -28,10 +28,10 @@ export default function RegisterMinistryFreeSuccess() {
                 </p>
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Mail className="h-4 w-4" />
-                  <span>Login credentials sent to your email</span>
+                  <span>{t('registerMinistry.credentialsSentToEmail')}</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Plan: <span className="font-medium">Free</span>
+                  {t('registerMinistry.plan')} <span className="font-medium">{t('registerMinistry.planFree')}</span>
                 </p>
                 <Button
                   onClick={() => setLocation("/login")}
