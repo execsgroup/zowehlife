@@ -16,11 +16,11 @@ interface SubscriptionData {
   hasStripeSubscription: boolean;
 }
 
-const planKeys: Record<string, { nameKey: string; price: string; featuresKey: string }> = {
-  free: { nameKey: "billing.free", price: "$0", featuresKey: "billing.planFeaturesFree" },
-  foundations: { nameKey: "billing.foundations", price: "$19.99", featuresKey: "billing.planFeaturesFoundations" },
-  formation: { nameKey: "billing.formation", price: "$29.99", featuresKey: "billing.planFeaturesFormation" },
-  stewardship: { nameKey: "billing.stewardship", price: "$59.99", featuresKey: "billing.planFeaturesStewardship" },
+const planKeys: Record<string, { nameKey: string; priceKey: string; featuresKey: string }> = {
+  free: { nameKey: "billing.free", priceKey: "billing.priceFree", featuresKey: "billing.planFeaturesFree" },
+  foundations: { nameKey: "billing.foundations", priceKey: "billing.priceFoundations", featuresKey: "billing.planFeaturesFoundations" },
+  formation: { nameKey: "billing.formation", priceKey: "billing.priceFormation", featuresKey: "billing.planFeaturesFormation" },
+  stewardship: { nameKey: "billing.stewardship", priceKey: "billing.priceStewardship", featuresKey: "billing.planFeaturesStewardship" },
 };
 
 function getStatusBadge(status: string, t: (key: string) => string) {
@@ -120,7 +120,7 @@ export default function MinistryAdminBilling() {
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <p className="text-xl font-bold" data-testid="text-plan-name">{t(planDetail.nameKey)}</p>
-                    <p className="text-sm text-muted-foreground" data-testid="text-plan-price">{t('billing.pricePerMonth', { price: planDetail.price })}</p>
+                    <p className="text-sm text-muted-foreground" data-testid="text-plan-price">{t('billing.pricePerMonth', { price: t(planDetail.priceKey) })}</p>
                   </div>
                   {subscription && getStatusBadge(subscription.subscriptionStatus, t)}
                 </div>

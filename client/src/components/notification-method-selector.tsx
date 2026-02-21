@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,6 +29,7 @@ export function NotificationMethodSelector({
   fieldName = "notificationMethod",
   hasPhone = false,
 }: NotificationMethodSelectorProps) {
+  const { t } = useTranslation();
   const apiBasePath = useApiBasePath();
 
   const { data: smsUsage } = useQuery<SmsUsageData>({
@@ -50,7 +52,7 @@ export function NotificationMethodSelector({
         name={fieldName}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Notification Method</FormLabel>
+            <FormLabel>{t('followUps.notificationMethod')}</FormLabel>
             <Select
               onValueChange={field.onChange}
               value={field.value || "email"}
@@ -58,14 +60,14 @@ export function NotificationMethodSelector({
             >
               <FormControl>
                 <SelectTrigger data-testid="trigger-notification-method">
-                  <SelectValue placeholder="Select notification method" />
+                  <SelectValue placeholder={t('followUps.selectNotificationMethod')} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
                 <SelectItem value="email" data-testid="option-email">
                   <span className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
-                    Email Only
+                    {t('followUps.emailOnly')}
                   </span>
                 </SelectItem>
                 <SelectItem
@@ -76,20 +78,20 @@ export function NotificationMethodSelector({
                   <span className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
                     <MessageSquare className="h-4 w-4" />
-                    Email + SMS
+                    {t('followUps.emailSms')}
                     {isFree && (
                       <Badge variant="secondary" className="text-xs">
-                        Upgrade
+                        {t('followUps.upgrade')}
                       </Badge>
                     )}
                     {!isFree && !smsAvailable && (
                       <Badge variant="destructive" className="text-xs">
-                        Limit reached
+                        {t('followUps.limitReached')}
                       </Badge>
                     )}
                     {!hasPhone && !isFree && (
                       <Badge variant="secondary" className="text-xs">
-                        No phone
+                        {t('followUps.noPhone')}
                       </Badge>
                     )}
                   </span>
@@ -102,20 +104,20 @@ export function NotificationMethodSelector({
                   <span className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
                     <Image className="h-4 w-4" />
-                    Email + MMS
+                    {t('followUps.emailMms')}
                     {isFree && (
                       <Badge variant="secondary" className="text-xs">
-                        Upgrade
+                        {t('followUps.upgrade')}
                       </Badge>
                     )}
                     {!isFree && !mmsAvailable && (
                       <Badge variant="destructive" className="text-xs">
-                        Limit reached
+                        {t('followUps.limitReached')}
                       </Badge>
                     )}
                     {!hasPhone && !isFree && (
                       <Badge variant="secondary" className="text-xs">
-                        No phone
+                        {t('followUps.noPhone')}
                       </Badge>
                     )}
                   </span>
@@ -129,14 +131,14 @@ export function NotificationMethodSelector({
 
       {smsUsage && !isFree && (
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground" data-testid="text-sms-usage">
-          <span>SMS: {smsUsage.smsRemaining}/{smsUsage.smsLimit} remaining</span>
-          <span>MMS: {smsUsage.mmsRemaining}/{smsUsage.mmsLimit} remaining</span>
+          <span>{t('followUps.smsRemainingCount', { remaining: smsUsage.smsRemaining, limit: smsUsage.smsLimit })}</span>
+          <span>{t('followUps.mmsRemainingCount', { remaining: smsUsage.mmsRemaining, limit: smsUsage.mmsLimit })}</span>
         </div>
       )}
 
       {isFree && (
         <p className="text-xs text-muted-foreground" data-testid="text-sms-upgrade-hint">
-          SMS/MMS messaging is available on paid plans.
+          {t('followUps.smsMmsPaidPlans')}
         </p>
       )}
     </div>

@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -16,20 +17,22 @@ import { AITextarea } from "@/components/ai-text-helper";
 import { NotificationMethodSelector } from "@/components/notification-method-selector";
 import { MmsImageUpload } from "@/components/mms-image-upload";
 
-const scheduleFollowUpSchema = z.object({
-  nextFollowupDate: z.string().min(1, "Follow-up date is required"),
-  nextFollowupTime: z.string().optional(),
-  customLeaderSubject: z.string().optional(),
-  customLeaderMessage: z.string().optional(),
-  customConvertSubject: z.string().optional(),
-  customConvertMessage: z.string().optional(),
-  smsMessage: z.string().optional(),
-  mmsMediaUrl: z.string().optional(),
-  includeVideoLink: z.boolean().optional(),
-  notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
-});
+type ScheduleFollowUpData = z.infer<ReturnType<typeof createScheduleFollowUpSchema>>;
 
-type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
+function createScheduleFollowUpSchema(t: (key: string) => string) {
+  return z.object({
+    nextFollowupDate: z.string().min(1, t('validation.followUpDateRequired')),
+    nextFollowupTime: z.string().optional(),
+    customLeaderSubject: z.string().optional(),
+    customLeaderMessage: z.string().optional(),
+    customConvertSubject: z.string().optional(),
+    customConvertMessage: z.string().optional(),
+    smsMessage: z.string().optional(),
+    mmsMediaUrl: z.string().optional(),
+    includeVideoLink: z.boolean().optional(),
+    notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+  });
+}
 
 interface ConvertInfo {
   id: string | number;
@@ -52,6 +55,9 @@ export function ConvertScheduleFollowUpDialog({
 }: ConvertScheduleFollowUpDialogProps) {
   const { toast } = useToast();
   const apiBasePath = useApiBasePath();
+  const { t } = useTranslation();
+
+  const scheduleFollowUpSchema = createScheduleFollowUpSchema(t);
 
   const form = useForm<ScheduleFollowUpData>({
     resolver: zodResolver(scheduleFollowUpSchema),
@@ -79,8 +85,8 @@ export function ConvertScheduleFollowUpDialog({
     onSuccess: () => {
       const method = form.getValues("notificationMethod");
       toast({
-        title: "Follow-up scheduled",
-        description: `The follow-up has been scheduled and ${method === "email" ? "email" : `email and ${method?.toUpperCase()}`} notifications will be sent.`,
+        title: t('followUps.followUpScheduled'),
+        description: t('followUps.followUpScheduledNotification', { method: method === "email" ? t('followUps.emailOnly') : `${t('followUps.emailOnly')} + ${method?.toUpperCase()}` }),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
@@ -102,8 +108,8 @@ export function ConvertScheduleFollowUpDialog({
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to schedule follow-up",
+        title: t('common.error'),
+        description: error.message || t('followUps.failedToSchedule'),
         variant: "destructive",
       });
     },
@@ -113,10 +119,10 @@ export function ConvertScheduleFollowUpDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Schedule Follow Up</DialogTitle>
+          <DialogTitle>{t('followUps.scheduleFollowUp')}</DialogTitle>
           <DialogDescription>
             {convert && (
-              <>Schedule a follow-up with {convert.firstName} {convert.lastName}</>
+              <>{t('followUps.scheduleFollowUpWith', { name: `${convert.firstName} ${convert.lastName}` })}</>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -130,7 +136,7 @@ export function ConvertScheduleFollowUpDialog({
               name="nextFollowupDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Follow-up Date *</FormLabel>
+                  <FormLabel>{t('followUps.followUpDate')} *</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} data-testid="input-schedule-followup-date" />
                   </FormControl>
@@ -144,7 +150,7 @@ export function ConvertScheduleFollowUpDialog({
               name="nextFollowupTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Follow-up Time (optional)</FormLabel>
+                  <FormLabel>{t('followUps.followUpTimeOptional')}</FormLabel>
                   <FormControl>
                     <Input type="time" {...field} data-testid="input-schedule-followup-time" />
                   </FormControl>
@@ -173,10 +179,10 @@ export function ConvertScheduleFollowUpDialog({
                   <div className="space-y-1 leading-none">
                     <FormLabel className="flex items-center gap-2">
                       <Video className="h-4 w-4" />
-                      Include video call link
+                      {t('followUps.includeVideoCallLink')}
                     </FormLabel>
                     <p className="text-sm text-muted-foreground">
-                      Add a free Jitsi Meet video call link to the notification
+                      {t('followUps.videoCallDescription')}
                     </p>
                   </div>
                 </FormItem>
@@ -185,21 +191,21 @@ export function ConvertScheduleFollowUpDialog({
 
             <div className="space-y-4 border-t pt-4">
               <p className="text-sm text-muted-foreground">
-                Customize the email notifications (leave blank for defaults):
+                {t('followUps.customizeEmails')}
               </p>
                 
                 {convert?.email && (
                   <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">Email to {convert.firstName} {convert.lastName}</p>
+                    <p className="text-sm font-medium">{t('followUps.emailTo')} {convert.firstName} {convert.lastName}</p>
                     <FormField
                       control={form.control}
                       name="customConvertSubject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Subject Line</FormLabel>
+                          <FormLabel>{t('followUps.subjectLine')}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Leave blank for default subject..."
+                              placeholder={t('followUps.defaultSubjectPlaceholder')}
                               {...field}
                               data-testid="input-convert-subject"
                             />
@@ -213,12 +219,12 @@ export function ConvertScheduleFollowUpDialog({
                       name="customConvertMessage"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Message Body</FormLabel>
+                          <FormLabel>{t('followUps.messageBody')}</FormLabel>
                           <FormControl>
                             <AITextarea
                               value={field.value || ""}
                               onChange={(text) => form.setValue("customConvertMessage", text)}
-                              placeholder="Leave blank for default message..."
+                              placeholder={t('followUps.defaultMessagePlaceholder')}
                               context={`Writing an initial follow-up email to a new convert named ${convert?.firstName} ${convert?.lastName} from a church ministry.`}
                               aiPlaceholder="e.g., Write a warm welcome message..."
                               rows={4}
@@ -246,7 +252,7 @@ export function ConvertScheduleFollowUpDialog({
                         <AITextarea
                           value={field.value || ""}
                           onChange={(text) => form.setValue("smsMessage", text)}
-                          placeholder="Leave blank for default SMS message..."
+                          placeholder={t('followUps.defaultSmsPlaceholder')}
                           context={`Writing a short SMS follow-up message to ${convert?.firstName} ${convert?.lastName} from a church ministry. Keep it under 160 characters.`}
                           aiPlaceholder="e.g., Write a brief follow-up text..."
                           rows={3}
@@ -273,7 +279,7 @@ export function ConvertScheduleFollowUpDialog({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t('forms.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -283,10 +289,10 @@ export function ConvertScheduleFollowUpDialog({
                 {scheduleFollowUpMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Scheduling...
+                    {t('followUps.scheduling')}
                   </>
                 ) : (
-                  "Schedule Follow Up"
+                  t('followUps.scheduleFollowUp')
                 )}
               </Button>
             </div>

@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ImagePlus, X, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -15,18 +16,19 @@ export function MmsImageUpload({ onImageUploaded, onImageRemoved, currentUrl }: 
   const [fileName, setFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast({ title: "Invalid file", description: "Please select an image file (JPG, PNG, GIF, etc.)", variant: "destructive" });
+      toast({ title: t('forms.invalidFile'), description: t('forms.selectImageFile'), variant: "destructive" });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Image must be under 5MB", variant: "destructive" });
+      toast({ title: t('forms.fileTooLarge'), description: t('forms.imageSizeLimit'), variant: "destructive" });
       return;
     }
 
@@ -56,10 +58,10 @@ export function MmsImageUpload({ onImageUploaded, onImageRemoved, currentUrl }: 
       setPreviewUrl(localPreview);
       onImageUploaded(publicUrl);
 
-      toast({ title: "Image attached", description: "Image will be sent with your MMS message" });
+      toast({ title: t('forms.imageAttached'), description: t('forms.imageWillBeSent') });
     } catch (error: any) {
       console.error("MMS image upload error:", error);
-      toast({ title: "Upload failed", description: error.message || "Could not upload image", variant: "destructive" });
+      toast({ title: t('forms.uploadFailed'), description: error.message || t('forms.couldNotUploadImage'), variant: "destructive" });
       setFileName("");
     } finally {
       setUploading(false);
@@ -75,12 +77,12 @@ export function MmsImageUpload({ onImageUploaded, onImageRemoved, currentUrl }: 
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground">Image Attachment (optional)</p>
+      <p className="text-xs font-medium text-muted-foreground">{t('forms.imageAttachmentOptional')}</p>
       {previewUrl ? (
         <div className="relative inline-block">
           <img
             src={previewUrl}
-            alt="MMS attachment"
+            alt={t('forms.mmsAttachment')}
             className="rounded-md max-h-32 max-w-full object-cover border"
             data-testid="img-mms-preview"
           />
@@ -119,16 +121,16 @@ export function MmsImageUpload({ onImageUploaded, onImageRemoved, currentUrl }: 
             {uploading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Uploading...
+                {t('forms.loading')}
               </>
             ) : (
               <>
                 <ImagePlus className="h-4 w-4 mr-2" />
-                Attach Image
+                {t('forms.attachImage')}
               </>
             )}
           </Button>
-          <p className="text-xs text-muted-foreground mt-1">JPG, PNG, GIF up to 5MB</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('forms.imageSizeInfo')}</p>
         </div>
       )}
     </div>

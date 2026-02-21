@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ export function AITextHelper({
   const [prompt, setPrompt] = useState("");
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const generateMutation = useMutation({
     mutationFn: async (data: { prompt?: string; existingText?: string; context?: string }) => {
@@ -40,15 +42,15 @@ export function AITextHelper({
         setPrompt("");
         setOpen(false);
         toast({
-          title: "Text generated",
-          description: "The AI has generated new text for you.",
+          title: t('ai.textGenerated'),
+          description: t('ai.textGeneratedDesc'),
         });
       }
     },
     onError: () => {
       toast({
-        title: "Generation failed",
-        description: "Could not generate text. Please try again.",
+        title: t('ai.generationFailed'),
+        description: t('ai.generationFailedDesc'),
         variant: "destructive",
       });
     },
@@ -57,8 +59,8 @@ export function AITextHelper({
   const handleGenerate = () => {
     if (!prompt.trim() && !currentValue.trim()) {
       toast({
-        title: "Input required",
-        description: "Please enter a prompt or have existing text to improve.",
+        title: t('ai.inputRequired'),
+        description: t('ai.inputRequiredDesc'),
         variant: "destructive",
       });
       return;
@@ -74,8 +76,8 @@ export function AITextHelper({
   const handleImprove = () => {
     if (!currentValue.trim()) {
       toast({
-        title: "No text to improve",
-        description: "Please write some text first.",
+        title: t('ai.noTextToImprove'),
+        description: t('ai.noTextToImproveDesc'),
         variant: "destructive",
       });
       return;
@@ -105,7 +107,7 @@ export function AITextHelper({
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
-            <span className="font-medium text-sm">AI Text Helper</span>
+            <span className="font-medium text-sm">{t('ai.aiTextHelper')}</span>
           </div>
           
           <div className="space-y-2">
@@ -137,7 +139,7 @@ export function AITextHelper({
                 ) : (
                   <Wand2 className="h-3.5 w-3.5 mr-1" />
                 )}
-                {prompt.trim() ? "Generate" : "Write for me"}
+                {prompt.trim() ? t('ai.generate') : t('ai.writeForMe')}
               </Button>
               
               {currentValue.trim() && (
@@ -150,7 +152,7 @@ export function AITextHelper({
                   data-testid="button-ai-improve"
                 >
                   <RefreshCw className="h-3.5 w-3.5 mr-1" />
-                  Improve
+                  {t('ai.improve')}
                 </Button>
               )}
             </div>
@@ -158,8 +160,8 @@ export function AITextHelper({
           
           <p className="text-xs text-muted-foreground">
             {currentValue.trim() 
-              ? "Enter instructions to modify your text, or click Improve to enhance it."
-              : "Describe what you want to write and AI will generate it for you."}
+              ? t('ai.instructionsToModify')
+              : t('ai.describeWhatToWrite')}
           </p>
         </div>
       </PopoverContent>

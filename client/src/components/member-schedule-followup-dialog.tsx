@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
@@ -15,20 +16,22 @@ import { AITextarea } from "@/components/ai-text-helper";
 import { NotificationMethodSelector } from "@/components/notification-method-selector";
 import { MmsImageUpload } from "@/components/mms-image-upload";
 
-const scheduleFollowUpSchema = z.object({
-  nextFollowupDate: z.string().min(1, "Follow-up date is required"),
-  nextFollowupTime: z.string().optional(),
-  customConvertSubject: z.string().optional(),
-  customConvertMessage: z.string().optional(),
-  customReminderSubject: z.string().optional(),
-  customReminderMessage: z.string().optional(),
-  smsMessage: z.string().optional(),
-  mmsMediaUrl: z.string().optional(),
-  includeVideoLink: z.boolean().optional(),
-  notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
-});
+function createScheduleFollowUpSchema(t: (key: string) => string) {
+  return z.object({
+    nextFollowupDate: z.string().min(1, t('validation.followUpDateRequired')),
+    nextFollowupTime: z.string().optional(),
+    customConvertSubject: z.string().optional(),
+    customConvertMessage: z.string().optional(),
+    customReminderSubject: z.string().optional(),
+    customReminderMessage: z.string().optional(),
+    smsMessage: z.string().optional(),
+    mmsMediaUrl: z.string().optional(),
+    includeVideoLink: z.boolean().optional(),
+    notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+  });
+}
 
-type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
+type ScheduleFollowUpData = z.infer<ReturnType<typeof createScheduleFollowUpSchema>>;
 
 interface MemberScheduleFollowUpDialogProps {
   open: boolean;
@@ -48,7 +51,10 @@ export function MemberScheduleFollowUpDialog({
   memberPhone,
 }: MemberScheduleFollowUpDialogProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const apiBasePath = useApiBasePath();
+
+  const scheduleFollowUpSchema = createScheduleFollowUpSchema(t);
 
   const form = useForm<ScheduleFollowUpData>({
     resolver: zodResolver(scheduleFollowUpSchema),
@@ -76,8 +82,8 @@ export function MemberScheduleFollowUpDialog({
       const method = form.getValues("notificationMethod");
       const methodLabel = method === "email" ? "email" : `email and ${method?.toUpperCase()}`;
       toast({
-        title: "Follow-up scheduled",
-        description: `The follow-up has been scheduled and ${methodLabel} notifications sent.`,
+        title: t('followUps.followUpScheduled'),
+        description: t('followUps.followUpScheduledNotification', { method: methodLabel }),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, memberId] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members/${memberId}/checkins`] });
@@ -88,8 +94,8 @@ export function MemberScheduleFollowUpDialog({
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to schedule follow-up",
+        title: t('common.error'),
+        description: error.message || t('followUps.failedToScheduleFollowUp'),
         variant: "destructive",
       });
     },
@@ -99,9 +105,9 @@ export function MemberScheduleFollowUpDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Schedule Follow Up</DialogTitle>
+          <DialogTitle>{t('followUps.scheduleFollowUp')}</DialogTitle>
           <DialogDescription>
-            Schedule a follow-up with {memberFirstName} {memberLastName}
+            {t('followUps.scheduleFollowUpWith', { name: `${memberFirstName} ${memberLastName}` })}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -114,7 +120,7 @@ export function MemberScheduleFollowUpDialog({
               name="nextFollowupDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Follow-up Date *</FormLabel>
+                  <FormLabel>{t('followUps.followUpDate')} *</FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -133,7 +139,7 @@ export function MemberScheduleFollowUpDialog({
               name="nextFollowupTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Follow-up Time (optional)</FormLabel>
+                  <FormLabel>{t('followUps.followUpTimeOptional')}</FormLabel>
                   <FormControl>
                     <Input type="time" {...field} data-testid="input-followup-time" />
                   </FormControl>
@@ -162,10 +168,10 @@ export function MemberScheduleFollowUpDialog({
                   <div className="space-y-1 leading-none">
                     <FormLabel className="flex items-center gap-2">
                       <Video className="h-4 w-4" />
-                      Include Video Call Link
+                      {t('followUps.includeVideoCallLink')}
                     </FormLabel>
                     <p className="text-sm text-muted-foreground">
-                      Generate a Jitsi Meet link for video calls
+                      {t('followUps.videoCallDescription')}
                     </p>
                   </div>
                 </FormItem>
@@ -173,17 +179,17 @@ export function MemberScheduleFollowUpDialog({
             />
 
             <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-medium text-sm">Initial Email to Member (Optional)</h4>
-              <p className="text-xs text-muted-foreground">Sent immediately when scheduling the follow-up</p>
+              <h4 className="font-medium text-sm">{t('followUps.initialEmailToMember')}</h4>
+              <p className="text-xs text-muted-foreground">{t('followUps.sentImmediately')}</p>
               
               <FormField
                 control={form.control}
                 name="customConvertSubject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Subject</FormLabel>
+                    <FormLabel>{t('followUps.subjectLine')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Custom subject for initial email" {...field} data-testid="input-initial-email-subject" />
+                      <Input placeholder={t('followUps.defaultSubjectPlaceholder')} {...field} data-testid="input-initial-email-subject" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -195,12 +201,12 @@ export function MemberScheduleFollowUpDialog({
                 name="customConvertMessage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Message</FormLabel>
+                    <FormLabel>{t('followUps.messageBody')}</FormLabel>
                     <FormControl>
                       <AITextarea
                         value={field.value || ""}
                         onChange={(text) => form.setValue("customConvertMessage", text)}
-                        placeholder="Custom message for initial email"
+                        placeholder={t('followUps.defaultMessagePlaceholder')}
                         context={`Writing an initial follow-up email to a church member named ${memberFirstName} ${memberLastName}.`}
                         aiPlaceholder="e.g., Write a warm welcome message..."
                         rows={4}
@@ -215,8 +221,8 @@ export function MemberScheduleFollowUpDialog({
 
             {(notificationMethod === "sms" || notificationMethod === "mms") && (
               <div className="space-y-3 p-3 bg-muted/50 rounded-lg border-t pt-4">
-                <p className="text-sm font-medium">Custom {notificationMethod.toUpperCase()} Message (optional)</p>
-                <p className="text-xs text-muted-foreground">An additional {notificationMethod.toUpperCase()} will be sent alongside the email above</p>
+                <p className="text-sm font-medium">{t('followUps.customMethodMessage', { method: notificationMethod.toUpperCase() })}</p>
+                <p className="text-xs text-muted-foreground">{t('followUps.additionalMethodSent', { method: notificationMethod.toUpperCase() })}</p>
                 <FormField
                   control={form.control}
                   name="smsMessage"
@@ -226,7 +232,7 @@ export function MemberScheduleFollowUpDialog({
                         <AITextarea
                           value={field.value || ""}
                           onChange={(text) => form.setValue("smsMessage", text)}
-                          placeholder="Leave blank for default SMS message..."
+                          placeholder={t('followUps.defaultSmsPlaceholder')}
                           context={`Writing a short SMS follow-up message to ${memberFirstName} ${memberLastName} from a church ministry. Keep it under 160 characters.`}
                           aiPlaceholder="e.g., Write a brief follow-up text..."
                           rows={3}
@@ -256,10 +262,10 @@ export function MemberScheduleFollowUpDialog({
               {scheduleFollowUpMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Scheduling...
+                  {t('followUps.scheduling')}
                 </>
               ) : (
-                "Schedule Follow Up"
+                t('followUps.scheduleFollowUp')
               )}
             </Button>
           </form>

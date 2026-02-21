@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -39,6 +40,7 @@ export function ConvertAddNoteDialog({
 }: ConvertAddNoteDialogProps) {
   const { toast } = useToast();
   const apiBasePath = useApiBasePath();
+  const { t } = useTranslation();
 
   const form = useForm<AddNoteData>({
     resolver: zodResolver(addNoteSchema),
@@ -59,8 +61,8 @@ export function ConvertAddNoteDialog({
     },
     onSuccess: () => {
       toast({
-        title: "Notes recorded",
-        description: "Your follow-up notes have been saved.",
+        title: t('followUps.notesRecorded'),
+        description: t('followUps.notesSaved'),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
@@ -74,8 +76,8 @@ export function ConvertAddNoteDialog({
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to save notes",
+        title: t('common.error'),
+        description: error.message || t('followUps.failedToSaveNotes'),
         variant: "destructive",
       });
     },
@@ -85,10 +87,10 @@ export function ConvertAddNoteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Note</DialogTitle>
+          <DialogTitle>{t('followUps.addNote')}</DialogTitle>
           <DialogDescription>
             {convert && (
-              <>Record what happened during your follow-up with {convert.firstName} {convert.lastName}</>
+              <>{t('followUps.recordFollowUp', { name: `${convert.firstName} ${convert.lastName}` })}</>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -102,11 +104,11 @@ export function ConvertAddNoteDialog({
               name="outcome"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Outcome</FormLabel>
+                  <FormLabel>{t('forms.outcome')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-note-outcome">
-                        <SelectValue placeholder="Select outcome" />
+                        <SelectValue placeholder={t('followUps.selectOutcome')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -127,10 +129,10 @@ export function ConvertAddNoteDialog({
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>{t('forms.notes')}</FormLabel>
                   <FormControl>
                     <AITextarea
-                      placeholder="What happened during this follow-up? Any prayer requests or next steps?"
+                      placeholder={t('followUps.followUpNotesPlaceholder')}
                       value={field.value || ""}
                       onChange={field.onChange}
                       context="Follow-up note for a convert in a ministry"
@@ -147,7 +149,7 @@ export function ConvertAddNoteDialog({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                {t('forms.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -157,10 +159,10 @@ export function ConvertAddNoteDialog({
                 {addNoteMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Saving...
+                    {t('forms.saving')}
                   </>
                 ) : (
-                  "Save Note"
+                  t('forms.saveNote')
                 )}
               </Button>
             </div>

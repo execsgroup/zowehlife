@@ -8,6 +8,8 @@ import { startReminderScheduler } from "./scheduler";
 import { SMS_PLAN_LIMITS, getCurrentBillingPeriod, sendSms, sendMms, formatPhoneForSms, buildFollowUpSmsMessage } from "./sms";
 import { registerObjectStorageRoutes } from "./replit_integrations/object_storage";
 import { buildUrl } from "./utils/url";
+import { generateJitsiLink, generateMassJitsiLink, generatePersonalJitsiLink } from "./utils/jitsi";
+import { getMaxLeadersForPlan, getLeaderLimitMessage } from "./utils/plan-limits";
 import OpenAI from "openai";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import {
@@ -35,18 +37,6 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 
-function getMaxLeadersForPlan(plan: string | null | undefined): number {
-  switch (plan) {
-    case "stewardship":
-      return 10;
-    case "formation":
-      return 3;
-    case "free":
-    case "foundations":
-    default:
-      return 1;
-  }
-}
 
 declare module "express-session" {
   interface SessionData {
@@ -2339,7 +2329,7 @@ export async function registerRoutes(
       const adminCurrentLeaders = await storage.getLeadersByChurch(church.id);
       if (adminCurrentLeaders.length >= adminMaxLeaders) {
         return res.status(400).json({ 
-          message: `This ministry has reached its leader limit of ${adminMaxLeaders} for the ${(church.plan || 'foundations').charAt(0).toUpperCase() + (church.plan || 'foundations').slice(1)} plan. Update the ministry's plan before approving more leaders.` 
+          message: getLeaderLimitMessage(adminMaxLeaders, church.plan || 'foundations') 
         });
       }
 
@@ -2669,7 +2659,7 @@ export async function registerRoutes(
       const currentLeaders = await storage.getLeadersByChurch(ministryAdmin.churchId);
       if (currentLeaders.length >= maxLeaders) {
         return res.status(400).json({ 
-          message: `You have reached the maximum limit of ${maxLeaders} leader${maxLeaders !== 1 ? 's' : ''} for your ministry's ${(maChurch?.plan || 'foundations').charAt(0).toUpperCase() + (maChurch?.plan || 'foundations').slice(1)} plan. Please upgrade your plan or remove a leader before adding a new one.` 
+          message: getLeaderLimitMessage(maxLeaders, maChurch?.plan || 'foundations') 
         });
       }
 
@@ -2996,7 +2986,7 @@ export async function registerRoutes(
       const existingLeaders = await storage.getLeadersByChurch(ministryAdmin.churchId);
       if (existingLeaders.length >= maxLeaders) {
         return res.status(400).json({ 
-          message: `Maximum number of leaders (${maxLeaders}) reached for your ministry's ${(maChurch?.plan || 'foundations').charAt(0).toUpperCase() + (maChurch?.plan || 'foundations').slice(1)} plan. Upgrade your plan or remove an existing leader to add a new one.` 
+          message: getLeaderLimitMessage(maxLeaders, maChurch?.plan || 'foundations') 
         });
       }
 
@@ -3395,8 +3385,6 @@ export async function registerRoutes(
       const churchName = church?.name || "Ministry";
       const leaderName = `${user.firstName} ${user.lastName}`;
       const contactUrl = buildUrl("/contact", req);
-      const sanitizedChurch = churchName.toLowerCase().replace(/[^a-z0-9]/g, "");
-
       const massFollowup = await storage.createMassFollowup({
         churchId: user.churchId,
         createdByUserId: user.id,
@@ -3407,7 +3395,7 @@ export async function registerRoutes(
         status: "SCHEDULED",
         customSubject: data.customSubject || null,
         customMessage: data.customMessage || null,
-        videoLink: data.includeVideoLink ? `https://meet.jit.si/${sanitizedChurch}-mass-${Date.now()}` : null,
+        videoLink: data.includeVideoLink ? generateMassJitsiLink(churchName) : null,
       });
 
       const results: { personId: string; name: string; success: boolean; error?: string }[] = [];
@@ -3433,8 +3421,7 @@ export async function registerRoutes(
           const personName = `${person.firstName} ${person.lastName}`;
           let videoLink: string | undefined;
           if (data.includeVideoLink) {
-            const sanitizedName = `${person.firstName}-${person.lastName}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
-            videoLink = `https://meet.jit.si/${sanitizedChurch}-${sanitizedName}-${Date.now()}`;
+            videoLink = generatePersonalJitsiLink(churchName, personName);
           }
 
           await storage.createMassFollowupParticipant({
@@ -3966,9 +3953,7 @@ export async function registerRoutes(
 
       let videoCallLink: string | undefined;
       if (data.includeVideoLink) {
-        const sanitizedMinistry = (church?.name || 'zoweh').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const roomName = `${sanitizedMinistry}-${convert.firstName.toLowerCase()}-${convert.lastName.toLowerCase()}-${Date.now()}`.replace(/[^a-z0-9-]/g, '');
-        videoCallLink = `https://meet.jit.si/${roomName}`;
+        videoCallLink = generatePersonalJitsiLink(church?.name || "zoweh", `${convert.firstName} ${convert.lastName}`);
       }
 
       const checkin = await storage.createCheckin({
@@ -4613,8 +4598,7 @@ export async function registerRoutes(
       
       let videoLink: string | undefined;
       if (data.includeVideoLink) {
-        const roomName = `${church?.name || "ministry"}-${newMember.firstName}-${newMember.lastName}-${Date.now()}`.replace(/[^a-zA-Z0-9-]/g, "-");
-        videoLink = `https://meet.jit.si/${roomName}`;
+        videoLink = generatePersonalJitsiLink(church?.name || "ministry", `${newMember.firstName} ${newMember.lastName}`);
       }
       
       const checkin = await storage.createNewMemberCheckin({
@@ -5248,8 +5232,7 @@ export async function registerRoutes(
       
       let videoLink: string | undefined;
       if (data.includeVideoLink) {
-        const roomName = `${church?.name || "ministry"}-${member.firstName}-${member.lastName}-${Date.now()}`.replace(/[^a-zA-Z0-9-]/g, "-");
-        videoLink = `https://meet.jit.si/${roomName}`;
+        videoLink = generatePersonalJitsiLink(church?.name || "ministry", `${member.firstName} ${member.lastName}`);
       }
       
       const checkin = await storage.createMemberCheckin({
@@ -5414,8 +5397,6 @@ export async function registerRoutes(
       const churchName = church?.name || "Ministry";
       const leaderName = `${user.firstName} ${user.lastName}`;
       const contactUrl = buildUrl("/contact", req);
-      const sanitizedChurch = churchName.toLowerCase().replace(/[^a-z0-9]/g, "");
-
       const massFollowup = await storage.createMassFollowup({
         churchId: user.churchId,
         createdByUserId: user.id,
@@ -5426,7 +5407,7 @@ export async function registerRoutes(
         status: "SCHEDULED",
         customSubject: data.customSubject || null,
         customMessage: data.customMessage || null,
-        videoLink: data.includeVideoLink ? `https://meet.jit.si/${sanitizedChurch}-mass-${Date.now()}` : null,
+        videoLink: data.includeVideoLink ? generateMassJitsiLink(churchName) : null,
       });
 
       const results: { personId: string; name: string; success: boolean; error?: string }[] = [];
@@ -5452,8 +5433,7 @@ export async function registerRoutes(
           const personName = `${person.firstName} ${person.lastName}`;
           let videoLink: string | undefined;
           if (data.includeVideoLink) {
-            const sanitizedName = `${person.firstName}-${person.lastName}`.toLowerCase().replace(/[^a-z0-9-]/g, "");
-            videoLink = `https://meet.jit.si/${sanitizedChurch}-${sanitizedName}-${Date.now()}`;
+            videoLink = generatePersonalJitsiLink(churchName, personName);
           }
 
           await storage.createMassFollowupParticipant({
