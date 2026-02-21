@@ -4,9 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { CheckCircle, ArrowRight, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterMinistryFreeSuccess() {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -20,9 +22,9 @@ export default function RegisterMinistryFreeSuccess() {
                 <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
                   <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h2 className="text-2xl font-bold" data-testid="text-free-success-title">Ministry Created!</h2>
+                <h2 className="text-2xl font-bold" data-testid="text-free-success-title">{t('registerMinistry.freeSuccessTitle')}</h2>
                 <p className="text-muted-foreground">
-                  Your free ministry has been created and is ready to use. Check your email for your login credentials to get started.
+                  {t('registerMinistry.freeSuccessDescription')}
                 </p>
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Mail className="h-4 w-4" />
@@ -36,7 +38,7 @@ export default function RegisterMinistryFreeSuccess() {
                   className="gap-2"
                   data-testid="button-login"
                 >
-                  Go to Login
+                  {t('registerMinistry.goToLogin')}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </CardContent>

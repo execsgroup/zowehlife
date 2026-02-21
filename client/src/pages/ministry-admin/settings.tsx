@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
@@ -79,6 +80,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
 }
 
 export default function MinistryAdminSettings() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { logout } = useAuth();
   const [, navigate] = useLocation();
@@ -280,7 +282,7 @@ export default function MinistryAdminSettings() {
     <DashboardLayout>
       <div className="max-w-4xl mx-auto space-y-6">
         <PageHeader
-          title="Ministry Settings"
+          title={t('settings.ministrySettings')}
           description="Manage your ministry account settings."
         />
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/auth";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
@@ -38,6 +39,7 @@ interface ChurchInfo {
 }
 
 export default function LeaderDashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
@@ -78,33 +80,33 @@ export default function LeaderDashboard() {
   const getFollowupBadge = (dateStr: string) => {
     const date = new Date(dateStr);
     if (isPast(date) && !isToday(date)) {
-      return <Badge variant="destructive" className="text-xs">Overdue</Badge>;
+      return <Badge variant="destructive" className="text-xs">{t('dashboard.overdue')}</Badge>;
     }
     if (isToday(date)) {
-      return <Badge variant="secondary" className="text-xs">Today</Badge>;
+      return <Badge variant="secondary" className="text-xs">{t('dashboard.today')}</Badge>;
     }
     if (isTomorrow(date)) {
-      return <Badge variant="outline" className="text-xs">Tomorrow</Badge>;
+      return <Badge variant="outline" className="text-xs">{t('dashboard.tomorrow')}</Badge>;
     }
     return null;
   };
 
   const formLinks = [
-    { label: "Salvation Form (Converts)", link: convertFormLink, token: church?.publicToken, type: "convert form" },
-    { label: "New Member Form", link: newMemberFormLink, token: church?.newMemberToken, type: "new member form" },
-    { label: "Member Form", link: memberFormLink, token: church?.memberToken, type: "member form" },
+    { label: t('dashboard.salvationFormConverts'), link: convertFormLink, token: church?.publicToken, type: "convert form" },
+    { label: t('dashboard.newMemberForm'), link: newMemberFormLink, token: church?.newMemberToken, type: "new member form" },
+    { label: t('dashboard.memberForm'), link: memberFormLink, token: church?.memberToken, type: "member form" },
   ];
 
   return (
     <DashboardLayout>
       <PageHeader
-        title="Dashboard"
-        description={isLoading ? undefined : `Managing converts for ${stats?.churchName || "your ministry"}`}
+        title={t('sidebar.dashboard')}
+        description={isLoading ? undefined : t('dashboard.managingConverts', { name: stats?.churchName || 'your ministry' })}
         actions={
           <Link href="/leader/converts?new=true">
             <Button size="sm" className="gap-1.5" data-testid="button-add-convert">
               <UserPlus className="h-3.5 w-3.5" />
-              Add Convert
+              {t('dashboard.addConvert')}
             </Button>
           </Link>
         }
@@ -112,9 +114,9 @@ export default function LeaderDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-3" data-testid="stats-grid">
         {[
-          { label: "Total Converts", value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts" },
-          { label: "New This Month", value: stats?.newConverts, icon: User, testId: "text-new-converts" },
-          { label: "Follow-ups Due", value: stats?.followupsDue?.length, icon: Calendar, testId: "text-followups-due" },
+          { label: t('dashboard.totalConverts'), value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts" },
+          { label: t('dashboard.newThisMonth'), value: stats?.newConverts, icon: User, testId: "text-new-converts" },
+          { label: t('dashboard.followUpsDue'), value: stats?.followupsDue?.length, icon: Calendar, testId: "text-followups-due" },
         ].map((stat) => (
           <div key={stat.label} className="rounded-md border bg-card p-4">
             <div className="flex items-center justify-between gap-2 mb-2">
@@ -132,7 +134,7 @@ export default function LeaderDashboard() {
         ))}
       </div>
 
-      <Section title="Shareable Registration Links" description="Share these links for self-registration forms">
+      <Section title={t('dashboard.shareableRegistrationLinks')} description={t('dashboard.shareRegistrationLinksDesc')}>
         <div className="space-y-3">
           {formLinks.map((form) => (
             <div key={form.type} className="space-y-1.5">
@@ -152,9 +154,9 @@ export default function LeaderDashboard() {
                     data-testid={`button-copy-${form.type.replace(/\s/g, '-')}`}
                   >
                     {copiedLink === form.type ? (
-                      <><Check className="h-3.5 w-3.5" /> Copied</>
+                      <><Check className="h-3.5 w-3.5" /> {t('dashboard.copied')}</>
                     ) : (
-                      <><Copy className="h-3.5 w-3.5" /> Copy</>
+                      <><Copy className="h-3.5 w-3.5" /> {t('dashboard.copy')}</>
                     )}
                   </Button>
                   <Button
@@ -175,12 +177,12 @@ export default function LeaderDashboard() {
       </Section>
 
       <Section
-        title="Upcoming Follow-ups"
-        description="Converts that need to be checked in on"
+        title={t('dashboard.upcomingFollowUps')}
+        description={t('dashboard.upcomingFollowUpsDesc')}
         actions={
           <Link href="/leader/converts">
             <Button variant="outline" size="sm" className="gap-1" data-testid="link-view-all-converts">
-              View All
+              {t('dashboard.viewAll')}
               <ArrowRight className="h-3 w-3" />
             </Button>
           </Link>
@@ -225,7 +227,7 @@ export default function LeaderDashboard() {
                       data-testid={`button-join-meeting-${followup.id}`}
                     >
                       <Video className="h-3 w-3" />
-                      Join
+                      {t('dashboard.join')}
                     </Button>
                   )}
                   {getFollowupBadge(followup.nextFollowupDate)}
@@ -236,7 +238,7 @@ export default function LeaderDashboard() {
         ) : (
           <div className="text-center py-8">
             <Calendar className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-            <p className="text-sm text-muted-foreground">No upcoming follow-ups scheduled</p>
+            <p className="text-sm text-muted-foreground">{t('dashboard.noUpcomingFollowUps')}</p>
           </div>
         )}
       </Section>

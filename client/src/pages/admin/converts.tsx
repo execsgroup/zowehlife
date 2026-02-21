@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,6 +45,7 @@ const checkinFormSchema = z.object({
 type CheckinFormData = z.infer<typeof checkinFormSchema>;
 
 export default function AdminConverts() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [churchFilter, setChurchFilter] = useState("all");
@@ -142,7 +144,7 @@ export default function AdminConverts() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Converts Overview"
+          title={t('sidebar.allConverts')}
           description="View and filter all converts across ministries"
           actions={
             <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">

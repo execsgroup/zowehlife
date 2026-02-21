@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
@@ -18,6 +19,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/admin/stats"],
   });
@@ -25,16 +27,16 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout>
       <PageHeader
-        title="Platform Overview"
-        description="Monitor all ministries, leaders, and converts across the platform."
+        title={t('dashboard.platformOverview')}
+        description={t('dashboard.platformDescription')}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="stats-grid">
         {[
-          { label: "Total Ministries", value: stats?.totalChurches, icon: Church, testId: "text-total-churches" },
-          { label: "Total Leaders", value: stats?.totalLeaders, icon: Users, testId: "text-total-leaders" },
-          { label: "Total Converts", value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts", sub: stats?.convertsLast30Days },
-          { label: "Follow-ups Due", value: stats?.followupsDue, icon: Calendar, testId: "text-followups-due" },
+          { label: t('dashboard.totalMinistries'), value: stats?.totalChurches, icon: Church, testId: "text-total-churches" },
+          { label: t('dashboard.totalLeaders'), value: stats?.totalLeaders, icon: Users, testId: "text-total-leaders" },
+          { label: t('dashboard.totalConverts'), value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts", sub: stats?.convertsLast30Days },
+          { label: t('dashboard.followUpsDue'), value: stats?.followupsDue, icon: Calendar, testId: "text-followups-due" },
         ].map((stat) => (
           <div key={stat.label} className="rounded-md border bg-card p-4">
             <div className="flex items-center justify-between gap-2 mb-2">
@@ -51,7 +53,7 @@ export default function AdminDashboard() {
                 {stat.sub !== undefined && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                     <TrendingUp className="h-3 w-3" />
-                    {stat.sub || 0} in last 30 days
+                    {stat.sub || 0} {t('dashboard.inLast30Days')}
                   </p>
                 )}
               </>
@@ -61,38 +63,38 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Section title="Ministries">
-          <p className="text-sm text-muted-foreground mb-3">Add, edit, and view ministry information</p>
+        <Section title={t('sidebar.ministries')}>
+          <p className="text-sm text-muted-foreground mb-3">{t('dashboard.addEditViewMinistry')}</p>
           <Link href="/admin/churches">
             <Button size="sm" className="gap-1.5" data-testid="link-admin-churches">
-              View Ministries
+              {t('dashboard.viewMinistries')}
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </Link>
         </Section>
 
-        <Section title="Leaders">
-          <p className="text-sm text-muted-foreground mb-3">Create and manage ministry leader accounts</p>
+        <Section title={t('sidebar.leaders')}>
+          <p className="text-sm text-muted-foreground mb-3">{t('dashboard.createManageLeaders')}</p>
           <Link href="/admin/leaders">
             <Button size="sm" className="gap-1.5" data-testid="link-admin-leaders">
-              View Leaders
+              {t('dashboard.viewLeaders')}
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </Link>
         </Section>
 
         <Section
-          title="Prayer Requests"
+          title={t('sidebar.prayerRequests')}
           actions={
             stats && stats.recentPrayerRequests > 0 ? (
-              <Badge variant="secondary">{stats.recentPrayerRequests} new</Badge>
+              <Badge variant="secondary">{stats.recentPrayerRequests} {t('dashboard.new')}</Badge>
             ) : undefined
           }
         >
-          <p className="text-sm text-muted-foreground mb-3">View and respond to prayer requests</p>
+          <p className="text-sm text-muted-foreground mb-3">{t('dashboard.viewRespondPrayer')}</p>
           <Link href="/admin/prayer-requests">
             <Button size="sm" variant="outline" className="gap-1.5" data-testid="link-admin-prayer-requests">
-              View Requests
+              {t('dashboard.viewRequests')}
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </Link>

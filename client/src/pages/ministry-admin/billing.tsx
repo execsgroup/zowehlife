@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,7 @@ function getStatusBadge(status: string) {
 }
 
 export default function MinistryAdminBilling() {
+  const { t } = useTranslation();
   const { toast } = useToast();
 
   const { data: subscription, isLoading } = useQuery<SubscriptionData>({
@@ -71,7 +73,7 @@ export default function MinistryAdminBilling() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Billing & Subscription"
+          title={t('billing.title')}
           description="Manage your ministry's subscription and payment details"
         />
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +37,7 @@ interface ChurchWithCounts extends Church {
 }
 
 export default function AdminChurches() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -155,7 +157,7 @@ export default function AdminChurches() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Ministry Management"
+          title={t('sidebar.ministries')}
           description="Add and manage ministries in your organization"
           actions={
             <Button onClick={openCreateDialog} className="gap-2" data-testid="button-add-church">

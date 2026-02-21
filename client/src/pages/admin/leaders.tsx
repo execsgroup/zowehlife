@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,6 +43,7 @@ interface LeaderWithChurch extends Omit<User, "passwordHash"> {
 }
 
 export default function AdminLeaders() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -156,7 +158,7 @@ export default function AdminLeaders() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Leader Management"
+          title={t('sidebar.leaders')}
           description="Create and manage ministry leader accounts"
           actions={
             <Button className="gap-2" onClick={() => setDialogOpen(true)} data-testid="button-add-leader">

@@ -1,19 +1,22 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
+import { LanguageToggle } from "./language-toggle";
 import { Heart, Menu, X } from "lucide-react";
 import { useState } from "react";
-
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/salvation", label: "Salvation" },
-  { href: "/journey", label: "Journey" },
-  { href: "/contact-us", label: "Contact" },
-];
+import { useTranslation } from "react-i18next";
 
 export function PublicNav() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { t } = useTranslation();
+
+  const navLinks = [
+    { href: "/", label: t('nav.home'), key: "home" },
+    { href: "/salvation", label: t('nav.salvation'), key: "salvation" },
+    { href: "/journey", label: t('nav.journey'), key: "journey" },
+    { href: "/contact-us", label: t('nav.contact'), key: "contact" },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -32,7 +35,7 @@ export function PublicNav() {
                 <Button
                   variant={location === link.href ? "secondary" : "ghost"}
                   className="text-sm"
-                  data-testid={`nav-link-${link.label.toLowerCase()}`}
+                  data-testid={`nav-link-${link.key}`}
                 >
                   {link.label}
                 </Button>
@@ -41,15 +44,16 @@ export function PublicNav() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <LanguageToggle />
             <ThemeToggle />
             <Link href="/member-portal/login">
               <Button variant="ghost" size="sm" data-testid="button-member-portal">
-                Member Portal
+                {t('nav.memberPortal')}
               </Button>
             </Link>
             <Link href="/login">
               <Button variant="outline" size="sm" data-testid="button-login">
-                Ministry Login
+                {t('nav.ministryLogin')}
               </Button>
             </Link>
             <Button
@@ -73,7 +77,7 @@ export function PublicNav() {
                     variant={location === link.href ? "secondary" : "ghost"}
                     className="w-full justify-start"
                     onClick={() => setMobileMenuOpen(false)}
-                    data-testid={`mobile-nav-link-${link.label.toLowerCase()}`}
+                    data-testid={`mobile-nav-link-${link.key}`}
                   >
                     {link.label}
                   </Button>
@@ -87,7 +91,7 @@ export function PublicNav() {
                     onClick={() => setMobileMenuOpen(false)}
                     data-testid="mobile-button-member-portal"
                   >
-                    Member Portal
+                    {t('nav.memberPortal')}
                   </Button>
                 </Link>
                 <Link href="/login">
@@ -97,7 +101,7 @@ export function PublicNav() {
                     onClick={() => setMobileMenuOpen(false)}
                     data-testid="mobile-button-staff-login"
                   >
-                    Ministry Login
+                    {t('nav.ministryLogin')}
                   </Button>
                 </Link>
               </div>

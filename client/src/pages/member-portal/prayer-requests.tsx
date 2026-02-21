@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -27,6 +28,7 @@ interface PrayerRequest {
 }
 
 export default function MemberPrayerRequests() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -94,8 +96,8 @@ export default function MemberPrayerRequests() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">Prayer Requests</h1>
-              <p className="text-muted-foreground">Submit and track your prayer requests</p>
+              <h1 className="text-2xl font-bold">{t('prayerRequests.title')}</h1>
+              <p className="text-muted-foreground">{t('memberPortal.submitPrayerRequest')}</p>
             </div>
           </div>
           
@@ -108,7 +110,7 @@ export default function MemberPrayerRequests() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Submit Prayer Request</DialogTitle>
+                <DialogTitle>{t('prayerRequests.submitRequest')}</DialogTitle>
                 <DialogDescription>
                   Share your prayer request with your ministry leaders.
                 </DialogDescription>
@@ -158,16 +160,16 @@ export default function MemberPrayerRequests() {
 
                   <div className="flex gap-2 justify-end">
                     <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                      Cancel
+                      {t('forms.cancel')}
                     </Button>
                     <Button type="submit" disabled={submitMutation.isPending} data-testid="button-submit-prayer">
                       {submitMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Submitting...
+                          {t('forms.submitting')}
                         </>
                       ) : (
-                        "Submit Request"
+                        t('forms.submit')
                       )}
                     </Button>
                   </div>
@@ -213,13 +215,13 @@ export default function MemberPrayerRequests() {
             <CardContent className="pt-6">
               <div className="text-center py-8">
                 <HandHeart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Prayer Requests Yet</h3>
+                <h3 className="text-lg font-medium mb-2">{t('prayerRequests.noPrayerRequests')}</h3>
                 <p className="text-muted-foreground mb-4">
                   Submit your first prayer request to share with your ministry.
                 </p>
                 <Button onClick={() => setDialogOpen(true)} data-testid="button-first-prayer-request">
                   <Plus className="h-4 w-4 mr-2" />
-                  Submit Prayer Request
+                  {t('memberPortal.submitPrayerRequest')}
                 </Button>
               </div>
             </CardContent>

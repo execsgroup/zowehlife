@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -29,6 +30,7 @@ interface Church {
 }
 
 export default function MinistryAdminDashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -44,20 +46,20 @@ export default function MinistryAdminDashboard() {
 
   const formLinks = [
     {
-      title: "Salvation Form",
-      description: "Share this link at evangelism events for new converts",
+      title: t('dashboard.salvationForm'),
+      description: t('dashboard.salvationFormDesc'),
       token: church?.publicToken,
       path: "connect",
     },
     {
-      title: "New Member Form",
-      description: "Share this link for new members joining the church",
+      title: t('dashboard.newMemberForm'),
+      description: t('dashboard.newMemberFormDesc'),
       token: church?.newMemberToken,
       path: "new-member",
     },
     {
-      title: "Member Form",
-      description: "Share this link for existing members to register",
+      title: t('dashboard.memberForm'),
+      description: t('dashboard.memberFormDesc'),
       token: church?.memberToken,
       path: "member",
     },
@@ -68,24 +70,24 @@ export default function MinistryAdminDashboard() {
   const copyToClipboard = (url: string, formName: string) => {
     navigator.clipboard.writeText(url);
     toast({
-      title: "Link copied!",
+      title: t('dashboard.linkCopied'),
       description: `${formName} link copied to clipboard`,
     });
   };
 
   const statCards = [
-    { title: "Total Converts", value: stats?.totalConverts || 0, icon: Heart },
-    { title: "New Converts", value: stats?.newConverts || 0, icon: UserPlus },
-    { title: "New Members & Guests", value: stats?.totalNewMembers || 0, icon: UserCheck },
-    { title: "Members", value: stats?.totalMembers || 0, icon: UsersRound },
-    { title: "Leaders", value: stats?.totalLeaders || 0, icon: Users },
+    { title: t('dashboard.totalConverts'), value: stats?.totalConverts || 0, icon: Heart },
+    { title: t('dashboard.newConverts'), value: stats?.newConverts || 0, icon: UserPlus },
+    { title: t('dashboard.newMembersGuestsCount'), value: stats?.totalNewMembers || 0, icon: UserCheck },
+    { title: t('dashboard.membersCount'), value: stats?.totalMembers || 0, icon: UsersRound },
+    { title: t('dashboard.leadersCount'), value: stats?.totalLeaders || 0, icon: Users },
   ];
 
   return (
     <DashboardLayout>
       <PageHeader
-        title={`${church?.name || "Ministry"} Dashboard`}
-        description={`Welcome back, ${user?.firstName}. Manage your ministry and approve new leaders.`}
+        title={t('dashboard.ministryDashboard', { name: church?.name || 'Ministry' })}
+        description={t('dashboard.welcomeBack', { name: user?.firstName })}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="stats-grid">
@@ -106,7 +108,7 @@ export default function MinistryAdminDashboard() {
         ))}
       </div>
 
-      <Section title="Shareable Form Links" description="Share these links to allow people to register directly">
+      <Section title={t('dashboard.shareableFormLinks')} description={t('dashboard.shareFormLinksDesc')}>
         <div className="space-y-3">
           {formLinks.map((form) => {
             const url = form.token ? `${baseUrl}/${form.path}/${form.token}` : null;
@@ -147,7 +149,7 @@ export default function MinistryAdminDashboard() {
                     </Button>
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground italic">Link not available</p>
+                  <p className="text-xs text-muted-foreground italic">{t('dashboard.linkNotAvailable')}</p>
                 )}
               </div>
             );

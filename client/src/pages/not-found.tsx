@@ -2,8 +2,11 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Home, ArrowLeft, Heart } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function NotFound() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
       <div className="w-full max-w-md text-center">
@@ -12,9 +15,9 @@ export default function NotFound() {
             <Heart className="h-8 w-8 text-primary" />
           </div>
           <h1 className="text-6xl font-bold text-primary mb-2">404</h1>
-          <h2 className="text-2xl font-semibold mb-2">Page Not Found</h2>
+          <h2 className="text-2xl font-semibold mb-2">{t('common.pageNotFound')}</h2>
           <p className="text-muted-foreground">
-            The page you're looking for doesn't exist or has been moved.
+            {t('common.pageNotFoundDesc')}
           </p>
         </div>
 
@@ -33,7 +36,7 @@ export default function NotFound() {
               data-testid="button-go-back"
             >
               <ArrowLeft className="h-4 w-4" />
-              Go Back
+              {t('common.goBack')}
             </Button>
           </CardContent>
         </Card>

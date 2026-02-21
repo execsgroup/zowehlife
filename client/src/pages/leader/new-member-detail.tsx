@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -104,6 +105,7 @@ const outcomeLabels: Record<string, string> = {
 };
 
 export default function NewMemberDetail() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const basePath = useBasePath();
   const [location] = useLocation();
@@ -257,13 +259,13 @@ export default function NewMemberDetail() {
               </Badge>
               <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1">
                 <Edit className="h-3 w-3" />
-                Edit
+                {t('forms.edit')}
               </Button>
             </div>
           }
         />
 
-        <Section title="Contact Information">
+        <Section title={t('converts.contactInfo')}>
           <div className="grid gap-4 md:grid-cols-2 text-sm">
             {newMember.phone && (
               <div className="flex items-center gap-2">
@@ -296,7 +298,7 @@ export default function NewMemberDetail() {
           </div>
         </Section>
 
-        <Section title="Personal Details">
+        <Section title={t('converts.personalDetails')}>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 text-sm">
             {newMember.dateOfBirth && (
               <div className="flex items-center gap-2">
@@ -344,7 +346,7 @@ export default function NewMemberDetail() {
         )}
 
         <Section
-          title="Follow-up Timeline"
+          title={t('converts.followUpTimeline')}
           description="Record and track follow-ups with this new member & guest"
           actions={
             <Button
@@ -355,7 +357,7 @@ export default function NewMemberDetail() {
               data-testid="button-schedule-followup"
             >
               <Calendar className="h-4 w-4" />
-              Schedule Follow-up
+              {t('converts.scheduleFollowUp')}
             </Button>
           }
         >

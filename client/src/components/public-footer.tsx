@@ -1,7 +1,10 @@
 import { Link } from "wouter";
 import { Heart } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function PublicFooter() {
+  const { t } = useTranslation();
+
   return (
     <footer className="border-t bg-muted/30">
       <div className="container mx-auto px-4 py-8">
@@ -14,42 +17,42 @@ export function PublicFooter() {
               <span className="font-semibold">Zoweh Life</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Nurturing faith and building community, one soul at a time.
+              {t('footer.tagline')}
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3">Quick Links</h4>
+            <h4 className="font-semibold mb-3">{t('footer.quickLinks')}</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/salvation" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Learn About Salvation
+                  {t('footer.learnAboutSalvation')}
                 </Link>
               </li>
               <li>
                 <Link href="/journey" className="text-muted-foreground hover:text-foreground transition-colors">
-                  New Believer Journey
+                  {t('footer.newBelieverJourney')}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Prayer Request
+                  {t('footer.prayerRequest')}
                 </Link>
               </li>
               <li>
                 <Link href="/contact-us" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Contact Us
+                  {t('footer.contactUs')}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-3">For Ministries</h4>
+            <h4 className="font-semibold mb-3">{t('footer.forMinistries')}</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/register-ministry" className="text-muted-foreground hover:text-foreground transition-colors" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                  Register a Ministry
+                  {t('footer.registerMinistry')}
                 </Link>
               </li>
             </ul>
@@ -57,7 +60,7 @@ export function PublicFooter() {
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Zoweh Life. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Zoweh Life. {t('footer.allRightsReserved')}</p>
         </div>
       </div>
     </footer>

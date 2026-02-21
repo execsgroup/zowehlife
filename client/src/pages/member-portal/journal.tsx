@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ const journalEntrySchema = z.object({
 type JournalEntryFormData = z.infer<typeof journalEntrySchema>;
 
 export default function MemberJournal() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -180,7 +182,7 @@ export default function MemberJournal() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">My Journal</h1>
+              <h1 className="text-2xl font-bold">{t('memberPortal.journal')}</h1>
               <p className="text-muted-foreground">Personal reflections and spiritual notes</p>
             </div>
           </div>
@@ -189,12 +191,12 @@ export default function MemberJournal() {
             <DialogTrigger asChild>
               <Button data-testid="button-new-entry">
                 <Plus className="h-4 w-4 mr-2" />
-                New Entry
+                {t('memberPortal.newJournalEntry')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>{editingEntry ? "Edit Entry" : "New Journal Entry"}</DialogTitle>
+                <DialogTitle>{editingEntry ? t('forms.edit') : t('memberPortal.newJournalEntry')}</DialogTitle>
                 <DialogDescription>
                   Write your thoughts, prayers, or reflections.
                 </DialogDescription>
@@ -292,7 +294,7 @@ export default function MemberJournal() {
 
                   <div className="flex gap-2 justify-end">
                     <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
-                      Cancel
+                      {t('forms.cancel')}
                     </Button>
                     <Button 
                       type="submit" 
@@ -302,10 +304,10 @@ export default function MemberJournal() {
                       {(createMutation.isPending || updateMutation.isPending) ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
+                          {t('forms.saving')}
                         </>
                       ) : (
-                        editingEntry ? "Update Entry" : "Save Entry"
+                        t('forms.save')
                       )}
                     </Button>
                   </div>
@@ -405,7 +407,7 @@ export default function MemberJournal() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogCancel data-testid="button-cancel-delete">{t('forms.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteConfirmId && deleteMutation.mutate(deleteConfirmId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

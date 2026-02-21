@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,6 +44,7 @@ const addLeaderSchema = z.object({
 type AddLeaderFormData = z.infer<typeof addLeaderSchema>;
 
 export default function MinistryAdminLeaders() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -142,7 +144,7 @@ export default function MinistryAdminLeaders() {
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         <PageHeader
-          title="Manage Leaders"
+          title={t('sidebar.manageLeaders')}
           description="Add and manage leaders for your ministry"
           actions={
             <div className="flex items-center gap-4 flex-wrap">

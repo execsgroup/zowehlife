@@ -4,9 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { XCircle, ArrowLeft, RotateCcw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterMinistryCancel() {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -20,9 +22,9 @@ export default function RegisterMinistryCancel() {
                 <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 mx-auto">
                   <XCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 </div>
-                <h2 className="text-2xl font-bold" data-testid="text-cancel-title">Payment Cancelled</h2>
+                <h2 className="text-2xl font-bold" data-testid="text-cancel-title">{t('registerMinistry.cancelTitle')}</h2>
                 <p className="text-muted-foreground">
-                  Your payment was not completed. Your registration request has been saved. You can try again by re-submitting the registration form.
+                  {t('registerMinistry.cancelDescription')}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button
@@ -40,7 +42,7 @@ export default function RegisterMinistryCancel() {
                     data-testid="button-try-again"
                   >
                     <RotateCcw className="h-4 w-4" />
-                    Try Again
+                    {t('registerMinistry.tryAgain')}
                   </Button>
                 </div>
               </CardContent>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -138,6 +139,7 @@ interface SelectedFollowUp {
 }
 
 export default function LeaderFollowups() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const basePath = useBasePath();
   const apiBasePath = useApiBasePath();
@@ -396,7 +398,7 @@ export default function LeaderFollowups() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Follow-ups"
+          title={t('followUps.title')}
           description="Your scheduled follow-ups with converts and new members"
           actions={
             <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
@@ -475,7 +477,7 @@ export default function LeaderFollowups() {
               ) : (
                 <div className="p-8 text-center">
                   <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                  <p className="text-muted-foreground">No upcoming mass follow-ups</p>
+                  <p className="text-muted-foreground">{t('followUps.noFollowUps')}</p>
                 </div>
               )}
         </Section>
@@ -602,7 +604,7 @@ export default function LeaderFollowups() {
               ) : (
                 <div className="p-8 text-center">
                   <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                  <p className="text-muted-foreground">No upcoming convert follow-ups</p>
+                  <p className="text-muted-foreground">{t('followUps.noFollowUps')}</p>
                 </div>
               )}
         </Section>
@@ -729,7 +731,7 @@ export default function LeaderFollowups() {
               ) : (
                 <div className="p-8 text-center">
                   <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                  <p className="text-muted-foreground">No upcoming new member follow-ups</p>
+                  <p className="text-muted-foreground">{t('followUps.noFollowUps')}</p>
                 </div>
               )}
         </Section>
@@ -1016,7 +1018,7 @@ export default function LeaderFollowups() {
                       Scheduling...
                     </>
                   ) : (
-                    "Schedule Follow Up"
+                    t('followUps.scheduleFollowUp')
                   )}
                 </Button>
               </div>

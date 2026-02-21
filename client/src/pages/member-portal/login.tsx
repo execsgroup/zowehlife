@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -12,6 +13,7 @@ import { Heart, Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function MemberLogin() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -54,15 +56,15 @@ export default function MemberLogin() {
               <Heart className="h-6 w-6 text-primary-foreground" />
             </div>
           </Link>
-          <h1 className="text-2xl font-bold">Member Portal</h1>
-          <p className="text-muted-foreground mt-1">Sign in to access your spiritual journey</p>
+          <h1 className="text-2xl font-bold">{t('memberPortal.loginTitle')}</h1>
+          <p className="text-muted-foreground mt-1">{t('memberPortal.loginDescription')}</p>
         </div>
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Sign In</CardTitle>
+            <CardTitle className="text-xl">{t('auth.signIn')}</CardTitle>
             <CardDescription>
-              Enter your credentials to access your member portal
+              {t('memberPortal.loginDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -73,7 +75,7 @@ export default function MemberLogin() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('auth.email')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -96,7 +98,7 @@ export default function MemberLogin() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('auth.password')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -123,10 +125,10 @@ export default function MemberLogin() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing In...
+                      {t('auth.signingIn')}
                     </>
                   ) : (
-                    "Sign In"
+                    t('auth.signIn')
                   )}
                 </Button>
               </form>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,6 +63,7 @@ const memberFormSchema = z.object({
 type MemberFormData = z.infer<typeof memberFormSchema>;
 
 export default function LeaderMembers() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const basePath = useBasePath();
   const [, setLocation] = useLocation();
@@ -191,7 +193,7 @@ export default function LeaderMembers() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Members"
+          title={t('membersPage.title')}
           description="Manage your ministry's existing members"
           actions={
             <div className="flex gap-2 flex-wrap">
@@ -226,12 +228,12 @@ export default function LeaderMembers() {
               <DialogTrigger asChild>
                 <Button className="gap-2" data-testid="button-add-member">
                   <Plus className="h-4 w-4" />
-                  Add Member
+                  {t('membersPage.addMember')}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add Member</DialogTitle>
+                  <DialogTitle>{t('membersPage.addMember')}</DialogTitle>
                   <DialogDescription>
                     Record information about an existing member
                   </DialogDescription>
@@ -458,7 +460,7 @@ export default function LeaderMembers() {
                           Adding...
                         </>
                       ) : (
-                        "Add Member"
+                        t('membersPage.addMember')
                       )}
                     </Button>
                   </form>
@@ -475,7 +477,7 @@ export default function LeaderMembers() {
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, phone, or email..."
+                  placeholder={t('forms.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-9"
@@ -493,7 +495,7 @@ export default function LeaderMembers() {
             ) : filteredMembers?.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 text-lg font-semibold">No members found</h3>
+                <h3 className="mt-4 text-lg font-semibold">{t('membersPage.noMembers')}</h3>
                 <p className="text-muted-foreground">
                   Add a member or adjust your search.
                 </p>

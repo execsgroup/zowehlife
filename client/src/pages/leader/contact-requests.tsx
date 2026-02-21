@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
@@ -8,6 +9,7 @@ import { MessageSquare, Mail, Phone, Calendar } from "lucide-react";
 import type { ContactRequest } from "@shared/schema";
 
 export default function LeaderContactRequests() {
+  const { t } = useTranslation();
   const { data: requests, isLoading } = useQuery<ContactRequest[]>({
     queryKey: ["/api/leader/contact-requests"],
   });
@@ -16,7 +18,7 @@ export default function LeaderContactRequests() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Contact Requests"
+          title={t('sidebar.contactRequests')}
           description="View contact messages submitted for your ministry"
         />
 

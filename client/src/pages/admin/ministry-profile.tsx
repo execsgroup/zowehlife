@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -47,6 +48,7 @@ interface MinistryProfileData {
 }
 
 export default function MinistryProfile() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/admin/ministry/:id");
   const [, navigate] = useLocation();
   const ministryId = params?.id;

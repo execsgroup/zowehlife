@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,6 +51,7 @@ const reviewFormSchema = z.object({
 type ReviewFormData = z.infer<typeof reviewFormSchema>;
 
 export default function AccountRequests() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [reviewingRequest, setReviewingRequest] = useState<AccountRequest | null>(null);
 
@@ -151,7 +153,7 @@ export default function AccountRequests() {
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         <PageHeader
-          title="Account Requests"
+          title={t('sidebar.accountRequests')}
           description="Review and manage leader account requests"
         />
 

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,6 +70,7 @@ const journeySteps = [
 ];
 
 export default function Journey() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex flex-col">
       <PublicNav />
@@ -82,11 +84,10 @@ export default function Journey() {
                 <Heart className="h-8 w-8 text-primary" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold mb-6">
-                Your New Believer Journey
+                {t('journey.pageTitle')}
               </h1>
               <p className="text-base text-muted-foreground">
-                Congratulations on your decision to follow Jesus! This is the beginning of an
-                amazing adventure. Here's a roadmap to help you grow in your faith.
+                {t('journey.pageDescription')}
               </p>
             </div>
           </div>

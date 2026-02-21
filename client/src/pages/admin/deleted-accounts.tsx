@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
@@ -24,6 +25,7 @@ interface ArchivedMinistryWithCounts extends ArchivedMinistry {
 }
 
 export default function DeletedAccounts() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   
   const [reinstateDialogOpen, setReinstateDialogOpen] = useState(false);
@@ -138,7 +140,7 @@ export default function DeletedAccounts() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Deleted Accounts"
+          title={t('sidebar.deletedAccounts')}
           description="View and manage cancelled ministry accounts. You can restore accounts or permanently delete them."
         />
 

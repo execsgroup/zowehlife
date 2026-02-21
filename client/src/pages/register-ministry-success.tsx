@@ -7,6 +7,7 @@ import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { CheckCircle, Loader2, ArrowRight, AlertCircle, Mail } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterMinistrySuccess() {
   const [, setLocation] = useLocation();
@@ -15,6 +16,7 @@ export default function RegisterMinistrySuccess() {
   const sessionId = params.get("session_id");
   const [confirmed, setConfirmed] = useState(false);
   const [planName, setPlanName] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const confirmMutation = useMutation({
     mutationFn: async (sid: string) => {
@@ -54,7 +56,7 @@ export default function RegisterMinistrySuccess() {
                     className="gap-2"
                     data-testid="button-try-again"
                   >
-                    Try Again
+                    {t('registerMinistry.tryAgain')}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </CardContent>
@@ -81,9 +83,9 @@ export default function RegisterMinistrySuccess() {
                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 mx-auto">
                       <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                     </div>
-                    <h2 className="text-2xl font-bold" data-testid="text-success-title">Ministry Created!</h2>
+                    <h2 className="text-2xl font-bold" data-testid="text-success-title">{t('registerMinistry.successTitle')}</h2>
                     <p className="text-muted-foreground">
-                      Your payment was successful and your ministry has been created. Check your email for your login credentials to get started.
+                      {t('registerMinistry.successDescription')}
                     </p>
                     <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                       <Mail className="h-4 w-4" />
@@ -99,7 +101,7 @@ export default function RegisterMinistrySuccess() {
                       className="gap-2"
                       data-testid="button-login"
                     >
-                      Go to Login
+                      {t('registerMinistry.goToLogin')}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </>

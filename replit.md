@@ -27,6 +27,13 @@ The application is built with a clear separation of concerns, utilizing a React 
     - `PageHeader` (`@/components/page-header`) — title, description, action buttons
     - `Section` (`@/components/section`) — bordered container with optional header row, used instead of Card for operational content
     - `DashboardLayout` — sidebar + topbar wrapper (compact 12px top bar)
+  - **Internationalization (i18n)**: Multi-language support using `react-i18next`
+    - Supported languages: English, Spanish (Español), French (Français), Portuguese (Português)
+    - Translation files: `client/src/locales/{en,es,fr,pt}.json`
+    - i18n config: `client/src/lib/i18n.ts`
+    - `LanguageToggle` component (`@/components/language-toggle`) — globe icon dropdown in PublicNav and DashboardLayout header
+    - Language preference persisted in localStorage (`appLanguage` key)
+    - Browser language auto-detected on first visit
 
 ### Technical Implementations
 - **Authentication**: Session-based authentication is used with `bcrypt` for secure password hashing. Member accounts use a separate session namespace (`memberAccountId`, `personId`, `currentMinistryId`).

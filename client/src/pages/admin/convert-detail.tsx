@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -88,6 +89,7 @@ interface ConvertWithChurch extends Convert {
 }
 
 export default function AdminConvertDetail() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [, params] = useRoute("/admin/converts/:id");
   const convertId = params?.id;
@@ -212,13 +214,13 @@ export default function AdminConvertDetail() {
               </Badge>
               <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1" data-testid="button-edit-convert">
                 <Edit className="h-3 w-3" />
-                Edit
+                {t('forms.edit')}
               </Button>
             </div>
           }
         />
 
-        <Section title="Contact Information">
+        <Section title={t('converts.contactInfo')}>
           <div className="grid gap-4 md:grid-cols-2 text-sm">
             {convert.phone && (
               <div className="flex items-center gap-2">
@@ -251,7 +253,7 @@ export default function AdminConvertDetail() {
           </div>
         </Section>
 
-        <Section title="Personal Details">
+        <Section title={t('converts.personalDetails')}>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 text-sm">
             {convert.dateOfBirth && (
               <div className="flex items-center gap-2">
@@ -283,7 +285,7 @@ export default function AdminConvertDetail() {
           </div>
         </Section>
 
-        <Section title="Faith Journey">
+        <Section title={t('converts.faithJourney')}>
           <div className="grid gap-4 md:grid-cols-2 text-sm">
             {convert.salvationDecision && (
               <div className="flex items-start gap-2 md:col-span-2">
@@ -323,7 +325,7 @@ export default function AdminConvertDetail() {
         </Section>
 
         {convert.prayerRequest && (
-          <Section title="Prayer Request">
+          <Section title={t('converts.prayerRequest')}>
             <p className="text-sm whitespace-pre-wrap bg-muted/50 p-4 rounded-md">
               {convert.prayerRequest}
             </p>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -24,6 +25,7 @@ const contactSchema = z.object({
 type ContactFormData = z.infer<typeof contactSchema>;
 
 export default function Contact() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
 
@@ -99,10 +101,10 @@ export default function Contact() {
                 <HandHeart className="h-8 w-8 text-primary" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold mb-6">
-                Prayer Requests
+                {t('contact.pageTitle')}
               </h1>
               <p className="text-base text-muted-foreground">
-                We would love to pray with you. If you have a prayer request, please share it with us—we are here to stand with you in prayer.
+                {t('contact.pageDescription')}
               </p>
             </div>
           </div>

@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import "@/lib/i18n";
 
 import Home from "@/pages/home";
 import Salvation from "@/pages/salvation";

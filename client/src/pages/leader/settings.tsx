@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
@@ -63,6 +64,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
 }
 
 export default function LeaderSettings() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
@@ -195,7 +197,7 @@ export default function LeaderSettings() {
     <DashboardLayout>
       <div className="space-y-6 max-w-2xl">
         <PageHeader
-          title="Ministry Settings"
+          title={t('settings.ministrySettings')}
           description="Manage your ministry's profile and branding"
         />
 
@@ -264,7 +266,7 @@ export default function LeaderSettings() {
                         ) : (
                           <>
                             <Upload className="mr-2 h-4 w-4" />
-                            Upload Logo
+                            {t('settings.uploadLogo')}
                           </>
                         )}
                       </Button>

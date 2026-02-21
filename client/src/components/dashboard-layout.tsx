@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./app-sidebar";
 import { ThemeToggle } from "./theme-toggle";
+import { LanguageToggle } from "./language-toggle";
 import { SubscriptionBanner } from "./subscription-banner";
 
 interface DashboardLayoutProps {
@@ -25,7 +26,10 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               <SidebarTrigger data-testid="button-sidebar-toggle" />
               {title && <h1 className="font-medium text-sm">{title}</h1>}
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
           </header>
           <main className="flex-1 overflow-auto px-6 py-6">
             <SubscriptionBanner />

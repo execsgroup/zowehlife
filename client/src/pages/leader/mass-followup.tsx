@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
@@ -78,6 +79,7 @@ const formatTime12h = (time: string) => {
 };
 
 export default function MassFollowUp() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const basePath = useBasePath();
   const apiBasePath = `/api${basePath}`;
@@ -176,7 +178,7 @@ export default function MassFollowUp() {
     <DashboardLayout>
       <div className="space-y-6 max-w-5xl">
         <PageHeader
-          title="Mass Follow-Up"
+          title={t('sidebar.massFollowUp')}
           description="Schedule follow-ups for multiple people at once. Each person will receive a unique video call link and email notification."
         />
 

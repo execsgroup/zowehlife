@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ interface FollowUp {
 }
 
 export default function MemberJourney() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
 
   const { data: journeyData, isLoading: journeyLoading, error } = useQuery<{ journey: JourneyItem[] }>({
@@ -75,7 +77,7 @@ export default function MemberJourney() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">My Spiritual Journey</h1>
+            <h1 className="text-2xl font-bold">{t('memberPortal.myJourney')}</h1>
             <p className="text-muted-foreground">Track your growth across ministries</p>
           </div>
         </div>

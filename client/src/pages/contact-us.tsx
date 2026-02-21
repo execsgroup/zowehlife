@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -24,6 +25,7 @@ const contactUsSchema = z.object({
 type ContactUsFormData = z.infer<typeof contactUsSchema>;
 
 export default function ContactUs() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
 
@@ -99,11 +101,10 @@ export default function ContactUs() {
                 <MessageSquare className="h-8 w-8 text-primary" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold mb-6">
-                Contact Us
+                {t('contact.contactUsTitle')}
               </h1>
               <p className="text-base text-muted-foreground">
-                Have a question or want to get in touch? We'd love to hear from you.
-                Fill out the form below and we'll respond as soon as possible.
+                {t('contact.contactUsDescription')}
               </p>
             </div>
           </div>

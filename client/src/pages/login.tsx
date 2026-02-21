@@ -10,12 +10,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { loginSchema, type LoginData } from "@shared/schema";
 import { Heart, Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { LanguageToggle } from "@/components/language-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { login } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation();
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -30,13 +34,13 @@ export default function Login() {
     try {
       await login(data.email, data.password);
       toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
+        title: t('auth.welcomeBack'),
+        description: t('auth.loginSuccess'),
       });
     } catch (error: any) {
       toast({
-        title: "Login failed",
-        description: error.message || "Invalid email or password. Please try again.",
+        title: t('auth.loginFailed'),
+        description: error.message || t('auth.invalidCredentials'),
         variant: "destructive",
       });
     } finally {
@@ -45,7 +49,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4 relative">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LanguageToggle />
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
@@ -53,15 +61,15 @@ export default function Login() {
               <Heart className="h-6 w-6 text-primary-foreground" />
             </div>
           </Link>
-          <h1 className="text-2xl font-bold">Welcome Back</h1>
-          <p className="text-muted-foreground mt-1">Sign in to your account</p>
+          <h1 className="text-2xl font-bold">{t('auth.loginTitle')}</h1>
+          <p className="text-muted-foreground mt-1">{t('auth.loginDescription')}</p>
         </div>
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Sign In</CardTitle>
+            <CardTitle className="text-xl">{t('auth.signIn')}</CardTitle>
             <CardDescription>
-              Enter your credentials to access your dashboard
+              {t('auth.loginDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -72,13 +80,13 @@ export default function Login() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('auth.email')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="email"
-                            placeholder="you@example.com"
+                            placeholder={t('auth.emailPlaceholder')}
                             className="pl-10"
                             {...field}
                             data-testid="input-login-email"
@@ -95,13 +103,13 @@ export default function Login() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('auth.password')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
-                            placeholder="Enter your password"
+                            placeholder={t('auth.passwordPlaceholder')}
                             className="pl-10"
                             {...field}
                             data-testid="input-login-password"
@@ -122,10 +130,10 @@ export default function Login() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
+                      {t('auth.signingIn')}
                     </>
                   ) : (
-                    "Sign In"
+                    t('auth.signIn')
                   )}
                 </Button>
               </form>
@@ -134,7 +142,7 @@ export default function Login() {
             <div className="mt-6 text-center text-sm space-y-2">
               <div>
                 <Link href="/admin-reset" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-forgot-password">
-                  Forgot your password?
+                  {t('auth.forgotPassword')}
                 </Link>
               </div>
             </div>
@@ -145,7 +153,7 @@ export default function Login() {
           <Link href="/">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to Home
+              {t('nav.backToHome')}
             </Button>
           </Link>
         </div>

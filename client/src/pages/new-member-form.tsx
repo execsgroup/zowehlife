@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useRoute } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -39,6 +40,7 @@ const countries = [
 type FormData = PublicNewMemberSubmission;
 
 export default function NewMemberForm() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/new-member/:token");
   const token = params?.token;
   const { toast } = useToast();
@@ -109,9 +111,9 @@ export default function NewMemberForm() {
           <Card>
             <CardContent className="pt-6 text-center">
               <Church className="h-12 w-12 mx-auto text-muted-foreground/50" />
-              <h2 className="mt-4 text-xl font-semibold">Ministry Not Found</h2>
+              <h2 className="mt-4 text-xl font-semibold">{t('publicForms.ministryNotFound')}</h2>
               <p className="text-muted-foreground mt-2">
-                This registration link is invalid or has expired.
+                {t('publicForms.invalidLink')}
               </p>
             </CardContent>
           </Card>
@@ -129,9 +131,9 @@ export default function NewMemberForm() {
           <Card>
             <CardContent className="pt-6 text-center">
               <CheckCircle2 className="h-16 w-16 mx-auto text-primary" />
-              <h2 className="mt-4 text-2xl font-bold">Thank You!</h2>
+              <h2 className="mt-4 text-2xl font-bold">{t('publicForms.thankYou')}</h2>
               <p className="text-muted-foreground mt-2">
-                Your registration has been submitted successfully. Someone from {church.name} will be in touch with you soon.
+                {t('publicForms.formSubmitted')} Someone from {church.name} will be in touch with you soon.
               </p>
             </CardContent>
           </Card>
@@ -157,7 +159,7 @@ export default function NewMemberForm() {
                 />
               </div>
             )}
-            <CardTitle className="text-2xl">New Member Registration</CardTitle>
+            <CardTitle className="text-2xl">{t('publicForms.newMemberForm')}</CardTitle>
             <CardDescription>
               Join {church.name} as a new member
             </CardDescription>

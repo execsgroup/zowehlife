@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
@@ -9,6 +10,7 @@ import { HandHeart, Mail, Phone, Calendar } from "lucide-react";
 import { format } from "date-fns";
 
 export default function LeaderPrayerRequests() {
+  const { t } = useTranslation();
   const { data: requests, isLoading } = useQuery<PrayerRequest[]>({
     queryKey: ["/api/leader/prayer-requests"],
   });
@@ -17,7 +19,7 @@ export default function LeaderPrayerRequests() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Prayer Requests"
+          title={t('prayerRequests.title')}
           description="View prayer requests submitted for your ministry"
         />
 
@@ -82,7 +84,7 @@ export default function LeaderPrayerRequests() {
           <Section>
             <div className="p-12 text-center">
               <HandHeart className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No prayer requests yet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('prayerRequests.noPrayerRequests')}</h3>
               <p className="text-muted-foreground">
                 Prayer requests submitted for your ministry will appear here.
               </p>

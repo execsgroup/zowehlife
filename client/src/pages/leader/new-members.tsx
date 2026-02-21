@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -126,6 +127,7 @@ const followUpNoteSchema = z.object({
 type FollowUpNoteData = z.infer<typeof followUpNoteSchema>;
 
 export default function LeaderNewMembers() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const basePath = useBasePath();
   const [location, setLocation] = useLocation();
@@ -352,19 +354,19 @@ export default function LeaderNewMembers() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="New Members & Guests"
+          title={t('newMembers.title')}
           description="Manage and track new members & guests of your ministry"
           actions={
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2" data-testid="button-add-new-member">
                   <Plus className="h-4 w-4" />
-                  Add New Member
+                  {t('newMembers.addNewMember')}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add New Member</DialogTitle>
+                  <DialogTitle>{t('newMembers.addNewMember')}</DialogTitle>
                   <DialogDescription>
                     Record information about a new member
                   </DialogDescription>
@@ -597,7 +599,7 @@ export default function LeaderNewMembers() {
                           Adding...
                         </>
                       ) : (
-                        "Add New Member"
+                        t('newMembers.addNewMember')
                       )}
                     </Button>
                   </form>
@@ -613,7 +615,7 @@ export default function LeaderNewMembers() {
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, phone, or email..."
+                  placeholder={t('forms.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-9"
@@ -644,7 +646,7 @@ export default function LeaderNewMembers() {
             ) : filteredNewMembers?.length === 0 ? (
               <div className="text-center py-12">
                 <UserPlus className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 text-lg font-semibold">No new members & guests found</h3>
+                <h3 className="mt-4 text-lg font-semibold">{t('newMembers.noNewMembers')}</h3>
                 <p className="text-muted-foreground">
                   Add a new member & guest or adjust your filters.
                 </p>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useLocation, useSearch } from "wouter";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -22,6 +23,7 @@ const claimFormSchema = claimAccountSchema.extend({
 type ClaimFormData = z.infer<typeof claimFormSchema>;
 
 export default function ClaimAccount() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const { toast } = useToast();
@@ -80,7 +82,7 @@ export default function ClaimAccount() {
                   Your account is now active. You can now sign in with your email and password.
                 </p>
                 <Button onClick={() => setLocation("/member-portal/login")} className="w-full" data-testid="button-go-to-login">
-                  Go to Sign In
+                  {t('auth.signIn')}
                 </Button>
               </div>
             </CardContent>
@@ -140,7 +142,7 @@ export default function ClaimAccount() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>New Password</FormLabel>
+                      <FormLabel>{t('auth.password')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -203,7 +205,7 @@ export default function ClaimAccount() {
               <p className="text-muted-foreground">
                 Already have an account?{" "}
                 <Link href="/member-portal/login" className="text-primary hover:underline">
-                  Sign in
+                  {t('auth.signIn')}
                 </Link>
               </p>
             </div>

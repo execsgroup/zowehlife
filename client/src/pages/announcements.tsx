@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { useBasePath } from "@/hooks/use-base-path";
@@ -109,6 +110,7 @@ function formatScheduledDate(dateStr: string): string {
 }
 
 export default function AnnouncementsPage() {
+  const { t } = useTranslation();
   const apiBasePath = useApiBasePath();
   const basePath = useBasePath();
   const { toast } = useToast();
@@ -273,13 +275,13 @@ export default function AnnouncementsPage() {
           </Button>
         </Link>
         <PageHeader
-          title="Announcements"
+          title={t('announcements.title')}
           description="Send communications to your ministry members"
         />
       </div>
 
       {(scheduledLoading || (scheduledAnnouncements && scheduledAnnouncements.length > 0)) && (
-        <Section title="Scheduled Announcements">
+        <Section title={t('announcements.scheduledAnnouncements')}>
           {scheduledLoading && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
               <Loader2 className="h-4 w-4 animate-spin" />

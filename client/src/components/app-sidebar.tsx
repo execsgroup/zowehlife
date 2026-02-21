@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   Sidebar,
   SidebarContent,
@@ -50,49 +51,50 @@ interface ChurchData {
   logoUrl: string | null;
 }
 
-const adminNavItems = [
-  { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
-  { title: "Ministries", url: "/admin/churches", icon: Church },
-  { title: "Leaders", url: "/admin/leaders", icon: Users },
-  { title: "All Converts", url: "/admin/converts", icon: UserPlus },
-  { title: "Prayer Requests", url: "/admin/prayer-requests", icon: HandHeart },
-  { title: "Ministry Requests", url: "/admin/ministry-requests", icon: Building2 },
-  { title: "Deleted Accounts", url: "/admin/deleted-accounts", icon: Archive },
-];
-
-const ministryAdminNavItems = [
-  { title: "Dashboard", url: "/ministry-admin/dashboard", icon: LayoutDashboard },
-  { title: "Converts", url: "/ministry-admin/converts", icon: UserPlus },
-  { title: "New Members & Guests", url: "/ministry-admin/new-members", icon: Users },
-  { title: "Members", url: "/ministry-admin/members", icon: Church },
-  { title: "Follow-ups", url: "/ministry-admin/followups", icon: CalendarClock },
-  { title: "Mass Follow-Up", url: "/ministry-admin/mass-followup", icon: UsersRound },
-  { title: "Member Accounts", url: "/ministry-admin/member-accounts", icon: UserCog },
-  { title: "Prayer Requests", url: "/ministry-admin/prayer-requests", icon: HandHeart },
-  { title: "Announcements", url: "/ministry-admin/announcements", icon: Megaphone },
-  { title: "Contact Requests", url: "/ministry-admin/contact-requests", icon: MessageSquare },
-  { title: "Manage Leaders", url: "/ministry-admin/leaders", icon: ClipboardList },
-  { title: "Billing", url: "/ministry-admin/billing", icon: CreditCard },
-  { title: "Settings", url: "/ministry-admin/settings", icon: Settings },
-];
-
-const leaderNavItems = [
-  { title: "Dashboard", url: "/leader/dashboard", icon: LayoutDashboard },
-  { title: "My Converts", url: "/leader/converts", icon: UserPlus },
-  { title: "New Members & Guests", url: "/leader/new-members", icon: Users },
-  { title: "Members", url: "/leader/members", icon: Church },
-  { title: "Follow-ups", url: "/leader/followups", icon: CalendarClock },
-  { title: "Mass Follow-Up", url: "/leader/mass-followup", icon: UsersRound },
-  { title: "Member Accounts", url: "/leader/member-accounts", icon: UserCog },
-  { title: "Prayer Requests", url: "/leader/prayer-requests", icon: HandHeart },
-  { title: "Announcements", url: "/leader/announcements", icon: Megaphone },
-  { title: "Contact Requests", url: "/leader/contact-requests", icon: MessageSquare },
-  { title: "Ministry Settings", url: "/leader/settings", icon: Settings },
-];
-
 export function AppSidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
+
+  const adminNavItems = [
+    { title: t('sidebar.dashboard'), url: "/admin/dashboard", icon: LayoutDashboard },
+    { title: t('sidebar.ministries'), url: "/admin/churches", icon: Church },
+    { title: t('sidebar.leaders'), url: "/admin/leaders", icon: Users },
+    { title: t('sidebar.allConverts'), url: "/admin/converts", icon: UserPlus },
+    { title: t('sidebar.prayerRequests'), url: "/admin/prayer-requests", icon: HandHeart },
+    { title: t('sidebar.ministryRequests'), url: "/admin/ministry-requests", icon: Building2 },
+    { title: t('sidebar.deletedAccounts'), url: "/admin/deleted-accounts", icon: Archive },
+  ];
+
+  const ministryAdminNavItems = [
+    { title: t('sidebar.dashboard'), url: "/ministry-admin/dashboard", icon: LayoutDashboard },
+    { title: t('sidebar.converts'), url: "/ministry-admin/converts", icon: UserPlus },
+    { title: t('sidebar.newMembersGuests'), url: "/ministry-admin/new-members", icon: Users },
+    { title: t('sidebar.members'), url: "/ministry-admin/members", icon: Church },
+    { title: t('sidebar.followUps'), url: "/ministry-admin/followups", icon: CalendarClock },
+    { title: t('sidebar.massFollowUp'), url: "/ministry-admin/mass-followup", icon: UsersRound },
+    { title: t('sidebar.memberAccounts'), url: "/ministry-admin/member-accounts", icon: UserCog },
+    { title: t('sidebar.prayerRequests'), url: "/ministry-admin/prayer-requests", icon: HandHeart },
+    { title: t('sidebar.announcements'), url: "/ministry-admin/announcements", icon: Megaphone },
+    { title: t('sidebar.contactRequests'), url: "/ministry-admin/contact-requests", icon: MessageSquare },
+    { title: t('sidebar.manageLeaders'), url: "/ministry-admin/leaders", icon: ClipboardList },
+    { title: t('sidebar.billing'), url: "/ministry-admin/billing", icon: CreditCard },
+    { title: t('sidebar.settings'), url: "/ministry-admin/settings", icon: Settings },
+  ];
+
+  const leaderNavItems = [
+    { title: t('sidebar.dashboard'), url: "/leader/dashboard", icon: LayoutDashboard },
+    { title: t('sidebar.myConverts'), url: "/leader/converts", icon: UserPlus },
+    { title: t('sidebar.newMembersGuests'), url: "/leader/new-members", icon: Users },
+    { title: t('sidebar.members'), url: "/leader/members", icon: Church },
+    { title: t('sidebar.followUps'), url: "/leader/followups", icon: CalendarClock },
+    { title: t('sidebar.massFollowUp'), url: "/leader/mass-followup", icon: UsersRound },
+    { title: t('sidebar.memberAccounts'), url: "/leader/member-accounts", icon: UserCog },
+    { title: t('sidebar.prayerRequests'), url: "/leader/prayer-requests", icon: HandHeart },
+    { title: t('sidebar.announcements'), url: "/leader/announcements", icon: Megaphone },
+    { title: t('sidebar.contactRequests'), url: "/leader/contact-requests", icon: MessageSquare },
+    { title: t('sidebar.ministrySettings'), url: "/leader/settings", icon: Settings },
+  ];
 
   const { data: church } = useQuery<ChurchData>({
     queryKey: ["/api/leader/church"],
@@ -122,9 +124,9 @@ export function AppSidebar() {
   };
 
   const getRoleLabel = () => {
-    if (user?.role === "ADMIN") return "Platform Admin";
-    if (user?.role === "MINISTRY_ADMIN") return "Ministry Admin";
-    return "Leader";
+    if (user?.role === "ADMIN") return t('roles.platformAdmin');
+    if (user?.role === "MINISTRY_ADMIN") return t('roles.ministryAdmin');
+    return t('roles.leader');
   };
 
   return (
@@ -151,7 +153,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{t('nav.navigation')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
@@ -169,14 +171,14 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Quick Links</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{t('nav.quickLinks')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/">
                     <Home className="h-4 w-4" />
-                    <span className="text-sm">Public Site</span>
+                    <span className="text-sm">{t('nav.publicSite')}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -219,7 +221,7 @@ export function AppSidebar() {
               data-testid="button-logout"
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+              {t('auth.signOut')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

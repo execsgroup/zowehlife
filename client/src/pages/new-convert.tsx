@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -55,6 +56,7 @@ const countries = [
 type ConvertFormData = z.infer<typeof convertFormSchema>;
 
 export default function NewConvert() {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
@@ -137,9 +139,9 @@ export default function NewConvert() {
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-8 text-center">
               <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Ministry Not Found</h2>
+              <h2 className="text-xl font-semibold mb-2">{t('publicForms.ministryNotFound')}</h2>
               <p className="text-muted-foreground mb-4">
-                This link appears to be invalid or the ministry is no longer registered.
+                {t('publicForms.invalidLink')}
               </p>
               <Link href="/">
                 <Button variant="outline">Return to Home</Button>
@@ -160,9 +162,9 @@ export default function NewConvert() {
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-8 text-center">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Thank You!</h2>
+              <h2 className="text-2xl font-bold mb-2">{t('publicForms.thankYou')}</h2>
               <p className="text-muted-foreground mb-6">
-                Your information has been submitted successfully. A leader from {church.name} will be in touch with you soon.
+                {t('publicForms.formSubmitted')} A leader from {church.name} will be in touch with you soon.
               </p>
               <Link href="/">
                 <Button>Return to Home</Button>
@@ -205,7 +207,7 @@ export default function NewConvert() {
                 <Church className="h-5 w-5" />
                 <span className="font-medium">{church.name}</span>
               </div>
-              <CardTitle>Salvation Form</CardTitle>
+              <CardTitle>{t('publicForms.salvationForm')}</CardTitle>
               <CardDescription className="space-y-3 text-sm">
                 <p>We celebrate your decision to accept Jesus Christ as your Lord and Savior.</p>
                 <p>If you've chosen to rededicate your life to Him, we honor that commitment.</p>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { PublicFooter } from "@/components/public-footer";
 import { Heart, BookOpen, Cross, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function Salvation() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex flex-col">
       <PublicNav />
@@ -19,11 +21,10 @@ export default function Salvation() {
                 <Cross className="h-8 w-8 text-primary" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold mb-6">
-                The Gift of Salvation
+                {t('salvation.pageTitle')}
               </h1>
               <p className="text-base text-muted-foreground">
-                God loves you and has a wonderful plan for your life. Discover how you can
-                experience His love, forgiveness, and eternal life.
+                {t('salvation.pageDescription')}
               </p>
             </div>
           </div>

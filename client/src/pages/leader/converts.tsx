@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -95,6 +96,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function LeaderConverts() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const basePath = useBasePath();
   const [location] = useLocation();
@@ -223,7 +225,7 @@ export default function LeaderConverts() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Converts"
+          title={t('converts.title')}
           description="Manage and track your ministry's new converts"
           actions={
             <div className="flex gap-2">
@@ -235,12 +237,12 @@ export default function LeaderConverts() {
               <DialogTrigger asChild>
                 <Button className="gap-2" data-testid="button-add-convert">
                   <Plus className="h-4 w-4" />
-                  Add Convert
+                  {t('converts.addConvert')}
                 </Button>
               </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Convert</DialogTitle>
+                <DialogTitle>{t('converts.addConvert')}</DialogTitle>
                 <DialogDescription>
                   Record information about a new believer
                 </DialogDescription>
@@ -549,7 +551,7 @@ export default function LeaderConverts() {
                           Saving...
                         </>
                       ) : (
-                        "Add Convert"
+                        t('converts.addConvert')
                       )}
                     </Button>
                   </div>
@@ -566,7 +568,7 @@ export default function LeaderConverts() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, phone, or email..."
+              placeholder={t('forms.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -703,7 +705,7 @@ export default function LeaderConverts() {
             ) : (
               <div className="p-12 text-center">
                 <UserPlus className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No converts found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('converts.noConverts')}</h3>
                 <p className="text-muted-foreground mb-4">
                   {search || statusFilter !== "all"
                     ? "Try adjusting your filters"
@@ -712,7 +714,7 @@ export default function LeaderConverts() {
                 {!search && statusFilter === "all" && (
                   <Button onClick={() => setDialogOpen(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
-                    Add Convert
+                    {t('converts.addConvert')}
                   </Button>
                 )}
               </div>

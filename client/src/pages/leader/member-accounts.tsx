@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
@@ -38,6 +39,7 @@ interface MemberAccountInfo {
 }
 
 export default function LeaderMemberAccounts() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [resendingId, setResendingId] = useState<string | null>(null);
@@ -135,7 +137,7 @@ export default function LeaderMemberAccounts() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Member Accounts"
+          title={t('sidebar.memberAccounts')}
           description="View and manage member portal accounts for your ministry"
         />
 

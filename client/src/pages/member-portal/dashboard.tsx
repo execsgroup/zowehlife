@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +66,7 @@ interface FollowUp {
 }
 
 export default function MemberDashboard() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -163,14 +165,14 @@ export default function MemberDashboard() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">
-                Welcome, {profile?.person.firstName}!
+                {t('memberPortal.welcomeMessage', { name: profile?.person.firstName })}
               </h1>
               <p className="text-muted-foreground text-sm">{profile?.person.email}</p>
             </div>
           </div>
           <Button variant="outline" onClick={handleLogout} data-testid="button-member-logout">
             <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
+            {t('auth.signOut')}
           </Button>
         </div>
 
@@ -211,7 +213,7 @@ export default function MemberDashboard() {
                     <User className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">My Journey</CardTitle>
+                    <CardTitle className="text-lg">{t('memberPortal.myJourney')}</CardTitle>
                     <CardDescription>View your spiritual journey</CardDescription>
                   </div>
                 </div>
@@ -228,7 +230,7 @@ export default function MemberDashboard() {
                     <HandHeart className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">Prayer Requests</CardTitle>
+                    <CardTitle className="text-lg">{t('memberPortal.prayerRequests')}</CardTitle>
                     <CardDescription>
                       {prayerRequests?.length || 0} requests submitted
                     </CardDescription>
@@ -247,7 +249,7 @@ export default function MemberDashboard() {
                     <BookOpen className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">My Journal</CardTitle>
+                    <CardTitle className="text-lg">{t('memberPortal.journal')}</CardTitle>
                     <CardDescription>
                       Personal reflections and notes
                     </CardDescription>

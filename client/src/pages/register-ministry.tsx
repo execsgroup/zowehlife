@@ -27,6 +27,7 @@ import {
   ArrowRight,
   CreditCard,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const ministryRequestSchema = z.object({
   ministryName: z.string().min(2, "Ministry name must be at least 2 characters"),
@@ -78,6 +79,7 @@ export default function RegisterMinistry() {
   const [selectedPlan, setSelectedPlan] = useState<"free" | "foundations" | "formation" | "stewardship" | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const { data: plans, isLoading: plansLoading } = useQuery<StripePlan[]>({
     queryKey: ["/api/stripe/ministry-plans"],
@@ -163,13 +165,13 @@ export default function RegisterMinistry() {
                   <span className="text-primary">Start Your Ministry</span>
                 </h1>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                  Select the tier that best fits your ministry's needs. You can always upgrade later as you grow.
+                  {t('registerMinistry.pageDescription')}
                 </p>
               </>
             ) : (
               <>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-4">
-                  Register Your Ministry
+                  {t('registerMinistry.pageTitle')}
                 </h1>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto">
                   {isFreePlan

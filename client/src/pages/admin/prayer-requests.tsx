@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
@@ -9,6 +10,7 @@ import { HandHeart, Mail, Phone, Church, Calendar } from "lucide-react";
 import { format } from "date-fns";
 
 export default function AdminPrayerRequests() {
+  const { t } = useTranslation();
   const { data: requests, isLoading } = useQuery<PrayerRequest[]>({
     queryKey: ["/api/admin/prayer-requests"],
   });
@@ -17,7 +19,7 @@ export default function AdminPrayerRequests() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Prayer Requests"
+          title={t('prayerRequests.title')}
           description="View and manage prayer requests submitted through the public site"
         />
 

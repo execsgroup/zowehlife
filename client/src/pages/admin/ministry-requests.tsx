@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,6 +56,7 @@ const reviewFormSchema = z.object({
 type ReviewFormData = z.infer<typeof reviewFormSchema>;
 
 export default function MinistryRequests() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [reviewingRequest, setReviewingRequest] = useState<MinistryRequest | null>(null);
 
@@ -160,7 +162,7 @@ export default function MinistryRequests() {
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         <PageHeader
-          title="Ministry Registration Requests"
+          title={t('sidebar.ministryRequests')}
           description="Review and approve new ministry registrations"
         />
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,6 +62,7 @@ const guestFormSchema = z.object({
 type GuestFormData = z.infer<typeof guestFormSchema>;
 
 export default function LeaderGuests() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const basePath = useBasePath();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -224,7 +226,7 @@ export default function LeaderGuests() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title="Guest List"
+          title={t('sidebar.newMembersGuests')}
           description="Manage your ministry's guest list"
           actions={
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
