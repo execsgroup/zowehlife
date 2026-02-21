@@ -34,6 +34,7 @@ The application is built with a clear separation of concerns, utilizing a React 
     - `LanguageToggle` component (`@/components/language-toggle`) — globe icon dropdown in PublicNav and DashboardLayout header
     - Language preference persisted in localStorage (`appLanguage` key)
     - Browser language auto-detected on first visit
+    - **MANDATORY**: All new UI text in any new feature MUST use `t('key')` calls with translations added to all 4 locale files (`en.json`, `es.json`, `fr.json`, `pt.json`). Never hardcode English strings in components.
 
 ### Technical Implementations
 - **Authentication**: Session-based authentication is used with `bcrypt` for secure password hashing. Member accounts use a separate session namespace (`memberAccountId`, `personId`, `currentMinistryId`).
