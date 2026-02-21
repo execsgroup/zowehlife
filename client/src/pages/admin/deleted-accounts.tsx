@@ -44,8 +44,8 @@ export default function DeletedAccounts() {
     },
     onSuccess: () => {
       toast({
-        title: "Ministry restored",
-        description: "The ministry account has been successfully restored. Leaders will receive new temporary passwords.",
+        title: t('deletedAccounts.restored'),
+        description: t('deletedAccounts.restoredDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/archived-ministries"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
@@ -54,8 +54,8 @@ export default function DeletedAccounts() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to restore ministry account",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -67,16 +67,16 @@ export default function DeletedAccounts() {
     },
     onSuccess: () => {
       toast({
-        title: "Permanently deleted",
-        description: "The archived ministry has been permanently deleted and cannot be recovered.",
+        title: t('deletedAccounts.permanentlyDeleted'),
+        description: t('deletedAccounts.permanentlyDeletedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/archived-ministries"] });
       closeDeleteDialog();
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to permanently delete ministry",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -141,12 +141,12 @@ export default function DeletedAccounts() {
       <div className="space-y-6">
         <PageHeader
           title={t('sidebar.deletedAccounts')}
-          description="View and manage cancelled ministry accounts. You can restore accounts or permanently delete them."
+          description={t('deletedAccounts.description')}
         />
 
         <Section
-          title="Archived Ministries"
-          description="Ministries that have been cancelled. Data is backed up and can be restored."
+          title={t('deletedAccounts.archivedMinistries')}
+          description={t('deletedAccounts.archivedDesc')}
           noPadding
         >
           {isLoading ? (
@@ -159,12 +159,12 @@ export default function DeletedAccounts() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Ministry Name</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead className="text-center">Backed Up Data</TableHead>
-                  <TableHead>Deleted By</TableHead>
-                  <TableHead>Deleted On</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('churches.ministryName')}</TableHead>
+                  <TableHead>{t('forms.location')}</TableHead>
+                  <TableHead className="text-center">{t('deletedAccounts.backedUpData')}</TableHead>
+                  <TableHead>{t('deletedAccounts.deletedBy')}</TableHead>
+                  <TableHead>{t('deletedAccounts.deletedOn')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,16 +184,16 @@ export default function DeletedAccounts() {
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
                           <Badge variant="secondary" className="text-xs">
-                            {stats.users} users
+                            {stats.users} {t('deletedAccounts.users')}
                           </Badge>
                           <Badge variant="secondary" className="text-xs">
-                            {stats.converts} converts
+                            {stats.converts} {t('deletedAccounts.converts')}
                           </Badge>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
-                          {archive.deletedByRole === "ADMIN" ? "Platform Admin" : "Ministry Admin"}
+                          {archive.deletedByRole === "ADMIN" ? t('roles.platformAdmin') : t('roles.ministryAdmin')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
@@ -216,7 +216,7 @@ export default function DeletedAccounts() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>View backup details</p>
+                              <p>{t('deletedAccounts.viewBackupDetails')}</p>
                             </TooltipContent>
                           </Tooltip>
                           <Tooltip>
@@ -232,7 +232,7 @@ export default function DeletedAccounts() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Restore ministry account</p>
+                              <p>{t('common.restore')}</p>
                             </TooltipContent>
                           </Tooltip>
                           <Tooltip>
@@ -247,7 +247,7 @@ export default function DeletedAccounts() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Permanently delete</p>
+                              <p>{t('deletedAccounts.deletePermanently')}</p>
                             </TooltipContent>
                           </Tooltip>
                         </div>
@@ -260,9 +260,9 @@ export default function DeletedAccounts() {
           ) : (
             <div className="p-12 text-center">
               <Archive className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-sm font-semibold mb-2">No deleted accounts</h3>
+              <h3 className="text-sm font-semibold mb-2">{t('deletedAccounts.noDeletedAccounts')}</h3>
               <p className="text-xs text-muted-foreground">
-                When ministry accounts are cancelled, they will appear here for restoration or permanent deletion.
+                {t('deletedAccounts.emptyDesc')}
               </p>
             </div>
           )}
@@ -272,35 +272,35 @@ export default function DeletedAccounts() {
       <Dialog open={viewDetailsOpen} onOpenChange={(open) => !open && closeViewDetails()}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Backup Details</DialogTitle>
+            <DialogTitle>{t('deletedAccounts.backupDetails')}</DialogTitle>
             <DialogDescription>
-              Details of the backed up ministry data for {selectedArchive?.churchName}
+              {t('deletedAccounts.backupDetailsDesc', { name: selectedArchive?.churchName })}
             </DialogDescription>
           </DialogHeader>
           {selectedArchive && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-muted-foreground">Ministry Name</p>
+                  <p className="text-xs text-muted-foreground">{t('churches.ministryName')}</p>
                   <p className="text-sm font-medium">{selectedArchive.churchName}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Location</p>
+                  <p className="text-xs text-muted-foreground">{t('forms.location')}</p>
                   <p className="text-sm font-medium">{selectedArchive.churchLocation || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Deleted By</p>
+                  <p className="text-xs text-muted-foreground">{t('deletedAccounts.deletedBy')}</p>
                   <Badge variant="outline">
-                    {selectedArchive.deletedByRole === "ADMIN" ? "Platform Admin" : "Ministry Admin"}
+                    {selectedArchive.deletedByRole === "ADMIN" ? t('roles.platformAdmin') : t('roles.ministryAdmin')}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Deleted On</p>
+                  <p className="text-xs text-muted-foreground">{t('deletedAccounts.deletedOn')}</p>
                   <p className="text-sm font-medium">{format(new Date(selectedArchive.archivedAt), "PPP")}</p>
                 </div>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Backed Up Data</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('deletedAccounts.backedUpData')}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {(() => {
                     const stats = getBackupStats(selectedArchive);
@@ -308,19 +308,19 @@ export default function DeletedAccounts() {
                       <>
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{stats.users} Users</span>
+                          <span className="text-sm">{stats.users} {t('deletedAccounts.users')}</span>
                         </div>
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{stats.converts} Converts</span>
+                          <span className="text-sm">{stats.converts} {t('deletedAccounts.converts')}</span>
                         </div>
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{stats.newMembers} New Members & Guests</span>
+                          <span className="text-sm">{stats.newMembers} {t('deletedAccounts.newMembersGuests')}</span>
                         </div>
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{stats.members} Members</span>
+                          <span className="text-sm">{stats.members} {t('deletedAccounts.members')}</span>
                         </div>
                       </>
                     );
@@ -331,7 +331,7 @@ export default function DeletedAccounts() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={closeViewDetails} data-testid="button-close-view-details">
-              Close
+              {t('forms.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -340,11 +340,9 @@ export default function DeletedAccounts() {
       <Dialog open={reinstateDialogOpen} onOpenChange={(open) => !open && closeReinstateDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Restore Ministry Account?</DialogTitle>
+            <DialogTitle>{t('deletedAccounts.restoreTitle')}</DialogTitle>
             <DialogDescription>
-              This will restore the ministry account for{" "}
-              <span className="font-semibold">{selectedArchive?.churchName}</span>.
-              All users will be recreated with new temporary passwords and will need to reset them.
+              {t('deletedAccounts.restoreDesc', { name: selectedArchive?.churchName })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -353,7 +351,7 @@ export default function DeletedAccounts() {
               onClick={closeReinstateDialog}
               data-testid="button-cancel-reinstate"
             >
-              Cancel
+              {t('forms.cancel')}
             </Button>
             <Button
               onClick={handleReinstate}
@@ -364,12 +362,12 @@ export default function DeletedAccounts() {
               {reinstateMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Restoring...
+                  {t('deletedAccounts.restoring')}
                 </>
               ) : (
                 <>
                   <RotateCcw className="h-4 w-4" />
-                  Restore Account
+                  {t('common.restore')}
                 </>
               )}
             </Button>
@@ -380,17 +378,14 @@ export default function DeletedAccounts() {
       <Dialog open={deleteDialogOpen} onOpenChange={(open) => !open && closeDeleteDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-destructive">Permanently Delete?</DialogTitle>
+            <DialogTitle className="text-destructive">{t('deletedAccounts.permanentDeleteTitle')}</DialogTitle>
             <DialogDescription>
-              This will permanently delete all backed up data for{" "}
-              <span className="font-semibold">{selectedArchive?.churchName}</span>.
-              This action cannot be undone. Type{" "}
-              <span className="font-bold">Delete Permanently</span> to confirm.
+              {t('deletedAccounts.permanentDeleteDesc', { name: selectedArchive?.churchName })}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
-              placeholder="Type 'Delete Permanently' to confirm"
+              placeholder={t('deletedAccounts.typeDeletePermanently')}
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               data-testid="input-confirm-permanent-delete"
@@ -402,7 +397,7 @@ export default function DeletedAccounts() {
               onClick={closeDeleteDialog}
               data-testid="button-cancel-permanent-delete"
             >
-              Cancel
+              {t('forms.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -413,10 +408,10 @@ export default function DeletedAccounts() {
               {permanentDeleteMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  {t('deletedAccounts.deleting')}
                 </>
               ) : (
-                "Delete Permanently"
+                t('deletedAccounts.deletePermanently')
               )}
             </Button>
           </DialogFooter>

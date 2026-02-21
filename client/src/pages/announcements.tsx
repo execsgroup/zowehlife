@@ -78,24 +78,24 @@ const announcementSchema = z.object({
 
 type AnnouncementForm = z.infer<typeof announcementSchema>;
 
-const recipientGroupOptions = [
-  { id: "converts", label: "Converts" },
-  { id: "new_members", label: "New Members & Guests" },
-  { id: "members", label: "Members" },
-  { id: "guests", label: "Guests" },
+const recipientGroupOptionKeys: Array<{ id: string; labelKey: string }> = [
+  { id: "converts", labelKey: "sidebar.converts" },
+  { id: "new_members", labelKey: "newMembers.title" },
+  { id: "members", labelKey: "membersPage.title" },
+  { id: "guests", labelKey: "sidebar.guests" },
 ];
 
-const groupLabels: Record<string, string> = {
-  converts: "Converts",
-  new_members: "New Members",
-  members: "Members",
-  guests: "Guests",
+const groupLabelKeys: Record<string, string> = {
+  converts: "sidebar.converts",
+  new_members: "newMembers.title",
+  members: "membersPage.title",
+  guests: "sidebar.guests",
 };
 
-const methodLabels: Record<string, string> = {
-  email: "Email",
-  sms: "Email + SMS",
-  mms: "Email + MMS",
+const methodLabelKeys: Record<string, string> = {
+  email: "followUps.emailOnly",
+  sms: "followUps.emailSms",
+  mms: "followUps.emailMms",
 };
 
 function formatScheduledDate(dateStr: string): string {
@@ -213,19 +213,19 @@ export default function AnnouncementsPage() {
     onSuccess: (data) => {
       if (isScheduled) {
         toast({
-          title: "Announcement Scheduled",
-          description: `Your announcement has been scheduled for ${formatScheduledDate(`${scheduleDate}T${scheduleTime}`)}`,
+          title: t('announcements.announcementScheduled'),
+          description: t('announcements.announcementScheduledDesc', { date: formatScheduledDate(`${scheduleDate}T${scheduleTime}`) }),
         });
         queryClient.invalidateQueries({ queryKey: [apiBasePath, "announcements", "scheduled"] });
       } else {
         const smsLabel = notificationMethod === "mms" ? "MMS" : "SMS";
-        let desc = `${data.emailsSent} email(s) sent`;
-        if (data.smsSent > 0) desc += `, ${data.smsSent} ${smsLabel} sent`;
-        if (data.emailsFailed > 0) desc += `. ${data.emailsFailed} email(s) failed`;
-        if (data.smsFailed > 0) desc += `. ${data.smsFailed} ${smsLabel} failed`;
-        if (data.smsSkipped > 0) desc += `. ${data.smsSkipped} ${smsLabel} skipped (plan limit reached)`;
+        let desc = t('announcements.emailsSentCount', { count: data.emailsSent });
+        if (data.smsSent > 0) desc += `, ${t('announcements.smsSentCount', { count: data.smsSent, method: smsLabel })}`;
+        if (data.emailsFailed > 0) desc += `. ${t('announcements.emailsFailedCount', { count: data.emailsFailed })}`;
+        if (data.smsFailed > 0) desc += `. ${t('announcements.smsFailedCount', { count: data.smsFailed, method: smsLabel })}`;
+        if (data.smsSkipped > 0) desc += `. ${t('announcements.smsSkippedCount', { count: data.smsSkipped, method: smsLabel })}`;
         toast({
-          title: "Announcement Sent",
+          title: t('announcements.announcementSent'),
           description: desc,
         });
       }
@@ -237,8 +237,8 @@ export default function AnnouncementsPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "Failed",
-        description: error.message || "Could not process announcement",
+        title: t('announcements.failed'),
+        description: error.message || t('announcements.couldNotProcess'),
         variant: "destructive",
       });
     },
@@ -250,13 +250,13 @@ export default function AnnouncementsPage() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: "Cancelled", description: "Scheduled announcement has been cancelled" });
+      toast({ title: t('announcements.cancelled'), description: t('announcements.scheduledCancelled') });
       queryClient.invalidateQueries({ queryKey: [apiBasePath, "announcements", "scheduled"] });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to cancel",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -276,7 +276,7 @@ export default function AnnouncementsPage() {
         </Link>
         <PageHeader
           title={t('announcements.title')}
-          description="Send communications to your ministry members"
+          description={t('announcements.description')}
         />
       </div>
 
@@ -285,7 +285,7 @@ export default function AnnouncementsPage() {
           {scheduledLoading && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Loading scheduled announcements...
+              {t('announcements.loadingScheduled')}
             </div>
           )}
           <div className="space-y-3">
@@ -303,11 +303,11 @@ export default function AnnouncementsPage() {
                       {formatScheduledDate(sa.scheduledAt)}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      {methodLabels[sa.notificationMethod] || sa.notificationMethod}
+                      {t(methodLabelKeys[sa.notificationMethod] || sa.notificationMethod)}
                     </Badge>
                     {sa.recipientGroups.map((g: string) => (
                       <Badge key={g} variant="outline" className="text-xs">
-                        {groupLabels[g] || g}
+                        {t(groupLabelKeys[g] || g)}
                       </Badge>
                     ))}
                   </div>
@@ -329,14 +329,14 @@ export default function AnnouncementsPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Section title="Recipients">
+          <Section title={t('announcements.recipients')}>
             <FormField
               control={form.control}
               name="recipientGroups"
               render={() => (
                 <FormItem>
                   <div className="grid grid-cols-2 gap-3">
-                    {recipientGroupOptions.map((group) => (
+                    {recipientGroupOptionKeys.map((group) => (
                       <FormField
                         key={group.id}
                         control={form.control}
@@ -358,15 +358,15 @@ export default function AnnouncementsPage() {
                               />
                             </FormControl>
                             <FormLabel className="font-normal cursor-pointer flex items-center gap-2 flex-wrap">
-                              {group.label}
+                              {t(group.labelKey)}
                               {recipientCounts && (
                                 <>
                                   <Badge variant="secondary" className="text-xs">
-                                    {recipientCounts[group.id as keyof RecipientCounts]?.email} email
+                                    {recipientCounts[group.id as keyof RecipientCounts]?.email} {t('announcements.emailBadge')}
                                   </Badge>
                                   {(notificationMethod === "sms" || notificationMethod === "mms") && (
                                     <Badge variant="secondary" className="text-xs">
-                                      {recipientCounts[group.id as keyof RecipientCounts]?.phone} phone
+                                      {recipientCounts[group.id as keyof RecipientCounts]?.phone} {t('announcements.phoneBadge')}
                                     </Badge>
                                   )}
                                 </>
@@ -380,9 +380,9 @@ export default function AnnouncementsPage() {
                   <FormMessage />
                   {selectedGroups.length > 0 && (
                     <div className="text-xs text-muted-foreground mt-2 space-y-1" data-testid="text-total-recipients">
-                      <p>Email recipients: {totalSelectedEmailRecipients}</p>
+                      <p>{t('announcements.emailRecipients')}: {totalSelectedEmailRecipients}</p>
                       {(notificationMethod === "sms" || notificationMethod === "mms") && (
-                        <p>{notificationMethod === "mms" ? "MMS" : "SMS"} recipients (with phone): {totalSelectedPhoneRecipients}</p>
+                        <p>{t('announcements.smsRecipientsWith', { method: notificationMethod === "mms" ? "MMS" : "SMS" })}: {totalSelectedPhoneRecipients}</p>
                       )}
                     </div>
                   )}
@@ -391,7 +391,7 @@ export default function AnnouncementsPage() {
             />
           </Section>
 
-          <Section title="Notification Method">
+          <Section title={t('announcements.notificationMethod')}>
             <div className="space-y-4">
               <FormField
                 control={form.control}
@@ -405,14 +405,14 @@ export default function AnnouncementsPage() {
                     >
                       <FormControl>
                         <SelectTrigger data-testid="trigger-announcement-method">
-                          <SelectValue placeholder="Select notification method" />
+                          <SelectValue placeholder={t('announcements.selectNotificationMethod')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="email" data-testid="option-announcement-email">
                           <span className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
-                            Email Only
+                            {t('followUps.emailOnly')}
                           </span>
                         </SelectItem>
                         <SelectItem
@@ -423,9 +423,9 @@ export default function AnnouncementsPage() {
                           <span className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
                             <MessageSquare className="h-4 w-4" />
-                            Email + SMS
-                            {isFree && <Badge variant="secondary" className="text-xs">Upgrade</Badge>}
-                            {!isFree && !smsAvailable && <Badge variant="destructive" className="text-xs">Limit reached</Badge>}
+                            {t('followUps.emailSms')}
+                            {isFree && <Badge variant="secondary" className="text-xs">{t('announcements.upgrade')}</Badge>}
+                            {!isFree && !smsAvailable && <Badge variant="destructive" className="text-xs">{t('announcements.limitReached')}</Badge>}
                           </span>
                         </SelectItem>
                         <SelectItem
@@ -436,9 +436,9 @@ export default function AnnouncementsPage() {
                           <span className="flex items-center gap-2">
                             <Mail className="h-4 w-4" />
                             <Image className="h-4 w-4" />
-                            Email + MMS
-                            {isFree && <Badge variant="secondary" className="text-xs">Upgrade</Badge>}
-                            {!isFree && !mmsAvailable && <Badge variant="destructive" className="text-xs">Limit reached</Badge>}
+                            {t('followUps.emailMms')}
+                            {isFree && <Badge variant="secondary" className="text-xs">{t('announcements.upgrade')}</Badge>}
+                            {!isFree && !mmsAvailable && <Badge variant="destructive" className="text-xs">{t('announcements.limitReached')}</Badge>}
                           </span>
                         </SelectItem>
                       </SelectContent>
@@ -450,30 +450,30 @@ export default function AnnouncementsPage() {
 
               {smsUsage && !isFree && (
                 <div className="flex flex-wrap gap-3 text-xs text-muted-foreground" data-testid="text-announcement-sms-usage">
-                  <span>SMS: {smsUsage.smsRemaining}/{smsUsage.smsLimit} remaining</span>
-                  <span>MMS: {smsUsage.mmsRemaining}/{smsUsage.mmsLimit} remaining</span>
+                  <span>SMS: {smsUsage.smsRemaining}/{smsUsage.smsLimit} {t('announcements.remaining')}</span>
+                  <span>MMS: {smsUsage.mmsRemaining}/{smsUsage.mmsLimit} {t('announcements.remaining')}</span>
                 </div>
               )}
 
               {isFree && (
                 <p className="text-xs text-muted-foreground">
-                  SMS/MMS messaging is available on paid plans.
+                  {t('announcements.smsPaidOnly')}
                 </p>
               )}
             </div>
           </Section>
 
-          <Section title="Email Content">
+          <Section title={t('announcements.emailContent')}>
             <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="subject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Subject</FormLabel>
+                    <FormLabel>{t('announcements.subject')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter email subject..."
+                        placeholder={t('announcements.enterSubject')}
                         {...field}
                         data-testid="input-announcement-subject"
                       />
@@ -488,12 +488,12 @@ export default function AnnouncementsPage() {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Message</FormLabel>
+                    <FormLabel>{t('announcements.message')}</FormLabel>
                     <FormControl>
                       <AITextarea
                         value={field.value}
                         onChange={field.onChange}
-                        placeholder="Write your announcement message..."
+                        placeholder={t('announcements.writeMessage')}
                         rows={6}
                         context="Ministry announcement email to church members, converts, and guests. Keep the tone warm, encouraging, and faith-based."
                         aiPlaceholder="e.g., Write an encouraging announcement about..."
@@ -506,8 +506,8 @@ export default function AnnouncementsPage() {
               />
 
               <div className="space-y-2">
-                <p className="text-sm font-medium">Email Image (optional)</p>
-                <p className="text-xs text-muted-foreground">Attach an image that will appear in the email body</p>
+                <p className="text-sm font-medium">{t('announcements.emailImage')}</p>
+                <p className="text-xs text-muted-foreground">{t('announcements.emailImageDesc')}</p>
                 <MmsImageUpload
                   onImageUploaded={(url) => setEmailImageUrl(url)}
                   onImageRemoved={() => setEmailImageUrl("")}
@@ -518,28 +518,28 @@ export default function AnnouncementsPage() {
           </Section>
 
           {(notificationMethod === "sms" || notificationMethod === "mms") && (
-            <Section title={notificationMethod === "mms" ? "MMS Message" : "SMS Message"}>
+            <Section title={notificationMethod === "mms" ? t('announcements.mmsMessage') : t('announcements.smsMessage')}>
               <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="smsMessage"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{notificationMethod === "mms" ? "MMS Text" : "SMS Text"}</FormLabel>
+                      <FormLabel>{notificationMethod === "mms" ? t('announcements.mmsText') : t('announcements.smsText')}</FormLabel>
                       <FormControl>
                         <AITextarea
                           value={field.value || ""}
                           onChange={field.onChange}
-                          placeholder={`Write your ${notificationMethod === "mms" ? "MMS" : "SMS"} message...`}
+                          placeholder={t('announcements.writeSmsMessage', { method: notificationMethod === "mms" ? "MMS" : "SMS" })}
                           rows={4}
                           context={`Short ${notificationMethod === "mms" ? "MMS" : "SMS"} text message for ministry members. Keep it brief, warm, and faith-based. SMS messages should be concise (under 160 characters ideally).`}
-                          aiPlaceholder={`e.g., Write a brief ${notificationMethod === "mms" ? "MMS" : "SMS"} about...`}
+                          aiPlaceholder={t('announcements.writeBriefSms', { method: notificationMethod === "mms" ? "MMS" : "SMS" })}
                           data-testid="input-announcement-sms-message"
                         />
                       </FormControl>
                       <FormMessage />
                       <p className="text-xs text-muted-foreground">
-                        This text will be sent via {notificationMethod === "mms" ? "MMS" : "SMS"} to recipients with a phone number on file.
+                        {t('announcements.smsSentVia', { method: notificationMethod === "mms" ? "MMS" : "SMS" })}
                       </p>
                     </FormItem>
                   )}
@@ -547,7 +547,7 @@ export default function AnnouncementsPage() {
 
                 {notificationMethod === "mms" && (
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">MMS Image Attachment (optional)</p>
+                    <p className="text-sm font-medium">{t('announcements.mmsImageAttachment')}</p>
                     <MmsImageUpload
                       onImageUploaded={(url) => form.setValue("mmsMediaUrl", url)}
                       onImageRemoved={() => form.setValue("mmsMediaUrl", "")}
@@ -559,7 +559,7 @@ export default function AnnouncementsPage() {
             </Section>
           )}
 
-          <Section title="Delivery">
+          <Section title={t('announcements.delivery')}>
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Switch
@@ -569,14 +569,14 @@ export default function AnnouncementsPage() {
                   data-testid="switch-schedule-toggle"
                 />
                 <Label htmlFor="schedule-toggle" className="cursor-pointer">
-                  Schedule for later
+                  {t('announcements.scheduleForLater')}
                 </Label>
               </div>
 
               {isScheduled && (
                 <div className="flex flex-wrap gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-date" className="text-xs">Date</Label>
+                    <Label htmlFor="schedule-date" className="text-xs">{t('forms.date')}</Label>
                     <Input
                       id="schedule-date"
                       type="date"
@@ -587,7 +587,7 @@ export default function AnnouncementsPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-time" className="text-xs">Time</Label>
+                    <Label htmlFor="schedule-time" className="text-xs">{t('forms.time')}</Label>
                     <Input
                       id="schedule-time"
                       type="time"
@@ -610,17 +610,17 @@ export default function AnnouncementsPage() {
               {sendMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  {isScheduled ? "Scheduling..." : "Sending..."}
+                  {isScheduled ? t('announcements.scheduling') : t('announcements.sending')}
                 </>
               ) : isScheduled ? (
                 <>
                   <Clock className="h-4 w-4 mr-2" />
-                  Schedule Announcement
+                  {t('announcements.scheduleAnnouncement')}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Send Now
+                  {t('announcements.sendNow')}
                 </>
               )}
             </Button>

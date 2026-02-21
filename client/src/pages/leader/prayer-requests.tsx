@@ -20,7 +20,7 @@ export default function LeaderPrayerRequests() {
       <div className="space-y-6">
         <PageHeader
           title={t('prayerRequests.title')}
-          description="View prayer requests submitted for your ministry"
+          description={t('prayerRequests.description')}
         />
 
         {isLoading ? (
@@ -45,7 +45,7 @@ export default function LeaderPrayerRequests() {
                     </p>
                   </div>
                   <Badge variant="secondary" className="flex-shrink-0">
-                    New
+                    {t('statusLabels.new')}
                   </Badge>
                 </div>
 
@@ -86,7 +86,7 @@ export default function LeaderPrayerRequests() {
               <HandHeart className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t('prayerRequests.noPrayerRequests')}</h3>
               <p className="text-muted-foreground">
-                Prayer requests submitted for your ministry will appear here.
+                {t('prayerRequests.description')}
               </p>
             </div>
           </Section>

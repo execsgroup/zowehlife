@@ -71,7 +71,7 @@ export default function MinistryAdminDashboard() {
     navigator.clipboard.writeText(url);
     toast({
       title: t('dashboard.linkCopied'),
-      description: `${formName} link copied to clipboard`,
+      description: t('dashboard.linkCopiedDesc', { name: formName }),
     });
   };
 

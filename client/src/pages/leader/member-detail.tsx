@@ -53,16 +53,6 @@ interface MemberCheckin {
   createdAt: string;
 }
 
-const outcomeLabels: Record<string, string> = {
-  CONNECTED: "Connected",
-  NO_RESPONSE: "No Response",
-  NEEDS_PRAYER: "Needs Prayer",
-  SCHEDULED_VISIT: "Scheduled Visit",
-  REFERRED: "Referred",
-  NOT_COMPLETED: "Not Completed",
-  OTHER: "Other",
-};
-
 const checkinFormSchema = z.object({
   checkinDate: z.string().min(1, "Date is required"),
   notes: z.string().optional(),
@@ -99,6 +89,19 @@ export default function MemberDetail() {
   const apiBasePath = useApiBasePath();
   const [location] = useLocation();
   const memberId = location.split('/').pop();
+
+  const getOutcomeLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      CONNECTED: t('statusLabels.connected'),
+      NO_RESPONSE: t('statusLabels.noResponse'),
+      NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+      SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
+      REFERRED: t('statusLabels.referred'),
+      NOT_COMPLETED: t('statusLabels.notCompleted'),
+      OTHER: t('statusLabels.other'),
+    };
+    return labels[key] || key;
+  };
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
@@ -156,8 +159,8 @@ export default function MemberDetail() {
     },
     onSuccess: () => {
       toast({
-        title: "Member updated",
-        description: "The member information has been updated.",
+        title: t('membersPage.memberUpdated'),
+        description: t('membersPage.memberUpdatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, memberId] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
@@ -165,8 +168,8 @@ export default function MemberDetail() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update member",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -191,8 +194,8 @@ export default function MemberDetail() {
     },
     onSuccess: () => {
       toast({
-        title: "Note added",
-        description: "Follow-up note has been recorded.",
+        title: t('newMembers.noteAdded'),
+        description: t('newMembers.noteAddedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members/${memberId}/checkins`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, memberId] });
@@ -205,8 +208,8 @@ export default function MemberDetail() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to add note",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -228,12 +231,12 @@ export default function MemberDetail() {
       <DashboardLayout>
         <Section>
           <div className="p-12 text-center">
-            <h3 className="text-sm font-semibold mb-2">Member not found</h3>
+            <h3 className="text-sm font-semibold mb-2">{t('membersPage.memberNotFound')}</h3>
             <p className="text-xs text-muted-foreground mb-4">
-              The member you're looking for doesn't exist or you don't have access.
+              {t('membersPage.memberNotFoundDesc')}
             </p>
             <Link href={`${basePath}/members`}>
-              <Button>Back to Members</Button>
+              <Button>{t('membersPage.backToMembers')}</Button>
             </Link>
           </div>
         </Section>
@@ -247,13 +250,13 @@ export default function MemberDetail() {
         <Link href={`${basePath}/members`}>
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
-            Back to Members
+            {t('membersPage.backToMembers')}
           </Button>
         </Link>
 
         <PageHeader
           title={`${member.firstName} ${member.lastName}`}
-          description={`Added: ${format(new Date(member.createdAt), "MMMM d, yyyy")}`}
+          description={`${t('membersPage.added')}: ${format(new Date(member.createdAt), "MMMM d, yyyy")}`}
           actions={
             <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1">
               <Edit className="h-3 w-3" />
@@ -301,7 +304,7 @@ export default function MemberDetail() {
               <div className="flex items-center gap-2">
                 <Cake className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Date of Birth:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.dateOfBirth')}:</span>
                   {format(new Date(member.dateOfBirth), "MMMM d, yyyy")}
                 </span>
               </div>
@@ -310,7 +313,7 @@ export default function MemberDetail() {
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Gender:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.gender')}:</span>
                   {member.gender}
                 </span>
               </div>
@@ -319,7 +322,7 @@ export default function MemberDetail() {
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Age Group:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.ageGroup')}:</span>
                   {member.ageGroup}
                 </span>
               </div>
@@ -328,7 +331,7 @@ export default function MemberDetail() {
               <div className="flex items-center gap-2">
                 <Church className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Member Since:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('membersPage.memberSince')}:</span>
                   {format(new Date(member.memberSince), "MMMM d, yyyy")}
                 </span>
               </div>
@@ -337,14 +340,14 @@ export default function MemberDetail() {
           {member.selfSubmitted === "true" && (
             <div className="mt-3">
               <Badge variant="secondary" className="w-fit">
-                Self-submitted via public form
+                {t('converts.selfSubmittedBadge')}
               </Badge>
             </div>
           )}
         </Section>
 
         {member.notes && (
-          <Section title="Notes">
+          <Section title={t('forms.notes')}>
             <p className="text-sm whitespace-pre-wrap bg-muted/50 p-4 rounded-md">
               {member.notes}
             </p>
@@ -353,7 +356,7 @@ export default function MemberDetail() {
 
         <Section
           title={t('converts.followUpTimeline')}
-          description="Record and track follow-ups with this member"
+          description={t('membersPage.recordAndTrackMembers')}
           actions={
             <Button
               variant="outline"
@@ -383,7 +386,7 @@ export default function MemberDetail() {
                             {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
                           </span>
                           <Badge variant="secondary" className="text-xs">
-                            {outcomeLabels[checkin.outcome] || checkin.outcome}
+                            {getOutcomeLabel(checkin.outcome)}
                           </Badge>
                         </div>
                         {checkin.notes && (
@@ -395,7 +398,7 @@ export default function MemberDetail() {
                           <div className="flex items-center gap-2 text-sm flex-wrap">
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <span className="text-muted-foreground">
-                              Next follow-up:{" "}
+                              {t('converts.nextFollowUp')}:{" "}
                               {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
                               {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                             </span>
@@ -417,7 +420,7 @@ export default function MemberDetail() {
                                   data-testid={`button-join-meeting-${checkin.id}`}
                                 >
                                   <Video className="h-4 w-4" />
-                                  Join Meeting
+                                  {t('converts.joinMeeting')}
                                 </Button>
                               </a>
                             )}
@@ -429,7 +432,7 @@ export default function MemberDetail() {
                               data-testid={`button-add-note-${checkin.id}`}
                             >
                               <Plus className="h-4 w-4" />
-                              Add Note
+                              {t('converts.addNote')}
                             </Button>
                           </div>
                         )}
@@ -441,7 +444,7 @@ export default function MemberDetail() {
             ) : (
               <div className="text-center py-8">
                 <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No follow-up notes yet</p>
+                <p className="text-muted-foreground">{t('converts.noFollowUpNotes')}</p>
               </div>
             )}
         </Section>
@@ -458,9 +461,9 @@ export default function MemberDetail() {
         <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Record Follow-up Note</DialogTitle>
+              <DialogTitle>{t('converts.recordFollowUpNote')}</DialogTitle>
               <DialogDescription>
-                Log a follow-up interaction with {member.firstName}
+                {t('converts.logFollowUpInteraction', { name: member.firstName })}
               </DialogDescription>
             </DialogHeader>
             <Form {...checkinForm}>
@@ -473,7 +476,7 @@ export default function MemberDetail() {
                   name="checkinDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel>{t('forms.date')}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} data-testid="input-checkin-date" />
                       </FormControl>
@@ -486,7 +489,7 @@ export default function MemberDetail() {
                   name="outcome"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Outcome</FormLabel>
+                      <FormLabel>{t('forms.outcome')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-checkin-outcome">
@@ -494,12 +497,12 @@ export default function MemberDetail() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="CONNECTED">Connected</SelectItem>
-                          <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                          <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                          <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                          <SelectItem value="REFERRED">Referred</SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
+                          <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                          <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
+                          <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
+                          <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
+                          <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                          <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -511,10 +514,10 @@ export default function MemberDetail() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>{t('forms.notes')}</FormLabel>
                       <FormControl>
                         <AITextarea
-                          placeholder="Details about the interaction..."
+                          placeholder={t('converts.detailsAboutInteraction')}
                           value={field.value || ""}
                           onChange={field.onChange}
                           context="Follow-up note for a member in a ministry"
@@ -533,10 +536,10 @@ export default function MemberDetail() {
                   {checkinMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Saving...
+                      {t('forms.saving')}
                     </>
                   ) : (
-                    "Save Note"
+                    t('converts.saveNote')
                   )}
                 </Button>
               </form>
@@ -547,9 +550,9 @@ export default function MemberDetail() {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Member</DialogTitle>
+              <DialogTitle>{t('membersPage.editMember')}</DialogTitle>
               <DialogDescription>
-                Update the member's information
+                {t('membersPage.updateMemberInfo')}
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
@@ -563,7 +566,7 @@ export default function MemberDetail() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name *</FormLabel>
+                        <FormLabel>{t('forms.firstName')} *</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -576,7 +579,7 @@ export default function MemberDetail() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>{t('forms.lastName')} *</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -591,7 +594,7 @@ export default function MemberDetail() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone</FormLabel>
+                        <FormLabel>{t('forms.phone')}</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -604,7 +607,7 @@ export default function MemberDetail() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t('forms.email')}</FormLabel>
                         <FormControl>
                           <Input type="email" {...field} />
                         </FormControl>
@@ -619,16 +622,16 @@ export default function MemberDetail() {
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Gender</FormLabel>
+                        <FormLabel>{t('forms.gender')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select gender" />
+                              <SelectValue placeholder={t('forms.selectGender')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
+                            <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                            <SelectItem value="Female">{t('forms.female')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -640,18 +643,18 @@ export default function MemberDetail() {
                     name="ageGroup"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Age Group</FormLabel>
+                        <FormLabel>{t('forms.ageGroup')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select age group" />
+                              <SelectValue placeholder={t('forms.selectAgeGroup')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Under 18">Under 18</SelectItem>
-                            <SelectItem value="18-24">18-24</SelectItem>
-                            <SelectItem value="25-34">25-34</SelectItem>
-                            <SelectItem value="35 and Above">35 and Above</SelectItem>
+                            <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                            <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                            <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                            <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -664,7 +667,7 @@ export default function MemberDetail() {
                   name="memberSince"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Member Since</FormLabel>
+                      <FormLabel>{t('membersPage.memberSince')}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -677,7 +680,7 @@ export default function MemberDetail() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>{t('forms.notes')}</FormLabel>
                       <FormControl>
                         <AITextarea
                           value={field.value || ""}
@@ -697,10 +700,10 @@ export default function MemberDetail() {
                   {updateMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Updating...
+                      {t('forms.updating')}
                     </>
                   ) : (
-                    "Update Member"
+                    t('membersPage.updateMember')
                   )}
                 </Button>
               </form>

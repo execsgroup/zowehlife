@@ -112,13 +112,13 @@ export default function MinistryAdminSettings() {
         });
         queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/church"] });
         toast({
-          title: "Logo Updated",
-          description: "Your ministry logo has been updated successfully.",
+          title: t('settings.logoUpdated'),
+          description: t('settings.logoUpdatedDesc'),
         });
       } catch (error) {
         toast({
-          title: "Error",
-          description: "Failed to save logo. Please try again.",
+          title: t('common.error'),
+          description: t('settings.failedToSaveLogo'),
           variant: "destructive",
         });
       } finally {
@@ -127,8 +127,8 @@ export default function MinistryAdminSettings() {
     },
     onError: () => {
       toast({
-        title: "Upload Failed",
-        description: "Failed to upload logo. Please try again.",
+        title: t('settings.uploadFailed'),
+        description: t('settings.uploadFailedDesc'),
         variant: "destructive",
       });
       setIsUploadingLogo(false);
@@ -142,14 +142,14 @@ export default function MinistryAdminSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/church"] });
       toast({
-        title: "Logo Removed",
-        description: "Your ministry logo has been removed.",
+        title: t('settings.logoRemoved'),
+        description: t('settings.logoRemovedDesc'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to remove logo. Please try again.",
+        title: t('common.error'),
+        description: t('settings.failedToRemoveLogo'),
         variant: "destructive",
       });
     },
@@ -161,8 +161,8 @@ export default function MinistryAdminSettings() {
     },
     onSuccess: () => {
       toast({
-        title: "Account cancelled",
-        description: "Your ministry account has been cancelled. You will be logged out.",
+        title: t('settings.accountCancelled'),
+        description: t('settings.accountCancelledDesc'),
       });
       queryClient.clear();
       closeDeleteDialog();
@@ -173,8 +173,8 @@ export default function MinistryAdminSettings() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to cancel account",
+        title: t('common.error'),
+        description: error.message || t('settings.failedToCancelAccount'),
         variant: "destructive",
       });
     },
@@ -212,8 +212,8 @@ export default function MinistryAdminSettings() {
 
     if (!file.type.startsWith("image/")) {
       toast({
-        title: "Invalid File",
-        description: "Please select an image file.",
+        title: t('settings.invalidFile'),
+        description: t('settings.selectImageFile'),
         variant: "destructive",
       });
       return;
@@ -221,8 +221,8 @@ export default function MinistryAdminSettings() {
 
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "File Too Large",
-        description: "Please select an image under 5MB.",
+        title: t('settings.fileTooLarge'),
+        description: t('settings.fileTooLargeDesc'),
         variant: "destructive",
       });
       return;
@@ -254,8 +254,8 @@ export default function MinistryAdminSettings() {
       setImageSrc(null);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to crop image. Please try again.",
+        title: t('common.error'),
+        description: t('settings.failedToCropImage'),
         variant: "destructive",
       });
       setIsUploadingLogo(false);
@@ -283,36 +283,36 @@ export default function MinistryAdminSettings() {
       <div className="max-w-4xl mx-auto space-y-6">
         <PageHeader
           title={t('settings.ministrySettings')}
-          description="Manage your ministry account settings."
+          description={t('settings.description')}
         />
 
-        <Section title="Ministry Information" description="Details about your ministry account.">
+        <Section title={t('settings.ministryInformation')} description={t('settings.ministryInformationDesc')}>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <p className="text-xs text-muted-foreground">Ministry Name</p>
+              <p className="text-xs text-muted-foreground">{t('churches.ministryName')}</p>
               <p className="text-sm font-medium">{church?.name}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Location</p>
+              <p className="text-xs text-muted-foreground">{t('forms.location')}</p>
               <div className="flex items-center gap-1">
                 <MapPin className="h-3 w-3 text-muted-foreground" />
-                <span className="text-sm font-medium">{church?.location || "Not specified"}</span>
+                <span className="text-sm font-medium">{church?.location || t('settings.notSpecified')}</span>
               </div>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Created</p>
+              <p className="text-xs text-muted-foreground">{t('forms.createdAt')}</p>
               <p className="text-sm font-medium">
                 {church?.createdAt ? format(new Date(church.createdAt), "PPP") : "N/A"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Status</p>
-              <Badge variant="secondary">Active</Badge>
+              <p className="text-xs text-muted-foreground">{t('forms.status')}</p>
+              <Badge variant="secondary">{t('common.active')}</Badge>
             </div>
           </div>
         </Section>
 
-        <Section title="Ministry Logo" description="Upload your ministry logo. It will appear next to your ministry name in the sidebar and on all public registration forms.">
+        <Section title={t('settings.uploadLogo')} description={t('settings.uploadLogoDesc')}>
           <div className="flex items-start gap-4">
             <div className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/50 shrink-0">
               {church?.logoUrl ? (
@@ -348,12 +348,12 @@ export default function MinistryAdminSettings() {
                   {isUploadingLogo ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Uploading...
+                      {t('settings.uploading')}
                     </>
                   ) : (
                     <>
                       <Upload className="mr-2 h-4 w-4" />
-                      Upload Logo
+                      {t('settings.uploadLogo')}
                     </>
                   )}
                 </Button>
@@ -370,37 +370,37 @@ export default function MinistryAdminSettings() {
                   data-testid="button-remove-logo"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Remove Logo
+                  {t('settings.removeLogo')}
                 </Button>
               )}
 
               <p className="text-xs text-muted-foreground">
-                Recommended: Square image, at least 200x200px, under 5MB
+                {t('settings.logoRecommendation')}
               </p>
             </div>
           </div>
         </Section>
 
-        <Section title="Leader Quota" description="Manage how many leaders can be added to your ministry.">
+        <Section title={t('settings.leaderQuota')} description={t('settings.leaderQuotaDesc')}>
           {isLoadingQuota ? (
             <Skeleton className="h-20 w-full" />
           ) : leaderQuota ? (
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-md border bg-card p-4">
-                  <p className="text-xs text-muted-foreground">Current Leaders</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.currentLeaders')}</p>
                   <p className="text-2xl font-bold" data-testid="text-current-leaders">
                     {leaderQuota.currentCount}
                   </p>
                 </div>
                 <div className="rounded-md border bg-card p-4">
-                  <p className="text-xs text-muted-foreground">Maximum Allowed</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.maximumAllowed')}</p>
                   <p className="text-2xl font-bold" data-testid="text-max-leaders">
                     {leaderQuota.maxAllowed}
                   </p>
                 </div>
                 <div className="rounded-md border bg-card p-4">
-                  <p className="text-xs text-muted-foreground">Remaining Slots</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.remainingSlots')}</p>
                   <p className="text-2xl font-bold" data-testid="text-remaining-leaders">
                     {leaderQuota.remaining}
                   </p>
@@ -409,12 +409,12 @@ export default function MinistryAdminSettings() {
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant={leaderQuota.canAddMore ? "secondary" : "destructive"}>
                   {leaderQuota.canAddMore 
-                    ? `${leaderQuota.remaining} slot${leaderQuota.remaining !== 1 ? 's' : ''} available` 
-                    : "No slots available"}
+                    ? t('settings.slotsAvailable', { count: leaderQuota.remaining })
+                    : t('settings.noSlotsAvailable')}
                 </Badge>
                 {!leaderQuota.canAddMore && (
                   <span className="text-xs text-muted-foreground">
-                    Remove an existing leader to add a new one.
+                    {t('settings.removeLeaderToAdd')}
                   </span>
                 )}
               </div>
@@ -422,13 +422,12 @@ export default function MinistryAdminSettings() {
           ) : null}
         </Section>
 
-        <Section title="Danger Zone" description="Irreversible actions that affect your entire ministry." className="border-destructive/50">
+        <Section title={t('settings.dangerZone')} description={t('settings.dangerZoneDesc')} className="border-destructive/50">
           <div className="flex items-start justify-between gap-4 flex-wrap p-4 border border-destructive/30 rounded-md bg-destructive/5">
             <div>
-              <h3 className="text-sm font-medium text-destructive">Cancel Ministry Account</h3>
+              <h3 className="text-sm font-medium text-destructive">{t('churches.cancelMinistry')}</h3>
               <p className="text-xs text-muted-foreground mt-1">
-                Permanently cancel your ministry account. All data including leaders, converts, and members will be archived.
-                The Platform Admin can restore your account if needed.
+                {t('settings.cancelAccountDesc')}
               </p>
             </div>
             <Button
@@ -438,7 +437,7 @@ export default function MinistryAdminSettings() {
               className="shrink-0"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Cancel Account
+              {t('settings.cancelAccount')}
             </Button>
           </div>
         </Section>
@@ -447,9 +446,9 @@ export default function MinistryAdminSettings() {
       <Dialog open={cropDialogOpen} onOpenChange={(open) => !open && handleCropCancel()}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Adjust Your Logo</DialogTitle>
+            <DialogTitle>{t('settings.adjustLogo')}</DialogTitle>
             <DialogDescription>
-              Drag to reposition and use the slider to zoom in or out
+              {t('settings.adjustLogoDesc')}
             </DialogDescription>
           </DialogHeader>
           
@@ -471,7 +470,7 @@ export default function MinistryAdminSettings() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium">Zoom</label>
+              <label className="text-xs font-medium">{t('settings.zoom')}</label>
               <Slider
                 value={[zoom]}
                 min={1}
@@ -484,10 +483,10 @@ export default function MinistryAdminSettings() {
 
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={handleCropCancel}>
-                Cancel
+                {t('forms.cancel')}
               </Button>
               <Button onClick={handleCropSave} data-testid="button-save-crop">
-                Save Logo
+                {t('forms.save')}
               </Button>
             </div>
           </div>
@@ -498,20 +497,16 @@ export default function MinistryAdminSettings() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-destructive">
-              {deleteStep === 1 ? "Cancel Ministry Account?" : "Confirm Cancellation"}
+              {deleteStep === 1 ? t('churches.cancelMinistry') : t('churches.confirmCancellation')}
             </DialogTitle>
             <DialogDescription>
               {deleteStep === 1 ? (
                 <>
-                  Are you sure you want to cancel your ministry account for{" "}
-                  <span className="font-semibold">{church?.name}</span>?
-                  This will remove all ministry data including leaders, converts, and members.
-                  The Platform Admin can restore your account if needed.
+                  {t('settings.cancelAccountConfirm', { name: church?.name })}
                 </>
               ) : (
                 <>
-                  This action will cancel your ministry account and log you out.
-                  To confirm, please type <span className="font-bold">Cancel Account</span> below.
+                  {t('settings.cancelAccountTypeConfirm')}
                 </>
               )}
             </DialogDescription>
@@ -520,7 +515,7 @@ export default function MinistryAdminSettings() {
           {deleteStep === 2 && (
             <div className="py-4">
               <Input
-                placeholder="Type 'Cancel Account' to confirm"
+                placeholder={t('settings.typeCancelAccount')}
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
                 data-testid="input-confirm-cancel"
@@ -534,7 +529,7 @@ export default function MinistryAdminSettings() {
               onClick={closeDeleteDialog}
               data-testid="button-cancel-delete"
             >
-              Go Back
+              {t('settings.goBack')}
             </Button>
             {deleteStep === 1 ? (
               <Button
@@ -542,7 +537,7 @@ export default function MinistryAdminSettings() {
                 onClick={handleDeleteStep1}
                 data-testid="button-proceed-delete"
               >
-                Yes, Cancel Account
+                {t('settings.yesCancelAccount')}
               </Button>
             ) : (
               <Button
@@ -554,10 +549,10 @@ export default function MinistryAdminSettings() {
                 {deleteMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Cancelling...
+                    {t('settings.cancelling')}
                   </>
                 ) : (
-                  "Confirm Cancellation"
+                  t('churches.confirmCancellation')
                 )}
               </Button>
             )}

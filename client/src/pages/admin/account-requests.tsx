@@ -79,14 +79,14 @@ export default function AccountRequests() {
     onSuccess: (data) => {
       if (data.credentials) {
         toast({
-          title: "Account Created - Email Failed",
-          description: `Please manually share credentials with the leader. Email: ${data.credentials.email}, Temporary Password: ${data.credentials.temporaryPassword}`,
+          title: t('accountRequests.emailFailed'),
+          description: t('accountRequests.emailFailedDesc', { email: data.credentials.email, password: data.credentials.temporaryPassword }),
           duration: 30000,
         });
       } else {
         toast({
-          title: "Request Approved",
-          description: "The leader account has been created and the applicant has been notified via email.",
+          title: t('accountRequests.approvedTitle'),
+          description: t('accountRequests.approvedDesc'),
         });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/admin/account-requests"] });
@@ -97,7 +97,7 @@ export default function AccountRequests() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Approval Failed",
+        title: t('accountRequests.approvalFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -110,15 +110,15 @@ export default function AccountRequests() {
     },
     onSuccess: () => {
       toast({
-        title: "Request Denied",
-        description: "The applicant has been notified via email.",
+        title: t('accountRequests.denied'),
+        description: t('accountRequests.deniedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/account-requests"] });
       setReviewingRequest(null);
     },
     onError: (error: Error) => {
       toast({
-        title: "Denial Failed",
+        title: t('accountRequests.denialFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -154,12 +154,12 @@ export default function AccountRequests() {
       <div className="max-w-6xl mx-auto space-y-6">
         <PageHeader
           title={t('sidebar.accountRequests')}
-          description="Review and manage leader account requests"
+          description={t('accountRequests.description')}
         />
 
         <Section
-          title="Pending Requests"
-          description="New leader account requests awaiting your review"
+          title={t('accountRequests.pendingRequests')}
+          description={t('accountRequests.pendingDescription')}
           actions={
             pendingRequests.length > 0 ? (
               <Badge variant="secondary" data-testid="badge-pending-count">{pendingRequests.length}</Badge>
@@ -176,18 +176,18 @@ export default function AccountRequests() {
           ) : pendingRequests.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground p-4">
               <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No pending requests</p>
+              <p className="text-sm">{t('accountRequests.noPending')}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Applicant</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Ministry</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('forms.name')}</TableHead>
+                  <TableHead>{t('forms.contact')}</TableHead>
+                  <TableHead>{t('forms.ministry')}</TableHead>
+                  <TableHead>{t('forms.reason')}</TableHead>
+                  <TableHead>{t('forms.date')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -238,7 +238,7 @@ export default function AccountRequests() {
                         data-testid={`button-review-${request.id}`}
                       >
                         <Edit className="h-4 w-4" />
-                        Review
+                        {t('accountRequests.review')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -250,19 +250,19 @@ export default function AccountRequests() {
 
         {processedRequests.length > 0 && (
           <Section
-            title="Request History"
-            description="Previously processed account requests"
+            title={t('accountRequests.processedRequests')}
+            description={t('accountRequests.processedDescription')}
             noPadding
           >
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Applicant</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Ministry</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Reviewed</TableHead>
+                  <TableHead>{t('forms.name')}</TableHead>
+                  <TableHead>{t('forms.email')}</TableHead>
+                  <TableHead>{t('forms.ministry')}</TableHead>
+                  <TableHead>{t('forms.status')}</TableHead>
+                  <TableHead>{t('forms.date')}</TableHead>
+                  <TableHead>{t('accountRequests.reviewed')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -273,7 +273,7 @@ export default function AccountRequests() {
                     <TableCell className="text-sm">{request.churchName}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[request.status]}>
-                        {request.status}
+                        {t(`statusLabels.${request.status.toLowerCase()}`)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -293,9 +293,9 @@ export default function AccountRequests() {
       <Dialog open={!!reviewingRequest} onOpenChange={(open) => !open && setReviewingRequest(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Review Account Request</DialogTitle>
+            <DialogTitle>{t('accountRequests.reviewTitle')}</DialogTitle>
             <DialogDescription>
-              Review and edit the request details before approving or denying. Upon approval, a new ministry will be created if it doesn't exist.
+              {t('accountRequests.reviewDesc')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -306,7 +306,7 @@ export default function AccountRequests() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>{t('forms.firstName')}</FormLabel>
                       <FormControl>
                         <Input {...field} data-testid="input-review-first-name" />
                       </FormControl>
@@ -319,7 +319,7 @@ export default function AccountRequests() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>{t('forms.lastName')}</FormLabel>
                       <FormControl>
                         <Input {...field} data-testid="input-review-last-name" />
                       </FormControl>
@@ -333,7 +333,7 @@ export default function AccountRequests() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('forms.email')}</FormLabel>
                     <FormControl>
                       <Input type="email" {...field} data-testid="input-review-email" />
                     </FormControl>
@@ -346,7 +346,7 @@ export default function AccountRequests() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>{t('forms.phone')}</FormLabel>
                     <FormControl>
                       <Input type="tel" {...field} data-testid="input-review-phone" />
                     </FormControl>
@@ -359,7 +359,7 @@ export default function AccountRequests() {
                 name="churchName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ministry Name</FormLabel>
+                    <FormLabel>{t('churches.ministryName')}</FormLabel>
                     <FormControl>
                       <Input {...field} data-testid="input-review-church" />
                     </FormControl>
@@ -372,7 +372,7 @@ export default function AccountRequests() {
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reason for Request</FormLabel>
+                    <FormLabel>{t('forms.reason')}</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
@@ -401,7 +401,7 @@ export default function AccountRequests() {
               ) : (
                 <X className="h-4 w-4" />
               )}
-              Deny Request
+              {t('common.deny')}
             </Button>
             <Button
               type="button"
@@ -415,7 +415,7 @@ export default function AccountRequests() {
               ) : (
                 <Check className="h-4 w-4" />
               )}
-              Approve & Create Account
+              {t('common.approve')}
             </Button>
           </DialogFooter>
         </DialogContent>

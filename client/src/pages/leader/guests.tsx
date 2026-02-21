@@ -117,14 +117,14 @@ export default function LeaderGuests() {
       setDialogOpen(false);
       form.reset();
       toast({
-        title: "Success",
-        description: "Guest added successfully",
+        title: t('guests.guestAdded'),
+        description: t('guests.guestAddedDesc'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to add guest",
+        title: t('common.error'),
+        description: t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -140,14 +140,14 @@ export default function LeaderGuests() {
       setSelectedGuest(null);
       editForm.reset();
       toast({
-        title: "Success",
-        description: "Guest updated successfully",
+        title: t('common.success'),
+        description: t('common.updatedSuccessfully'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to update guest",
+        title: t('common.error'),
+        description: t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -162,14 +162,14 @@ export default function LeaderGuests() {
       setDeleteDialogOpen(false);
       setSelectedGuest(null);
       toast({
-        title: "Success",
-        description: "Guest removed successfully",
+        title: t('guests.guestRemoved'),
+        description: t('guests.guestRemovedDesc'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to remove guest",
+        title: t('common.error'),
+        description: t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -226,21 +226,21 @@ export default function LeaderGuests() {
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeader
-          title={t('sidebar.newMembersGuests')}
-          description="Manage your ministry's guest list"
+          title={t('sidebar.guests')}
+          description={t('guests.description')}
           actions={
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button data-testid="button-add-guest">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Guest
+                  {t('guests.addGuest')}
                 </Button>
               </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Guest</DialogTitle>
+                <DialogTitle>{t('guests.addGuest')}</DialogTitle>
                 <DialogDescription>
-                  Add a guest to your ministry's guest list.
+                  {t('guests.description')}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -251,7 +251,7 @@ export default function LeaderGuests() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name *</FormLabel>
+                          <FormLabel>{t('forms.firstName')} *</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-first-name" />
                           </FormControl>
@@ -264,7 +264,7 @@ export default function LeaderGuests() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last Name *</FormLabel>
+                          <FormLabel>{t('forms.lastName')} *</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-last-name" />
                           </FormControl>
@@ -280,7 +280,7 @@ export default function LeaderGuests() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone</FormLabel>
+                          <FormLabel>{t('forms.phone')}</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-phone" />
                           </FormControl>
@@ -293,7 +293,7 @@ export default function LeaderGuests() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('forms.email')}</FormLabel>
                           <FormControl>
                             <Input type="email" {...field} data-testid="input-email" />
                           </FormControl>
@@ -309,16 +309,16 @@ export default function LeaderGuests() {
                       name="gender"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Gender</FormLabel>
+                          <FormLabel>{t('forms.gender')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-gender">
-                                <SelectValue placeholder="Select gender" />
+                                <SelectValue placeholder={t('forms.selectGender')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Male">Male</SelectItem>
-                              <SelectItem value="Female">Female</SelectItem>
+                              <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                              <SelectItem value="Female">{t('forms.female')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -330,18 +330,18 @@ export default function LeaderGuests() {
                       name="ageGroup"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Age Group</FormLabel>
+                          <FormLabel>{t('forms.ageGroup')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-age-group">
-                                <SelectValue placeholder="Select age group" />
+                                <SelectValue placeholder={t('forms.selectAgeGroup')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Under 18">Under 18</SelectItem>
-                              <SelectItem value="18-24">18-24</SelectItem>
-                              <SelectItem value="25-34">25-34</SelectItem>
-                              <SelectItem value="35 and Above">35 and Above</SelectItem>
+                              <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                              <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                              <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                              <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -356,7 +356,7 @@ export default function LeaderGuests() {
                       name="dateOfBirth"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Date of Birth</FormLabel>
+                          <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} data-testid="input-dob" />
                           </FormControl>
@@ -369,11 +369,11 @@ export default function LeaderGuests() {
                       name="country"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Country</FormLabel>
+                          <FormLabel>{t('forms.country')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-country">
-                                <SelectValue placeholder="Select country" />
+                                <SelectValue placeholder={t('forms.selectCountry')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -395,7 +395,7 @@ export default function LeaderGuests() {
                     name="address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Address</FormLabel>
+                        <FormLabel>{t('forms.address')}</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-address" />
                         </FormControl>
@@ -409,7 +409,7 @@ export default function LeaderGuests() {
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notes</FormLabel>
+                        <FormLabel>{t('forms.notes')}</FormLabel>
                         <FormControl>
                           <AITextarea
                             value={field.value || ""}
@@ -426,11 +426,11 @@ export default function LeaderGuests() {
 
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                      Cancel
+                      {t('forms.cancel')}
                     </Button>
                     <Button type="submit" disabled={createMutation.isPending} data-testid="button-submit-guest">
                       {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                      Add Guest
+                      {t('guests.addGuest')}
                     </Button>
                   </div>
                 </form>
@@ -443,7 +443,7 @@ export default function LeaderGuests() {
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search guests..."
+            placeholder={t('forms.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -462,9 +462,9 @@ export default function LeaderGuests() {
             ) : filteredGuests?.length === 0 ? (
               <div className="text-center py-8">
                 <Users2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">No guests found</h3>
+                <h3 className="text-lg font-medium">{t('guests.noGuests')}</h3>
                 <p className="text-muted-foreground">
-                  {search ? "Try a different search term" : "Add your first guest to get started"}
+                  {search ? t('common.tryDifferentSearch') : t('guests.addFirstGuest')}
                 </p>
               </div>
             ) : (
@@ -472,13 +472,13 @@ export default function LeaderGuests() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Age Group</TableHead>
-                      <TableHead>Source</TableHead>
-                      <TableHead>Added</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('forms.gender')}</TableHead>
+                      <TableHead>{t('forms.ageGroup')}</TableHead>
+                      <TableHead>{t('guests.source')}</TableHead>
+                      <TableHead>{t('forms.date')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -513,9 +513,9 @@ export default function LeaderGuests() {
                         <TableCell>{g.ageGroup || "-"}</TableCell>
                         <TableCell>
                           {g.sourceType === "new_member" ? (
-                            <Badge variant="outline">From New Members & Guests</Badge>
+                            <Badge variant="outline">{t('newMembers.title')}</Badge>
                           ) : (
-                            <Badge variant="secondary">Manual Entry</Badge>
+                            <Badge variant="secondary">{t('guests.manualEntry')}</Badge>
                           )}
                         </TableCell>
                         <TableCell>
@@ -534,7 +534,7 @@ export default function LeaderGuests() {
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Edit Guest</TooltipContent>
+                              <TooltipContent>{t('guests.editGuest')}</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -547,7 +547,7 @@ export default function LeaderGuests() {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Remove Guest</TooltipContent>
+                              <TooltipContent>{t('forms.remove')}</TooltipContent>
                             </Tooltip>
                           </div>
                         </TableCell>
@@ -560,59 +560,58 @@ export default function LeaderGuests() {
         </Section>
       </div>
 
-      {/* View Guest Dialog */}
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Guest Details</DialogTitle>
+            <DialogTitle>{t('guests.title')} {t('common.details')}</DialogTitle>
           </DialogHeader>
           {selectedGuest && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Full Name</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.name')}</p>
                   <p className="font-medium">{selectedGuest.firstName} {selectedGuest.lastName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Gender</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.gender')}</p>
                   <p className="font-medium">{selectedGuest.gender || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.phone')}</p>
                   <p className="font-medium">{selectedGuest.phone || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.email')}</p>
                   <p className="font-medium">{selectedGuest.email || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Date of Birth</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.dateOfBirth')}</p>
                   <p className="font-medium">{selectedGuest.dateOfBirth || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Age Group</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.ageGroup')}</p>
                   <p className="font-medium">{selectedGuest.ageGroup || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Country</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.country')}</p>
                   <p className="font-medium">{selectedGuest.country || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Source</p>
+                  <p className="text-sm text-muted-foreground">{t('guests.source')}</p>
                   <p className="font-medium">
-                    {selectedGuest.sourceType === "new_member" ? "From New Members & Guests" : "Manual Entry"}
+                    {selectedGuest.sourceType === "new_member" ? t('newMembers.title') : t('guests.manualEntry')}
                   </p>
                 </div>
               </div>
               {selectedGuest.address && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Address</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.address')}</p>
                   <p className="font-medium">{selectedGuest.address}</p>
                 </div>
               )}
               {selectedGuest.notes && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Notes</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.notes')}</p>
                   <p className="font-medium">{selectedGuest.notes}</p>
                 </div>
               )}
@@ -621,13 +620,12 @@ export default function LeaderGuests() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Guest Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Guest</DialogTitle>
+            <DialogTitle>{t('guests.editGuest')}</DialogTitle>
             <DialogDescription>
-              Update guest information.
+              {t('guests.description')}
             </DialogDescription>
           </DialogHeader>
           <Form {...editForm}>
@@ -638,7 +636,7 @@ export default function LeaderGuests() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name *</FormLabel>
+                      <FormLabel>{t('forms.firstName')} *</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -651,7 +649,7 @@ export default function LeaderGuests() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name *</FormLabel>
+                      <FormLabel>{t('forms.lastName')} *</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -667,7 +665,7 @@ export default function LeaderGuests() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone</FormLabel>
+                      <FormLabel>{t('forms.phone')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -680,7 +678,7 @@ export default function LeaderGuests() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('forms.email')}</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
                       </FormControl>
@@ -696,16 +694,16 @@ export default function LeaderGuests() {
                   name="gender"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Gender</FormLabel>
+                      <FormLabel>{t('forms.gender')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select gender" />
+                            <SelectValue placeholder={t('forms.selectGender')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Male">Male</SelectItem>
-                          <SelectItem value="Female">Female</SelectItem>
+                          <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                          <SelectItem value="Female">{t('forms.female')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -717,18 +715,18 @@ export default function LeaderGuests() {
                   name="ageGroup"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Age Group</FormLabel>
+                      <FormLabel>{t('forms.ageGroup')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select age group" />
+                            <SelectValue placeholder={t('forms.selectAgeGroup')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Under 18">Under 18</SelectItem>
-                          <SelectItem value="18-24">18-24</SelectItem>
-                          <SelectItem value="25-34">25-34</SelectItem>
-                          <SelectItem value="35 and Above">35 and Above</SelectItem>
+                          <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                          <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                          <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                          <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -743,7 +741,7 @@ export default function LeaderGuests() {
                   name="dateOfBirth"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date of Birth</FormLabel>
+                      <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -756,11 +754,11 @@ export default function LeaderGuests() {
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country</FormLabel>
+                      <FormLabel>{t('forms.country')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select country" />
+                            <SelectValue placeholder={t('forms.selectCountry')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -782,7 +780,7 @@ export default function LeaderGuests() {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>{t('forms.address')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -796,7 +794,7 @@ export default function LeaderGuests() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel>{t('forms.notes')}</FormLabel>
                     <FormControl>
                       <AITextarea
                         value={field.value || ""}
@@ -812,11 +810,11 @@ export default function LeaderGuests() {
 
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
-                  Cancel
+                  {t('forms.cancel')}
                 </Button>
                 <Button type="submit" disabled={updateMutation.isPending}>
                   {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Save Changes
+                  {t('forms.save')}
                 </Button>
               </div>
             </form>
@@ -824,24 +822,22 @@ export default function LeaderGuests() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Guest</AlertDialogTitle>
+            <AlertDialogTitle>{t('forms.remove')} {t('guests.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove {selectedGuest?.firstName} {selectedGuest?.lastName} from the guest list?
-              This action cannot be undone.
+              {t('guests.removeConfirm', { name: `${selectedGuest?.firstName} ${selectedGuest?.lastName}` })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('forms.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => selectedGuest && deleteMutation.mutate(selectedGuest.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Remove
+              {t('forms.remove')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

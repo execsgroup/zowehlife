@@ -95,21 +95,41 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const outcomeLabels: Record<string, string> = {
-  CONNECTED: "Connected",
-  NO_RESPONSE: "No Response",
-  NEEDS_PRAYER: "Needs Prayer",
-  SCHEDULED_VISIT: "Scheduled Visit",
-  REFERRED: "Referred",
-  OTHER: "Other",
-};
-
 export default function NewMemberDetail() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const basePath = useBasePath();
   const [location] = useLocation();
   const newMemberId = location.split('/').pop();
+
+  const getOutcomeLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      CONNECTED: t('statusLabels.connected'),
+      NO_RESPONSE: t('statusLabels.noResponse'),
+      NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+      SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
+      REFERRED: t('statusLabels.referred'),
+      OTHER: t('statusLabels.other'),
+    };
+    return labels[key] || key;
+  };
+
+  const getStatusLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      NEW: t('statusLabels.new'),
+      SCHEDULED: t('statusLabels.scheduled'),
+      CONNECTED: t('statusLabels.connected'),
+      NO_RESPONSE: t('statusLabels.noResponse'),
+      NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+      REFERRED: t('statusLabels.referred'),
+      NOT_COMPLETED: t('statusLabels.notCompleted'),
+      NEVER_CONTACTED: t('statusLabels.neverContacted'),
+      ACTIVE: t('statusLabels.active'),
+      IN_PROGRESS: t('statusLabels.inProgress'),
+      INACTIVE: t('statusLabels.inactive'),
+    };
+    return labels[key] || key;
+  };
 
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -171,8 +191,8 @@ export default function NewMemberDetail() {
     },
     onSuccess: () => {
       toast({
-        title: "Check-in recorded",
-        description: "The follow-up note has been saved.",
+        title: t('newMembers.checkinRecorded'),
+        description: t('newMembers.checkinRecordedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members", newMemberId] });
       setCheckinDialogOpen(false);
@@ -180,8 +200,8 @@ export default function NewMemberDetail() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to save check-in",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -193,8 +213,8 @@ export default function NewMemberDetail() {
     },
     onSuccess: () => {
       toast({
-        title: "New member updated",
-        description: "The new member information has been updated.",
+        title: t('newMembers.newMemberUpdated'),
+        description: t('newMembers.newMemberUpdatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members", newMemberId] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
@@ -202,8 +222,8 @@ export default function NewMemberDetail() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update new member",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -226,12 +246,12 @@ export default function NewMemberDetail() {
       <DashboardLayout>
         <Section>
           <div className="p-12 text-center">
-            <h3 className="text-sm font-semibold mb-2">New member & guest not found</h3>
+            <h3 className="text-sm font-semibold mb-2">{t('newMembers.notFound')}</h3>
             <p className="text-xs text-muted-foreground mb-4">
-              The new member & guest you're looking for doesn't exist or you don't have access.
+              {t('newMembers.notFoundDesc')}
             </p>
             <Link href={`${basePath}/new-members`}>
-              <Button>Back to New Members & Guests</Button>
+              <Button>{t('newMembers.backToNewMembers')}</Button>
             </Link>
           </div>
         </Section>
@@ -245,17 +265,17 @@ export default function NewMemberDetail() {
         <Link href={`${basePath}/new-members`}>
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
-            Back to New Members & Guests
+            {t('newMembers.backToNewMembers')}
           </Button>
         </Link>
 
         <PageHeader
           title={`${newMember.firstName} ${newMember.lastName}`}
-          description={`Joined: ${format(new Date(newMember.createdAt), "MMMM d, yyyy")}`}
+          description={`${t('newMembers.joined')}: ${format(new Date(newMember.createdAt), "MMMM d, yyyy")}`}
           actions={
             <div className="flex items-center gap-2">
               <Badge className={statusColors[newMember.status]}>
-                {newMember.status.replace("_", " ")}
+                {getStatusLabel(newMember.status)}
               </Badge>
               <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1">
                 <Edit className="h-3 w-3" />
@@ -304,7 +324,7 @@ export default function NewMemberDetail() {
               <div className="flex items-center gap-2">
                 <Cake className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Date of Birth:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.dateOfBirth')}:</span>
                   {format(new Date(newMember.dateOfBirth), "MMMM d, yyyy")}
                 </span>
               </div>
@@ -313,7 +333,7 @@ export default function NewMemberDetail() {
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Gender:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.gender')}:</span>
                   {newMember.gender}
                 </span>
               </div>
@@ -322,7 +342,7 @@ export default function NewMemberDetail() {
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Age Group:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.ageGroup')}:</span>
                   {newMember.ageGroup}
                 </span>
               </div>
@@ -331,14 +351,14 @@ export default function NewMemberDetail() {
           {newMember.selfSubmitted === "true" && (
             <div className="mt-3">
               <Badge variant="secondary" className="w-fit">
-                Self-submitted via public form
+                {t('converts.selfSubmittedBadge')}
               </Badge>
             </div>
           )}
         </Section>
 
         {newMember.notes && (
-          <Section title="Notes">
+          <Section title={t('forms.notes')}>
             <p className="text-sm whitespace-pre-wrap bg-muted/50 p-4 rounded-md">
               {newMember.notes}
             </p>
@@ -347,7 +367,7 @@ export default function NewMemberDetail() {
 
         <Section
           title={t('converts.followUpTimeline')}
-          description="Record and track follow-ups with this new member & guest"
+          description={t('newMembers.recordAndTrackNewMembers')}
           actions={
             <Button
               variant="outline"
@@ -385,7 +405,7 @@ export default function NewMemberDetail() {
                             {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
                           </span>
                           <Badge variant="secondary" className="text-xs">
-                            {outcomeLabels[checkin.outcome] || checkin.outcome}
+                            {getOutcomeLabel(checkin.outcome)}
                           </Badge>
                         </div>
                         {checkin.notes && (
@@ -397,7 +417,7 @@ export default function NewMemberDetail() {
                           <div className="flex items-center gap-2 text-sm flex-wrap">
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <span className="text-muted-foreground">
-                              Next follow-up:{" "}
+                              {t('converts.nextFollowUp')}:{" "}
                               {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
                               {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                             </span>
@@ -419,7 +439,7 @@ export default function NewMemberDetail() {
                                   data-testid={`button-join-meeting-${checkin.id}`}
                                 >
                                   <Video className="h-4 w-4" />
-                                  Join Meeting
+                                  {t('converts.joinMeeting')}
                                 </Button>
                               </a>
                             )}
@@ -431,7 +451,7 @@ export default function NewMemberDetail() {
                               data-testid={`button-add-note-${checkin.id}`}
                             >
                               <Plus className="h-4 w-4" />
-                              Add Note
+                              {t('converts.addNote')}
                             </Button>
                           </div>
                         )}
@@ -443,7 +463,7 @@ export default function NewMemberDetail() {
             ) : (
               <div className="text-center py-8">
                 <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No follow-up notes yet</p>
+                <p className="text-muted-foreground">{t('converts.noFollowUpNotes')}</p>
               </div>
             )}
         </Section>
@@ -451,9 +471,9 @@ export default function NewMemberDetail() {
         <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Record Follow-up Note</DialogTitle>
+              <DialogTitle>{t('converts.recordFollowUpNote')}</DialogTitle>
               <DialogDescription>
-                Log a follow-up interaction with {newMember.firstName}
+                {t('converts.logFollowUpInteraction', { name: newMember.firstName })}
               </DialogDescription>
             </DialogHeader>
             <Form {...checkinForm}>
@@ -466,7 +486,7 @@ export default function NewMemberDetail() {
                   name="checkinDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel>{t('forms.date')}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} data-testid="input-checkin-date" />
                       </FormControl>
@@ -479,7 +499,7 @@ export default function NewMemberDetail() {
                   name="outcome"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Outcome</FormLabel>
+                      <FormLabel>{t('forms.outcome')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-checkin-outcome">
@@ -487,12 +507,12 @@ export default function NewMemberDetail() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="CONNECTED">Connected</SelectItem>
-                          <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                          <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                          <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                          <SelectItem value="REFERRED">Referred</SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
+                          <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                          <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
+                          <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
+                          <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
+                          <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                          <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -504,10 +524,10 @@ export default function NewMemberDetail() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>{t('forms.notes')}</FormLabel>
                       <FormControl>
                         <AITextarea
-                          placeholder="Details about the interaction..."
+                          placeholder={t('converts.detailsAboutInteraction')}
                           value={field.value || ""}
                           onChange={field.onChange}
                           context="Follow-up note for a new member in a ministry"
@@ -526,10 +546,10 @@ export default function NewMemberDetail() {
                   {checkinMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Saving...
+                      {t('forms.saving')}
                     </>
                   ) : (
-                    "Save Note"
+                    t('converts.saveNote')
                   )}
                 </Button>
               </form>
@@ -540,9 +560,9 @@ export default function NewMemberDetail() {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit New Member</DialogTitle>
+              <DialogTitle>{t('newMembers.editNewMember')}</DialogTitle>
               <DialogDescription>
-                Update the new member's information
+                {t('newMembers.updateNewMemberInfo')}
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
@@ -556,7 +576,7 @@ export default function NewMemberDetail() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name *</FormLabel>
+                        <FormLabel>{t('forms.firstName')} *</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -569,7 +589,7 @@ export default function NewMemberDetail() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>{t('forms.lastName')} *</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -584,7 +604,7 @@ export default function NewMemberDetail() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone</FormLabel>
+                        <FormLabel>{t('forms.phone')}</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -597,7 +617,7 @@ export default function NewMemberDetail() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t('forms.email')}</FormLabel>
                         <FormControl>
                           <Input type="email" {...field} />
                         </FormControl>
@@ -611,7 +631,7 @@ export default function NewMemberDetail() {
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>{t('forms.status')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -619,14 +639,14 @@ export default function NewMemberDetail() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="NEW">New</SelectItem>
-                          <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                          <SelectItem value="CONNECTED">Connected</SelectItem>
-                          <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                          <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                          <SelectItem value="ACTIVE">Active</SelectItem>
-                          <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                          <SelectItem value="INACTIVE">Inactive</SelectItem>
+                          <SelectItem value="NEW">{t('statusLabels.new')}</SelectItem>
+                          <SelectItem value="SCHEDULED">{t('statusLabels.scheduled')}</SelectItem>
+                          <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                          <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
+                          <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
+                          <SelectItem value="ACTIVE">{t('statusLabels.active')}</SelectItem>
+                          <SelectItem value="IN_PROGRESS">{t('statusLabels.inProgress')}</SelectItem>
+                          <SelectItem value="INACTIVE">{t('statusLabels.inactive')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -638,7 +658,7 @@ export default function NewMemberDetail() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>{t('forms.notes')}</FormLabel>
                       <FormControl>
                         <AITextarea
                           value={field.value || ""}
@@ -658,10 +678,10 @@ export default function NewMemberDetail() {
                   {updateMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Updating...
+                      {t('forms.updating')}
                     </>
                   ) : (
-                    "Update New Member"
+                    t('newMembers.updateNewMember')
                   )}
                 </Button>
               </form>

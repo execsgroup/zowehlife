@@ -78,8 +78,8 @@ export default function AdminConverts() {
     },
     onSuccess: () => {
       toast({
-        title: "Check-in recorded",
-        description: "The follow-up check-in has been saved successfully.",
+        title: t('adminConverts.checkinRecorded'),
+        description: t('adminConverts.checkinRecordedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/converts"] });
       setFollowUpDialogOpen(false);
@@ -93,8 +93,8 @@ export default function AdminConverts() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to record check-in",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -145,11 +145,11 @@ export default function AdminConverts() {
       <div className="space-y-6">
         <PageHeader
           title={t('sidebar.allConverts')}
-          description="View and filter all converts across ministries"
+          description={t('adminConverts.description')}
           actions={
             <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
               <FileSpreadsheet className="h-4 w-4" />
-              Export Excel
+              {t('forms.exportExcel')}
             </Button>
           }
         />
@@ -159,7 +159,7 @@ export default function AdminConverts() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, phone, or email..."
+                placeholder={t('forms.searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -169,10 +169,10 @@ export default function AdminConverts() {
 
             <Select value={churchFilter} onValueChange={setChurchFilter}>
               <SelectTrigger className="w-full sm:w-48" data-testid="select-church-filter">
-                <SelectValue placeholder="All Ministries" />
+                <SelectValue placeholder={t('forms.ministry')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Ministries</SelectItem>
+                <SelectItem value="all">{t('forms.ministry')}</SelectItem>
                 {churches?.map((church) => (
                   <SelectItem key={church.id} value={church.id}>
                     {church.name}
@@ -183,15 +183,15 @@ export default function AdminConverts() {
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-40" data-testid="select-status-filter">
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder={t('forms.allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="NEW">New</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="CONNECTED">Connected</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                <SelectItem value="all">{t('forms.allStatuses')}</SelectItem>
+                <SelectItem value="NEW">{t('statusLabels.new')}</SelectItem>
+                <SelectItem value="ACTIVE">{t('statusLabels.active')}</SelectItem>
+                <SelectItem value="IN_PROGRESS">{t('statusLabels.inProgress')}</SelectItem>
+                <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                <SelectItem value="INACTIVE">{t('statusLabels.inactive')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -208,12 +208,12 @@ export default function AdminConverts() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Ministry</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Convert Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('forms.name')}</TableHead>
+                  <TableHead>{t('forms.contact')}</TableHead>
+                  <TableHead>{t('forms.ministry')}</TableHead>
+                  <TableHead>{t('forms.status')}</TableHead>
+                  <TableHead>{t('forms.convertDate')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -263,7 +263,7 @@ export default function AdminConverts() {
                             data-testid={`button-view-convert-${convert.id}`}
                           >
                             <Eye className="h-3 w-3" />
-                            View
+                            {t('common.view')}
                           </Button>
                         </Link>
                         <Button
@@ -274,7 +274,7 @@ export default function AdminConverts() {
                           data-testid={`button-followup-convert-${convert.id}`}
                         >
                           <MessageSquarePlus className="h-3 w-3" />
-                          Follow Up
+                          {t('followUps.title')}
                         </Button>
                       </div>
                     </TableCell>
@@ -285,11 +285,11 @@ export default function AdminConverts() {
           ) : (
             <div className="p-12 text-center">
               <UserPlus className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-sm font-semibold mb-2">No converts found</h3>
+              <h3 className="text-sm font-semibold mb-2">{t('converts.noConverts')}</h3>
               <p className="text-xs text-muted-foreground">
                 {search || churchFilter !== "all" || statusFilter !== "all"
-                  ? "Try adjusting your filters"
-                  : "Converts will appear here once leaders add them"}
+                  ? t('adminConverts.tryAdjustingFilters')
+                  : t('adminConverts.noConvertsYet')}
               </p>
             </div>
           )}
@@ -299,10 +299,10 @@ export default function AdminConverts() {
       <Dialog open={followUpDialogOpen} onOpenChange={setFollowUpDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Record Follow-Up</DialogTitle>
+            <DialogTitle>{t('followUps.recordCheckIn')}</DialogTitle>
             <DialogDescription>
               {selectedConvert && (
-                <>Record a check-in for {selectedConvert.firstName} {selectedConvert.lastName} ({selectedConvert.church?.name || "Unknown Ministry"})</>
+                <>{t('adminConverts.recordCheckinFor', { firstName: selectedConvert.firstName, lastName: selectedConvert.lastName, ministry: selectedConvert.church?.name || t('common.unknownMinistry') })}</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -316,7 +316,7 @@ export default function AdminConverts() {
                 name="checkinDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Check-in Date</FormLabel>
+                    <FormLabel>{t('forms.date')}</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} data-testid="input-admin-followup-date" />
                     </FormControl>
@@ -329,20 +329,20 @@ export default function AdminConverts() {
                 name="outcome"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Outcome</FormLabel>
+                    <FormLabel>{t('followUps.outcome')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-admin-followup-outcome">
-                          <SelectValue placeholder="Select outcome" />
+                          <SelectValue placeholder={t('forms.selectOutcome')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="CONNECTED">Connected</SelectItem>
-                        <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                        <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                        <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                        <SelectItem value="REFERRED">Referred</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
+                        <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                        <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
+                        <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
+                        <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
+                        <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                        <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -354,10 +354,10 @@ export default function AdminConverts() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel>{t('forms.notes')}</FormLabel>
                     <FormControl>
                       <AITextarea
-                        placeholder="Add any notes about this check-in..."
+                        placeholder={t('followUps.notesPlaceholder')}
                         value={field.value || ""}
                         onChange={field.onChange}
                         context="Follow-up note for a convert (admin view)"
@@ -373,7 +373,7 @@ export default function AdminConverts() {
                 name="nextFollowupDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Next Follow-up Date (optional)</FormLabel>
+                    <FormLabel>{t('followUps.followUpDate')} ({t('forms.optional')})</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} data-testid="input-admin-next-followup-date" />
                     </FormControl>
@@ -387,7 +387,7 @@ export default function AdminConverts() {
                   variant="outline"
                   onClick={() => setFollowUpDialogOpen(false)}
                 >
-                  Cancel
+                  {t('forms.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -397,10 +397,10 @@ export default function AdminConverts() {
                   {checkinMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Saving...
+                      {t('forms.saving')}
                     </>
                   ) : (
-                    "Save Check-in"
+                    t('forms.save')
                   )}
                 </Button>
               </div>

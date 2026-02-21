@@ -16,25 +16,25 @@ interface SubscriptionData {
   hasStripeSubscription: boolean;
 }
 
-const planDetails: Record<string, { name: string; price: string; features: string }> = {
-  free: { name: "Free", price: "$0/month", features: "1 Admin + 1 Leader" },
-  foundations: { name: "Foundations", price: "$19.99/month", features: "1 Admin + 1 Leader" },
-  formation: { name: "Formation", price: "$29.99/month", features: "1 Admin + up to 3 Leaders" },
-  stewardship: { name: "Stewardship", price: "$59.99/month", features: "1 Admin + up to 10 Leaders" },
+const planKeys: Record<string, { nameKey: string; price: string; featuresKey: string }> = {
+  free: { nameKey: "billing.free", price: "$0", featuresKey: "billing.planFeaturesFree" },
+  foundations: { nameKey: "billing.foundations", price: "$19.99", featuresKey: "billing.planFeaturesFoundations" },
+  formation: { nameKey: "billing.formation", price: "$29.99", featuresKey: "billing.planFeaturesFormation" },
+  stewardship: { nameKey: "billing.stewardship", price: "$59.99", featuresKey: "billing.planFeaturesStewardship" },
 };
 
-function getStatusBadge(status: string) {
+function getStatusBadge(status: string, t: (key: string) => string) {
   switch (status) {
     case "active":
-      return <Badge variant="default" data-testid="badge-status-active"><CheckCircle className="h-3 w-3 mr-1" />Active</Badge>;
+      return <Badge variant="default" data-testid="badge-status-active"><CheckCircle className="h-3 w-3 mr-1" />{t('common.active')}</Badge>;
     case "free":
-      return <Badge variant="secondary" data-testid="badge-status-free"><CheckCircle className="h-3 w-3 mr-1" />Free Plan</Badge>;
+      return <Badge variant="secondary" data-testid="badge-status-free"><CheckCircle className="h-3 w-3 mr-1" />{t('billing.free')}</Badge>;
     case "past_due":
-      return <Badge variant="destructive" data-testid="badge-status-past-due"><AlertTriangle className="h-3 w-3 mr-1" />Past Due</Badge>;
+      return <Badge variant="destructive" data-testid="badge-status-past-due"><AlertTriangle className="h-3 w-3 mr-1" />{t('statusLabels.pastDue')}</Badge>;
     case "suspended":
-      return <Badge variant="destructive" data-testid="badge-status-suspended"><XCircle className="h-3 w-3 mr-1" />Suspended</Badge>;
+      return <Badge variant="destructive" data-testid="badge-status-suspended"><XCircle className="h-3 w-3 mr-1" />{t('common.suspended')}</Badge>;
     case "canceled":
-      return <Badge variant="destructive" data-testid="badge-status-canceled"><XCircle className="h-3 w-3 mr-1" />Canceled</Badge>;
+      return <Badge variant="destructive" data-testid="badge-status-canceled"><XCircle className="h-3 w-3 mr-1" />{t('statusLabels.canceled')}</Badge>;
     default:
       return <Badge variant="outline" data-testid="badge-status-unknown">{status}</Badge>;
   }
@@ -58,15 +58,15 @@ export default function MinistryAdminBilling() {
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to open billing portal",
+        title: t('common.error'),
+        description: error.message || t('billing.failedToOpenPortal'),
         variant: "destructive",
       });
     },
   });
 
   const plan = subscription?.plan || "foundations";
-  const details = planDetails[plan] || planDetails.foundations;
+  const planDetail = planKeys[plan] || planKeys.foundations;
   const isInactive = subscription?.subscriptionStatus === "past_due" || subscription?.subscriptionStatus === "suspended" || subscription?.subscriptionStatus === "canceled";
 
   return (
@@ -74,7 +74,7 @@ export default function MinistryAdminBilling() {
       <div className="space-y-6">
         <PageHeader
           title={t('billing.title')}
-          description="Manage your ministry's subscription and payment details"
+          description={t('billing.description')}
         />
 
         {isInactive && (
@@ -84,9 +84,9 @@ export default function MinistryAdminBilling() {
                 <AlertTriangle className="h-5 w-5 text-destructive" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-destructive" data-testid="text-subscription-warning">Subscription Inactive</h3>
+                <h3 className="text-sm font-semibold text-destructive" data-testid="text-subscription-warning">{t('billing.subscriptionInactive')}</h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your subscription payment has failed or been canceled. Your ministry is currently in read-only mode. Update your payment method to restore full access.
+                  {t('billing.subscriptionInactiveDesc')}
                 </p>
                 {subscription?.hasStripeSubscription && (
                   <Button
@@ -96,7 +96,7 @@ export default function MinistryAdminBilling() {
                     data-testid="button-update-payment-urgent"
                   >
                     {portalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                    Update Payment Method
+                    {t('billing.updatePaymentMethod')}
                   </Button>
                 )}
               </div>
@@ -115,29 +115,29 @@ export default function MinistryAdminBilling() {
           </Section>
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
-            <Section title="Current Plan" description="Your ministry's subscription details">
+            <Section title={t('billing.currentPlan')} description={t('billing.subscriptionDetails')}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
-                    <p className="text-xl font-bold" data-testid="text-plan-name">{details.name}</p>
-                    <p className="text-sm text-muted-foreground" data-testid="text-plan-price">{details.price}</p>
+                    <p className="text-xl font-bold" data-testid="text-plan-name">{t(planDetail.nameKey)}</p>
+                    <p className="text-sm text-muted-foreground" data-testid="text-plan-price">{t('billing.pricePerMonth', { price: planDetail.price })}</p>
                   </div>
-                  {subscription && getStatusBadge(subscription.subscriptionStatus)}
+                  {subscription && getStatusBadge(subscription.subscriptionStatus, t)}
                 </div>
-                <p className="text-xs text-muted-foreground" data-testid="text-plan-features">{details.features}</p>
+                <p className="text-xs text-muted-foreground" data-testid="text-plan-features">{t(planDetail.featuresKey)}</p>
               </div>
             </Section>
 
-            <Section title="Billing Management" description="Manage your payment method and invoices">
+            <Section title={t('billing.manageBilling')} description={t('billing.manageBillingDesc')}>
               <div className="space-y-4">
                 {subscription?.plan === "free" ? (
                   <p className="text-xs text-muted-foreground" data-testid="text-free-plan-info">
-                    You're on the Free plan. No billing is required. To access more features and add more leaders, consider upgrading your plan.
+                    {t('billing.freePlanInfo')}
                   </p>
                 ) : subscription?.hasStripeSubscription ? (
                   <>
                     <p className="text-xs text-muted-foreground">
-                      Access your billing portal to update your payment method, view invoices, or manage your subscription.
+                      {t('billing.portalDesc')}
                     </p>
                     <Button
                       onClick={() => portalMutation.mutate()}
@@ -146,12 +146,12 @@ export default function MinistryAdminBilling() {
                       data-testid="button-manage-billing"
                     >
                       {portalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
-                      Manage Billing
+                      {t('billing.manageBilling')}
                     </Button>
                   </>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    No billing account is linked to this ministry. Please contact support if you need assistance.
+                    {t('billing.noBillingAccount')}
                   </p>
                 )}
               </div>

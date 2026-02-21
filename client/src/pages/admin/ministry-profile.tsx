@@ -79,11 +79,11 @@ export default function MinistryProfile() {
       <DashboardLayout>
         <Section>
           <div className="text-center py-12">
-            <h2 className="text-sm font-semibold mb-2">Ministry not found</h2>
-            <p className="text-xs text-muted-foreground mb-4">The ministry you're looking for doesn't exist.</p>
+            <h2 className="text-sm font-semibold mb-2">{t('ministryProfile.ministryNotFound')}</h2>
+            <p className="text-xs text-muted-foreground mb-4">{t('ministryProfile.ministryNotFoundDesc')}</p>
             <Button onClick={() => navigate("/admin/churches")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Ministries
+              {t('ministryProfile.backToMinistries')}
             </Button>
           </div>
         </Section>
@@ -109,13 +109,13 @@ export default function MinistryProfile() {
 
         <PageHeader
           title={church.name}
-          description={`${church.location || "Location not specified"} • Created ${format(new Date(church.createdAt), "MMM d, yyyy")}`}
+          description={`${church.location || t('ministryProfile.locationNotSpecified')} • ${t('ministryProfile.createdOn')} ${format(new Date(church.createdAt), "MMM d, yyyy")}`}
           actions={
             <Badge
               variant={church.plan === "stewardship" ? "default" : church.plan === "formation" ? "secondary" : "outline"}
               data-testid="badge-ministry-plan"
             >
-              {church.plan ? church.plan.charAt(0).toUpperCase() + church.plan.slice(1) : "Foundations"} Plan
+              {church.plan ? t(`billing.${church.plan}`) : t('billing.foundations')} {t('ministryProfile.plan')}
             </Badge>
           }
         />
@@ -123,56 +123,56 @@ export default function MinistryProfile() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Converts</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('ministryProfile.totalConverts')}</CardTitle>
               <Heart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalConverts}</div>
               <p className="text-xs text-muted-foreground">
-                +{stats.convertsThisMonth} this month
+                +{stats.convertsThisMonth} {t('ministryProfile.thisMonth')}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Members & Guests</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('ministryProfile.newMembersGuests')}</CardTitle>
               <UserPlus className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalNewMembers}</div>
               <p className="text-xs text-muted-foreground">
-                +{stats.newMembersThisMonth} this month
+                +{stats.newMembersThisMonth} {t('ministryProfile.thisMonth')}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Members</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('ministryProfile.members')}</CardTitle>
               <UserCheck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalMembers}</div>
               <p className="text-xs text-muted-foreground">
-                +{stats.membersThisMonth} this month
+                +{stats.membersThisMonth} {t('ministryProfile.thisMonth')}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Leaders</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('ministryProfile.leaders')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalLeaders}</div>
               <p className="text-xs text-muted-foreground">
-                Active team members
+                {t('ministryProfile.activeTeamMembers')}
               </p>
             </CardContent>
           </Card>
         </div>
 
         {ministryAdmin && (
-          <Section title="Ministry Admin" description="Account administrator for this ministry">
+          <Section title={t('ministryProfile.ministryAdmin')} description={t('ministryProfile.ministryAdminDesc')}>
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center">
                 <span className="text-sm font-semibold">
@@ -181,7 +181,7 @@ export default function MinistryProfile() {
               </div>
               <div>
                 <p className="text-sm font-medium">{ministryAdmin.firstName} {ministryAdmin.lastName}</p>
-                <p className="text-xs text-muted-foreground">{ministryAdmin.email || "No email"}</p>
+                <p className="text-xs text-muted-foreground">{ministryAdmin.email || t('ministryProfile.noEmail')}</p>
               </div>
             </div>
           </Section>
@@ -189,15 +189,15 @@ export default function MinistryProfile() {
 
         <Tabs defaultValue="activity" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="activity" data-testid="tab-activity">Recent Activity</TabsTrigger>
-            <TabsTrigger value="leaders" data-testid="tab-leaders">Leaders ({leaders.length})</TabsTrigger>
-            <TabsTrigger value="converts" data-testid="tab-converts">Converts ({converts.length})</TabsTrigger>
-            <TabsTrigger value="new-members" data-testid="tab-new-members">New Members & Guests ({newMembers.length})</TabsTrigger>
-            <TabsTrigger value="members" data-testid="tab-members">Members ({members.length})</TabsTrigger>
+            <TabsTrigger value="activity" data-testid="tab-activity">{t('ministryProfile.recentActivity')}</TabsTrigger>
+            <TabsTrigger value="leaders" data-testid="tab-leaders">{t('ministryProfile.leaders')} ({leaders.length})</TabsTrigger>
+            <TabsTrigger value="converts" data-testid="tab-converts">{t('adminConverts.title')} ({converts.length})</TabsTrigger>
+            <TabsTrigger value="new-members" data-testid="tab-new-members">{t('ministryProfile.newMembersGuests')} ({newMembers.length})</TabsTrigger>
+            <TabsTrigger value="members" data-testid="tab-members">{t('ministryProfile.members')} ({members.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="activity">
-            <Section title="Recent Activity" description="Latest actions and events in this ministry">
+            <Section title={t('ministryProfile.recentActivity')} description={t('ministryProfile.recentActivityDesc')}>
               {recentActivity && recentActivity.length > 0 ? (
                 <div className="space-y-4">
                   {recentActivity.map((activity, index) => (
@@ -216,21 +216,21 @@ export default function MinistryProfile() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">No recent activity</p>
+                <p className="text-sm text-muted-foreground text-center py-8">{t('ministryProfile.noRecentActivity')}</p>
               )}
             </Section>
           </TabsContent>
 
           <TabsContent value="leaders">
-            <Section title="Ministry Leaders" description="Team members serving in this ministry" noPadding>
+            <Section title={t('ministryProfile.ministryLeaders')} description={t('ministryProfile.ministryLeadersDesc')} noPadding>
               {leaders.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Joined</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.email')}</TableHead>
+                      <TableHead>{t('forms.role')}</TableHead>
+                      <TableHead>{t('ministryProfile.joined')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -242,7 +242,7 @@ export default function MinistryProfile() {
                         <TableCell className="text-sm">{leader.email}</TableCell>
                         <TableCell>
                           <Badge variant={leader.role === "MINISTRY_ADMIN" ? "default" : "secondary"}>
-                            {leader.role === "MINISTRY_ADMIN" ? "Ministry Admin" : "Leader"}
+                            {leader.role === "MINISTRY_ADMIN" ? t('ministryProfile.ministryAdmin') : t('leaders.title')}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
@@ -253,21 +253,21 @@ export default function MinistryProfile() {
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">No leaders assigned yet</p>
+                <p className="text-sm text-muted-foreground text-center py-8">{t('ministryProfile.noLeaders')}</p>
               )}
             </Section>
           </TabsContent>
 
           <TabsContent value="converts">
-            <Section title="Converts" description="New believers registered at this ministry" noPadding>
+            <Section title={t('adminConverts.title')} description={t('ministryProfile.convertsDesc')} noPadding>
               {converts.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Registered</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.phone')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('ministryProfile.registered')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -279,7 +279,7 @@ export default function MinistryProfile() {
                         <TableCell className="text-sm">{convert.phone || "-"}</TableCell>
                         <TableCell>
                           <Badge variant={convert.status === "NEW" ? "default" : "secondary"}>
-                            {convert.status}
+                            {t(`statusLabels.${convert.status?.toLowerCase().replace(/_/g, '')}`)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
@@ -290,26 +290,26 @@ export default function MinistryProfile() {
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">No converts registered yet</p>
+                <p className="text-sm text-muted-foreground text-center py-8">{t('ministryProfile.noConverts')}</p>
               )}
               {converts.length > 10 && (
                 <p className="text-xs text-muted-foreground text-center py-3">
-                  Showing 10 of {converts.length} converts
+                  {t('ministryProfile.showingOf', { shown: 10, total: converts.length, type: t('adminConverts.title').toLowerCase() })}
                 </p>
               )}
             </Section>
           </TabsContent>
 
           <TabsContent value="new-members">
-            <Section title="New Members & Guests" description="Recently joined members at this ministry" noPadding>
+            <Section title={t('ministryProfile.newMembersGuests')} description={t('ministryProfile.newMembersGuestsDesc')} noPadding>
               {newMembers.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Registered</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.phone')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('ministryProfile.registered')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -321,7 +321,7 @@ export default function MinistryProfile() {
                         <TableCell className="text-sm">{nm.phone || "-"}</TableCell>
                         <TableCell>
                           <Badge variant={nm.status === "NEW" ? "default" : "secondary"}>
-                            {nm.status}
+                            {t(`statusLabels.${nm.status?.toLowerCase().replace(/_/g, '')}`)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
@@ -332,26 +332,26 @@ export default function MinistryProfile() {
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">No new members registered yet</p>
+                <p className="text-sm text-muted-foreground text-center py-8">{t('ministryProfile.noNewMembers')}</p>
               )}
               {newMembers.length > 10 && (
                 <p className="text-xs text-muted-foreground text-center py-3">
-                  Showing 10 of {newMembers.length} new members
+                  {t('ministryProfile.showingOf', { shown: 10, total: newMembers.length, type: t('ministryProfile.newMembersGuests').toLowerCase() })}
                 </p>
               )}
             </Section>
           </TabsContent>
 
           <TabsContent value="members">
-            <Section title="Members" description="Registered members at this ministry" noPadding>
+            <Section title={t('ministryProfile.members')} description={t('ministryProfile.membersDesc')} noPadding>
               {members.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Member Since</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.phone')}</TableHead>
+                      <TableHead>{t('forms.email')}</TableHead>
+                      <TableHead>{t('ministryProfile.memberSince')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -370,11 +370,11 @@ export default function MinistryProfile() {
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">No members registered yet</p>
+                <p className="text-sm text-muted-foreground text-center py-8">{t('ministryProfile.noMembers')}</p>
               )}
               {members.length > 10 && (
                 <p className="text-xs text-muted-foreground text-center py-3">
-                  Showing 10 of {members.length} members
+                  {t('ministryProfile.showingOf', { shown: 10, total: members.length, type: t('ministryProfile.members').toLowerCase() })}
                 </p>
               )}
             </Section>

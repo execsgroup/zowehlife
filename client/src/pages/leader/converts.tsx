@@ -81,20 +81,6 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const statusLabels: Record<string, string> = {
-  NEW: "New",
-  SCHEDULED: "Scheduled",
-  CONNECTED: "Connected",
-  NO_RESPONSE: "No Response",
-  NEEDS_PRAYER: "Needs Prayer",
-  REFERRED: "Referred",
-  NOT_COMPLETED: "Not Completed",
-  NEVER_CONTACTED: "Never Contacted",
-  ACTIVE: "Active",
-  IN_PROGRESS: "In Progress",
-  INACTIVE: "Inactive",
-};
-
 export default function LeaderConverts() {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -107,6 +93,20 @@ export default function LeaderConverts() {
   const [selectedConvert, setSelectedConvert] = useState<Convert | null>(null);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [convertToRemove, setConvertToRemove] = useState<Convert | null>(null);
+
+  const statusLabels: Record<string, string> = {
+    NEW: t('statusLabels.new'),
+    SCHEDULED: t('statusLabels.scheduled'),
+    CONNECTED: t('statusLabels.connected'),
+    NO_RESPONSE: t('statusLabels.noResponse'),
+    NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+    REFERRED: t('statusLabels.referred'),
+    NOT_COMPLETED: t('statusLabels.notCompleted'),
+    NEVER_CONTACTED: t('statusLabels.neverContacted'),
+    ACTIVE: t('statusLabels.active'),
+    IN_PROGRESS: t('statusLabels.inProgress'),
+    INACTIVE: t('statusLabels.inactive'),
+  };
 
   const { data: converts, isLoading } = useQuery<Convert[]>({
     queryKey: ["/api/leader/converts"],
@@ -122,8 +122,8 @@ export default function LeaderConverts() {
     },
     onSuccess: async () => {
       toast({
-        title: "Convert removed",
-        description: "The convert has been removed from this ministry and notified via email.",
+        title: t('converts.convertRemoved'),
+        description: t('converts.convertRemovedDesc'),
       });
       await queryClient.refetchQueries({ queryKey: ["/api/leader/converts"] });
       setRemoveDialogOpen(false);
@@ -131,8 +131,8 @@ export default function LeaderConverts() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to remove convert",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -159,7 +159,6 @@ export default function LeaderConverts() {
     },
   });
 
-  // Check for ?new=true query param
   useEffect(() => {
     if (location.includes("new=true")) {
       setDialogOpen(true);
@@ -177,8 +176,8 @@ export default function LeaderConverts() {
     },
     onSuccess: () => {
       toast({
-        title: "Convert added",
-        description: "The new convert has been added successfully.",
+        title: t('converts.convertAdded'),
+        description: t('converts.convertAddedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
@@ -187,8 +186,8 @@ export default function LeaderConverts() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to add convert",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -226,12 +225,12 @@ export default function LeaderConverts() {
       <div className="space-y-6">
         <PageHeader
           title={t('converts.title')}
-          description="Manage and track your ministry's new converts"
+          description={t('converts.description')}
           actions={
             <div className="flex gap-2">
               <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
                 <FileSpreadsheet className="h-4 w-4" />
-                Export Excel
+                {t('forms.exportExcel')}
               </Button>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -244,7 +243,7 @@ export default function LeaderConverts() {
               <DialogHeader>
                 <DialogTitle>{t('converts.addConvert')}</DialogTitle>
                 <DialogDescription>
-                  Record information about a new believer
+                  {t('converts.recordInfo')}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -255,8 +254,8 @@ export default function LeaderConverts() {
                   <div className="rounded-md border bg-muted/50 p-3">
                     <div className="flex items-center gap-2">
                       <Church className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Ministry:</span>
-                      <span className="text-sm text-muted-foreground">{church?.name || "Loading..."}</span>
+                      <span className="text-sm font-medium">{t('forms.ministry')}:</span>
+                      <span className="text-sm text-muted-foreground">{church?.name || t('forms.loading')}</span>
                     </div>
                   </div>
 
@@ -265,19 +264,19 @@ export default function LeaderConverts() {
                     name="salvationDecision"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Salvation Decision</FormLabel>
+                        <FormLabel>{t('converts.salvationDecision')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-salvation-decision">
-                              <SelectValue placeholder="Select an option" />
+                              <SelectValue placeholder={t('forms.selectOption')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="I just made Jesus Christ my Lord and Savior">
-                              I just made Jesus Christ my Lord and Savior
+                              {t('converts.salvationOption1')}
                             </SelectItem>
                             <SelectItem value="I have rededicated my life to Jesus">
-                              I have rededicated my life to Jesus
+                              {t('converts.salvationOption2')}
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -292,10 +291,10 @@ export default function LeaderConverts() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name *</FormLabel>
+                          <FormLabel>{t('forms.firstName')} *</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="First name"
+                              placeholder={t('forms.firstName')}
                               {...field}
                               data-testid="input-convert-firstname"
                             />
@@ -309,10 +308,10 @@ export default function LeaderConverts() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last Name *</FormLabel>
+                          <FormLabel>{t('forms.lastName')} *</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Last name"
+                              placeholder={t('forms.lastName')}
                               {...field}
                               data-testid="input-convert-lastname"
                             />
@@ -329,7 +328,7 @@ export default function LeaderConverts() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone</FormLabel>
+                          <FormLabel>{t('forms.phone')}</FormLabel>
                           <FormControl>
                             <Input
                               type="tel"
@@ -347,7 +346,7 @@ export default function LeaderConverts() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('forms.email')}</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -367,7 +366,7 @@ export default function LeaderConverts() {
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Date of Birth</FormLabel>
+                        <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                         <FormControl>
                           <Input
                             type="date"
@@ -385,11 +384,11 @@ export default function LeaderConverts() {
                     name="country"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Country</FormLabel>
+                        <FormLabel>{t('forms.country')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-country">
-                              <SelectValue placeholder="Select country" />
+                              <SelectValue placeholder={t('forms.selectCountry')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -411,16 +410,16 @@ export default function LeaderConverts() {
                       name="gender"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Gender</FormLabel>
+                          <FormLabel>{t('forms.gender')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-gender">
-                                <SelectValue placeholder="Select gender" />
+                                <SelectValue placeholder={t('forms.selectGender')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Male">Male</SelectItem>
-                              <SelectItem value="Female">Female</SelectItem>
+                              <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                              <SelectItem value="Female">{t('forms.female')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -432,18 +431,18 @@ export default function LeaderConverts() {
                       name="ageGroup"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Age Group</FormLabel>
+                          <FormLabel>{t('forms.ageGroup')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-age-group">
-                                <SelectValue placeholder="Select age group" />
+                                <SelectValue placeholder={t('forms.selectAgeGroup')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Under 18">Under 18</SelectItem>
-                              <SelectItem value="18-24">18-24</SelectItem>
-                              <SelectItem value="25-34">25-34</SelectItem>
-                              <SelectItem value="35 and Above">35 and Above</SelectItem>
+                              <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                              <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                              <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                              <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -458,16 +457,16 @@ export default function LeaderConverts() {
                       name="wantsContact"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Wants to be Contacted?</FormLabel>
+                          <FormLabel>{t('forms.wantsContact')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-wants-contact">
-                                <SelectValue placeholder="Select option" />
+                                <SelectValue placeholder={t('forms.selectOption')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Yes">Yes</SelectItem>
-                              <SelectItem value="No">No</SelectItem>
+                              <SelectItem value="Yes">{t('forms.yes')}</SelectItem>
+                              <SelectItem value="No">{t('forms.no')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -481,10 +480,10 @@ export default function LeaderConverts() {
                     name="prayerRequest"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Prayer Request</FormLabel>
+                        <FormLabel>{t('converts.prayerRequest')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Any prayer requests..."
+                            placeholder={t('converts.prayerRequest')}
                             className="resize-none"
                             {...field}
                             data-testid="input-prayer-request"
@@ -500,10 +499,10 @@ export default function LeaderConverts() {
                     name="address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Address</FormLabel>
+                        <FormLabel>{t('forms.address')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Street address, city, state"
+                            placeholder={t('forms.address')}
                             {...field}
                             data-testid="input-convert-address"
                           />
@@ -518,10 +517,10 @@ export default function LeaderConverts() {
                     name="summaryNotes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notes</FormLabel>
+                        <FormLabel>{t('forms.notes')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Any notes about this convert..."
+                            placeholder={t('forms.notes')}
                             className="resize-none"
                             {...field}
                             data-testid="input-convert-notes"
@@ -538,7 +537,7 @@ export default function LeaderConverts() {
                       variant="outline"
                       onClick={() => setDialogOpen(false)}
                     >
-                      Cancel
+                      {t('forms.cancel')}
                     </Button>
                     <Button
                       type="submit"
@@ -548,7 +547,7 @@ export default function LeaderConverts() {
                       {createMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
+                          {t('forms.saving')}
                         </>
                       ) : (
                         t('converts.addConvert')
@@ -563,7 +562,6 @@ export default function LeaderConverts() {
           }
         />
 
-        {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -578,23 +576,22 @@ export default function LeaderConverts() {
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-40" data-testid="select-status-filter">
-              <SelectValue placeholder="All Statuses" />
+              <SelectValue placeholder={t('forms.allStatuses')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="NEW">New</SelectItem>
-              <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-              <SelectItem value="CONNECTED">Connected</SelectItem>
-              <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-              <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-              <SelectItem value="REFERRED">Referred</SelectItem>
-              <SelectItem value="NOT_COMPLETED">Not Completed</SelectItem>
-              <SelectItem value="NEVER_CONTACTED">Never Contacted</SelectItem>
+              <SelectItem value="all">{t('forms.allStatuses')}</SelectItem>
+              <SelectItem value="NEW">{t('statusLabels.new')}</SelectItem>
+              <SelectItem value="SCHEDULED">{t('statusLabels.scheduled')}</SelectItem>
+              <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+              <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
+              <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
+              <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+              <SelectItem value="NOT_COMPLETED">{t('statusLabels.notCompleted')}</SelectItem>
+              <SelectItem value="NEVER_CONTACTED">{t('statusLabels.neverContacted')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {/* Results */}
         <Section noPadding>
             {isLoading ? (
               <div className="p-6 space-y-4">
@@ -606,12 +603,12 @@ export default function LeaderConverts() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Date of Birth</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Convert Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('forms.name')}</TableHead>
+                    <TableHead>{t('forms.dateOfBirth')}</TableHead>
+                    <TableHead>{t('forms.contact')}</TableHead>
+                    <TableHead>{t('forms.status')}</TableHead>
+                    <TableHead>{t('forms.convertDate')}</TableHead>
+                    <TableHead className="text-right">{t('forms.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -664,7 +661,7 @@ export default function LeaderConverts() {
                                 <CalendarPlus className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Schedule Follow Up</TooltipContent>
+                            <TooltipContent>{t('followUps.scheduleFollowUp')}</TooltipContent>
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -678,7 +675,7 @@ export default function LeaderConverts() {
                                 </Button>
                               </Link>
                             </TooltipTrigger>
-                            <TooltipContent>View Convert Details</TooltipContent>
+                            <TooltipContent>{t('common.view')} {t('converts.convertDetails')}</TooltipContent>
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -694,7 +691,7 @@ export default function LeaderConverts() {
                                 <UserMinus className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Remove from Ministry</TooltipContent>
+                            <TooltipContent>{t('common.removeFromMinistry')}</TooltipContent>
                           </Tooltip>
                         </div>
                       </TableCell>
@@ -708,8 +705,8 @@ export default function LeaderConverts() {
                 <h3 className="text-lg font-semibold mb-2">{t('converts.noConverts')}</h3>
                 <p className="text-muted-foreground mb-4">
                   {search || statusFilter !== "all"
-                    ? "Try adjusting your filters"
-                    : "Add your first convert to get started"}
+                    ? t('common.tryDifferentSearch')
+                    : t('converts.addFirstConvert')}
                 </p>
                 {!search && statusFilter === "all" && (
                   <Button onClick={() => setDialogOpen(true)} className="gap-2">
@@ -731,15 +728,13 @@ export default function LeaderConverts() {
       <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Convert from Ministry</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.removeFromMinistry')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove {convertToRemove?.firstName} {convertToRemove?.lastName} from this ministry? 
-              They will be notified via email and can join another ministry if they wish. 
-              This action does not deactivate their member portal account.
+              {t('common.removeConfirm', { name: `${convertToRemove?.firstName} ${convertToRemove?.lastName}` })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('forms.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => convertToRemove && removeMutation.mutate(convertToRemove.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -748,10 +743,10 @@ export default function LeaderConverts() {
               {removeMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Removing...
+                  {t('forms.saving')}
                 </>
               ) : (
-                "Remove"
+                t('forms.remove')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

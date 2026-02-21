@@ -86,14 +86,14 @@ export default function MinistryRequests() {
     onSuccess: (data) => {
       if (data.credentials) {
         toast({
-          title: "Ministry Created - Email Failed",
-          description: `Please manually share credentials with the ministry admin. Email: ${data.credentials.email}, Temporary Password: ${data.credentials.temporaryPassword}`,
+          title: t('ministryRequests.emailFailed'),
+          description: t('ministryRequests.emailFailedDesc', { email: data.credentials.email, password: data.credentials.temporaryPassword }),
           duration: 30000,
         });
       } else {
         toast({
-          title: "Ministry Registration Approved",
-          description: "The ministry and admin account have been created. The admin has been notified via email.",
+          title: t('ministryRequests.approved'),
+          description: t('ministryRequests.approvedDesc'),
         });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/admin/ministry-requests"] });
@@ -104,7 +104,7 @@ export default function MinistryRequests() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Approval Failed",
+        title: t('ministryRequests.approvalFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -117,15 +117,15 @@ export default function MinistryRequests() {
     },
     onSuccess: () => {
       toast({
-        title: "Request Denied",
-        description: "The applicant has been notified via email.",
+        title: t('ministryRequests.denied'),
+        description: t('ministryRequests.deniedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/ministry-requests"] });
       setReviewingRequest(null);
     },
     onError: (error: Error) => {
       toast({
-        title: "Denial Failed",
+        title: t('ministryRequests.denialFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -163,12 +163,12 @@ export default function MinistryRequests() {
       <div className="max-w-6xl mx-auto space-y-6">
         <PageHeader
           title={t('sidebar.ministryRequests')}
-          description="Review and approve new ministry registrations"
+          description={t('ministryRequests.description')}
         />
 
         <Section
-          title="Pending Registrations"
-          description="New ministry registration requests awaiting your review"
+          title={t('ministryRequests.pendingRequests')}
+          description={t('ministryRequests.pendingDescription')}
           actions={
             pendingRequests.length > 0 ? (
               <Badge variant="secondary" data-testid="badge-pending-count">{pendingRequests.length}</Badge>
@@ -185,18 +185,18 @@ export default function MinistryRequests() {
           ) : pendingRequests.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground p-4">
               <Building2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No pending ministry registrations</p>
+              <p className="text-sm">{t('ministryRequests.noPending')}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Ministry</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Admin Contact</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('forms.ministry')}</TableHead>
+                  <TableHead>{t('forms.location')}</TableHead>
+                  <TableHead>{t('forms.contact')}</TableHead>
+                  <TableHead>{t('forms.description')}</TableHead>
+                  <TableHead>{t('forms.date')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -255,7 +255,7 @@ export default function MinistryRequests() {
                         data-testid={`button-review-ministry-${request.id}`}
                       >
                         <Edit className="h-4 w-4" />
-                        Review
+                        {t('ministryRequests.review')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -267,19 +267,19 @@ export default function MinistryRequests() {
 
         {processedRequests.length > 0 && (
           <Section
-            title="Registration History"
-            description="Previously processed ministry registration requests"
+            title={t('ministryRequests.processedRequests')}
+            description={t('ministryRequests.processedDescription')}
             noPadding
           >
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Ministry</TableHead>
-                  <TableHead>Admin</TableHead>
-                  <TableHead>Admin Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Reviewed</TableHead>
+                  <TableHead>{t('forms.ministry')}</TableHead>
+                  <TableHead>{t('forms.name')}</TableHead>
+                  <TableHead>{t('forms.email')}</TableHead>
+                  <TableHead>{t('forms.status')}</TableHead>
+                  <TableHead>{t('forms.date')}</TableHead>
+                  <TableHead>{t('ministryRequests.reviewed')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -290,7 +290,7 @@ export default function MinistryRequests() {
                     <TableCell className="text-sm text-muted-foreground">{request.adminEmail}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[request.status]}>
-                        {request.status}
+                        {t(`statusLabels.${request.status.toLowerCase()}`)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -310,9 +310,9 @@ export default function MinistryRequests() {
       <Dialog open={!!reviewingRequest} onOpenChange={(open) => !open && setReviewingRequest(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Review Ministry Registration</DialogTitle>
+            <DialogTitle>{t('ministryRequests.reviewTitle')}</DialogTitle>
             <DialogDescription>
-              Review and edit the registration details before approving or denying. Upon approval, a new ministry and admin account will be created.
+              {t('ministryRequests.reviewDesc')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -322,7 +322,7 @@ export default function MinistryRequests() {
                 name="ministryName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ministry Name</FormLabel>
+                    <FormLabel>{t('churches.ministryName')}</FormLabel>
                     <FormControl>
                       <Input {...field} data-testid="input-review-ministry-name" />
                     </FormControl>
@@ -335,7 +335,7 @@ export default function MinistryRequests() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{t('forms.location')}</FormLabel>
                     <FormControl>
                       <Input {...field} data-testid="input-review-ministry-location" />
                     </FormControl>
@@ -349,7 +349,7 @@ export default function MinistryRequests() {
                   name="adminFirstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>{t('forms.firstName')}</FormLabel>
                       <FormControl>
                         <Input {...field} data-testid="input-review-admin-first-name" />
                       </FormControl>
@@ -362,7 +362,7 @@ export default function MinistryRequests() {
                   name="adminLastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>{t('forms.lastName')}</FormLabel>
                       <FormControl>
                         <Input {...field} data-testid="input-review-admin-last-name" />
                       </FormControl>
@@ -376,7 +376,7 @@ export default function MinistryRequests() {
                 name="adminEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Admin Email</FormLabel>
+                    <FormLabel>{t('forms.email')}</FormLabel>
                     <FormControl>
                       <Input type="email" {...field} data-testid="input-review-admin-email" />
                     </FormControl>
@@ -389,7 +389,7 @@ export default function MinistryRequests() {
                 name="adminPhone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Admin Phone</FormLabel>
+                    <FormLabel>{t('forms.phone')}</FormLabel>
                     <FormControl>
                       <Input type="tel" {...field} data-testid="input-review-admin-phone" />
                     </FormControl>
@@ -402,7 +402,7 @@ export default function MinistryRequests() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t('forms.description')}</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
@@ -420,18 +420,18 @@ export default function MinistryRequests() {
                 name="plan"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Membership Tier</FormLabel>
+                    <FormLabel>{t('forms.plan')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-review-plan">
-                          <SelectValue placeholder="Select a plan" />
+                          <SelectValue placeholder={t('forms.selectPlan')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="free">Free</SelectItem>
-                        <SelectItem value="foundations">Foundations</SelectItem>
-                        <SelectItem value="formation">Formation</SelectItem>
-                        <SelectItem value="stewardship">Stewardship</SelectItem>
+                        <SelectItem value="free">{t('billing.free')}</SelectItem>
+                        <SelectItem value="foundations">{t('billing.foundations')}</SelectItem>
+                        <SelectItem value="formation">{t('billing.formation')}</SelectItem>
+                        <SelectItem value="stewardship">{t('billing.stewardship')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -454,7 +454,7 @@ export default function MinistryRequests() {
               ) : (
                 <X className="h-4 w-4" />
               )}
-              Deny Request
+              {t('common.deny')}
             </Button>
             <Button
               type="button"
@@ -468,7 +468,7 @@ export default function MinistryRequests() {
               ) : (
                 <Check className="h-4 w-4" />
               )}
-              Approve & Create Ministry
+              {t('common.approve')}
             </Button>
           </DialogFooter>
         </DialogContent>

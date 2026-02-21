@@ -111,22 +111,6 @@ const scheduleFollowUpSchema = z.object({
 
 type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
 
-function getDateBadge(dateStr: string, id: string) {
-  const date = new Date(dateStr);
-  const daysUntil = differenceInDays(date, new Date());
-  
-  if (isToday(date)) {
-    return <Badge variant="destructive" data-testid={`badge-status-${id}`}>Today</Badge>;
-  }
-  if (isTomorrow(date)) {
-    return <Badge variant="default" data-testid={`badge-status-${id}`}>Tomorrow</Badge>;
-  }
-  if (daysUntil <= 7) {
-    return <Badge variant="secondary" data-testid={`badge-status-${id}`}>This Week</Badge>;
-  }
-  return <Badge variant="outline" data-testid={`badge-status-${id}`}>Upcoming</Badge>;
-}
-
 type FollowUpType = "convert" | "newMember";
 
 interface SelectedFollowUp {
@@ -151,6 +135,22 @@ export default function LeaderFollowups() {
   const [massParticipants, setMassParticipants] = useState<MassFollowupParticipant[]>([]);
   const [attendeeIds, setAttendeeIds] = useState<string[]>([]);
   const [massNotes, setMassNotes] = useState("");
+
+  const getDateBadge = (dateStr: string, id: string) => {
+    const date = new Date(dateStr);
+    const daysUntil = differenceInDays(date, new Date());
+    
+    if (isToday(date)) {
+      return <Badge variant="destructive" data-testid={`badge-status-${id}`}>{t('statusLabels.today')}</Badge>;
+    }
+    if (isTomorrow(date)) {
+      return <Badge variant="default" data-testid={`badge-status-${id}`}>{t('statusLabels.tomorrow')}</Badge>;
+    }
+    if (daysUntil <= 7) {
+      return <Badge variant="secondary" data-testid={`badge-status-${id}`}>{t('statusLabels.thisWeek')}</Badge>;
+    }
+    return <Badge variant="outline" data-testid={`badge-status-${id}`}>{t('statusLabels.upcoming')}</Badge>;
+  };
 
   const { data: convertFollowups, isLoading: isLoadingConverts } = useQuery<ConvertFollowUp[]>({
     queryKey: ["/api/leader/followups"],
@@ -201,8 +201,8 @@ export default function LeaderFollowups() {
     },
     onSuccess: () => {
       toast({
-        title: "Notes recorded",
-        description: "Your follow-up notes have been saved.",
+        title: t('followUps.notesRecorded'),
+        description: t('followUps.notesRecordedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
@@ -218,8 +218,8 @@ export default function LeaderFollowups() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to save notes",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -235,8 +235,8 @@ export default function LeaderFollowups() {
     },
     onSuccess: () => {
       toast({
-        title: "Follow-up scheduled",
-        description: "The next follow-up has been scheduled.",
+        title: t('followUps.followUpScheduled'),
+        description: t('followUps.followUpScheduledDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
@@ -252,8 +252,8 @@ export default function LeaderFollowups() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to schedule follow-up",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -357,7 +357,7 @@ export default function LeaderFollowups() {
       });
     },
     onSuccess: () => {
-      toast({ title: "Mass follow-up completed", description: "Attendance recorded and follow-ups logged for attendees." });
+      toast({ title: t('followUps.massCompleted'), description: t('followUps.massCompletedDesc') });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/mass-followups`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
@@ -368,7 +368,7 @@ export default function LeaderFollowups() {
       setSelectedMassFollowup(null);
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message || "Failed to complete", variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message || t('common.failedToSave'), variant: "destructive" });
     },
   });
 
@@ -388,8 +388,8 @@ export default function LeaderFollowups() {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Export failed",
-        description: "Unable to export follow-ups. Please try again.",
+        title: t('followUps.exportFailed'),
+        description: t('followUps.exportFailedDesc'),
       });
     }
   };
@@ -399,17 +399,17 @@ export default function LeaderFollowups() {
       <div className="space-y-6">
         <PageHeader
           title={t('followUps.title')}
-          description="Your scheduled follow-ups with converts and new members"
+          description={t('followUps.description')}
           actions={
             <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
               <FileSpreadsheet className="h-4 w-4" />
-              Export Excel
+              {t('forms.exportExcel')}
             </Button>
           }
         />
 
         {/* Mass Follow-ups Section */}
-        <Section title="Mass Follow-ups" noPadding>
+        <Section title={t('followUps.massFollowUps')} noPadding>
               {isLoadingMass ? (
                 <div className="p-6 space-y-4">
                   {[...Array(2)].map((_, i) => (
@@ -420,11 +420,11 @@ export default function LeaderFollowups() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Scheduled Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Notes</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('forms.category')}</TableHead>
+                      <TableHead>{t('forms.scheduledDate')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('forms.notes')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -467,7 +467,7 @@ export default function LeaderFollowups() {
                                 <FileText className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Record Attendance & Notes</TooltipContent>
+                            <TooltipContent>{t('followUps.recordAttendance')}</TooltipContent>
                           </Tooltip>
                         </TableCell>
                       </TableRow>
@@ -483,7 +483,7 @@ export default function LeaderFollowups() {
         </Section>
 
         {/* Convert Follow-ups Section */}
-        <Section title="Convert Follow-ups" noPadding>
+        <Section title={t('followUps.convertFollowUps')} noPadding>
               {isLoadingConverts ? (
                 <div className="p-6 space-y-4">
                   {[...Array(3)].map((_, i) => (
@@ -494,12 +494,12 @@ export default function LeaderFollowups() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Convert</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Follow-up Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Notes</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('sidebar.converts')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('followUps.followUpDate')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('forms.notes')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -530,7 +530,7 @@ export default function LeaderFollowups() {
                               </div>
                             )}
                             {!followup.convertPhone && !followup.convertEmail && (
-                              <span className="text-sm text-muted-foreground">No contact info</span>
+                              <span className="text-sm text-muted-foreground">{t('forms.noContactInfo')}</span>
                             )}
                           </div>
                         </TableCell>
@@ -564,7 +564,7 @@ export default function LeaderFollowups() {
                                   <FileText className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Follow Up Note</TooltipContent>
+                              <TooltipContent>{t('followUps.followUpNote')}</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -577,7 +577,7 @@ export default function LeaderFollowups() {
                                   <CalendarPlus className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Schedule Next Follow Up</TooltipContent>
+                              <TooltipContent>{t('followUps.scheduleNext')}</TooltipContent>
                             </Tooltip>
                             {followup.videoLink && (
                               <Tooltip>
@@ -592,7 +592,7 @@ export default function LeaderFollowups() {
                                     </Button>
                                   </a>
                                 </TooltipTrigger>
-                                <TooltipContent>Join Meeting</TooltipContent>
+                                <TooltipContent>{t('followUps.joinMeeting')}</TooltipContent>
                               </Tooltip>
                             )}
                           </div>
@@ -610,7 +610,7 @@ export default function LeaderFollowups() {
         </Section>
 
         {/* New Member Follow-ups Section */}
-        <Section title="New Member & Guest Follow-ups" noPadding>
+        <Section title={t('followUps.newMemberFollowUps')} noPadding>
               {isLoadingNewMembers ? (
                 <div className="p-6 space-y-4">
                   {[...Array(3)].map((_, i) => (
@@ -621,12 +621,12 @@ export default function LeaderFollowups() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>New Member & Guest</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Follow-up Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Notes</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('newMembers.title')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('followUps.followUpDate')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('forms.notes')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -657,7 +657,7 @@ export default function LeaderFollowups() {
                               </div>
                             )}
                             {!followup.newMemberPhone && !followup.newMemberEmail && (
-                              <span className="text-sm text-muted-foreground">No contact info</span>
+                              <span className="text-sm text-muted-foreground">{t('forms.noContactInfo')}</span>
                             )}
                           </div>
                         </TableCell>
@@ -691,7 +691,7 @@ export default function LeaderFollowups() {
                                   <FileText className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Follow Up Note</TooltipContent>
+                              <TooltipContent>{t('followUps.followUpNote')}</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -704,7 +704,7 @@ export default function LeaderFollowups() {
                                   <CalendarPlus className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Schedule Next Follow Up</TooltipContent>
+                              <TooltipContent>{t('followUps.scheduleNext')}</TooltipContent>
                             </Tooltip>
                             {followup.videoLink && (
                               <Tooltip>
@@ -719,7 +719,7 @@ export default function LeaderFollowups() {
                                     </Button>
                                   </a>
                                 </TooltipTrigger>
-                                <TooltipContent>Join Meeting</TooltipContent>
+                                <TooltipContent>{t('followUps.joinMeeting')}</TooltipContent>
                               </Tooltip>
                             )}
                           </div>
@@ -741,10 +741,10 @@ export default function LeaderFollowups() {
       <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Follow Up Notes</DialogTitle>
+            <DialogTitle>{t('followUps.followUpNotes')}</DialogTitle>
             <DialogDescription>
               {selectedFollowUp && (
-                <>Record what happened during your follow-up with {selectedFollowUp.firstName} {selectedFollowUp.lastName}</>
+                <>{t('followUps.recordNoteDesc', { name: `${selectedFollowUp.firstName} ${selectedFollowUp.lastName}` })}</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -758,20 +758,20 @@ export default function LeaderFollowups() {
                 name="outcome"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Outcome</FormLabel>
+                    <FormLabel>{t('followUps.outcome')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-notes-outcome">
-                          <SelectValue placeholder="Select outcome" />
+                          <SelectValue placeholder={t('forms.selectOutcome')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="CONNECTED">Connected</SelectItem>
-                        <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                        <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                        <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                        <SelectItem value="REFERRED">Referred</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
+                        <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                        <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
+                        <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
+                        <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
+                        <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                        <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -783,10 +783,10 @@ export default function LeaderFollowups() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel>{t('forms.notes')}</FormLabel>
                     <FormControl>
                       <AITextarea
-                        placeholder="What happened during this follow-up? Any prayer requests or next steps?"
+                        placeholder={t('followUps.notesPlaceholder')}
                         value={field.value || ""}
                         onChange={field.onChange}
                         context="Follow-up note for a convert interaction"
@@ -803,7 +803,7 @@ export default function LeaderFollowups() {
                   variant="outline"
                   onClick={() => setNotesDialogOpen(false)}
                 >
-                  Cancel
+                  {t('forms.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -813,10 +813,10 @@ export default function LeaderFollowups() {
                   {notesMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Saving...
+                      {t('forms.saving')}
                     </>
                   ) : (
-                    "Save Notes"
+                    t('forms.saveNotes')
                   )}
                 </Button>
               </div>
@@ -829,10 +829,10 @@ export default function LeaderFollowups() {
       <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Schedule Next Follow Up</DialogTitle>
+            <DialogTitle>{t('followUps.scheduleNext')}</DialogTitle>
             <DialogDescription>
               {selectedFollowUp && (
-                <>Schedule a follow-up with {selectedFollowUp.firstName} {selectedFollowUp.lastName} and send email notifications</>
+                <>{t('followUps.scheduleDesc', { name: `${selectedFollowUp.firstName} ${selectedFollowUp.lastName}` })}</>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -846,7 +846,7 @@ export default function LeaderFollowups() {
                 name="nextFollowupDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Follow-up Date *</FormLabel>
+                    <FormLabel>{t('followUps.followUpDate')} *</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
@@ -864,7 +864,7 @@ export default function LeaderFollowups() {
                 name="nextFollowupTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Follow-up Time (optional)</FormLabel>
+                    <FormLabel>{t('followUps.followUpTimeOptional')}</FormLabel>
                     <FormControl>
                       <Input
                         type="time"
@@ -892,10 +892,10 @@ export default function LeaderFollowups() {
                     <div className="space-y-1 leading-none">
                       <FormLabel className="flex items-center gap-2">
                         <Video className="h-4 w-4" />
-                        Include video call link
+                        {t('followUps.includeVideoCallLink')}
                       </FormLabel>
                       <p className="text-sm text-muted-foreground">
-                        Add a free Jitsi Meet video call link to the email
+                        {t('followUps.videoCallDescription')}
                       </p>
                     </div>
                   </FormItem>
@@ -904,21 +904,21 @@ export default function LeaderFollowups() {
 
               <div className="space-y-4 border-t pt-4">
                 <p className="text-sm text-muted-foreground">
-                  Customize the email notifications (leave blank for defaults):
+                  {t('followUps.customizeEmails')}
                 </p>
                 
                 {selectedFollowUp?.email && (
                   <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm font-medium">Email to {selectedFollowUp.firstName} {selectedFollowUp.lastName}</p>
+                    <p className="text-sm font-medium">{t('followUps.emailTo')} {selectedFollowUp.firstName} {selectedFollowUp.lastName}</p>
                     <FormField
                       control={scheduleForm.control}
                       name="customConvertSubject"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Subject Line</FormLabel>
+                          <FormLabel>{t('followUps.subjectLine')}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Leave blank for default subject..."
+                              placeholder={t('followUps.leaveBlankSubject')}
                               {...field}
                               data-testid="input-convert-subject"
                             />
@@ -932,12 +932,12 @@ export default function LeaderFollowups() {
                       name="customConvertMessage"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Message Body</FormLabel>
+                          <FormLabel>{t('followUps.messageBody')}</FormLabel>
                           <FormControl>
                             <AITextarea
                               value={field.value || ""}
                               onChange={(text) => scheduleForm.setValue("customConvertMessage", text)}
-                              placeholder="Leave blank for default message..."
+                              placeholder={t('followUps.leaveBlankMessage')}
                               context={`Writing an initial follow-up email to ${selectedFollowUp?.firstName} ${selectedFollowUp?.lastName} from a church ministry.`}
                               aiPlaceholder="e.g., Write a warm welcome message..."
                               rows={4}
@@ -953,9 +953,9 @@ export default function LeaderFollowups() {
 
                 <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm font-medium">
-                    Your Reminder Email{" "}
+                    {t('followUps.yourReminderEmail')}{" "}
                     <span className="italic text-muted-foreground font-normal">
-                      (Email will be sent to {selectedFollowUp?.firstName} {selectedFollowUp?.lastName} a day before the scheduled follow up)
+                      ({t('followUps.reminderEmailDesc', { firstName: selectedFollowUp?.firstName, lastName: selectedFollowUp?.lastName })})
                     </span>
                   </p>
                   <FormField
@@ -963,10 +963,10 @@ export default function LeaderFollowups() {
                     name="customLeaderSubject"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Subject Line</FormLabel>
+                        <FormLabel>{t('followUps.subjectLine')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Leave blank for default subject..."
+                            placeholder={t('followUps.leaveBlankSubject')}
                             {...field}
                             data-testid="input-leader-subject"
                           />
@@ -980,12 +980,12 @@ export default function LeaderFollowups() {
                     name="customLeaderMessage"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Message Body</FormLabel>
+                        <FormLabel>{t('followUps.messageBody')}</FormLabel>
                         <FormControl>
                           <AITextarea
                             value={field.value || ""}
                             onChange={(text) => scheduleForm.setValue("customLeaderMessage", text)}
-                            placeholder="Leave blank for default message..."
+                            placeholder={t('followUps.leaveBlankMessage')}
                             context={`Writing a reminder email to ${selectedFollowUp?.firstName} ${selectedFollowUp?.lastName} about an upcoming follow-up meeting from a church ministry.`}
                             aiPlaceholder="e.g., Write a friendly reminder..."
                             rows={4}
@@ -1005,7 +1005,7 @@ export default function LeaderFollowups() {
                   variant="outline"
                   onClick={() => setScheduleDialogOpen(false)}
                 >
-                  Cancel
+                  {t('forms.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -1015,7 +1015,7 @@ export default function LeaderFollowups() {
                   {scheduleMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Scheduling...
+                      {t('followUps.scheduling')}
                     </>
                   ) : (
                     t('followUps.scheduleFollowUp')
@@ -1031,20 +1031,21 @@ export default function LeaderFollowups() {
       <Dialog open={massNotesDialogOpen} onOpenChange={setMassNotesDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Record Mass Follow-up</DialogTitle>
+            <DialogTitle>{t('followUps.recordMassFollowUp')}</DialogTitle>
             <DialogDescription>
               {selectedMassFollowup && (
                 <>
-                  Mark attendance for the {selectedMassFollowup.category.replace("_", " ")} follow-up scheduled on{" "}
-                  {format(new Date(selectedMassFollowup.scheduledDate), "MMMM d, yyyy")}
-                  {selectedMassFollowup.scheduledTime && ` at ${formatTime(selectedMassFollowup.scheduledTime)}`}
+                  {t('followUps.markAttendanceFor', { 
+                    category: selectedMassFollowup.category.replace("_", " "), 
+                    date: format(new Date(selectedMassFollowup.scheduledDate), "MMMM d, yyyy") + (selectedMassFollowup.scheduledTime ? ` ${t('common.at')} ${formatTime(selectedMassFollowup.scheduledTime)}` : '')
+                  })}
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Attendance ({attendeeIds.length} of {massParticipants.length} selected)</label>
+              <label className="text-sm font-medium">{t('followUps.attendanceCount', { selected: attendeeIds.length, total: massParticipants.length })}</label>
               <div className="border rounded-md max-h-[240px] overflow-y-auto">
                 {massParticipants.map((p) => (
                   <div
@@ -1080,7 +1081,7 @@ export default function LeaderFollowups() {
                   onClick={() => setAttendeeIds(massParticipants.map((p) => p.id))}
                   data-testid="button-select-all-attendees"
                 >
-                  Select All
+                  {t('forms.selectAll')}
                 </Button>
                 <Button
                   type="button"
@@ -1089,15 +1090,15 @@ export default function LeaderFollowups() {
                   onClick={() => setAttendeeIds([])}
                   data-testid="button-deselect-all-attendees"
                 >
-                  Deselect All
+                  {t('forms.deselectAll')}
                 </Button>
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="mass-notes">Meeting Notes</label>
+              <label className="text-sm font-medium" htmlFor="mass-notes">{t('followUps.meetingNotes')}</label>
               <AITextarea
                 id="mass-notes"
-                placeholder="What happened during this mass follow-up? Any key takeaways?"
+                placeholder={t('followUps.massNotesPlaceholder')}
                 value={massNotes}
                 onChange={(text) => setMassNotes(text)}
                 context={selectedMassFollowup ? `Writing meeting notes for a mass follow-up session with ${selectedMassFollowup.category.replace("_", " ")} from a church ministry.` : undefined}
@@ -1112,7 +1113,7 @@ export default function LeaderFollowups() {
                 variant="outline"
                 onClick={() => setMassNotesDialogOpen(false)}
               >
-                Cancel
+                {t('forms.cancel')}
               </Button>
               <Button
                 onClick={() => completeMassMutation.mutate()}
@@ -1122,10 +1123,10 @@ export default function LeaderFollowups() {
                 {completeMassMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Completing...
+                    {t('followUps.completing')}
                   </>
                 ) : (
-                  "Complete Follow-up"
+                  t('followUps.completeFollowUp')
                 )}
               </Button>
             </div>

@@ -20,7 +20,7 @@ export default function AdminPrayerRequests() {
       <div className="space-y-6">
         <PageHeader
           title={t('prayerRequests.title')}
-          description="View and manage prayer requests submitted through the public site"
+          description={t('prayerRequests.description')}
         />
 
         {isLoading ? (
@@ -46,7 +46,7 @@ export default function AdminPrayerRequests() {
                       </p>
                     </div>
                     <Badge variant="secondary" className="flex-shrink-0">
-                      New
+                      {t('common.new')}
                     </Badge>
                   </div>
 
@@ -92,9 +92,9 @@ export default function AdminPrayerRequests() {
           <Section>
             <div className="p-12 text-center">
               <HandHeart className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-sm font-semibold mb-2">No prayer requests yet</h3>
+              <h3 className="text-sm font-semibold mb-2">{t('prayerRequests.noPrayerRequests')}</h3>
               <p className="text-xs text-muted-foreground">
-                Prayer requests submitted through the public contact form will appear here.
+                {t('prayerRequests.emptyStateDesc')}
               </p>
             </div>
           </Section>

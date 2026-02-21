@@ -19,7 +19,7 @@ export default function LeaderContactRequests() {
       <div className="space-y-6">
         <PageHeader
           title={t('sidebar.contactRequests')}
-          description="View contact messages submitted for your ministry"
+          description={t('contactRequests.description')}
         />
 
         <Section noPadding>
@@ -40,11 +40,11 @@ export default function LeaderContactRequests() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Message</TableHead>
+                    <TableHead>{t('forms.name')}</TableHead>
+                    <TableHead>{t('forms.description')}</TableHead>
+                    <TableHead>{t('forms.contact')}</TableHead>
+                    <TableHead>{t('forms.date')}</TableHead>
+                    <TableHead>{t('forms.notes')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -91,9 +91,9 @@ export default function LeaderContactRequests() {
           ) : (
             <div className="text-center py-12">
               <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Contact Requests Yet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('contactRequests.title')}</h3>
               <p className="text-muted-foreground max-w-sm mx-auto">
-                When people submit contact messages for your ministry, they will appear here.
+                {t('contactRequests.description')}
               </p>
             </div>
           )}

@@ -85,13 +85,13 @@ export default function LeaderSettings() {
         });
         queryClient.invalidateQueries({ queryKey: ["/api/leader/church"] });
         toast({
-          title: "Logo Updated",
-          description: "Your ministry logo has been updated successfully.",
+          title: t('common.success'),
+          description: t('settings.passwordUpdated'),
         });
       } catch (error) {
         toast({
-          title: "Error",
-          description: "Failed to save logo. Please try again.",
+          title: t('common.error'),
+          description: t('common.failedToSave'),
           variant: "destructive",
         });
       } finally {
@@ -100,8 +100,8 @@ export default function LeaderSettings() {
     },
     onError: () => {
       toast({
-        title: "Upload Failed",
-        description: "Failed to upload logo. Please try again.",
+        title: t('common.error'),
+        description: t('common.failedToSave'),
         variant: "destructive",
       });
       setIsUploadingLogo(false);
@@ -115,14 +115,14 @@ export default function LeaderSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/leader/church"] });
       toast({
-        title: "Logo Removed",
-        description: "Your ministry logo has been removed.",
+        title: t('common.success'),
+        description: t('common.deletedSuccessfully'),
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to remove logo. Please try again.",
+        title: t('common.error'),
+        description: t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -138,8 +138,8 @@ export default function LeaderSettings() {
 
     if (!file.type.startsWith("image/")) {
       toast({
-        title: "Invalid File",
-        description: "Please select an image file.",
+        title: t('common.error'),
+        description: t('common.failedToSave'),
         variant: "destructive",
       });
       return;
@@ -147,8 +147,8 @@ export default function LeaderSettings() {
 
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "File Too Large",
-        description: "Please select an image under 5MB.",
+        title: t('common.error'),
+        description: t('common.failedToSave'),
         variant: "destructive",
       });
       return;
@@ -180,8 +180,8 @@ export default function LeaderSettings() {
       setImageSrc(null);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to crop image. Please try again.",
+        title: t('common.error'),
+        description: t('common.failedToSave'),
         variant: "destructive",
       });
       setIsUploadingLogo(false);
@@ -198,10 +198,10 @@ export default function LeaderSettings() {
       <div className="space-y-6 max-w-2xl">
         <PageHeader
           title={t('settings.ministrySettings')}
-          description="Manage your ministry's profile and branding"
+          description={t('settings.description')}
         />
 
-        <Section title="Ministry Information">
+        <Section title={t('settings.ministrySettings')}>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -209,21 +209,21 @@ export default function LeaderSettings() {
           ) : church ? (
             <div className="space-y-6">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Ministry Name</p>
+                <p className="text-xs text-muted-foreground mb-1">{t('settings.churchName')}</p>
                 <p className="text-sm font-medium">{church.name}</p>
               </div>
 
               {church.location && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Location</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t('settings.location')}</p>
                   <p className="text-sm">{church.location}</p>
                 </div>
               )}
 
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Ministry Logo</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('settings.uploadLogo')}</p>
                 <p className="text-xs text-muted-foreground mb-4">
-                  Upload your ministry logo. It will be displayed on the registration form for new converts.
+                  {t('settings.description')}
                 </p>
                 
                 <div className="flex items-start gap-4">
@@ -261,7 +261,7 @@ export default function LeaderSettings() {
                         {isUploadingLogo ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Uploading...
+                            {t('forms.saving')}
                           </>
                         ) : (
                           <>
@@ -283,19 +283,19 @@ export default function LeaderSettings() {
                         data-testid="button-remove-logo"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Remove Logo
+                        {t('forms.remove')}
                       </Button>
                     )}
 
                     <p className="text-xs text-muted-foreground">
-                      Recommended: Square image, at least 200x200px, under 5MB
+                      {t('settings.logoRecommendation')}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Unable to load ministry information.</p>
+            <p className="text-sm text-muted-foreground">{t('common.failedToLoad')}</p>
           )}
         </Section>
       </div>
@@ -303,9 +303,9 @@ export default function LeaderSettings() {
       <Dialog open={cropDialogOpen} onOpenChange={(open) => !open && handleCropCancel()}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Adjust Your Logo</DialogTitle>
+            <DialogTitle>{t('settings.uploadLogo')}</DialogTitle>
             <DialogDescription>
-              Drag to reposition and use the slider to zoom in or out
+              {t('settings.description')}
             </DialogDescription>
           </DialogHeader>
           
@@ -327,7 +327,7 @@ export default function LeaderSettings() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium">Zoom</label>
+              <label className="text-xs font-medium">{t('settings.zoom')}</label>
               <Slider
                 value={[zoom]}
                 min={1}
@@ -340,10 +340,10 @@ export default function LeaderSettings() {
 
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={handleCropCancel}>
-                Cancel
+                {t('forms.cancel')}
               </Button>
               <Button onClick={handleCropSave} data-testid="button-save-crop">
-                Save Logo
+                {t('forms.save')}
               </Button>
             </div>
           </div>

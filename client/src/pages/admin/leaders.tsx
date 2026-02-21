@@ -82,8 +82,8 @@ export default function AdminLeaders() {
     },
     onSuccess: () => {
       toast({
-        title: "Leader created",
-        description: "The new leader account has been created successfully.",
+        title: t('leaders.leaderCreated'),
+        description: t('leaders.leaderCreatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/leaders"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
@@ -92,8 +92,8 @@ export default function AdminLeaders() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create leader",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -105,8 +105,8 @@ export default function AdminLeaders() {
     },
     onSuccess: () => {
       toast({
-        title: "Password reset",
-        description: "The leader's password has been reset successfully.",
+        title: t('leaders.passwordReset'),
+        description: t('leaders.passwordResetDesc'),
       });
       setResetDialogOpen(false);
       setSelectedLeader(null);
@@ -114,8 +114,8 @@ export default function AdminLeaders() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to reset password",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -127,8 +127,8 @@ export default function AdminLeaders() {
     },
     onSuccess: () => {
       toast({
-        title: "Leader deleted",
-        description: "The leader account has been deleted successfully.",
+        title: t('leaders.leaderDeleted'),
+        description: t('leaders.leaderDeletedDesc'),
       });
       setDeleteDialogOpen(false);
       setSelectedLeader(null);
@@ -136,8 +136,8 @@ export default function AdminLeaders() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete leader",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -159,11 +159,11 @@ export default function AdminLeaders() {
       <div className="space-y-6">
         <PageHeader
           title={t('sidebar.leaders')}
-          description="Create and manage ministry leader accounts"
+          description={t('leaders.description')}
           actions={
             <Button className="gap-2" onClick={() => setDialogOpen(true)} data-testid="button-add-leader">
               <Plus className="h-4 w-4" />
-              Add Leader
+              {t('leaders.addLeader')}
             </Button>
           }
         />
@@ -179,11 +179,11 @@ export default function AdminLeaders() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Leader</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Ministry</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('forms.name')}</TableHead>
+                  <TableHead>{t('forms.email')}</TableHead>
+                  <TableHead>{t('forms.ministry') || t('sidebar.ministries')}</TableHead>
+                  <TableHead>{t('forms.date')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -228,7 +228,7 @@ export default function AdminLeaders() {
                             data-testid={`button-reset-password-${leader.id}`}
                           >
                             <KeyRound className="h-3 w-3" />
-                            Reset Password
+                            {t('forms.resetPassword')}
                           </Button>
                           <Button
                             variant="ghost"
@@ -238,7 +238,7 @@ export default function AdminLeaders() {
                             data-testid={`button-delete-leader-${leader.id}`}
                           >
                             <Trash2 className="h-3 w-3" />
-                            Delete
+                            {t('forms.delete')}
                           </Button>
                         </div>
                       </TableCell>
@@ -250,16 +250,16 @@ export default function AdminLeaders() {
           ) : (
             <div className="p-12 text-center">
               <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-sm font-semibold mb-2">No leaders yet</h3>
+              <h3 className="text-sm font-semibold mb-2">{t('leaders.noLeaders')}</h3>
               <p className="text-xs text-muted-foreground mb-4">
                 {churches && churches.length > 0
-                  ? "Add your first ministry leader"
-                  : "Create a ministry first, then add leaders"}
+                  ? t('leaders.addFirstLeader')
+                  : t('leaders.createMinistryFirst')}
               </p>
               {churches && churches.length > 0 && (
                 <Button onClick={() => setDialogOpen(true)} className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Add Leader
+                  {t('leaders.addLeader')}
                 </Button>
               )}
             </div>
@@ -270,9 +270,9 @@ export default function AdminLeaders() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Leader</DialogTitle>
+            <DialogTitle>{t('leaders.createLeader')}</DialogTitle>
             <DialogDescription>
-              Create a new leader account and assign them to a ministry.
+              {t('leaders.createLeaderDesc')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -286,10 +286,10 @@ export default function AdminLeaders() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>{t('forms.firstName')}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="First name"
+                          placeholder={t('forms.firstName')}
                           {...field}
                           data-testid="input-leader-first-name"
                         />
@@ -303,10 +303,10 @@ export default function AdminLeaders() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>{t('forms.lastName')}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Last name"
+                          placeholder={t('forms.lastName')}
                           {...field}
                           data-testid="input-leader-last-name"
                         />
@@ -321,11 +321,11 @@ export default function AdminLeaders() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('forms.email')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="leader@example.com"
+                        placeholder={t('forms.emailAddress')}
                         {...field}
                         data-testid="input-leader-email"
                       />
@@ -339,11 +339,11 @@ export default function AdminLeaders() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t('auth.password')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Minimum 8 characters"
+                        placeholder={t('leaders.minimumChars')}
                         {...field}
                         data-testid="input-leader-password"
                       />
@@ -357,11 +357,11 @@ export default function AdminLeaders() {
                 name="churchId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Assign to Ministry</FormLabel>
+                    <FormLabel>{t('forms.ministry')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-leader-church">
-                          <SelectValue placeholder="Select a ministry" />
+                          <SelectValue placeholder={t('forms.selectMinistry')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -382,7 +382,7 @@ export default function AdminLeaders() {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {t('forms.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -392,10 +392,10 @@ export default function AdminLeaders() {
                   {createMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
+                      {t('leaders.creating')}
                     </>
                   ) : (
-                    "Create Leader"
+                    t('leaders.createLeader')
                   )}
                 </Button>
               </div>
@@ -407,9 +407,9 @@ export default function AdminLeaders() {
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
+            <DialogTitle>{t('forms.resetPassword')}</DialogTitle>
             <DialogDescription>
-              Set a new password for {selectedLeader?.firstName} {selectedLeader?.lastName}
+              {t('leaders.resetPasswordDesc', { name: `${selectedLeader?.firstName} ${selectedLeader?.lastName}` })}
             </DialogDescription>
           </DialogHeader>
           <Form {...resetForm}>
@@ -422,11 +422,11 @@ export default function AdminLeaders() {
                 name="newPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New Password</FormLabel>
+                    <FormLabel>{t('settings.newPassword')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Minimum 8 characters"
+                        placeholder={t('leaders.minimumChars')}
                         {...field}
                         data-testid="input-new-password"
                       />
@@ -441,7 +441,7 @@ export default function AdminLeaders() {
                   variant="outline"
                   onClick={() => setResetDialogOpen(false)}
                 >
-                  Cancel
+                  {t('forms.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -451,10 +451,10 @@ export default function AdminLeaders() {
                   {resetPasswordMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Resetting...
+                      {t('leaders.resetting')}
                     </>
                   ) : (
-                    "Reset Password"
+                    t('forms.resetPassword')
                   )}
                 </Button>
               </div>
@@ -466,13 +466,13 @@ export default function AdminLeaders() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Leader Account</AlertDialogTitle>
+            <AlertDialogTitle>{t('leaders.deleteLeaderTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectedLeader?.firstName} {selectedLeader?.lastName}'s account? This action cannot be undone.
+              {t('leaders.deleteLeaderDesc', { name: `${selectedLeader?.firstName} ${selectedLeader?.lastName}` })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('forms.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteMutation.mutate()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -482,10 +482,10 @@ export default function AdminLeaders() {
               {deleteMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  {t('leaders.deleting')}
                 </>
               ) : (
-                "Delete"
+                t('forms.delete')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

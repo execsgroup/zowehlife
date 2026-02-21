@@ -76,14 +76,14 @@ export default function MinistryAdminLeaders() {
     onSuccess: (data) => {
       if (data.credentials) {
         toast({
-          title: "Leader Added - Email Failed",
-          description: `Please manually share credentials. Email: ${data.credentials.email}, Temporary Password: ${data.credentials.temporaryPassword}`,
+          title: t('leaders.emailFailed'),
+          description: `${t('leaders.emailFailedDesc')} Email: ${data.credentials.email}, Temporary Password: ${data.credentials.temporaryPassword}`,
           duration: 30000,
         });
       } else {
         toast({
-          title: "Leader Added",
-          description: "The leader account has been created and login credentials have been sent via email.",
+          title: t('leaders.leaderCreated'),
+          description: t('leaders.leaderCreatedDescEmail'),
         });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/leaders"] });
@@ -94,7 +94,7 @@ export default function MinistryAdminLeaders() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to Add Leader",
+        title: t('leaders.addLeaderFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -107,8 +107,8 @@ export default function MinistryAdminLeaders() {
     },
     onSuccess: () => {
       toast({
-        title: "Leader Removed",
-        description: "The leader has been removed from your ministry.",
+        title: t('leaders.leaderDeleted'),
+        description: t('leaders.leaderRemovedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/leaders"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/leader-quota"] });
@@ -118,7 +118,7 @@ export default function MinistryAdminLeaders() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to Remove Leader",
+        title: t('leaders.removeLeaderFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -145,12 +145,12 @@ export default function MinistryAdminLeaders() {
       <div className="max-w-6xl mx-auto space-y-6">
         <PageHeader
           title={t('sidebar.manageLeaders')}
-          description="Add and manage leaders for your ministry"
+          description={t('leaders.description')}
           actions={
             <div className="flex items-center gap-4 flex-wrap">
               {quota && (
                 <Badge variant={quota.canAddMore ? "secondary" : "destructive"} data-testid="badge-quota">
-                  {quota.currentCount}/{quota.maxAllowed} Leaders
+                  {quota.currentCount}/{quota.maxAllowed} {t('sidebar.leaders')}
                 </Badge>
               )}
               <Button
@@ -159,15 +159,15 @@ export default function MinistryAdminLeaders() {
                 data-testid="button-add-leader"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                Add Leader
+                {t('leaders.addLeader')}
               </Button>
             </div>
           }
         />
 
         <Section
-          title="Ministry Leaders"
-          description="Leaders can manage converts, new members, and members for your ministry"
+          title={t('sidebar.leaders')}
+          description={t('leaders.leadersDesc')}
           noPadding
         >
           {isLoading ? (
@@ -179,12 +179,12 @@ export default function MinistryAdminLeaders() {
           ) : !leaders || leaders.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground p-4">
               <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm font-medium">No Leaders Yet</p>
-              <p className="text-xs mt-1">Add your first leader to get started</p>
+              <p className="text-sm font-medium">{t('leaders.noLeadersYet')}</p>
+              <p className="text-xs mt-1">{t('leaders.addFirstLeader')}</p>
               {quota?.canAddMore && (
                 <Button className="mt-4" onClick={() => setAddDialogOpen(true)} data-testid="button-add-first-leader">
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Add Leader
+                  {t('leaders.addLeader')}
                 </Button>
               )}
             </div>
@@ -192,10 +192,10 @@ export default function MinistryAdminLeaders() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Added</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('forms.name')}</TableHead>
+                  <TableHead>{t('forms.email')}</TableHead>
+                  <TableHead>{t('forms.date')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -235,10 +235,9 @@ export default function MinistryAdminLeaders() {
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium">Leader Limit Reached</p>
+                <p className="text-sm font-medium">{t('leaders.leaderLimitReached')}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  You have reached the maximum of {quota.maxAllowed} leaders for your ministry. 
-                  Remove an existing leader to add a new one.
+                  {t('leaders.leaderLimitDesc', { max: quota.maxAllowed })}
                 </p>
               </div>
             </div>
@@ -252,9 +251,9 @@ export default function MinistryAdminLeaders() {
       }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Leader</DialogTitle>
+            <DialogTitle>{t('leaders.addLeader')}</DialogTitle>
             <DialogDescription>
-              Enter the leader's details. They will receive an email with their login credentials.
+              {t('leaders.addLeaderDesc')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -265,7 +264,7 @@ export default function MinistryAdminLeaders() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name *</FormLabel>
+                      <FormLabel>{t('forms.firstName')} *</FormLabel>
                       <FormControl>
                         <Input placeholder="John" {...field} data-testid="input-leader-first-name" />
                       </FormControl>
@@ -278,7 +277,7 @@ export default function MinistryAdminLeaders() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name *</FormLabel>
+                      <FormLabel>{t('forms.lastName')} *</FormLabel>
                       <FormControl>
                         <Input placeholder="Doe" {...field} data-testid="input-leader-last-name" />
                       </FormControl>
@@ -292,7 +291,7 @@ export default function MinistryAdminLeaders() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email *</FormLabel>
+                    <FormLabel>{t('forms.email')} *</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="john@example.com" {...field} data-testid="input-leader-email" />
                     </FormControl>
@@ -305,7 +304,7 @@ export default function MinistryAdminLeaders() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone (Optional)</FormLabel>
+                    <FormLabel>{t('forms.phone')} ({t('forms.optional')})</FormLabel>
                     <FormControl>
                       <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-leader-phone" />
                     </FormControl>
@@ -315,16 +314,16 @@ export default function MinistryAdminLeaders() {
               />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setAddDialogOpen(false)}>
-                  Cancel
+                  {t('forms.cancel')}
                 </Button>
                 <Button type="submit" disabled={addLeaderMutation.isPending} data-testid="button-submit-add-leader">
                   {addLeaderMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Adding...
+                      {t('leaders.adding')}
                     </>
                   ) : (
-                    "Add Leader"
+                    t('leaders.addLeader')
                   )}
                 </Button>
               </DialogFooter>
@@ -336,15 +335,14 @@ export default function MinistryAdminLeaders() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Remove Leader</DialogTitle>
+            <DialogTitle>{t('leaders.removeLeader')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove {selectedLeader?.firstName} {selectedLeader?.lastName} as a leader? 
-              They will no longer be able to access the leader dashboard.
+              {t('leaders.removeLeaderDesc', { name: `${selectedLeader?.firstName} ${selectedLeader?.lastName}` })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
+              {t('forms.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -355,10 +353,10 @@ export default function MinistryAdminLeaders() {
               {deleteLeaderMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Removing...
+                  {t('leaders.removing')}
                 </>
               ) : (
-                "Remove Leader"
+                t('leaders.removeLeader')
               )}
             </Button>
           </DialogFooter>

@@ -71,10 +71,10 @@ export default function AdminChurches() {
     },
     onSuccess: () => {
       toast({
-        title: editingChurch ? "Ministry updated" : "Ministry created",
+        title: editingChurch ? t('churches.ministryUpdated') : t('churches.ministryCreated'),
         description: editingChurch
-          ? "The ministry has been updated successfully."
-          : "The new ministry has been added successfully.",
+          ? t('churches.ministryUpdatedDesc')
+          : t('churches.ministryCreatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
@@ -84,8 +84,8 @@ export default function AdminChurches() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to save ministry",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -97,8 +97,8 @@ export default function AdminChurches() {
     },
     onSuccess: () => {
       toast({
-        title: "Ministry cancelled",
-        description: "The ministry account has been cancelled and backed up. You can restore it from the Deleted Accounts page.",
+        title: t('churches.ministryCancelled'),
+        description: t('churches.ministryCancelledDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
@@ -106,8 +106,8 @@ export default function AdminChurches() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to cancel ministry account",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -158,11 +158,11 @@ export default function AdminChurches() {
       <div className="space-y-6">
         <PageHeader
           title={t('sidebar.ministries')}
-          description="Add and manage ministries in your organization"
+          description={t('churches.description')}
           actions={
             <Button onClick={openCreateDialog} className="gap-2" data-testid="button-add-church">
               <Plus className="h-4 w-4" />
-              Add Ministry
+              {t('churches.addMinistry')}
             </Button>
           }
         />
@@ -178,12 +178,12 @@ export default function AdminChurches() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Ministry Name</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead className="text-center">Leaders</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('churches.ministryName')}</TableHead>
+                  <TableHead>{t('forms.location')}</TableHead>
+                  <TableHead>{t('forms.plan')}</TableHead>
+                  <TableHead className="text-center">{t('sidebar.leaders')}</TableHead>
+                  <TableHead>{t('forms.createdAt')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -201,7 +201,7 @@ export default function AdminChurches() {
                         variant={church.plan === "stewardship" ? "default" : church.plan === "formation" ? "secondary" : "outline"}
                         data-testid={`badge-plan-${church.id}`}
                       >
-                        {church.plan ? church.plan.charAt(0).toUpperCase() + church.plan.slice(1) : "Foundations"}
+                        {church.plan ? t(`billing.${church.plan}`) : t('billing.foundations')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
@@ -227,7 +227,7 @@ export default function AdminChurches() {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>View ministry profile</p>
+                            <p>{t('churches.viewProfile')}</p>
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -242,7 +242,7 @@ export default function AdminChurches() {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Edit ministry</p>
+                            <p>{t('churches.editMinistry')}</p>
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -257,7 +257,7 @@ export default function AdminChurches() {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Cancel ministry account</p>
+                            <p>{t('churches.cancelMinistry')}</p>
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -269,13 +269,13 @@ export default function AdminChurches() {
           ) : (
             <div className="p-12 text-center">
               <ChurchIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-sm font-semibold mb-2">No ministries yet</h3>
+              <h3 className="text-sm font-semibold mb-2">{t('churches.noMinistries')}</h3>
               <p className="text-xs text-muted-foreground mb-4">
-                Get started by adding your first ministry
+                {t('churches.addFirstMinistry')}
               </p>
               <Button onClick={openCreateDialog} className="gap-2">
                 <Plus className="h-4 w-4" />
-                Add Ministry
+                {t('churches.addMinistry')}
               </Button>
             </div>
           )}
@@ -285,11 +285,11 @@ export default function AdminChurches() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingChurch ? "Edit Ministry" : "Add New Ministry"}</DialogTitle>
+            <DialogTitle>{editingChurch ? t('churches.editMinistry') : t('churches.addMinistry')}</DialogTitle>
             <DialogDescription>
               {editingChurch
-                ? "Update the ministry information below."
-                : "Enter the details for the new ministry."}
+                ? t('churches.updateMinistryDesc')
+                : t('churches.newMinistryDesc')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -302,10 +302,10 @@ export default function AdminChurches() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ministry Name</FormLabel>
+                    <FormLabel>{t('churches.ministryName')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter ministry name"
+                        placeholder={t('churches.enterMinistryName')}
                         {...field}
                         data-testid="input-church-name"
                       />
@@ -319,10 +319,10 @@ export default function AdminChurches() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{t('forms.location')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="City, State"
+                        placeholder={t('churches.cityState')}
                         {...field}
                         data-testid="input-church-location"
                       />
@@ -336,18 +336,18 @@ export default function AdminChurches() {
                 name="plan"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Plan</FormLabel>
+                    <FormLabel>{t('forms.plan')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-church-plan">
-                          <SelectValue placeholder="Select a plan" />
+                          <SelectValue placeholder={t('forms.selectPlan')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="free">Free</SelectItem>
-                        <SelectItem value="foundations">Foundations</SelectItem>
-                        <SelectItem value="formation">Formation</SelectItem>
-                        <SelectItem value="stewardship">Stewardship</SelectItem>
+                        <SelectItem value="free">{t('billing.free')}</SelectItem>
+                        <SelectItem value="foundations">{t('billing.foundations')}</SelectItem>
+                        <SelectItem value="formation">{t('billing.formation')}</SelectItem>
+                        <SelectItem value="stewardship">{t('billing.stewardship')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -360,7 +360,7 @@ export default function AdminChurches() {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Cancel
+                  {t('forms.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -370,12 +370,12 @@ export default function AdminChurches() {
                   {createMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      {t('forms.saving')}
                     </>
                   ) : editingChurch ? (
-                    "Update Ministry"
+                    t('churches.updateMinistry')
                   ) : (
-                    "Add Ministry"
+                    t('churches.addMinistry')
                   )}
                 </Button>
               </div>
@@ -388,21 +388,16 @@ export default function AdminChurches() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-destructive">
-              {deleteStep === 1 ? "Cancel Ministry Account?" : "Confirm Cancellation"}
+              {deleteStep === 1 ? t('churches.cancelMinistry') : t('churches.confirmCancellation')}
             </DialogTitle>
             <DialogDescription>
               {deleteStep === 1 ? (
                 <>
-                  Are you sure you want to cancel the account for{" "}
-                  <span className="font-semibold">{churchToDelete?.name}</span>?
-                  This will remove all ministry data including leaders, converts, and members.
-                  A backup will be created that can be restored later.
+                  {t('churches.cancelConfirmDesc', { name: churchToDelete?.name })}
                 </>
               ) : (
                 <>
-                  This action will permanently remove all data for{" "}
-                  <span className="font-semibold">{churchToDelete?.name}</span>.
-                  To confirm, please type <span className="font-bold">Cancel Account</span> below.
+                  {t('churches.cancelConfirmStep2', { name: churchToDelete?.name })}
                 </>
               )}
             </DialogDescription>
@@ -411,7 +406,7 @@ export default function AdminChurches() {
           {deleteStep === 2 && (
             <div className="py-4">
               <Input
-                placeholder="Type 'Cancel Account' to confirm"
+                placeholder={t('churches.typeCancelAccount')}
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
                 data-testid="input-confirm-delete"
@@ -425,7 +420,7 @@ export default function AdminChurches() {
               onClick={closeDeleteDialog}
               data-testid="button-cancel-delete"
             >
-              Go Back
+              {t('common.goBack')}
             </Button>
             {deleteStep === 1 ? (
               <Button
@@ -433,7 +428,7 @@ export default function AdminChurches() {
                 onClick={handleDeleteStep1}
                 data-testid="button-proceed-delete"
               >
-                Yes, Cancel Account
+                {t('churches.cancelAccountButton')}
               </Button>
             ) : (
               <Button
@@ -445,10 +440,10 @@ export default function AdminChurches() {
                 {deleteMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Cancelling...
+                    {t('churches.cancelling')}
                   </>
                 ) : (
-                  "Confirm Cancellation"
+                  t('churches.confirmCancellation')
                 )}
               </Button>
             )}

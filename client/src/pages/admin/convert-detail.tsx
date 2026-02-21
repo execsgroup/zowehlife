@@ -148,8 +148,8 @@ export default function AdminConvertDetail() {
     },
     onSuccess: () => {
       toast({
-        title: "Convert updated",
-        description: "The convert information has been updated.",
+        title: t('converts.convertUpdated'),
+        description: t('converts.convertUpdatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/converts", convertId] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/converts"] });
@@ -157,8 +157,8 @@ export default function AdminConvertDetail() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update convert",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -181,12 +181,12 @@ export default function AdminConvertDetail() {
       <DashboardLayout>
         <Section>
           <div className="p-12 text-center">
-            <h3 className="text-sm font-semibold mb-2">Convert not found</h3>
+            <h3 className="text-sm font-semibold mb-2">{t('converts.convertNotFound')}</h3>
             <p className="text-xs text-muted-foreground mb-4">
-              The convert you're looking for doesn't exist.
+              {t('converts.convertNotFoundDesc')}
             </p>
             <Link href="/admin/converts">
-              <Button>Back to Converts</Button>
+              <Button>{t('converts.backToConverts')}</Button>
             </Link>
           </div>
         </Section>
@@ -200,7 +200,7 @@ export default function AdminConvertDetail() {
         <Link href="/admin/converts">
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
-            Back to Converts
+            {t('converts.backToConverts')}
           </Button>
         </Link>
 
@@ -259,7 +259,7 @@ export default function AdminConvertDetail() {
               <div className="flex items-center gap-2">
                 <Cake className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Date of Birth:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.dateOfBirth')}:</span>
                   {format(new Date(convert.dateOfBirth), "MMMM d, yyyy")}
                 </span>
               </div>
@@ -268,7 +268,7 @@ export default function AdminConvertDetail() {
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Gender:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.gender')}:</span>
                   {convert.gender}
                 </span>
               </div>
@@ -277,7 +277,7 @@ export default function AdminConvertDetail() {
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Age Group:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.ageGroup')}:</span>
                   {convert.ageGroup}
                 </span>
               </div>
@@ -291,7 +291,7 @@ export default function AdminConvertDetail() {
               <div className="flex items-start gap-2 md:col-span-2">
                 <Heart className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Decision:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('converts.decision')}:</span>
                   {convert.salvationDecision}
                 </span>
               </div>
@@ -300,7 +300,7 @@ export default function AdminConvertDetail() {
               <div className="flex items-center gap-2">
                 <ChurchIcon className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Ministry Member:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('converts.ministryMember')}:</span>
                   {convert.isChurchMember}
                 </span>
               </div>
@@ -309,7 +309,7 @@ export default function AdminConvertDetail() {
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Wants Contact:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('converts.wouldLikeContact')}:</span>
                   {convert.wantsContact}
                 </span>
               </div>
@@ -318,7 +318,7 @@ export default function AdminConvertDetail() {
           {convert.selfSubmitted === "true" && (
             <div className="mt-3">
               <Badge variant="secondary" className="w-fit">
-                Self-submitted via public form
+                {t('converts.selfSubmitted')}
               </Badge>
             </div>
           )}
@@ -333,7 +333,7 @@ export default function AdminConvertDetail() {
         )}
 
         {convert.summaryNotes && (
-          <Section title="Additional Notes">
+          <Section title={t('converts.additionalNotes')}>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
               {convert.summaryNotes}
             </p>
@@ -344,9 +344,9 @@ export default function AdminConvertDetail() {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Convert</DialogTitle>
+              <DialogTitle>{t('converts.editConvert')}</DialogTitle>
               <DialogDescription>
-                Update information for {convert.firstName} {convert.lastName}
+                {t('converts.updateInfoFor', { name: `${convert.firstName} ${convert.lastName}` })}
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
@@ -359,16 +359,16 @@ export default function AdminConvertDetail() {
                   name="salvationDecision"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Salvation Decision</FormLabel>
+                      <FormLabel>{t('converts.salvationDecision')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger data-testid="select-edit-salvation">
-                            <SelectValue placeholder="Select an option" />
+                            <SelectValue placeholder={t('forms.selectOption')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="I just made Jesus Christ my Lord and Savior">I just made Jesus Christ my Lord and Savior</SelectItem>
-                          <SelectItem value="I have rededicated my life to Jesus">I have rededicated my life to Jesus</SelectItem>
+                          <SelectItem value="I just made Jesus Christ my Lord and Savior">{t('converts.salvationOption1')}</SelectItem>
+                          <SelectItem value="I have rededicated my life to Jesus">{t('converts.salvationOption2')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -382,7 +382,7 @@ export default function AdminConvertDetail() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name *</FormLabel>
+                        <FormLabel>{t('forms.firstName')} *</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-firstname" />
                         </FormControl>
@@ -395,7 +395,7 @@ export default function AdminConvertDetail() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>{t('forms.lastName')} *</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-lastname" />
                         </FormControl>
@@ -410,7 +410,7 @@ export default function AdminConvertDetail() {
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>{t('forms.phoneNumber')}</FormLabel>
                       <FormControl>
                         <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-edit-phone" />
                       </FormControl>
@@ -424,7 +424,7 @@ export default function AdminConvertDetail() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email Address</FormLabel>
+                      <FormLabel>{t('forms.emailAddress')}</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="john@example.com" {...field} data-testid="input-edit-email" />
                       </FormControl>
@@ -438,7 +438,7 @@ export default function AdminConvertDetail() {
                   name="dateOfBirth"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date of Birth</FormLabel>
+                      <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} data-testid="input-edit-dob" />
                       </FormControl>
@@ -452,11 +452,11 @@ export default function AdminConvertDetail() {
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country of Residence</FormLabel>
+                      <FormLabel>{t('forms.countryOfResidence')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger data-testid="select-edit-country">
-                            <SelectValue placeholder="Select country" />
+                            <SelectValue placeholder={t('forms.selectOption')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -476,16 +476,16 @@ export default function AdminConvertDetail() {
                     name="wantsContact"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Would you like us to contact you?</FormLabel>
+                        <FormLabel>{t('converts.wouldLikeContact')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-wants-contact">
-                              <SelectValue placeholder="Select an option" />
+                              <SelectValue placeholder={t('forms.selectOption')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Yes">Yes</SelectItem>
-                            <SelectItem value="No">No</SelectItem>
+                            <SelectItem value="Yes">{t('forms.yes')}</SelectItem>
+                            <SelectItem value="No">{t('forms.no')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -498,16 +498,16 @@ export default function AdminConvertDetail() {
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Gender</FormLabel>
+                        <FormLabel>{t('forms.gender')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-gender">
-                              <SelectValue placeholder="Select gender" />
+                              <SelectValue placeholder={t('forms.selectOption')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
+                            <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                            <SelectItem value="Female">{t('forms.female')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -522,18 +522,18 @@ export default function AdminConvertDetail() {
                     name="ageGroup"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Age Group</FormLabel>
+                        <FormLabel>{t('forms.ageGroup')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-age-group">
-                              <SelectValue placeholder="Select age group" />
+                              <SelectValue placeholder={t('forms.selectOption')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Under 18">Under 18</SelectItem>
-                            <SelectItem value="18-24">18-24</SelectItem>
-                            <SelectItem value="25-34">25-34</SelectItem>
-                            <SelectItem value="35 and Above">35 and Above</SelectItem>
+                            <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                            <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                            <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                            <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -546,16 +546,16 @@ export default function AdminConvertDetail() {
                     name="isChurchMember"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Are you a member of any Ministry?</FormLabel>
+                        <FormLabel>{t('converts.areYouMember')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-church-member">
-                              <SelectValue placeholder="Select an option" />
+                              <SelectValue placeholder={t('forms.selectOption')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Yes">Yes</SelectItem>
-                            <SelectItem value="No">No</SelectItem>
+                            <SelectItem value="Yes">{t('forms.yes')}</SelectItem>
+                            <SelectItem value="No">{t('forms.no')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -569,10 +569,10 @@ export default function AdminConvertDetail() {
                   name="prayerRequest"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Prayer Request / Additional Information</FormLabel>
+                      <FormLabel>{t('converts.prayerRequestLabel')}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Share any prayer requests or additional information..."
+                          placeholder={t('converts.prayerRequestPlaceholder')}
                           className="resize-none"
                           {...field}
                           data-testid="input-edit-prayer-request"
@@ -588,7 +588,7 @@ export default function AdminConvertDetail() {
                   name="summaryNotes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Additional Notes (Admin Only)</FormLabel>
+                      <FormLabel>{t('converts.additionalNotesAdmin')}</FormLabel>
                       <FormControl>
                         <Textarea className="resize-none" {...field} data-testid="input-edit-notes" />
                       </FormControl>
@@ -602,7 +602,7 @@ export default function AdminConvertDetail() {
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>{t('forms.status')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-edit-status">
@@ -610,11 +610,11 @@ export default function AdminConvertDetail() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="NEW">New</SelectItem>
-                          <SelectItem value="ACTIVE">Active</SelectItem>
-                          <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                          <SelectItem value="CONNECTED">Connected</SelectItem>
-                          <SelectItem value="INACTIVE">Inactive</SelectItem>
+                          <SelectItem value="NEW">{t('statusLabels.new')}</SelectItem>
+                          <SelectItem value="ACTIVE">{t('statusLabels.active')}</SelectItem>
+                          <SelectItem value="IN_PROGRESS">{t('statusLabels.in_progress')}</SelectItem>
+                          <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                          <SelectItem value="INACTIVE">{t('statusLabels.inactive')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -628,7 +628,7 @@ export default function AdminConvertDetail() {
                     variant="outline"
                     onClick={() => setEditDialogOpen(false)}
                   >
-                    Cancel
+                    {t('forms.cancel')}
                   </Button>
                   <Button
                     type="submit"
@@ -638,10 +638,10 @@ export default function AdminConvertDetail() {
                     {updateMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
+                        {t('forms.saving')}
                       </>
                     ) : (
-                      "Save Changes"
+                      t('forms.saveChanges')
                     )}
                   </Button>
                 </div>

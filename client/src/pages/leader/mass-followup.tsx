@@ -47,19 +47,6 @@ interface MassFollowUpResult {
   error?: string;
 }
 
-const categoryLabels: Record<string, string> = {
-  converts: "Follow Up Converts",
-  new_members: "New Member & Guest Follow Up",
-  members: "Member Follow Up",
-  guests: "Guest List",
-};
-
-const dateFilterLabels: Record<string, string> = {
-  converts: "Convert Date",
-  new_members: "Visit Date",
-  members: "Members Since",
-  guests: "Visit Date",
-};
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "N/A";
@@ -98,11 +85,25 @@ export default function MassFollowUp() {
   const [customSubject, setCustomSubject] = useState("");
   const [customMessage, setCustomMessage] = useState("");
 
+  const categoryLabels: Record<string, string> = {
+    converts: t('massFollowUp.followUpConverts'),
+    new_members: t('massFollowUp.newMemberFollowUp'),
+    members: t('massFollowUp.memberFollowUp'),
+    guests: t('massFollowUp.guestList'),
+  };
+
+  const dateFilterLabels: Record<string, string> = {
+    converts: t('forms.convertDate'),
+    new_members: t('forms.visitDate'),
+    members: t('forms.memberSince'),
+    guests: t('forms.visitDate'),
+  };
+
   const [results, setResults] = useState<MassFollowUpResult[] | null>(null);
 
   const fetchCandidates = async () => {
     if (!category) {
-      toast({ title: "Select a category", description: "Please choose a category first.", variant: "destructive" });
+      toast({ title: t('massFollowUp.selectCategory'), description: t('massFollowUp.selectCategoryDesc'), variant: "destructive" });
       return;
     }
     setIsLoadingCandidates(true);
@@ -118,7 +119,7 @@ export default function MassFollowUp() {
       const data = await response.json();
       setCandidates(data);
     } catch (err: any) {
-      toast({ title: "Error", description: err.message || "Failed to fetch candidates", variant: "destructive" });
+      toast({ title: t('common.error'), description: err.message || t('common.failedToSave'), variant: "destructive" });
       setCandidates([]);
     } finally {
       setIsLoadingCandidates(false);
@@ -141,7 +142,7 @@ export default function MassFollowUp() {
     onSuccess: (data) => {
       setResults(data.results);
       toast({
-        title: "Follow-ups scheduled",
+        title: t('followUps.followUpScheduled'),
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
@@ -151,7 +152,7 @@ export default function MassFollowUp() {
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/guests`] });
     },
     onError: (err: any) => {
-      toast({ title: "Error", description: err.message || "Failed to schedule follow-ups", variant: "destructive" });
+      toast({ title: t('common.error'), description: err.message || t('common.failedToSave'), variant: "destructive" });
     },
   });
 
@@ -179,14 +180,14 @@ export default function MassFollowUp() {
       <div className="space-y-6 max-w-5xl">
         <PageHeader
           title={t('sidebar.massFollowUp')}
-          description="Schedule follow-ups for multiple people at once. Each person will receive a unique video call link and email notification."
+          description={t('massFollowUp.description')}
         />
 
         <Section>
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>{t('forms.category')}</Label>
                 <Select
                   value={category}
                   onValueChange={(val) => {
@@ -199,13 +200,13 @@ export default function MassFollowUp() {
                   data-testid="select-category"
                 >
                   <SelectTrigger data-testid="select-category-trigger">
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t('forms.selectOption')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="converts" data-testid="option-converts">Follow Up Converts</SelectItem>
-                    <SelectItem value="new_members" data-testid="option-new-members">New Member & Guest Follow Up</SelectItem>
-                    <SelectItem value="members" data-testid="option-members">Member Follow Up</SelectItem>
-                    <SelectItem value="guests" data-testid="option-guests">Guest List</SelectItem>
+                    <SelectItem value="converts" data-testid="option-converts">{t('massFollowUp.followUpConverts')}</SelectItem>
+                    <SelectItem value="new_members" data-testid="option-new-members">{t('massFollowUp.newMemberFollowUp')}</SelectItem>
+                    <SelectItem value="members" data-testid="option-members">{t('massFollowUp.memberFollowUp')}</SelectItem>
+                    <SelectItem value="guests" data-testid="option-guests">{t('massFollowUp.guestList')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -213,7 +214,7 @@ export default function MassFollowUp() {
               {category && (
                 <>
                   <div className="space-y-2">
-                    <Label>{dateFilterLabels[category]} From</Label>
+                    <Label>{dateFilterLabels[category]} {t('forms.from')}</Label>
                     <Input
                       type="date"
                       value={dateFrom}
@@ -222,7 +223,7 @@ export default function MassFollowUp() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>{dateFilterLabels[category]} To</Label>
+                    <Label>{dateFilterLabels[category]} {t('forms.to')}</Label>
                     <Input
                       type="date"
                       value={dateTo}
@@ -243,7 +244,7 @@ export default function MassFollowUp() {
                 ) : (
                   <Search className="h-4 w-4" />
                 )}
-                <span className="ml-2">Search</span>
+                <span className="ml-2">{t('forms.search')}</span>
               </Button>
             </div>
           </div>
@@ -264,7 +265,7 @@ export default function MassFollowUp() {
             <div className="py-8 text-center">
               <Filter className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
               <p className="text-muted-foreground">
-                No {categoryLabels[category] || "people"} found matching your criteria. Try adjusting the date filters.
+                {t('massFollowUp.noMatchingCriteria', { category: categoryLabels[category] || t('massFollowUp.people') })}
               </p>
             </div>
           </Section>
@@ -273,11 +274,11 @@ export default function MassFollowUp() {
         {!isLoadingCandidates && candidates.length > 0 && !results && (
           <>
             <Section
-              title={`${categoryLabels[category]} (${candidates.length} found)`}
+              title={`${categoryLabels[category]} (${candidates.length} ${t('massFollowUp.found')})`}
               actions={
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">
-                    {selectedIds.size} selected
+                    {selectedIds.size} {t('massFollowUp.selected')}
                   </Badge>
                   <Button
                     variant="outline"
@@ -285,7 +286,7 @@ export default function MassFollowUp() {
                     onClick={toggleSelectAll}
                     data-testid="button-select-all"
                   >
-                    {selectedIds.size === candidates.length ? "Deselect All" : "Select All"}
+                    {selectedIds.size === candidates.length ? t('forms.deselectAll') : t('forms.selectAll')}
                   </Button>
                 </div>
               }
@@ -295,9 +296,9 @@ export default function MassFollowUp() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12"></TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
+                        <TableHead>{t('forms.name')}</TableHead>
+                        <TableHead>{t('forms.email')}</TableHead>
+                        <TableHead>{t('forms.phone')}</TableHead>
                         <TableHead>{dateFilterLabels[category]}</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -326,7 +327,7 @@ export default function MassFollowUp() {
                                 {candidate.email}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-sm">N/A</span>
+                              <span className="text-muted-foreground text-sm">—</span>
                             )}
                           </TableCell>
                           <TableCell>
@@ -336,7 +337,7 @@ export default function MassFollowUp() {
                                 {candidate.phone}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-sm">N/A</span>
+                              <span className="text-muted-foreground text-sm">—</span>
                             )}
                           </TableCell>
                           <TableCell className="text-sm">
@@ -351,14 +352,14 @@ export default function MassFollowUp() {
 
             {selectedIds.size > 0 && (
               <Section
-                title={`Schedule Follow-Up for ${selectedIds.size} ${selectedIds.size === 1 ? "Person" : "People"}`}
+                title={t('massFollowUp.scheduleForCount', { count: selectedIds.size, people: selectedIds.size === 1 ? t('massFollowUp.person') : t('massFollowUp.people') })}
               >
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="followup-date" className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        Follow-Up Date
+                        {t('massFollowUp.followUpDate')}
                       </Label>
                       <Input
                         id="followup-date"
@@ -371,7 +372,7 @@ export default function MassFollowUp() {
                     <div className="space-y-2">
                       <Label htmlFor="followup-time" className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
-                        Follow-Up Time (Optional)
+                        {t('massFollowUp.followUpTimeOptional')}
                       </Label>
                       <Input
                         id="followup-time"
@@ -392,15 +393,15 @@ export default function MassFollowUp() {
                     />
                     <Label htmlFor="include-video" className="flex items-center gap-2 cursor-pointer">
                       <Video className="h-4 w-4" />
-                      Include unique video call link for each person
+                      {t('followUps.includeVideoCallLink')}
                     </Label>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="custom-subject">Custom Email Subject (Optional)</Label>
+                    <Label htmlFor="custom-subject">{t('followUps.customSubject')}</Label>
                     <Input
                       id="custom-subject"
-                      placeholder="e.g., Follow-Up Meeting Scheduled"
+                      placeholder={t('followUps.leaveBlankSubject')}
                       value={customSubject}
                       onChange={(e) => setCustomSubject(e.target.value)}
                       data-testid="input-custom-subject"
@@ -408,12 +409,12 @@ export default function MassFollowUp() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="custom-message">Custom Email Message (Optional)</Label>
+                    <Label htmlFor="custom-message">{t('followUps.customMessage')}</Label>
                     <AITextarea
                       id="custom-message"
                       value={customMessage}
                       onChange={setCustomMessage}
-                      placeholder="Add a personal message to include in the notification email..."
+                      placeholder={t('followUps.leaveBlankMessage')}
                       context={`Writing a follow-up email message for ${categoryLabels[category] || "people"} at a church/ministry. The message should be warm, encouraging, and faith-based.`}
                       aiPlaceholder="e.g., Make it more encouraging, add a scripture..."
                       rows={4}
@@ -432,7 +433,7 @@ export default function MassFollowUp() {
                     ) : (
                       <CalendarPlus className="h-4 w-4 mr-2" />
                     )}
-                    Schedule Follow-Up for {selectedIds.size} {selectedIds.size === 1 ? "Person" : "People"}
+                    {t('massFollowUp.scheduleForCount', { count: selectedIds.size, people: selectedIds.size === 1 ? t('massFollowUp.person') : t('massFollowUp.people') })}
                   </Button>
                 </div>
               </Section>
@@ -442,15 +443,15 @@ export default function MassFollowUp() {
 
         {results && (
           <Section
-            title="Results"
-            description={`${results.filter(r => r.success).length} follow-ups scheduled successfully${results.filter(r => !r.success).length > 0 ? `, ${results.filter(r => !r.success).length} failed` : ""}`}
+            title={t('massFollowUp.results')}
+            description={t('massFollowUp.resultsDesc', { success: results.filter(r => r.success).length }) + (results.filter(r => !r.success).length > 0 ? t('massFollowUp.resultsFailed', { failed: results.filter(r => !r.success).length }) : "")}
           >
               <div className="rounded-md border overflow-auto max-h-80">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -461,12 +462,12 @@ export default function MassFollowUp() {
                           {result.success ? (
                             <Badge variant="default" className="gap-1">
                               <CheckCircle2 className="h-3 w-3" />
-                              Scheduled
+                              {t('statusLabels.scheduled')}
                             </Badge>
                           ) : (
                             <Badge variant="destructive" className="gap-1">
                               <XCircle className="h-3 w-3" />
-                              Failed: {result.error}
+                              {t('massFollowUp.failed')}: {result.error}
                             </Badge>
                           )}
                         </TableCell>
@@ -486,7 +487,7 @@ export default function MassFollowUp() {
                   }}
                   data-testid="button-schedule-more"
                 >
-                  Schedule More
+                  {t('forms.scheduleMore')}
                 </Button>
               </div>
           </Section>

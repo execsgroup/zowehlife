@@ -96,15 +96,6 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const outcomeLabels: Record<string, string> = {
-  CONNECTED: "Connected",
-  NO_RESPONSE: "No Response",
-  NEEDS_PRAYER: "Needs Prayer",
-  SCHEDULED_VISIT: "Scheduled Visit",
-  REFERRED: "Referred",
-  OTHER: "Other",
-};
-
 interface ConvertWithCheckins extends Convert {
   checkins: Checkin[];
 }
@@ -116,6 +107,29 @@ export default function ConvertDetail() {
   const apiBasePath = useApiBasePath();
   const [location] = useLocation();
   const convertId = location.split('/').pop();
+
+  const getOutcomeLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      CONNECTED: t('statusLabels.connected'),
+      NO_RESPONSE: t('statusLabels.noResponse'),
+      NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+      SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
+      REFERRED: t('statusLabels.referred'),
+      OTHER: t('statusLabels.other'),
+    };
+    return labels[key] || key;
+  };
+
+  const getStatusLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      NEW: t('statusLabels.new'),
+      ACTIVE: t('statusLabels.active'),
+      IN_PROGRESS: t('statusLabels.inProgress'),
+      CONNECTED: t('statusLabels.connected'),
+      INACTIVE: t('statusLabels.inactive'),
+    };
+    return labels[key] || key;
+  };
 
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
@@ -175,8 +189,8 @@ export default function ConvertDetail() {
     },
     onSuccess: () => {
       toast({
-        title: "Convert updated",
-        description: "The convert information has been updated.",
+        title: t('converts.convertUpdated'),
+        description: t('converts.convertUpdatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convertId] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
@@ -184,8 +198,8 @@ export default function ConvertDetail() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update convert",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -233,12 +247,12 @@ END:VCALENDAR`;
       <DashboardLayout>
         <Section>
           <div className="p-12 text-center">
-            <h3 className="text-sm font-semibold mb-2">Convert not found</h3>
+            <h3 className="text-sm font-semibold mb-2">{t('converts.convertNotFound')}</h3>
             <p className="text-xs text-muted-foreground mb-4">
-              The convert you're looking for doesn't exist or you don't have access.
+              {t('converts.convertNotFoundDesc')}
             </p>
             <Link href={`${basePath}/converts`}>
-              <Button>Back to Converts</Button>
+              <Button>{t('converts.backToConverts')}</Button>
             </Link>
           </div>
         </Section>
@@ -252,17 +266,17 @@ END:VCALENDAR`;
         <Link href={`${basePath}/converts`}>
           <Button variant="ghost" size="sm" className="gap-2" data-testid="button-back">
             <ArrowLeft className="h-4 w-4" />
-            Back to Converts
+            {t('converts.backToConverts')}
           </Button>
         </Link>
 
         <PageHeader
           title={`${convert.firstName} ${convert.lastName}`}
-          description={`Convert Date: ${format(new Date(convert.createdAt), "MMMM d, yyyy")}`}
+          description={`${t('forms.convertDate')}: ${format(new Date(convert.createdAt), "MMMM d, yyyy")}`}
           actions={
             <div className="flex items-center gap-2">
               <Badge className={statusColors[convert.status]}>
-                {convert.status.replace("_", " ")}
+                {getStatusLabel(convert.status)}
               </Badge>
               <Button variant="outline" size="sm" onClick={openEditDialog} className="gap-1">
                 <Edit className="h-3 w-3" />
@@ -311,7 +325,7 @@ END:VCALENDAR`;
               <div className="flex items-center gap-2">
                 <Cake className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Date of Birth:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.dateOfBirth')}:</span>
                   {format(new Date(convert.dateOfBirth), "MMMM d, yyyy")}
                 </span>
               </div>
@@ -320,7 +334,7 @@ END:VCALENDAR`;
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Gender:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.gender')}:</span>
                   {convert.gender}
                 </span>
               </div>
@@ -329,7 +343,7 @@ END:VCALENDAR`;
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Age Group:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('forms.ageGroup')}:</span>
                   {convert.ageGroup}
                 </span>
               </div>
@@ -343,7 +357,7 @@ END:VCALENDAR`;
               <div className="flex items-start gap-2 md:col-span-2">
                 <Heart className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Decision:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('converts.decision')}:</span>
                   {convert.salvationDecision}
                 </span>
               </div>
@@ -352,7 +366,7 @@ END:VCALENDAR`;
               <div className="flex items-center gap-2">
                 <Church className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Ministry Member:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('converts.ministryMember')}:</span>
                   {convert.isChurchMember}
                 </span>
               </div>
@@ -361,7 +375,7 @@ END:VCALENDAR`;
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
                 <span>
-                  <span className="text-xs text-muted-foreground mr-1">Wants Contact:</span>
+                  <span className="text-xs text-muted-foreground mr-1">{t('converts.wantsContact')}:</span>
                   {convert.wantsContact}
                 </span>
               </div>
@@ -370,7 +384,7 @@ END:VCALENDAR`;
           {convert.selfSubmitted === "true" && (
             <div className="mt-3">
               <Badge variant="secondary" className="w-fit">
-                Self-submitted via public form
+                {t('converts.selfSubmittedBadge')}
               </Badge>
             </div>
           )}
@@ -385,7 +399,7 @@ END:VCALENDAR`;
         )}
 
         {convert.summaryNotes && (
-          <Section title="Additional Notes">
+          <Section title={t('converts.additionalNotes')}>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
               {convert.summaryNotes}
             </p>
@@ -394,7 +408,7 @@ END:VCALENDAR`;
 
         <Section
           title={t('converts.followUpTimeline')}
-          description="Record and track follow-ups with this convert"
+          description={t('converts.recordAndTrackConverts')}
           actions={
             <Button
               variant="outline"
@@ -424,7 +438,7 @@ END:VCALENDAR`;
                             {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
                           </span>
                           <Badge variant="secondary" className="text-xs">
-                            {outcomeLabels[checkin.outcome]}
+                            {getOutcomeLabel(checkin.outcome)}
                           </Badge>
                         </div>
                         {checkin.notes && (
@@ -436,7 +450,7 @@ END:VCALENDAR`;
                           <div className="flex items-center gap-2 text-sm flex-wrap">
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <span className="text-muted-foreground">
-                              Next follow-up:{" "}
+                              {t('converts.nextFollowUp')}:{" "}
                               {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
                               {checkin.nextFollowupTime && <span> at {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
                             </span>
@@ -468,7 +482,7 @@ END:VCALENDAR`;
                                   data-testid={`button-join-meeting-${checkin.id}`}
                                 >
                                   <Video className="h-4 w-4" />
-                                  Join Meeting
+                                  {t('converts.joinMeeting')}
                                 </Button>
                               </a>
                             )}
@@ -480,7 +494,7 @@ END:VCALENDAR`;
                               data-testid={`button-add-note-${checkin.id}`}
                             >
                               <Plus className="h-4 w-4" />
-                              Add Note
+                              {t('converts.addNote')}
                             </Button>
                           </div>
                         )}
@@ -492,7 +506,7 @@ END:VCALENDAR`;
             ) : (
               <div className="text-center py-8">
                 <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No follow-up notes yet</p>
+                <p className="text-muted-foreground">{t('converts.noFollowUpNotes')}</p>
               </div>
             )}
         </Section>
@@ -501,9 +515,9 @@ END:VCALENDAR`;
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Convert</DialogTitle>
+              <DialogTitle>{t('converts.editConvert')}</DialogTitle>
               <DialogDescription>
-                Update information for {convert.firstName} {convert.lastName}
+                {t('converts.updateInfoFor', { name: `${convert.firstName} ${convert.lastName}` })}
               </DialogDescription>
             </DialogHeader>
             <Form {...editForm}>
@@ -516,16 +530,16 @@ END:VCALENDAR`;
                   name="salvationDecision"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Salvation Decision</FormLabel>
+                      <FormLabel>{t('forms.salvationDecision')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger data-testid="select-edit-salvation">
-                            <SelectValue placeholder="Select an option" />
+                            <SelectValue placeholder={t('forms.selectOption')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="I just made Jesus Christ my Lord and Savior">I just made Jesus Christ my Lord and Savior</SelectItem>
-                          <SelectItem value="I have rededicated my life to Jesus">I have rededicated my life to Jesus</SelectItem>
+                          <SelectItem value="I just made Jesus Christ my Lord and Savior">{t('converts.salvationOption1')}</SelectItem>
+                          <SelectItem value="I have rededicated my life to Jesus">{t('converts.salvationOption2')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -539,7 +553,7 @@ END:VCALENDAR`;
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name *</FormLabel>
+                        <FormLabel>{t('forms.firstName')} *</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-firstname" />
                         </FormControl>
@@ -552,7 +566,7 @@ END:VCALENDAR`;
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>{t('forms.lastName')} *</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-lastname" />
                         </FormControl>
@@ -567,7 +581,7 @@ END:VCALENDAR`;
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>{t('forms.phoneNumber')}</FormLabel>
                       <FormControl>
                         <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-edit-phone" />
                       </FormControl>
@@ -581,7 +595,7 @@ END:VCALENDAR`;
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email Address</FormLabel>
+                      <FormLabel>{t('forms.emailAddress')}</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="john@example.com" {...field} data-testid="input-edit-email" />
                       </FormControl>
@@ -595,7 +609,7 @@ END:VCALENDAR`;
                   name="dateOfBirth"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date of Birth</FormLabel>
+                      <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} data-testid="input-edit-dob" />
                       </FormControl>
@@ -609,11 +623,11 @@ END:VCALENDAR`;
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country of Residence</FormLabel>
+                      <FormLabel>{t('forms.countryOfResidence')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger data-testid="select-edit-country">
-                            <SelectValue placeholder="Select country" />
+                            <SelectValue placeholder={t('forms.selectCountry')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -633,16 +647,16 @@ END:VCALENDAR`;
                     name="wantsContact"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Would you like us to contact you?</FormLabel>
+                        <FormLabel>{t('converts.wantsContactQuestion')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-wants-contact">
-                              <SelectValue placeholder="Select an option" />
+                              <SelectValue placeholder={t('forms.selectOption')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Yes">Yes</SelectItem>
-                            <SelectItem value="No">No</SelectItem>
+                            <SelectItem value="Yes">{t('forms.yes')}</SelectItem>
+                            <SelectItem value="No">{t('forms.no')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -655,16 +669,16 @@ END:VCALENDAR`;
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Gender</FormLabel>
+                        <FormLabel>{t('forms.gender')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-gender">
-                              <SelectValue placeholder="Select gender" />
+                              <SelectValue placeholder={t('forms.selectGender')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
+                            <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                            <SelectItem value="Female">{t('forms.female')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -679,18 +693,18 @@ END:VCALENDAR`;
                     name="ageGroup"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Age Group</FormLabel>
+                        <FormLabel>{t('forms.ageGroup')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-age-group">
-                              <SelectValue placeholder="Select age group" />
+                              <SelectValue placeholder={t('forms.selectAgeGroup')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Under 18">Under 18</SelectItem>
-                            <SelectItem value="18-24">18-24</SelectItem>
-                            <SelectItem value="25-34">25-34</SelectItem>
-                            <SelectItem value="35 and Above">35 and Above</SelectItem>
+                            <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                            <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                            <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                            <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -703,16 +717,16 @@ END:VCALENDAR`;
                     name="isChurchMember"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Are you a member of any Ministry?</FormLabel>
+                        <FormLabel>{t('converts.churchMemberQuestion')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-church-member">
-                              <SelectValue placeholder="Select an option" />
+                              <SelectValue placeholder={t('forms.selectOption')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Yes">Yes</SelectItem>
-                            <SelectItem value="No">No</SelectItem>
+                            <SelectItem value="Yes">{t('forms.yes')}</SelectItem>
+                            <SelectItem value="No">{t('forms.no')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -726,10 +740,10 @@ END:VCALENDAR`;
                   name="prayerRequest"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Prayer Request / Additional Information</FormLabel>
+                      <FormLabel>{t('converts.prayerRequestLabel')}</FormLabel>
                       <FormControl>
                         <AITextarea
-                          placeholder="Share any prayer requests or additional information..."
+                          placeholder={t('converts.prayerRequestPlaceholder')}
                           value={field.value || ""}
                           onChange={field.onChange}
                           context="Prayer request or additional information for a convert"
@@ -746,7 +760,7 @@ END:VCALENDAR`;
                   name="summaryNotes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Additional Notes (Leader Only)</FormLabel>
+                      <FormLabel>{t('converts.additionalNotesLeader')}</FormLabel>
                       <FormControl>
                         <AITextarea
                           value={field.value || ""}
@@ -765,7 +779,7 @@ END:VCALENDAR`;
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>{t('forms.status')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-edit-status">
@@ -773,11 +787,11 @@ END:VCALENDAR`;
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="NEW">New</SelectItem>
-                          <SelectItem value="ACTIVE">Active</SelectItem>
-                          <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                          <SelectItem value="CONNECTED">Connected</SelectItem>
-                          <SelectItem value="INACTIVE">Inactive</SelectItem>
+                          <SelectItem value="NEW">{t('statusLabels.new')}</SelectItem>
+                          <SelectItem value="ACTIVE">{t('statusLabels.active')}</SelectItem>
+                          <SelectItem value="IN_PROGRESS">{t('statusLabels.inProgress')}</SelectItem>
+                          <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                          <SelectItem value="INACTIVE">{t('statusLabels.inactive')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -791,7 +805,7 @@ END:VCALENDAR`;
                     variant="outline"
                     onClick={() => setEditDialogOpen(false)}
                   >
-                    Cancel
+                    {t('forms.cancel')}
                   </Button>
                   <Button
                     type="submit"
@@ -801,10 +815,10 @@ END:VCALENDAR`;
                     {updateMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
+                        {t('forms.saving')}
                       </>
                     ) : (
-                      "Save Changes"
+                      t('forms.saveChanges')
                     )}
                   </Button>
                 </div>

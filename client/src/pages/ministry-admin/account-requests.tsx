@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,6 +51,7 @@ const reviewFormSchema = z.object({
 type ReviewFormData = z.infer<typeof reviewFormSchema>;
 
 export default function MinistryAdminAccountRequests() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [reviewingRequest, setReviewingRequest] = useState<AccountRequest | null>(null);
 
@@ -81,14 +83,14 @@ export default function MinistryAdminAccountRequests() {
     onSuccess: (data) => {
       if (data.credentials) {
         toast({
-          title: "Account Created - Email Failed",
-          description: `Please manually share credentials with the leader. Email: ${data.credentials.email}, Temporary Password: ${data.credentials.temporaryPassword}`,
+          title: t('accountRequests.emailFailed'),
+          description: t('accountRequests.emailFailedDesc', { email: data.credentials.email, password: data.credentials.temporaryPassword }),
           duration: 30000,
         });
       } else {
         toast({
-          title: "Request Approved",
-          description: "The leader account has been created and the applicant has been notified via email.",
+          title: t('accountRequests.approvedTitle'),
+          description: t('accountRequests.approvedDesc'),
         });
       }
       queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/account-requests"] });
@@ -98,7 +100,7 @@ export default function MinistryAdminAccountRequests() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Approval Failed",
+        title: t('accountRequests.approvalFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -111,15 +113,15 @@ export default function MinistryAdminAccountRequests() {
     },
     onSuccess: () => {
       toast({
-        title: "Request Denied",
-        description: "The applicant has been notified via email.",
+        title: t('accountRequests.denied'),
+        description: t('accountRequests.deniedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/account-requests"] });
       setReviewingRequest(null);
     },
     onError: (error: Error) => {
       toast({
-        title: "Denial Failed",
+        title: t('accountRequests.denialFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -153,13 +155,13 @@ export default function MinistryAdminAccountRequests() {
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
         <PageHeader
-          title="Leader Requests"
-          description="Review and approve leader account requests for your ministry"
+          title={t('accountRequests.leaderRequests')}
+          description={t('accountRequests.leaderRequestsDescription')}
         />
 
         <Section
-          title="Pending Requests"
-          description="New leader account requests awaiting your review"
+          title={t('accountRequests.pendingRequests')}
+          description={t('accountRequests.pendingDescription2')}
           actions={
             pendingRequests.length > 0 ? (
               <Badge variant="secondary" data-testid="badge-pending-count">{pendingRequests.length}</Badge>
@@ -176,17 +178,17 @@ export default function MinistryAdminAccountRequests() {
           ) : pendingRequests.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground p-4">
               <UserPlus className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No pending requests</p>
+              <p className="text-sm">{t('accountRequests.noPending')}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Applicant</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('accountRequests.applicant')}</TableHead>
+                  <TableHead>{t('accountRequests.contact')}</TableHead>
+                  <TableHead>{t('forms.reason')}</TableHead>
+                  <TableHead>{t('accountRequests.submitted')}</TableHead>
+                  <TableHead className="text-right">{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -231,7 +233,7 @@ export default function MinistryAdminAccountRequests() {
                         data-testid={`button-review-${request.id}`}
                       >
                         <Edit className="h-4 w-4" />
-                        Review
+                        {t('accountRequests.review')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -243,18 +245,18 @@ export default function MinistryAdminAccountRequests() {
 
         {processedRequests.length > 0 && (
           <Section
-            title="Request History"
-            description="Previously processed leader account requests"
+            title={t('accountRequests.requestHistory')}
+            description={t('accountRequests.processedDescription2')}
             noPadding
           >
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Applicant</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead>Reviewed</TableHead>
+                  <TableHead>{t('accountRequests.applicant')}</TableHead>
+                  <TableHead>{t('forms.email')}</TableHead>
+                  <TableHead>{t('common.status')}</TableHead>
+                  <TableHead>{t('accountRequests.submitted')}</TableHead>
+                  <TableHead>{t('accountRequests.reviewed')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -284,9 +286,9 @@ export default function MinistryAdminAccountRequests() {
       <Dialog open={!!reviewingRequest} onOpenChange={(open) => !open && setReviewingRequest(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Review Leader Request</DialogTitle>
+            <DialogTitle>{t('accountRequests.reviewLeaderRequest')}</DialogTitle>
             <DialogDescription>
-              Review and edit the request details before approving or denying.
+              {t('accountRequests.reviewLeaderDesc')}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -297,7 +299,7 @@ export default function MinistryAdminAccountRequests() {
                   name="firstName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>{t('forms.firstName')}</FormLabel>
                       <FormControl>
                         <Input {...field} data-testid="input-review-first-name" />
                       </FormControl>
@@ -310,7 +312,7 @@ export default function MinistryAdminAccountRequests() {
                   name="lastName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>{t('forms.lastName')}</FormLabel>
                       <FormControl>
                         <Input {...field} data-testid="input-review-last-name" />
                       </FormControl>
@@ -324,7 +326,7 @@ export default function MinistryAdminAccountRequests() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('forms.email')}</FormLabel>
                     <FormControl>
                       <Input type="email" {...field} data-testid="input-review-email" />
                     </FormControl>
@@ -337,7 +339,7 @@ export default function MinistryAdminAccountRequests() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>{t('forms.phone')}</FormLabel>
                     <FormControl>
                       <Input type="tel" {...field} data-testid="input-review-phone" />
                     </FormControl>
@@ -350,7 +352,7 @@ export default function MinistryAdminAccountRequests() {
                 name="reason"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reason for Request</FormLabel>
+                    <FormLabel>{t('accountRequests.reasonForRequest')}</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
@@ -379,7 +381,7 @@ export default function MinistryAdminAccountRequests() {
               ) : (
                 <X className="h-4 w-4" />
               )}
-              Deny Request
+              {t('accountRequests.denyRequest')}
             </Button>
             <Button
               type="button"
@@ -393,7 +395,7 @@ export default function MinistryAdminAccountRequests() {
               ) : (
                 <Check className="h-4 w-4" />
               )}
-              Approve & Create Account
+              {t('accountRequests.approveAndCreate')}
             </Button>
           </DialogFooter>
         </DialogContent>

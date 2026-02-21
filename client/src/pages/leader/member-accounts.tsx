@@ -60,15 +60,15 @@ export default function LeaderMemberAccounts() {
     },
     onSuccess: () => {
       toast({
-        title: "Claim email sent",
-        description: "A new account claim email has been sent to the member.",
+        title: t('common.success'),
+        description: t('common.savedSuccessfully'),
       });
       setResendingId(null);
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to resend",
-        description: error.message || "Could not resend the claim email.",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
       setResendingId(null);
@@ -82,17 +82,15 @@ export default function LeaderMemberAccounts() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/leader/member-accounts"] });
       toast({
-        title: variables.status === "SUSPENDED" ? "Account suspended" : "Account activated",
-        description: variables.status === "SUSPENDED" 
-          ? "The member account has been suspended."
-          : "The member account has been activated.",
+        title: variables.status === "SUSPENDED" ? t('common.suspended') : t('statusLabels.active'),
+        description: t('common.updatedSuccessfully'),
       });
       setSuspendDialog({ open: false, account: null, action: "SUSPENDED" });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to update status",
-        description: error.message || "Could not update account status.",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -110,11 +108,11 @@ export default function LeaderMemberAccounts() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "ACTIVE":
-        return <Badge data-testid="badge-status-active" variant="default">Active</Badge>;
+        return <Badge data-testid="badge-status-active" variant="default">{t('statusLabels.active')}</Badge>;
       case "PENDING_CLAIM":
-        return <Badge data-testid="badge-status-pending" variant="secondary">Pending Claim</Badge>;
+        return <Badge data-testid="badge-status-pending" variant="secondary">{t('memberAccounts.pendingClaim')}</Badge>;
       case "SUSPENDED":
-        return <Badge data-testid="badge-status-suspended" variant="destructive">Suspended</Badge>;
+        return <Badge data-testid="badge-status-suspended" variant="destructive">{t('common.suspended')}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -123,11 +121,11 @@ export default function LeaderMemberAccounts() {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "convert":
-        return <Badge data-testid="badge-type-convert" variant="outline">Convert</Badge>;
+        return <Badge data-testid="badge-type-convert" variant="outline">{t('sidebar.converts')}</Badge>;
       case "new_member":
-        return <Badge data-testid="badge-type-new-member" variant="outline">New Member & Guest</Badge>;
+        return <Badge data-testid="badge-type-new-member" variant="outline">{t('newMembers.title')}</Badge>;
       case "member":
-        return <Badge data-testid="badge-type-member" variant="outline">Member</Badge>;
+        return <Badge data-testid="badge-type-member" variant="outline">{t('membersPage.title')}</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
@@ -138,14 +136,14 @@ export default function LeaderMemberAccounts() {
       <div className="space-y-6">
         <PageHeader
           title={t('sidebar.memberAccounts')}
-          description="View and manage member portal accounts for your ministry"
+          description={t('memberAccounts.description')}
         />
 
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search members..."
+            placeholder={t('forms.searchPlaceholder')}
             className="pl-8"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -163,9 +161,9 @@ export default function LeaderMemberAccounts() {
             ) : !filteredAccounts?.length ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>{search ? "No matching accounts found" : "No member accounts yet"}</p>
+                <p>{search ? t('memberAccounts.noMatchingAccounts') : t('memberAccounts.noAccountsYet')}</p>
                 <p className="text-sm mt-1">
-                  Member accounts are created when people submit public forms with their email
+                  {t('memberAccounts.description')}
                 </p>
               </div>
             ) : (
@@ -173,12 +171,12 @@ export default function LeaderMemberAccounts() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Login</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.email')}</TableHead>
+                      <TableHead>{t('forms.type')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('forms.lastLogin')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -201,7 +199,7 @@ export default function LeaderMemberAccounts() {
                           ) : (
                             <span className="text-muted-foreground flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              Never
+                              {t('statusLabels.neverContacted')}
                             </span>
                           )}
                         </TableCell>
@@ -220,7 +218,7 @@ export default function LeaderMemberAccounts() {
                                 ) : (
                                   <RefreshCw className="h-4 w-4" />
                                 )}
-                                <span className="ml-1 hidden sm:inline">Resend</span>
+                                <span className="ml-1 hidden sm:inline">{t('common.resendClaim')}</span>
                               </Button>
                             )}
                             {account.status === "ACTIVE" && (
@@ -231,7 +229,7 @@ export default function LeaderMemberAccounts() {
                                 data-testid={`button-suspend-${account.id}`}
                               >
                                 <UserX className="h-4 w-4" />
-                                <span className="ml-1 hidden sm:inline">Suspend</span>
+                                <span className="ml-1 hidden sm:inline">{t('common.suspend')}</span>
                               </Button>
                             )}
                             {account.status === "SUSPENDED" && (
@@ -242,7 +240,7 @@ export default function LeaderMemberAccounts() {
                                 data-testid={`button-activate-${account.id}`}
                               >
                                 <UserCheck className="h-4 w-4" />
-                                <span className="ml-1 hidden sm:inline">Activate</span>
+                                <span className="ml-1 hidden sm:inline">{t('common.activate')}</span>
                               </Button>
                             )}
                           </div>
@@ -259,16 +257,16 @@ export default function LeaderMemberAccounts() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {suspendDialog.action === "SUSPENDED" ? "Suspend Account?" : "Activate Account?"}
+                {suspendDialog.action === "SUSPENDED" ? t('memberAccounts.suspendAccount') : t('memberAccounts.activateAccount')}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {suspendDialog.action === "SUSPENDED"
-                  ? `This will prevent ${suspendDialog.account?.firstName} ${suspendDialog.account?.lastName} from accessing the member portal.`
-                  : `This will restore ${suspendDialog.account?.firstName} ${suspendDialog.account?.lastName}'s access to the member portal.`}
+                  ? t('memberAccounts.suspendDesc', { name: `${suspendDialog.account?.firstName} ${suspendDialog.account?.lastName}` })
+                  : t('memberAccounts.activateDesc', { name: `${suspendDialog.account?.firstName} ${suspendDialog.account?.lastName}` })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel data-testid="button-cancel-status">Cancel</AlertDialogCancel>
+              <AlertDialogCancel data-testid="button-cancel-status">{t('forms.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   if (suspendDialog.account) {
@@ -280,7 +278,7 @@ export default function LeaderMemberAccounts() {
                 }}
                 data-testid="button-confirm-status"
               >
-                {suspendDialog.action === "SUSPENDED" ? "Suspend" : "Activate"}
+                {suspendDialog.action === "SUSPENDED" ? t('common.suspend') : t('common.activate')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

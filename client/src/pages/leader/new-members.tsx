@@ -78,32 +78,6 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const statusLabels: Record<string, string> = {
-  NEW: "New",
-  SCHEDULED: "Scheduled",
-  CONNECTED: "Connected",
-  NO_RESPONSE: "No Response",
-  NEEDS_PRAYER: "Needs Prayer",
-  REFERRED: "Referred",
-  NOT_COMPLETED: "Not Completed",
-  NEVER_CONTACTED: "Never Contacted",
-  ACTIVE: "Active",
-  IN_PROGRESS: "In Progress",
-  INACTIVE: "Inactive",
-};
-
-const followUpStageLabels: Record<string, string> = {
-  NEW: "Not Started",
-  CONTACT_NEW_MEMBER: "Needs Contact",
-  SCHEDULED: "1st Scheduled",
-  FIRST_COMPLETED: "1st Completed",
-  INITIATE_SECOND: "Ready for 2nd",
-  SECOND_SCHEDULED: "2nd Scheduled",
-  SECOND_COMPLETED: "2nd Completed",
-  INITIATE_FINAL: "Ready for Final",
-  FINAL_SCHEDULED: "Final Scheduled",
-  FINAL_COMPLETED: "Completed",
-};
 
 const followUpStageColors: Record<string, string> = {
   NEW: "bg-muted text-muted-foreground border-muted",
@@ -144,6 +118,33 @@ export default function LeaderNewMembers() {
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [newMemberToRemove, setNewMemberToRemove] = useState<NewMember | null>(null);
 
+  const statusLabels: Record<string, string> = {
+    NEW: t('statusLabels.new'),
+    SCHEDULED: t('statusLabels.scheduled'),
+    CONNECTED: t('statusLabels.connected'),
+    NO_RESPONSE: t('statusLabels.noResponse'),
+    NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+    REFERRED: t('statusLabels.referred'),
+    NOT_COMPLETED: t('statusLabels.notCompleted'),
+    NEVER_CONTACTED: t('statusLabels.neverContacted'),
+    ACTIVE: t('statusLabels.active'),
+    IN_PROGRESS: t('statusLabels.inProgress'),
+    INACTIVE: t('statusLabels.inactive'),
+  };
+
+  const followUpStageLabels: Record<string, string> = {
+    NEW: t('followUpStageLabels.notStarted'),
+    CONTACT_NEW_MEMBER: t('followUpStageLabels.needsContact'),
+    SCHEDULED: t('followUpStageLabels.firstScheduled'),
+    FIRST_COMPLETED: t('followUpStageLabels.firstCompleted'),
+    INITIATE_SECOND: t('followUpStageLabels.readyForSecond'),
+    SECOND_SCHEDULED: t('followUpStageLabels.secondScheduled'),
+    SECOND_COMPLETED: t('followUpStageLabels.secondCompleted'),
+    INITIATE_FINAL: t('followUpStageLabels.readyForFinal'),
+    FINAL_SCHEDULED: t('followUpStageLabels.finalScheduled'),
+    FINAL_COMPLETED: t('followUpStageLabels.completed'),
+  };
+
   const { data: newMembers, isLoading } = useQuery<NewMember[]>({
     queryKey: ["/api/leader/new-members"],
   });
@@ -158,8 +159,8 @@ export default function LeaderNewMembers() {
     },
     onSuccess: async () => {
       toast({
-        title: "New member removed",
-        description: "The new member has been removed from this ministry and notified via email.",
+        title: t('newMembers.newMemberRemoved'),
+        description: t('newMembers.newMemberRemovedDesc'),
       });
       await queryClient.refetchQueries({ queryKey: ["/api/leader/new-members"] });
       setRemoveDialogOpen(false);
@@ -167,8 +168,8 @@ export default function LeaderNewMembers() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to remove new member",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -213,8 +214,8 @@ export default function LeaderNewMembers() {
     },
     onSuccess: (result) => {
       toast({
-        title: "Note added",
-        description: "The follow-up note has been recorded.",
+        title: t('newMembers.noteAdded'),
+        description: t('newMembers.noteAddedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
       setFollowUpNoteDialogOpen(false);
@@ -229,8 +230,8 @@ export default function LeaderNewMembers() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to add note",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -266,8 +267,8 @@ export default function LeaderNewMembers() {
     },
     onSuccess: () => {
       toast({
-        title: "New member added",
-        description: "The new member has been added successfully.",
+        title: t('newMembers.newMemberAdded'),
+        description: t('newMembers.newMemberAddedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
       setDialogOpen(false);
@@ -275,8 +276,8 @@ export default function LeaderNewMembers() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to add new member",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -288,8 +289,8 @@ export default function LeaderNewMembers() {
     },
     onSuccess: () => {
       toast({
-        title: "Moved to Members",
-        description: "The person has been moved to the Members List.",
+        title: t('newMembers.movedToMembers'),
+        description: t('newMembers.movedToMembersDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
@@ -298,8 +299,8 @@ export default function LeaderNewMembers() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to move to members",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -311,8 +312,8 @@ export default function LeaderNewMembers() {
     },
     onSuccess: () => {
       toast({
-        title: "Moved to Guest List",
-        description: "The person has been moved to the Guest List.",
+        title: t('newMembers.movedToGuests'),
+        description: t('newMembers.movedToGuestsDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/guests"] });
@@ -321,8 +322,8 @@ export default function LeaderNewMembers() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to move to guest list",
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
         variant: "destructive",
       });
     },
@@ -355,7 +356,7 @@ export default function LeaderNewMembers() {
       <div className="space-y-6">
         <PageHeader
           title={t('newMembers.title')}
-          description="Manage and track new members & guests of your ministry"
+          description={t('newMembers.description')}
           actions={
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -368,7 +369,7 @@ export default function LeaderNewMembers() {
                 <DialogHeader>
                   <DialogTitle>{t('newMembers.addNewMember')}</DialogTitle>
                   <DialogDescription>
-                    Record information about a new member
+                    {t('newMembers.recordInfo')}
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -379,8 +380,8 @@ export default function LeaderNewMembers() {
                     <div className="rounded-md border bg-muted/50 p-3">
                       <div className="flex items-center gap-2">
                         <Church className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Ministry:</span>
-                        <span className="text-sm text-muted-foreground">{church?.name || "Loading..."}</span>
+                        <span className="text-sm font-medium">{t('forms.ministry')}:</span>
+                        <span className="text-sm text-muted-foreground">{church?.name || t('forms.loading')}</span>
                       </div>
                     </div>
 
@@ -390,10 +391,10 @@ export default function LeaderNewMembers() {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>First Name *</FormLabel>
+                            <FormLabel>{t('forms.firstName')} *</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="First name"
+                                placeholder={t('forms.firstName')}
                                 {...field}
                                 data-testid="input-new-member-firstname"
                               />
@@ -407,10 +408,10 @@ export default function LeaderNewMembers() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Last Name *</FormLabel>
+                            <FormLabel>{t('forms.lastName')} *</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Last name"
+                                placeholder={t('forms.lastName')}
                                 {...field}
                                 data-testid="input-new-member-lastname"
                               />
@@ -427,10 +428,10 @@ export default function LeaderNewMembers() {
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Phone</FormLabel>
+                            <FormLabel>{t('forms.phone')}</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Phone number"
+                                placeholder={t('forms.phone')}
                                 {...field}
                                 data-testid="input-new-member-phone"
                               />
@@ -444,11 +445,11 @@ export default function LeaderNewMembers() {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel>{t('forms.email')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="email"
-                                placeholder="Email address"
+                                placeholder={t('forms.email')}
                                 {...field}
                                 data-testid="input-new-member-email"
                               />
@@ -465,16 +466,16 @@ export default function LeaderNewMembers() {
                         name="gender"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Gender</FormLabel>
+                            <FormLabel>{t('forms.gender')}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-new-member-gender">
-                                  <SelectValue placeholder="Select gender" />
+                                  <SelectValue placeholder={t('forms.selectGender')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="Male">Male</SelectItem>
-                                <SelectItem value="Female">Female</SelectItem>
+                                <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                                <SelectItem value="Female">{t('forms.female')}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -486,18 +487,18 @@ export default function LeaderNewMembers() {
                         name="ageGroup"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Age Group</FormLabel>
+                            <FormLabel>{t('forms.ageGroup')}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-new-member-age-group">
-                                  <SelectValue placeholder="Select age group" />
+                                  <SelectValue placeholder={t('forms.selectAgeGroup')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="Under 18">Under 18</SelectItem>
-                                <SelectItem value="18-24">18-24</SelectItem>
-                                <SelectItem value="25-34">25-34</SelectItem>
-                                <SelectItem value="35 and Above">35 and Above</SelectItem>
+                                <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                                <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                                <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                                <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -511,7 +512,7 @@ export default function LeaderNewMembers() {
                       name="dateOfBirth"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Date of Birth</FormLabel>
+                          <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                           <FormControl>
                             <Input
                               type="date"
@@ -529,11 +530,11 @@ export default function LeaderNewMembers() {
                       name="country"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Country</FormLabel>
+                          <FormLabel>{t('forms.country')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-new-member-country">
-                                <SelectValue placeholder="Select country" />
+                                <SelectValue placeholder={t('forms.selectCountry')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -554,10 +555,10 @@ export default function LeaderNewMembers() {
                       name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Address</FormLabel>
+                          <FormLabel>{t('forms.address')}</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Full address"
+                              placeholder={t('forms.address')}
                               {...field}
                               data-testid="input-new-member-address"
                             />
@@ -572,10 +573,10 @@ export default function LeaderNewMembers() {
                       name="notes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Notes</FormLabel>
+                          <FormLabel>{t('forms.notes')}</FormLabel>
                           <FormControl>
                             <AITextarea
-                              placeholder="Additional notes..."
+                              placeholder={t('forms.additionalNotesPlaceholder')}
                               value={field.value || ""}
                               onChange={field.onChange}
                               context="Notes about a new member in a ministry"
@@ -596,7 +597,7 @@ export default function LeaderNewMembers() {
                       {createMutation.isPending ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Adding...
+                          {t('forms.saving')}
                         </>
                       ) : (
                         t('newMembers.addNewMember')
@@ -624,10 +625,10 @@ export default function LeaderNewMembers() {
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]" data-testid="select-status-filter">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t('forms.filterByStatus')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="all">{t('forms.allStatuses')}</SelectItem>
                   {Object.entries(statusLabels).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
                       {label}
@@ -648,7 +649,7 @@ export default function LeaderNewMembers() {
                 <UserPlus className="mx-auto h-12 w-12 text-muted-foreground/50" />
                 <h3 className="mt-4 text-lg font-semibold">{t('newMembers.noNewMembers')}</h3>
                 <p className="text-muted-foreground">
-                  Add a new member & guest or adjust your filters.
+                  {t('newMembers.addFirstMember')}
                 </p>
               </div>
             ) : (
@@ -656,12 +657,12 @@ export default function LeaderNewMembers() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Follow Up Status</TableHead>
-                      <TableHead>Visit Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('forms.gender')}</TableHead>
+                      <TableHead>{t('newMembers.followUpStatus')}</TableHead>
+                      <TableHead>{t('forms.visitDate')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -717,7 +718,7 @@ export default function LeaderNewMembers() {
                                   <CalendarPlus className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Schedule Follow Up</TooltipContent>
+                              <TooltipContent>{t('followUps.scheduleFollowUp')}</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -730,7 +731,7 @@ export default function LeaderNewMembers() {
                                   <ClipboardCheck className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Follow Up Note</TooltipContent>
+                              <TooltipContent>{t('followUps.followUpNote')}</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -743,7 +744,7 @@ export default function LeaderNewMembers() {
                                   <Clock className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Follow Up Timeline</TooltipContent>
+                              <TooltipContent>{t('newMembers.followUpTimeline')}</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -756,7 +757,7 @@ export default function LeaderNewMembers() {
                                   <Church className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Move to Members</TooltipContent>
+                              <TooltipContent>{t('newMembers.moveToMembers')}</TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -772,7 +773,7 @@ export default function LeaderNewMembers() {
                                   <UserMinus className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Remove from Ministry</TooltipContent>
+                              <TooltipContent>{t('common.removeFromMinistry')}</TooltipContent>
                             </Tooltip>
                           </div>
                         </TableCell>
@@ -790,14 +791,14 @@ export default function LeaderNewMembers() {
       <Dialog open={convertToMemberDialogOpen} onOpenChange={setConvertToMemberDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Move to Members List</DialogTitle>
+            <DialogTitle>{t('newMembers.moveToMembers')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to move {selectedNewMember?.firstName} {selectedNewMember?.lastName} to the Members List? This will remove them from the New Members & Guests list.
+              {t('newMembers.moveToMembersConfirm', { name: `${selectedNewMember?.firstName} ${selectedNewMember?.lastName}` })}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setConvertToMemberDialogOpen(false)}>
-              Cancel
+              {t('forms.cancel')}
             </Button>
             <Button 
               onClick={() => selectedNewMember && convertToMemberMutation.mutate(selectedNewMember.id)}
@@ -807,10 +808,10 @@ export default function LeaderNewMembers() {
               {convertToMemberMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Moving...
+                  {t('forms.saving')}
                 </>
               ) : (
-                "Move to Members"
+                t('newMembers.moveToMembers')
               )}
             </Button>
           </div>
@@ -821,14 +822,14 @@ export default function LeaderNewMembers() {
       <Dialog open={convertToGuestDialogOpen} onOpenChange={setConvertToGuestDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Move to Guest List</DialogTitle>
+            <DialogTitle>{t('newMembers.moveToGuestList')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to move {selectedNewMember?.firstName} {selectedNewMember?.lastName} to the Guest List? This indicates they won't be becoming a member.
+              {t('newMembers.moveToGuestConfirm', { name: `${selectedNewMember?.firstName} ${selectedNewMember?.lastName}` })}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setConvertToGuestDialogOpen(false)}>
-              Cancel
+              {t('forms.cancel')}
             </Button>
             <Button 
               onClick={() => selectedNewMember && convertToGuestMutation.mutate(selectedNewMember.id)}
@@ -838,10 +839,10 @@ export default function LeaderNewMembers() {
               {convertToGuestMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Moving...
+                  {t('forms.saving')}
                 </>
               ) : (
-                "Move to Guest List"
+                t('newMembers.moveToGuestList')
               )}
             </Button>
           </div>
@@ -855,10 +856,9 @@ export default function LeaderNewMembers() {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Final Follow-Up Completed</DialogTitle>
+            <DialogTitle>{t('newMembers.finalFollowUpCompleted')}</DialogTitle>
             <DialogDescription>
-              Congratulations! You have completed all follow-ups with {selectedNewMember?.firstName} {selectedNewMember?.lastName}. 
-              Would you like to move them to the Members List or Guest List?
+              {t('newMembers.finalFollowUpDesc', { name: `${selectedNewMember?.firstName} ${selectedNewMember?.lastName}` })}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 mt-4">
@@ -870,7 +870,7 @@ export default function LeaderNewMembers() {
               data-testid="button-prompt-move-to-members"
             >
               <Users className="h-4 w-4 mr-2" />
-              Move to Members List
+              {t('newMembers.moveToMembers')}
             </Button>
             <Button 
               variant="outline"
@@ -881,7 +881,7 @@ export default function LeaderNewMembers() {
               data-testid="button-prompt-move-to-guests"
             >
               <UserMinus className="h-4 w-4 mr-2" />
-              Move to Guest List
+              {t('newMembers.moveToGuestList')}
             </Button>
             <Button 
               variant="ghost"
@@ -891,7 +891,7 @@ export default function LeaderNewMembers() {
               }}
               data-testid="button-prompt-decide-later"
             >
-              Decide Later
+              {t('newMembers.decideLater')}
             </Button>
           </div>
         </DialogContent>
@@ -916,9 +916,9 @@ export default function LeaderNewMembers() {
       <Dialog open={followUpNoteDialogOpen} onOpenChange={setFollowUpNoteDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Follow Up Note</DialogTitle>
+            <DialogTitle>{t('followUps.followUpNote')}</DialogTitle>
             <DialogDescription>
-              Record a follow-up note for {selectedNewMember?.firstName} {selectedNewMember?.lastName}
+              {t('followUps.recordNoteDesc', { name: `${selectedNewMember?.firstName} ${selectedNewMember?.lastName}` })}
             </DialogDescription>
           </DialogHeader>
           <Form {...followUpNoteForm}>
@@ -931,7 +931,7 @@ export default function LeaderNewMembers() {
                 name="checkinDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date *</FormLabel>
+                    <FormLabel>{t('forms.date')} *</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} data-testid="input-note-date" />
                     </FormControl>
@@ -945,20 +945,20 @@ export default function LeaderNewMembers() {
                 name="outcome"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Outcome *</FormLabel>
+                    <FormLabel>{t('followUps.outcome')} *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-note-outcome">
-                          <SelectValue placeholder="Select outcome" />
+                          <SelectValue placeholder={t('forms.selectOutcome')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="CONNECTED">Connected</SelectItem>
-                        <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                        <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                        <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                        <SelectItem value="REFERRED">Referred</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
+                        <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                        <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
+                        <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
+                        <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
+                        <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                        <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -971,10 +971,10 @@ export default function LeaderNewMembers() {
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel>{t('forms.notes')}</FormLabel>
                     <FormControl>
                       <AITextarea
-                        placeholder="Notes about the follow-up..."
+                        placeholder={t('forms.notes')}
                         value={field.value || ""}
                         onChange={field.onChange}
                         context="Follow-up note for a new member in a ministry"
@@ -995,10 +995,10 @@ export default function LeaderNewMembers() {
                 {followUpNoteMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Saving...
+                    {t('forms.saving')}
                   </>
                 ) : (
-                  "Save Note"
+                  t('forms.saveNote')
                 )}
               </Button>
             </form>
@@ -1017,15 +1017,13 @@ export default function LeaderNewMembers() {
       <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove New Member from Ministry</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.removeFromMinistry')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove {newMemberToRemove?.firstName} {newMemberToRemove?.lastName} from this ministry? 
-              They will be notified via email and can join another ministry if they wish. 
-              This action does not deactivate their member portal account.
+              {t('common.removeConfirm', { name: `${newMemberToRemove?.firstName} ${newMemberToRemove?.lastName}` })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('forms.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => newMemberToRemove && removeMutation.mutate(newMemberToRemove.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -1034,10 +1032,10 @@ export default function LeaderNewMembers() {
               {removeMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Removing...
+                  {t('forms.saving')}
                 </>
               ) : (
-                "Remove"
+                t('forms.remove')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1067,21 +1065,22 @@ function TimelineDialog({
     enabled: !!newMember && open,
   });
 
+  const { t } = useTranslation();
   const outcomeLabels: Record<string, string> = {
-    CONNECTED: "Connected",
-    NO_RESPONSE: "No Response",
-    NEEDS_PRAYER: "Needs Prayer",
-    SCHEDULED_VISIT: "Scheduled Visit",
-    REFERRED: "Referred",
-    OTHER: "Other",
-    NOT_COMPLETED: "Not Completed",
+    CONNECTED: t('statusLabels.connected'),
+    NO_RESPONSE: t('statusLabels.noResponse'),
+    NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+    SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
+    REFERRED: t('statusLabels.referred'),
+    OTHER: t('statusLabels.other'),
+    NOT_COMPLETED: t('statusLabels.notCompleted'),
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Follow Up Timeline</DialogTitle>
+          <DialogTitle>{t('newMembers.followUpTimeline')}</DialogTitle>
           <DialogDescription>
             {newMember?.firstName} {newMember?.lastName}
           </DialogDescription>
@@ -1095,7 +1094,7 @@ function TimelineDialog({
         ) : checkins?.length === 0 ? (
           <div className="text-center py-8">
             <Clock className="mx-auto h-12 w-12 text-muted-foreground/50" />
-            <p className="mt-4 text-muted-foreground">No follow-ups recorded yet</p>
+            <p className="mt-4 text-muted-foreground">{t('followUps.noFollowUps')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -1113,8 +1112,8 @@ function TimelineDialog({
                       )}
                       {checkin.nextFollowupDate && (
                         <p className="text-sm text-muted-foreground">
-                          Next follow-up: {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
-                          {checkin.nextFollowupTime && <span> at {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
+                          {t('converts.nextFollowUp')}: {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
+                          {checkin.nextFollowupTime && <span> {t('common.at')} {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
                         </p>
                       )}
                     </div>
@@ -1127,7 +1126,7 @@ function TimelineDialog({
                       >
                         <Button size="sm" variant="outline" className="gap-2">
                           <Video className="h-4 w-4" />
-                          Join Meeting
+                          {t('converts.joinMeeting')}
                         </Button>
                       </a>
                     )}
