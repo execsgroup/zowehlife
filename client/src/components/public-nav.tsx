@@ -1,15 +1,24 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "./theme-toggle";
-import { LanguageToggle } from "./language-toggle";
-import { Heart, Menu, X } from "lucide-react";
+import { useTheme } from "./theme-provider";
+import { languages } from "@/lib/i18n";
+import { Heart, Menu, X, Globe, Moon, Sun, Check } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
 export function PublicNav() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
 
   const navLinks = [
     { href: "/", label: t('nav.home'), key: "home" },
@@ -44,8 +53,6 @@ export function PublicNav() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <ThemeToggle />
             <Link href="/member-portal/login">
               <Button variant="ghost" size="sm" data-testid="button-member-portal">
                 {t('nav.memberPortal')}
@@ -56,6 +63,42 @@ export function PublicNav() {
                 {t('nav.ministryLogin')}
               </Button>
             </Link>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" data-testid="button-settings-menu">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">{t('nav.settings')}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  {t('nav.language')}
+                </DropdownMenuLabel>
+                {languages.map((lang) => (
+                  <DropdownMenuItem
+                    key={lang.code}
+                    onClick={() => i18n.changeLanguage(lang.code)}
+                    data-testid={`button-lang-${lang.code}`}
+                  >
+                    <span className="mr-2 text-xs font-medium uppercase text-muted-foreground">{lang.code}</span>
+                    {lang.label}
+                    {i18n.language === lang.code && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggleTheme} data-testid="menu-theme-toggle">
+                  {theme === "light" ? (
+                    <Moon className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Sun className="h-4 w-4 mr-2" />
+                  )}
+                  {theme === "light" ? t('nav.darkMode') : t('nav.lightMode')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant="ghost"
               size="icon"

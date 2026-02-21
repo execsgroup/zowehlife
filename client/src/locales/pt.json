@@ -9,7 +9,11 @@
     "publicSite": "Site Público",
     "navigation": "Navegação",
     "quickLinks": "Links Rápidos",
-    "backToHome": "Voltar ao Início"
+    "backToHome": "Voltar ao Início",
+    "settings": "Configurações",
+    "language": "Idioma",
+    "darkMode": "Modo Escuro",
+    "lightMode": "Modo Claro"
   },
   "roles": {
     "platformAdmin": "Administrador da Plataforma",
