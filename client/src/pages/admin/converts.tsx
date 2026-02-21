@@ -35,18 +35,18 @@ interface ConvertWithChurch extends Convert {
   church?: { id: string; name: string };
 }
 
-const checkinFormSchema = z.object({
-  checkinDate: z.string().min(1, "Date is required"),
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
-  notes: z.string().optional(),
-  nextFollowupDate: z.string().optional(),
-});
-
-type CheckinFormData = z.infer<typeof checkinFormSchema>;
-
 export default function AdminConverts() {
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const checkinFormSchema = z.object({
+    checkinDate: z.string().min(1, t('validation.dateRequired')),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+    notes: z.string().optional(),
+    nextFollowupDate: z.string().optional(),
+  });
+
+  type CheckinFormData = z.infer<typeof checkinFormSchema>;
   const [search, setSearch] = useState("");
   const [churchFilter, setChurchFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");

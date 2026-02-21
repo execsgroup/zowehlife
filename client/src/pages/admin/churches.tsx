@@ -23,14 +23,6 @@ import { useLocation } from "wouter";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 
-const churchFormSchema = insertChurchSchema.extend({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  location: z.string().min(2, "Location is required"),
-  plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
-});
-
-type ChurchFormData = z.infer<typeof churchFormSchema>;
-
 interface ChurchWithCounts extends Church {
   leaderCount: number;
   convertCount: number;
@@ -39,6 +31,14 @@ interface ChurchWithCounts extends Church {
 export default function AdminChurches() {
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const churchFormSchema = insertChurchSchema.extend({
+    name: z.string().min(2, t('validation.nameMinLength')),
+    location: z.string().min(2, t('validation.locationRequired')),
+    plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
+  });
+
+  type ChurchFormData = z.infer<typeof churchFormSchema>;
   const [, navigate] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingChurch, setEditingChurch] = useState<Church | null>(null);

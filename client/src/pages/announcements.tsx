@@ -58,25 +58,17 @@ interface ScheduledAnnouncement {
   createdAt: string;
 }
 
-const announcementSchema = z.object({
-  subject: z.string().min(1, "Subject is required"),
-  message: z.string().min(1, "Message is required"),
+const announcementSchemaBase = z.object({
+  subject: z.string().min(1),
+  message: z.string().min(1),
   notificationMethod: z.enum(["email", "sms", "mms"]).default("email"),
   smsMessage: z.string().optional(),
   mmsMediaUrl: z.string().optional(),
   imageUrl: z.string().optional(),
-  recipientGroups: z.array(z.string()).min(1, "Select at least one recipient group"),
-}).refine(
-  (data) => {
-    if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
-      return !!data.smsMessage?.trim();
-    }
-    return true;
-  },
-  { message: "SMS/MMS message text is required", path: ["smsMessage"] }
-);
+  recipientGroups: z.array(z.string()).min(1),
+});
 
-type AnnouncementForm = z.infer<typeof announcementSchema>;
+type AnnouncementForm = z.infer<typeof announcementSchemaBase>;
 
 const recipientGroupOptionKeys: Array<{ id: string; labelKey: string }> = [
   { id: "converts", labelKey: "sidebar.converts" },
@@ -118,6 +110,24 @@ export default function AnnouncementsPage() {
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
+
+  const announcementSchema = z.object({
+    subject: z.string().min(1, t('validation.subjectRequired')),
+    message: z.string().min(1, t('validation.messageRequired')),
+    notificationMethod: z.enum(["email", "sms", "mms"]).default("email"),
+    smsMessage: z.string().optional(),
+    mmsMediaUrl: z.string().optional(),
+    imageUrl: z.string().optional(),
+    recipientGroups: z.array(z.string()).min(1, t('validation.selectRecipientGroup')),
+  }).refine(
+    (data) => {
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+        return !!data.smsMessage?.trim();
+      }
+      return true;
+    },
+    { message: t('validation.smsMessageRequired'), path: ["smsMessage"] }
+  );
 
   const form = useForm<AnnouncementForm>({
     resolver: zodResolver(announcementSchema),

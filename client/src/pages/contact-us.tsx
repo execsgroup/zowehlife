@@ -14,20 +14,28 @@ import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Mail, Phone, MessageSquare, CheckCircle2, Loader2 } from "lucide-react";
-const contactUsSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
+const contactUsSchemaBase = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
   phone: z.string().optional(),
-  subject: z.string().min(3, "Subject must be at least 3 characters"),
-  message: z.string().min(10, "Message must be at least 10 characters"),
+  subject: z.string().min(3),
+  message: z.string().min(10),
 });
 
-type ContactUsFormData = z.infer<typeof contactUsSchema>;
+type ContactUsFormData = z.infer<typeof contactUsSchemaBase>;
 
 export default function ContactUs() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+
+  const contactUsSchema = z.object({
+    name: z.string().min(2, t('validation.nameMinLength')),
+    email: z.string().email(t('validation.invalidEmail')),
+    phone: z.string().optional(),
+    subject: z.string().min(3, t('validation.subjectMinLength')),
+    message: z.string().min(10, t('validation.messageMinLength')),
+  });
 
   const form = useForm<ContactUsFormData>({
     resolver: zodResolver(contactUsSchema),
@@ -50,8 +58,8 @@ export default function ContactUs() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit request. Please try again.",
+        title: t('common.error'),
+        description: error.message || t('contact.failedToSubmit'),
         variant: "destructive",
       });
     },
@@ -72,13 +80,12 @@ export default function ContactUs() {
                 <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
                   <CheckCircle2 className="h-8 w-8 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Message Sent</h2>
+                <h2 className="text-2xl font-bold mb-2">{t('contact.messageSent')}</h2>
                 <p className="text-muted-foreground mb-6">
-                  Thank you for reaching out! We've received your message and someone will be in
-                  touch with you soon.
+                  {t('contact.thankYouReachOut')}
                 </p>
                 <Button onClick={() => setSubmitted(false)} data-testid="button-submit-another">
-                  Send Another Message
+                  {t('contact.sendAnotherMessage')}
                 </Button>
               </CardContent>
             </Card>
@@ -115,9 +122,9 @@ export default function ContactUs() {
             <div className="max-w-2xl mx-auto">
               <Card>
                 <CardHeader>
-                  <CardTitle>Send us a Message</CardTitle>
+                  <CardTitle>{t('contact.sendMessage')}</CardTitle>
                   <CardDescription>
-                    Fill out the form below and we'll get back to you as soon as possible.
+                    {t('contact.sendMessageDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -128,10 +135,10 @@ export default function ContactUs() {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Your Name *</FormLabel>
+                            <FormLabel>{t('contact.yourName')} *</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your full name"
+                                placeholder={t('contact.enterFullName')}
                                 {...field}
                                 data-testid="input-contact-name"
                               />
@@ -147,13 +154,13 @@ export default function ContactUs() {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email *</FormLabel>
+                              <FormLabel>{t('forms.email')} *</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                   <Input
                                     type="email"
-                                    placeholder="your@email.com"
+                                    placeholder={t('forms.emailPlaceholder')}
                                     className="pl-10"
                                     {...field}
                                     data-testid="input-contact-email"
@@ -170,13 +177,13 @@ export default function ContactUs() {
                           name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Phone</FormLabel>
+                              <FormLabel>{t('forms.phone')}</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                   <Input
                                     type="tel"
-                                    placeholder="+1 (555) 000-0000"
+                                    placeholder={t('forms.phonePlaceholder')}
                                     className="pl-10"
                                     {...field}
                                     data-testid="input-contact-phone"
@@ -194,10 +201,10 @@ export default function ContactUs() {
                         name="subject"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Subject *</FormLabel>
+                            <FormLabel>{t('contact.subject')} *</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="What is your message about?"
+                                placeholder={t('contact.subjectPlaceholder')}
                                 {...field}
                                 data-testid="input-contact-subject"
                               />
@@ -212,10 +219,10 @@ export default function ContactUs() {
                         name="message"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Your Message *</FormLabel>
+                            <FormLabel>{t('contact.yourMessage')} *</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Tell us how we can help you..."
+                                placeholder={t('contact.messagePlaceholder')}
                                 className="min-h-[150px] resize-none"
                                 {...field}
                                 data-testid="input-contact-message"
@@ -235,10 +242,10 @@ export default function ContactUs() {
                         {mutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Sending...
+                            {t('contact.sending')}
                           </>
                         ) : (
-                          "Send Message"
+                          t('contact.sendMessageButton')
                         )}
                       </Button>
                     </form>

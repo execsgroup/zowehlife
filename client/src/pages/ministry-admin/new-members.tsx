@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -37,17 +38,17 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const followUpStageLabels: Record<string, string> = {
-  NEW: "Not Started",
-  CONTACT_NEW_MEMBER: "Needs Contact",
-  SCHEDULED: "1st Scheduled",
-  FIRST_COMPLETED: "1st Completed",
-  INITIATE_SECOND: "Ready for 2nd",
-  SECOND_SCHEDULED: "2nd Scheduled",
-  SECOND_COMPLETED: "2nd Completed",
-  INITIATE_FINAL: "Ready for Final",
-  FINAL_SCHEDULED: "Final Scheduled",
-  FINAL_COMPLETED: "Completed",
+const followUpStageLabelKeys: Record<string, string> = {
+  NEW: "newMembers.followUpStageNotStarted",
+  CONTACT_NEW_MEMBER: "newMembers.followUpStageNeedsContact",
+  SCHEDULED: "newMembers.followUpStage1stScheduled",
+  FIRST_COMPLETED: "newMembers.followUpStage1stCompleted",
+  INITIATE_SECOND: "newMembers.followUpStageReadyFor2nd",
+  SECOND_SCHEDULED: "newMembers.followUpStage2ndScheduled",
+  SECOND_COMPLETED: "newMembers.followUpStage2ndCompleted",
+  INITIATE_FINAL: "newMembers.followUpStageReadyForFinal",
+  FINAL_SCHEDULED: "newMembers.followUpStageFinalScheduled",
+  FINAL_COMPLETED: "newMembers.followUpStageCompleted",
 };
 
 const followUpStageColors: Record<string, string> = {
@@ -65,6 +66,7 @@ const followUpStageColors: Record<string, string> = {
 
 
 export default function MinistryAdminNewMembers() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: newMembers, isLoading } = useQuery<NewMember[]>({
@@ -88,9 +90,9 @@ export default function MinistryAdminNewMembers() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
               <Users className="h-6 w-6" />
-              New Members & Guests
+              {t('newMembers.title')}
             </h1>
-            <p className="text-muted-foreground">View all new members & guests in your ministry</p>
+            <p className="text-muted-foreground">{t('newMembers.viewAllNewMembers')}</p>
           </div>
         </div>
 
@@ -99,7 +101,7 @@ export default function MinistryAdminNewMembers() {
             <div className="flex items-center gap-2 mb-4">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search new members & guests..."
+                placeholder={t('forms.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -118,11 +120,11 @@ export default function MinistryAdminNewMembers() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Gender / Age</TableHead>
-                      <TableHead>Follow Up Status</TableHead>
-                      <TableHead>Visit Date</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('forms.gender')} / {t('forms.ageGroup')}</TableHead>
+                      <TableHead>{t('newMembers.followUpStage')}</TableHead>
+                      <TableHead>{t('forms.visitDate')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -164,7 +166,7 @@ export default function MinistryAdminNewMembers() {
                         </TableCell>
                         <TableCell>
                           <Badge className={followUpStageColors[member.followUpStage || "NEW"]}>
-                            {followUpStageLabels[member.followUpStage || "NEW"]}
+                            {t(followUpStageLabelKeys[member.followUpStage || "NEW"])}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -180,9 +182,9 @@ export default function MinistryAdminNewMembers() {
             ) : (
               <div className="text-center py-12">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No new members & guests found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('newMembers.noNewMembers')}</h3>
                 <p className="text-muted-foreground">
-                  {searchQuery ? "Try a different search term" : "New members & guests will appear here once they register or are added by leaders"}
+                  {searchQuery ? t('common.tryDifferentSearch') : t('newMembers.newMembersWillAppear')}
                 </p>
               </div>
             )}

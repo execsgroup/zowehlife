@@ -34,18 +34,18 @@ interface LeaderQuota {
   canAddMore: boolean;
 }
 
-const addLeaderSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().optional(),
-});
-
-type AddLeaderFormData = z.infer<typeof addLeaderSchema>;
-
 export default function MinistryAdminLeaders() {
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const addLeaderSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    email: z.string().email(t('validation.invalidEmail')),
+    phone: z.string().optional(),
+  });
+
+  type AddLeaderFormData = z.infer<typeof addLeaderSchema>;
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedLeader, setSelectedLeader] = useState<Leader | null>(null);
@@ -266,7 +266,7 @@ export default function MinistryAdminLeaders() {
                     <FormItem>
                       <FormLabel>{t('forms.firstName')} *</FormLabel>
                       <FormControl>
-                        <Input placeholder="John" {...field} data-testid="input-leader-first-name" />
+                        <Input placeholder={t('forms.firstNamePlaceholder')} {...field} data-testid="input-leader-first-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -279,7 +279,7 @@ export default function MinistryAdminLeaders() {
                     <FormItem>
                       <FormLabel>{t('forms.lastName')} *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Doe" {...field} data-testid="input-leader-last-name" />
+                        <Input placeholder={t('forms.lastNamePlaceholder')} {...field} data-testid="input-leader-last-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

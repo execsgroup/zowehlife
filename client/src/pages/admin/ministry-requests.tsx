@@ -42,22 +42,22 @@ const statusColors: Record<string, string> = {
   DENIED: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
-const reviewFormSchema = z.object({
-  ministryName: z.string().min(2, "Ministry name must be at least 2 characters"),
-  location: z.string().optional(),
-  adminFirstName: z.string().min(1, "First name is required"),
-  adminLastName: z.string().min(1, "Last name is required"),
-  adminEmail: z.string().email("Please enter a valid email"),
-  adminPhone: z.string().optional(),
-  description: z.string().optional(),
-  plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
-});
-
-type ReviewFormData = z.infer<typeof reviewFormSchema>;
-
 export default function MinistryRequests() {
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const reviewFormSchema = z.object({
+    ministryName: z.string().min(2, t('validation.ministryNameMinLength')),
+    location: z.string().optional(),
+    adminFirstName: z.string().min(1, t('validation.firstNameRequired')),
+    adminLastName: z.string().min(1, t('validation.lastNameRequired')),
+    adminEmail: z.string().email(t('validation.invalidEmail')),
+    adminPhone: z.string().optional(),
+    description: z.string().optional(),
+    plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
+  });
+
+  type ReviewFormData = z.infer<typeof reviewFormSchema>;
   const [reviewingRequest, setReviewingRequest] = useState<MinistryRequest | null>(null);
 
   const { data: requests, isLoading } = useQuery<MinistryRequest[]>({

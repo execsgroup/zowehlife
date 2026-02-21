@@ -29,18 +29,18 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-const ministryRequestSchema = z.object({
-  ministryName: z.string().min(2, "Ministry name must be at least 2 characters"),
+const ministryRequestSchemaBase = z.object({
+  ministryName: z.string().min(2),
   location: z.string().optional(),
-  adminFirstName: z.string().min(1, "First name is required"),
-  adminLastName: z.string().min(1, "Last name is required"),
-  adminEmail: z.string().email("Please enter a valid email"),
+  adminFirstName: z.string().min(1),
+  adminLastName: z.string().min(1),
+  adminEmail: z.string().email(),
   adminPhone: z.string().optional(),
   description: z.string().optional(),
   plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
 });
 
-type MinistryRequestFormData = z.infer<typeof ministryRequestSchema>;
+type MinistryRequestFormData = z.infer<typeof ministryRequestSchemaBase>;
 
 interface StripePlan {
   planId: string;
@@ -60,14 +60,14 @@ const tierMeta: Record<string, { highlighted: boolean; leaderLimit: string }> = 
   stewardship: { highlighted: false, leaderLimit: "Up to 10 Leader Accounts" },
 };
 
-const sharedFeatures = [
-  "All Platform Features Included",
-  "Convert & Member Tracking",
-  "Follow-Up Scheduling & Email Notifications",
-  "Public Registration Links",
-  "Dashboard Statistics",
-  "Prayer Requests & Member Portal",
-  "AI Email Drafting & Video Calls",
+const sharedFeatureKeys = [
+  "registerMinistry.allPlatformFeatures",
+  "registerMinistry.convertMemberTracking",
+  "registerMinistry.followUpScheduling",
+  "registerMinistry.publicRegistrationLinks",
+  "registerMinistry.dashboardStatistics",
+  "registerMinistry.prayerRequestsMemberPortal",
+  "registerMinistry.aiEmailDraftingVideoCalls",
 ];
 
 function formatPrice(amount: number): string {
@@ -80,6 +80,17 @@ export default function RegisterMinistry() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { t } = useTranslation();
+
+  const ministryRequestSchema = z.object({
+    ministryName: z.string().min(2, t('validation.ministryNameMinLength')),
+    location: z.string().optional(),
+    adminFirstName: z.string().min(1, t('validation.firstNameRequired')),
+    adminLastName: z.string().min(1, t('validation.lastNameRequired')),
+    adminEmail: z.string().email(t('validation.invalidEmail')),
+    adminPhone: z.string().optional(),
+    description: z.string().optional(),
+    plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
+  });
 
   const { data: plans, isLoading: plansLoading } = useQuery<StripePlan[]>({
     queryKey: ["/api/stripe/ministry-plans"],
@@ -113,7 +124,7 @@ export default function RegisterMinistry() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Submission Failed",
+        title: t('registerMinistry.submissionFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -156,13 +167,13 @@ export default function RegisterMinistry() {
               data-testid="button-back"
             >
               <ArrowLeft className="h-4 w-4" />
-              {step === "form" ? "Back to Plans" : "Back to Home"}
+              {step === "form" ? t('registerMinistry.backToPlans') : t('registerMinistry.backToHome')}
             </Button>
             {step === "plan" ? (
               <>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-4">
-                  Choose a Plan to{" "}
-                  <span className="text-primary">Start Your Ministry</span>
+                  {t('registerMinistry.choosePlanTitle')}{" "}
+                  <span className="text-primary">{t('registerMinistry.startYourMinistry')}</span>
                 </h1>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto">
                   {t('registerMinistry.pageDescription')}
@@ -175,8 +186,8 @@ export default function RegisterMinistry() {
                 </h1>
                 <p className="text-base text-muted-foreground max-w-2xl mx-auto">
                   {isFreePlan
-                    ? "Fill out the details below to register your ministry for free."
-                    : "Fill out the details below. After submitting, you'll be directed to complete payment."}
+                    ? t('registerMinistry.freeFormDesc')
+                    : t('registerMinistry.paidFormDesc')}
                 </p>
               </>
             )}
@@ -198,12 +209,12 @@ export default function RegisterMinistry() {
                       data-testid="card-plan-free"
                     >
                       <CardHeader className="text-center pb-2">
-                        <CardTitle className="text-2xl">Free</CardTitle>
+                        <CardTitle className="text-2xl">{t('registerMinistry.free')}</CardTitle>
                         <div className="mt-2">
                           <span className="text-3xl font-bold">$0</span>
                           <span className="text-muted-foreground">/month</span>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">Get started at no cost</p>
+                        <p className="text-sm text-muted-foreground mt-1">{t('registerMinistry.getStartedFree')}</p>
                       </CardHeader>
                       <CardContent className="flex-1 flex flex-col">
                         <Button
@@ -212,22 +223,22 @@ export default function RegisterMinistry() {
                           onClick={() => handleSelectPlan("free")}
                           data-testid="button-select-free"
                         >
-                          Get Started
+                          {t('registerMinistry.getStarted')}
                           <ArrowRight className="h-4 w-4" />
                         </Button>
                         <ul className="space-y-3 flex-1">
                           <li className="flex items-start gap-2 text-sm font-medium">
                             <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                            <span>1 Admin Account</span>
+                            <span>{t('registerMinistry.adminAccount')}</span>
                           </li>
                           <li className="flex items-start gap-2 text-sm font-medium">
                             <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                             <span>1 Leader Account</span>
                           </li>
-                          {sharedFeatures.map((feature, idx) => (
+                          {sharedFeatureKeys.map((featureKey, idx) => (
                             <li key={idx} className="flex items-start gap-2 text-sm">
                               <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                              <span>{feature}</span>
+                              <span>{t(featureKey)}</span>
                             </li>
                           ))}
                         </ul>
@@ -250,7 +261,7 @@ export default function RegisterMinistry() {
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                               <Badge className="gap-1 bg-primary text-primary-foreground">
                                 <Star className="h-3 w-3" />
-                                Most Popular
+                                {t('registerMinistry.mostPopular')}
                               </Badge>
                             </div>
                           )}
@@ -269,22 +280,22 @@ export default function RegisterMinistry() {
                               onClick={() => handleSelectPlan(plan.planId as "free" | "foundations" | "formation" | "stewardship")}
                               data-testid={`button-select-${plan.planId}`}
                             >
-                              Get Started
+                              {t('registerMinistry.getStarted')}
                               <ArrowRight className="h-4 w-4" />
                             </Button>
                             <ul className="space-y-3 flex-1">
                               <li className="flex items-start gap-2 text-sm font-medium">
                                 <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                                <span>1 Admin Account</span>
+                                <span>{t('registerMinistry.adminAccount')}</span>
                               </li>
                               <li className="flex items-start gap-2 text-sm font-medium">
                                 <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                                 <span>{meta.leaderLimit}</span>
                               </li>
-                              {sharedFeatures.map((feature, idx) => (
+                              {sharedFeatureKeys.map((featureKey, idx) => (
                                 <li key={idx} className="flex items-start gap-2 text-sm">
                                   <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                                  <span>{feature}</span>
+                                  <span>{t(featureKey)}</span>
                                 </li>
                               ))}
                             </ul>
@@ -300,17 +311,17 @@ export default function RegisterMinistry() {
             <section className="py-12 md:py-16 bg-muted/30">
               <div className="container mx-auto px-4">
                 <div className="max-w-3xl mx-auto text-center mb-10">
-                  <h2 className="text-2xl md:text-3xl font-bold mb-3">What Every Ministry Gets</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-3">{t('registerMinistry.whatEveryMinistryGets')}</h2>
                   <p className="text-muted-foreground">
-                    All tiers include the core tools you need to manage and grow your ministry.
+                    {t('registerMinistry.whatEveryMinistryGetsDesc')}
                   </p>
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
                   {[
-                    { icon: Users, title: "Member Tracking", desc: "Track converts, new members, and existing members in one place" },
-                    { icon: Mail, title: "Email Notifications", desc: "Automated follow-up reminders and status updates" },
-                    { icon: BarChart3, title: "Dashboard Analytics", desc: "At-a-glance statistics about your ministry's growth" },
-                    { icon: Video, title: "Video Conferencing", desc: "Built-in video call links for remote follow-ups" },
+                    { icon: Users, titleKey: "registerMinistry.memberTracking", descKey: "registerMinistry.memberTrackingDesc" },
+                    { icon: Mail, titleKey: "registerMinistry.emailNotifications", descKey: "registerMinistry.emailNotificationsDesc" },
+                    { icon: BarChart3, titleKey: "registerMinistry.dashboardAnalytics", descKey: "registerMinistry.dashboardAnalyticsDesc" },
+                    { icon: Video, titleKey: "registerMinistry.videoConferencing", descKey: "registerMinistry.videoConferencingDesc" },
                   ].map((item, idx) => {
                     const ItemIcon = item.icon;
                     return (
@@ -319,8 +330,8 @@ export default function RegisterMinistry() {
                           <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
                             <ItemIcon className="h-6 w-6 text-primary" />
                           </div>
-                          <h3 className="font-semibold mb-1">{item.title}</h3>
-                          <p className="text-sm text-muted-foreground">{item.desc}</p>
+                          <h3 className="font-semibold mb-1">{t(item.titleKey)}</h3>
+                          <p className="text-sm text-muted-foreground">{t(item.descKey)}</p>
                         </CardContent>
                       </Card>
                     );
@@ -337,10 +348,10 @@ export default function RegisterMinistry() {
               <div className="max-w-xl mx-auto">
                 <div className="text-center mb-8">
                   <div className="inline-flex items-center gap-2 mb-4 flex-wrap">
-                    <span className="text-sm text-muted-foreground">Selected Plan:</span>
+                    <span className="text-sm text-muted-foreground">{t('registerMinistry.selectedPlan')}</span>
                     <Badge variant="secondary" className="gap-1" data-testid="badge-selected-plan">
                       <Sparkles className="h-3 w-3" />
-                      {isFreePlan ? "Free" : (selectedStripePlan?.name || selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1))}
+                      {isFreePlan ? t('registerMinistry.free') : (selectedStripePlan?.name || selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1))}
                     </Badge>
                     {isFreePlan ? (
                       <Badge variant="outline" data-testid="badge-plan-price">
@@ -363,9 +374,9 @@ export default function RegisterMinistry() {
                           name="ministryName"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Ministry Name *</FormLabel>
+                              <FormLabel>{t('churches.ministryName')} *</FormLabel>
                               <FormControl>
-                                <Input placeholder="e.g., Grace Community Church" {...field} data-testid="input-ministry-name" />
+                                <Input placeholder={t('registerMinistry.ministryNamePlaceholder')} {...field} data-testid="input-ministry-name" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -376,9 +387,9 @@ export default function RegisterMinistry() {
                           name="location"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Location</FormLabel>
+                              <FormLabel>{t('forms.location')}</FormLabel>
                               <FormControl>
-                                <Input placeholder="City, State/Country" {...field} data-testid="input-ministry-location" />
+                                <Input placeholder={t('forms.locationPlaceholder')} {...field} data-testid="input-ministry-location" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -390,9 +401,9 @@ export default function RegisterMinistry() {
                             name="adminFirstName"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>First Name *</FormLabel>
+                                <FormLabel>{t('forms.firstName')} *</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="John" {...field} data-testid="input-ministry-admin-first-name" />
+                                  <Input placeholder={t('forms.firstNamePlaceholder')} {...field} data-testid="input-ministry-admin-first-name" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -403,9 +414,9 @@ export default function RegisterMinistry() {
                             name="adminLastName"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Last Name *</FormLabel>
+                                <FormLabel>{t('forms.lastName')} *</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Doe" {...field} data-testid="input-ministry-admin-last-name" />
+                                  <Input placeholder={t('forms.lastNamePlaceholder')} {...field} data-testid="input-ministry-admin-last-name" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -417,9 +428,9 @@ export default function RegisterMinistry() {
                           name="adminEmail"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Your Email *</FormLabel>
+                              <FormLabel>{t('forms.email')} *</FormLabel>
                               <FormControl>
-                                <Input type="email" placeholder="admin@ministry.org" {...field} data-testid="input-ministry-admin-email" />
+                                <Input type="email" placeholder={t('forms.emailPlaceholder')} {...field} data-testid="input-ministry-admin-email" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -430,9 +441,9 @@ export default function RegisterMinistry() {
                           name="adminPhone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Your Phone</FormLabel>
+                              <FormLabel>{t('forms.phone')}</FormLabel>
                               <FormControl>
-                                <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-ministry-admin-phone" />
+                                <Input type="tel" placeholder={t('forms.phonePlaceholder')} {...field} data-testid="input-ministry-admin-phone" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -443,10 +454,10 @@ export default function RegisterMinistry() {
                           name="description"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>About Your Ministry</FormLabel>
+                              <FormLabel>{t('registerMinistry.aboutMinistry')}</FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="Tell us about your ministry and its mission..."
+                                  placeholder={t('registerMinistry.aboutMinistryPlaceholder')}
                                   className="resize-none"
                                   {...field}
                                   data-testid="input-ministry-description"
@@ -462,10 +473,10 @@ export default function RegisterMinistry() {
                           <div className="border rounded-md p-4 bg-muted/30 space-y-2">
                             <div className="flex items-center gap-2 text-sm font-medium">
                               <CreditCard className="h-4 w-4 text-primary" />
-                              <span>Payment Information</span>
+                              <span>{t('registerMinistry.paymentInfo')}</span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              After submitting, you'll be securely redirected to Stripe to complete your {selectedStripePlan ? formatPrice(selectedStripePlan.amount) + "/" + selectedStripePlan.interval : ""} subscription payment.
+                              {t('registerMinistry.paymentRedirect', { price: selectedStripePlan ? formatPrice(selectedStripePlan.amount) + "/" + selectedStripePlan.interval : "" })}
                             </p>
                           </div>
                         )}
@@ -474,10 +485,10 @@ export default function RegisterMinistry() {
                           <div className="border rounded-md p-4 bg-muted/30 space-y-2">
                             <div className="flex items-center gap-2 text-sm font-medium">
                               <Check className="h-4 w-4 text-primary" />
-                              <span>No Payment Required</span>
+                              <span>{t('registerMinistry.noPaymentRequired')}</span>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              The Free plan requires no payment. Your registration will be submitted for admin review.
+                              {t('registerMinistry.freeRegistrationDesc')}
                             </p>
                           </div>
                         )}
@@ -491,16 +502,16 @@ export default function RegisterMinistry() {
                           {submitMutation.isPending ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing...
+                              {t('registerMinistry.processing')}
                             </>
                           ) : isFreePlan ? (
                             <>
-                              Submit Registration
+                              {t('registerMinistry.submitRegistration')}
                               <ArrowRight className="h-4 w-4" />
                             </>
                           ) : (
                             <>
-                              Continue to Payment
+                              {t('registerMinistry.continueToPayment')}
                               <ArrowRight className="h-4 w-4" />
                             </>
                           )}

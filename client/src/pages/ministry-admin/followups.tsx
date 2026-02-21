@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -30,23 +31,24 @@ const formatTime = (time: string) => {
   return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
 };
 
-function getDateBadge(dateStr: string, id: string) {
+function getDateBadge(dateStr: string, id: string, t: (key: string) => string) {
   const date = new Date(dateStr);
   const daysUntil = differenceInDays(date, new Date());
   
   if (isToday(date)) {
-    return <Badge variant="destructive" data-testid={`badge-status-${id}`}>Today</Badge>;
+    return <Badge variant="destructive" data-testid={`badge-status-${id}`}>{t('dashboard.today')}</Badge>;
   }
   if (isTomorrow(date)) {
-    return <Badge variant="default" data-testid={`badge-status-${id}`}>Tomorrow</Badge>;
+    return <Badge variant="default" data-testid={`badge-status-${id}`}>{t('dashboard.tomorrow')}</Badge>;
   }
   if (daysUntil <= 7) {
-    return <Badge variant="secondary" data-testid={`badge-status-${id}`}>This Week</Badge>;
+    return <Badge variant="secondary" data-testid={`badge-status-${id}`}>{t('common.thisWeek')}</Badge>;
   }
-  return <Badge variant="outline" data-testid={`badge-status-${id}`}>Upcoming</Badge>;
+  return <Badge variant="outline" data-testid={`badge-status-${id}`}>{t('common.upcoming')}</Badge>;
 }
 
 export default function MinistryAdminFollowups() {
+  const { t } = useTranslation();
   const { data: followups, isLoading } = useQuery<FollowUp[]>({
     queryKey: ["/api/ministry-admin/followups"],
   });
@@ -57,9 +59,9 @@ export default function MinistryAdminFollowups() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
             <Calendar className="h-6 w-6" />
-            Follow-ups
+            {t('followUps.title')}
           </h1>
-          <p className="text-muted-foreground">View scheduled follow-ups in your ministry</p>
+          <p className="text-muted-foreground">{t('followUps.viewScheduledFollowUps')}</p>
         </div>
 
         <Card>
@@ -75,12 +77,12 @@ export default function MinistryAdminFollowups() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Convert</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Scheduled Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Notes</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('converts.title')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('forms.scheduledDate')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('forms.notes')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -111,7 +113,7 @@ export default function MinistryAdminFollowups() {
                               </div>
                             )}
                             {!followup.convertPhone && !followup.convertEmail && (
-                              <span className="text-sm text-muted-foreground">No contact info</span>
+                              <span className="text-sm text-muted-foreground">{t('forms.noContactInfo')}</span>
                             )}
                           </div>
                         </TableCell>
@@ -119,11 +121,11 @@ export default function MinistryAdminFollowups() {
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
-                            {followup.nextFollowupTime && <span> at {formatTime(followup.nextFollowupTime)}</span>}
+                            {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
                           </div>
                         </TableCell>
                         <TableCell>
-                          {getDateBadge(followup.nextFollowupDate, followup.id)}
+                          {getDateBadge(followup.nextFollowupDate, followup.id, t)}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm text-muted-foreground max-w-xs truncate">
@@ -145,7 +147,7 @@ export default function MinistryAdminFollowups() {
                                     </Button>
                                   </a>
                                 </TooltipTrigger>
-                                <TooltipContent>Join Meeting</TooltipContent>
+                                <TooltipContent>{t('followUps.joinMeeting')}</TooltipContent>
                               </Tooltip>
                             )}
                           </div>
@@ -158,9 +160,9 @@ export default function MinistryAdminFollowups() {
             ) : (
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No follow-ups scheduled</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('followUps.noFollowUps')}</h3>
                 <p className="text-muted-foreground">
-                  Follow-ups will appear here when leaders schedule them
+                  {t('followUps.followUpsWillAppear')}
                 </p>
               </div>
             )}

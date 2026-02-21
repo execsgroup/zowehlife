@@ -47,11 +47,11 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-const convertFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+const convertFormSchemaBase = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
   dateOfBirth: z.string().optional(),
   country: z.string().optional(),
   salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus"]).optional(),
@@ -65,7 +65,7 @@ const convertFormSchema = z.object({
   status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
 });
 
-type ConvertFormData = z.infer<typeof convertFormSchema>;
+type ConvertFormData = z.infer<typeof convertFormSchemaBase>;
 
 const statusColors: Record<string, string> = {
   NEW: "bg-accent/10 text-accent border-accent/20",
@@ -83,6 +83,25 @@ const statusColors: Record<string, string> = {
 
 export default function LeaderConverts() {
   const { t } = useTranslation();
+
+  const convertFormSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    phone: z.string().optional(),
+    email: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
+    dateOfBirth: z.string().optional(),
+    country: z.string().optional(),
+    salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus"]).optional(),
+    wantsContact: z.enum(["Yes", "No"]).optional(),
+    gender: z.enum(["Male", "Female"]).optional(),
+    ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
+    isChurchMember: z.enum(["Yes", "No"]).optional(),
+    prayerRequest: z.string().optional(),
+    address: z.string().optional(),
+    summaryNotes: z.string().optional(),
+    status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
+  });
+
   const { toast } = useToast();
   const basePath = useBasePath();
   const [location] = useLocation();

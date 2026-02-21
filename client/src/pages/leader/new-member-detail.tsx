@@ -55,11 +55,11 @@ interface NewMemberWithCheckins extends NewMember {
   checkins: NewMemberCheckin[];
 }
 
-const updateNewMemberSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+const updateNewMemberSchemaBase = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
   dateOfBirth: z.string().optional(),
   country: z.string().optional(),
   gender: z.enum(["Male", "Female", ""]).optional(),
@@ -69,8 +69,8 @@ const updateNewMemberSchema = z.object({
   status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
 });
 
-const checkinFormSchema = z.object({
-  checkinDate: z.string().min(1, "Date is required"),
+const checkinFormSchemaBase = z.object({
+  checkinDate: z.string().min(1),
   notes: z.string().optional(),
   outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
 });
@@ -81,8 +81,8 @@ const countries = [
   "United States", "United Kingdom", "Canada", "Nigeria", "Ghana", "Kenya", "South Africa", "Zimbabwe"
 ];
 
-type UpdateNewMemberData = z.infer<typeof updateNewMemberSchema>;
-type CheckinFormData = z.infer<typeof checkinFormSchema>;
+type UpdateNewMemberData = z.infer<typeof updateNewMemberSchemaBase>;
+type CheckinFormData = z.infer<typeof checkinFormSchemaBase>;
 
 const statusColors: Record<string, string> = {
   NEW: "bg-accent/10 text-accent border-accent/20",
@@ -97,6 +97,27 @@ const statusColors: Record<string, string> = {
 
 export default function NewMemberDetail() {
   const { t } = useTranslation();
+
+  const updateNewMemberSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    phone: z.string().optional(),
+    email: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
+    dateOfBirth: z.string().optional(),
+    country: z.string().optional(),
+    gender: z.enum(["Male", "Female", ""]).optional(),
+    ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above", ""]).optional(),
+    address: z.string().optional(),
+    notes: z.string().optional(),
+    status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
+  });
+
+  const checkinFormSchema = z.object({
+    checkinDate: z.string().min(1, t('validation.dateRequired')),
+    notes: z.string().optional(),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  });
+
   const { toast } = useToast();
   const basePath = useBasePath();
   const [location] = useLocation();

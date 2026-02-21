@@ -49,11 +49,11 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-const newMemberFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+const newMemberFormSchemaBase = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
   dateOfBirth: z.string().optional(),
   country: z.string().optional(),
   gender: z.enum(["Male", "Female"]).optional(),
@@ -62,7 +62,7 @@ const newMemberFormSchema = z.object({
   notes: z.string().optional(),
 });
 
-type NewMemberFormData = z.infer<typeof newMemberFormSchema>;
+type NewMemberFormData = z.infer<typeof newMemberFormSchemaBase>;
 
 const statusColors: Record<string, string> = {
   NEW: "bg-accent/10 text-accent border-accent/20",
@@ -92,16 +92,36 @@ const followUpStageColors: Record<string, string> = {
   FINAL_COMPLETED: "bg-primary/10 text-primary border-primary/20",
 };
 
-const followUpNoteSchema = z.object({
-  checkinDate: z.string().min(1, "Date is required"),
+const followUpNoteSchemaBase = z.object({
+  checkinDate: z.string().min(1),
   notes: z.string().optional(),
   outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
 });
 
-type FollowUpNoteData = z.infer<typeof followUpNoteSchema>;
+type FollowUpNoteData = z.infer<typeof followUpNoteSchemaBase>;
 
 export default function LeaderNewMembers() {
   const { t } = useTranslation();
+
+  const newMemberFormSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    phone: z.string().optional(),
+    email: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
+    dateOfBirth: z.string().optional(),
+    country: z.string().optional(),
+    gender: z.enum(["Male", "Female"]).optional(),
+    ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
+    address: z.string().optional(),
+    notes: z.string().optional(),
+  });
+
+  const followUpNoteSchema = z.object({
+    checkinDate: z.string().min(1, t('validation.dateRequired')),
+    notes: z.string().optional(),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  });
+
   const { toast } = useToast();
   const basePath = useBasePath();
   const [location, setLocation] = useLocation();

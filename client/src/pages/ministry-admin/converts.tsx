@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -23,21 +24,22 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const statusLabels: Record<string, string> = {
-  NEW: "New",
-  SCHEDULED: "Scheduled",
-  CONNECTED: "Connected",
-  NO_RESPONSE: "No Response",
-  NEEDS_PRAYER: "Needs Prayer",
-  REFERRED: "Referred",
-  NOT_COMPLETED: "Not Completed",
-  NEVER_CONTACTED: "Never Contacted",
-  ACTIVE: "Active",
-  IN_PROGRESS: "In Progress",
-  INACTIVE: "Inactive",
+const statusLabelKeys: Record<string, string> = {
+  NEW: "common.new",
+  SCHEDULED: "common.scheduled",
+  CONNECTED: "common.connected",
+  NO_RESPONSE: "common.noResponse",
+  NEEDS_PRAYER: "common.needsPrayer",
+  REFERRED: "common.referred",
+  NOT_COMPLETED: "common.notCompleted",
+  NEVER_CONTACTED: "common.neverContacted",
+  ACTIVE: "common.active",
+  IN_PROGRESS: "common.inProgress",
+  INACTIVE: "common.inactive",
 };
 
 export default function MinistryAdminConverts() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: converts, isLoading } = useQuery<Convert[]>({
@@ -61,9 +63,9 @@ export default function MinistryAdminConverts() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
               <UserPlus className="h-6 w-6" />
-              Converts
+              {t('converts.title')}
             </h1>
-            <p className="text-muted-foreground">View all converts in your ministry</p>
+            <p className="text-muted-foreground">{t('converts.viewAllConverts')}</p>
           </div>
         </div>
 
@@ -72,7 +74,7 @@ export default function MinistryAdminConverts() {
             <div className="flex items-center gap-2 mb-4">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search converts..."
+                placeholder={t('forms.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -91,11 +93,11 @@ export default function MinistryAdminConverts() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Decision</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Source</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('converts.salvationDecision')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('guests.source')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -132,12 +134,12 @@ export default function MinistryAdminConverts() {
                         </TableCell>
                         <TableCell>
                           <Badge className={statusColors[convert.status] || ""}>
-                            {statusLabels[convert.status] || convert.status}
+                            {statusLabelKeys[convert.status] ? t(statusLabelKeys[convert.status]) : convert.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">
-                            {convert.selfSubmitted ? "Self-registered" : "Added by leader"}
+                            {convert.selfSubmitted ? t('converts.selfRegistered') : t('converts.addedByLeader')}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -148,9 +150,9 @@ export default function MinistryAdminConverts() {
             ) : (
               <div className="text-center py-12">
                 <UserPlus className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No converts found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('converts.noConverts')}</h3>
                 <p className="text-muted-foreground">
-                  {searchQuery ? "Try a different search term" : "Converts will appear here once leaders add them"}
+                  {searchQuery ? t('common.tryDifferentSearch') : t('converts.convertsWillAppear')}
                 </p>
               </div>
             )}

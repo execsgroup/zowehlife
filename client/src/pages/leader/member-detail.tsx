@@ -53,17 +53,17 @@ interface MemberCheckin {
   createdAt: string;
 }
 
-const checkinFormSchema = z.object({
-  checkinDate: z.string().min(1, "Date is required"),
+const checkinFormSchemaBase = z.object({
+  checkinDate: z.string().min(1),
   notes: z.string().optional(),
   outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
 });
 
-const updateMemberSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+const updateMemberSchemaBase = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
   dateOfBirth: z.string().optional(),
   country: z.string().optional(),
   gender: z.enum(["Male", "Female", ""]).optional(),
@@ -79,11 +79,32 @@ const countries = [
   "United States", "United Kingdom", "Canada", "Nigeria", "Ghana", "Kenya", "South Africa", "Zimbabwe"
 ];
 
-type UpdateMemberData = z.infer<typeof updateMemberSchema>;
-type CheckinFormData = z.infer<typeof checkinFormSchema>;
+type UpdateMemberData = z.infer<typeof updateMemberSchemaBase>;
+type CheckinFormData = z.infer<typeof checkinFormSchemaBase>;
 
 export default function MemberDetail() {
   const { t } = useTranslation();
+
+  const checkinFormSchema = z.object({
+    checkinDate: z.string().min(1, t('validation.dateRequired')),
+    notes: z.string().optional(),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  });
+
+  const updateMemberSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    phone: z.string().optional(),
+    email: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
+    dateOfBirth: z.string().optional(),
+    country: z.string().optional(),
+    gender: z.enum(["Male", "Female", ""]).optional(),
+    ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above", ""]).optional(),
+    address: z.string().optional(),
+    memberSince: z.string().optional(),
+    notes: z.string().optional(),
+  });
+
   const { toast } = useToast();
   const basePath = useBasePath();
   const apiBasePath = useApiBasePath();

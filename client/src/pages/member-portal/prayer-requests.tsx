@@ -54,14 +54,14 @@ export default function MemberPrayerRequests() {
       form.reset();
       setDialogOpen(false);
       toast({
-        title: "Prayer request submitted",
-        description: "Your prayer request has been submitted successfully.",
+        title: t('memberPortal.prayerRequestSubmitted'),
+        description: t('memberPortal.prayerRequestSubmittedDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Submission failed",
-        description: error.message || "Failed to submit prayer request.",
+        title: t('memberPortal.submissionFailed'),
+        description: error.message || t('memberPortal.submissionFailedDesc'),
         variant: "destructive",
       });
     },
@@ -75,11 +75,11 @@ export default function MemberPrayerRequests() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "SUBMITTED":
-        return <Badge variant="outline">Submitted</Badge>;
+        return <Badge variant="outline">{t('memberPortal.statusSubmitted')}</Badge>;
       case "BEING_PRAYED_FOR":
-        return <Badge variant="secondary">Being Prayed For</Badge>;
+        return <Badge variant="secondary">{t('memberPortal.statusBeingPrayedFor')}</Badge>;
       case "ANSWERED":
-        return <Badge className="bg-green-600">Answered</Badge>;
+        return <Badge className="bg-green-600">{t('memberPortal.statusAnswered')}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -105,14 +105,14 @@ export default function MemberPrayerRequests() {
             <DialogTrigger asChild>
               <Button data-testid="button-new-prayer-request">
                 <Plus className="h-4 w-4 mr-2" />
-                New Request
+                {t('memberPortal.newRequest')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t('prayerRequests.submitRequest')}</DialogTitle>
                 <DialogDescription>
-                  Share your prayer request with your ministry leaders.
+                  {t('memberPortal.shareWithLeaders')}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -122,10 +122,10 @@ export default function MemberPrayerRequests() {
                     name="requestText"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Prayer Request</FormLabel>
+                        <FormLabel>{t('prayerRequests.prayerRequest')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Share what's on your heart..."
+                            placeholder={t('memberPortal.prayerRequestPlaceholder')}
                             className="min-h-[120px] resize-none"
                             {...field}
                             data-testid="textarea-prayer-request"
@@ -142,9 +142,9 @@ export default function MemberPrayerRequests() {
                     render={({ field }) => (
                       <FormItem className="flex items-center justify-between rounded-lg border p-3">
                         <div className="space-y-0.5">
-                          <Label>Private Request</Label>
+                          <Label>{t('memberPortal.privateRequest')}</Label>
                           <p className="text-sm text-muted-foreground">
-                            Only ministry leaders will see this request
+                            {t('memberPortal.privateRequestDesc')}
                           </p>
                         </div>
                         <FormControl>
@@ -217,7 +217,7 @@ export default function MemberPrayerRequests() {
                 <HandHeart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">{t('prayerRequests.noPrayerRequests')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Submit your first prayer request to share with your ministry.
+                  {t('memberPortal.submitFirstPrayer')}
                 </p>
                 <Button onClick={() => setDialogOpen(true)} data-testid="button-first-prayer-request">
                   <Plus className="h-4 w-4 mr-2" />

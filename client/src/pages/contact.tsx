@@ -15,19 +15,26 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Mail, Phone, HandHeart, CheckCircle2, Loader2 } from "lucide-react";
 
-const contactSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+const contactSchemaBase = z.object({
+  name: z.string().min(2),
+  email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
-  message: z.string().min(10, "Message must be at least 10 characters"),
+  message: z.string().min(10),
 });
 
-type ContactFormData = z.infer<typeof contactSchema>;
+type ContactFormData = z.infer<typeof contactSchemaBase>;
 
 export default function Contact() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+
+  const contactSchema = z.object({
+    name: z.string().min(2, t('validation.nameMinLength')),
+    email: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
+    phone: z.string().optional(),
+    message: z.string().min(10, t('validation.messageMinLength')),
+  });
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -49,8 +56,8 @@ export default function Contact() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit request. Please try again.",
+        title: t('common.error'),
+        description: error.message || t('contact.failedToSubmit'),
         variant: "destructive",
       });
     },
@@ -71,13 +78,12 @@ export default function Contact() {
                 <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
                   <CheckCircle2 className="h-8 w-8 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Request Submitted</h2>
+                <h2 className="text-2xl font-bold mb-2">{t('contact.requestSubmitted')}</h2>
                 <p className="text-muted-foreground mb-6">
-                  Thank you for reaching out! We've received your message and someone will be in
-                  touch with you soon.
+                  {t('contact.thankYouReachOut')}
                 </p>
                 <Button onClick={() => setSubmitted(false)} data-testid="button-submit-another">
-                  Submit Another Request
+                  {t('contact.submitAnotherRequest')}
                 </Button>
               </CardContent>
             </Card>
@@ -116,9 +122,9 @@ export default function Contact() {
             <div className="max-w-2xl mx-auto">
               <Card>
                 <CardHeader>
-                  <CardTitle>Send us your Prayer Request</CardTitle>
+                  <CardTitle>{t('contact.sendPrayerRequest')}</CardTitle>
                   <CardDescription>
-                    Fill out the form below so we can pray along with you.
+                    {t('contact.prayerRequestFormDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -129,10 +135,10 @@ export default function Contact() {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Your Name *</FormLabel>
+                            <FormLabel>{t('contact.yourName')} *</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter your full name"
+                                placeholder={t('contact.enterFullName')}
                                 {...field}
                                 data-testid="input-name"
                               />
@@ -148,13 +154,13 @@ export default function Contact() {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email</FormLabel>
+                              <FormLabel>{t('forms.email')}</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                   <Input
                                     type="email"
-                                    placeholder="your@email.com"
+                                    placeholder={t('forms.emailPlaceholder')}
                                     className="pl-10"
                                     {...field}
                                     data-testid="input-email"
@@ -171,13 +177,13 @@ export default function Contact() {
                           name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Phone</FormLabel>
+                              <FormLabel>{t('forms.phone')}</FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                   <Input
                                     type="tel"
-                                    placeholder="+1 (555) 000-0000"
+                                    placeholder={t('forms.phonePlaceholder')}
                                     className="pl-10"
                                     {...field}
                                     data-testid="input-phone"
@@ -195,10 +201,10 @@ export default function Contact() {
                         name="message"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Prayer Request *</FormLabel>
+                            <FormLabel>{t('contact.prayerRequestLabel')} *</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Please share your prayer request here. Our prayer team will faithfully pray with you."
+                                placeholder={t('contact.prayerRequestPlaceholder')}
                                 className="min-h-[150px] resize-none"
                                 {...field}
                                 data-testid="input-message"
@@ -218,10 +224,10 @@ export default function Contact() {
                         {mutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Submitting...
+                            {t('forms.submitting')}
                           </>
                         ) : (
-                          "Submit Request"
+                          t('contact.submitRequest')
                         )}
                       </Button>
                     </form>

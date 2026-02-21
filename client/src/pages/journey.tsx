@@ -6,66 +6,36 @@ import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { BookOpen, MessageCircle, Users, Droplets, GraduationCap, Heart, ArrowRight } from "lucide-react";
 
-const journeySteps = [
+const journeyStepKeys = [
   {
     icon: BookOpen,
-    title: "Read the Bible",
-    description: "God's Word is your guide for life. Start with the Gospel of John to learn about Jesus.",
-    tips: [
-      "Set aside 15-20 minutes daily for reading",
-      "Start with the Gospel of John, then read Acts",
-      "Use a modern translation like NIV or ESV",
-      "Take notes and highlight meaningful verses",
-      "Consider joining a Bible study group",
-    ],
+    titleKey: "journey.readBible",
+    descKey: "journey.readBibleDesc",
+    tipKeys: ["journey.readBibleTip1", "journey.readBibleTip2", "journey.readBibleTip3", "journey.readBibleTip4", "journey.readBibleTip5"],
   },
   {
     icon: MessageCircle,
-    title: "Pray Daily",
-    description: "Prayer is your direct line to God. Talk to Him like you would a loving Father.",
-    tips: [
-      "Start each day with prayer",
-      "Thank God for His blessings",
-      "Share your concerns and needs with Him",
-      "Pray for others",
-      "Listen for God's guidance",
-    ],
+    titleKey: "journey.prayDaily",
+    descKey: "journey.prayDailyDesc",
+    tipKeys: ["journey.prayDailyTip1", "journey.prayDailyTip2", "journey.prayDailyTip3", "journey.prayDailyTip4", "journey.prayDailyTip5"],
   },
   {
     icon: Users,
-    title: "Join a Community",
-    description: "Faith is meant to be lived in community. Find a local church to connect with.",
-    tips: [
-      "Attend Sunday services regularly",
-      "Join a small group or life group",
-      "Serve others using your gifts",
-      "Build friendships with fellow believers",
-      "Be open to mentorship",
-    ],
+    titleKey: "journey.joinCommunity",
+    descKey: "journey.joinCommunityDesc",
+    tipKeys: ["journey.joinCommunityTip1", "journey.joinCommunityTip2", "journey.joinCommunityTip3", "journey.joinCommunityTip4", "journey.joinCommunityTip5"],
   },
   {
     icon: Droplets,
-    title: "Get Baptized",
-    description: "Baptism is a public declaration of your faith and an important step of obedience.",
-    tips: [
-      "Speak with a pastor about baptism",
-      "Understand its significance as a symbol",
-      "Invite friends and family to witness",
-      "Share your testimony",
-      "Celebrate this milestone",
-    ],
+    titleKey: "journey.getBaptized",
+    descKey: "journey.getBaptizedDesc",
+    tipKeys: ["journey.getBaptizedTip1", "journey.getBaptizedTip2", "journey.getBaptizedTip3", "journey.getBaptizedTip4", "journey.getBaptizedTip5"],
   },
   {
     icon: GraduationCap,
-    title: "Grow as a Disciple",
-    description: "Discipleship is a lifelong journey of becoming more like Jesus every day.",
-    tips: [
-      "Take classes at your local church",
-      "Find a mentor or accountability partner",
-      "Share your faith with others",
-      "Serve in ministry",
-      "Develop spiritual disciplines",
-    ],
+    titleKey: "journey.growDisciple",
+    descKey: "journey.growDiscipleDesc",
+    tipKeys: ["journey.growDiscipleTip1", "journey.growDiscipleTip2", "journey.growDiscipleTip3", "journey.growDiscipleTip4", "journey.growDiscipleTip5"],
   },
 ];
 
@@ -98,31 +68,31 @@ export default function Journey() {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="space-y-8">
-                {journeySteps.map((step, index) => {
+                {journeyStepKeys.map((step, index) => {
                   const Icon = step.icon;
                   return (
-                    <Card key={step.title} className="overflow-hidden">
+                    <Card key={step.titleKey} className="overflow-hidden">
                       <div className="flex flex-col md:flex-row">
                         <div className="bg-muted p-6 md:p-8 flex flex-col items-center justify-center md:w-48">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background mb-2">
                             <Icon className="h-6 w-6 text-primary" />
                           </div>
                           <span className="text-sm font-medium text-muted-foreground">
-                            Step {index + 1}
+                            {t('journey.step', { number: index + 1 })}
                           </span>
                         </div>
                         <div className="flex-1 p-6 md:p-8">
-                          <h3 className="text-xl font-bold mb-2">{step.title}</h3>
-                          <p className="text-muted-foreground mb-4">{step.description}</p>
+                          <h3 className="text-xl font-bold mb-2">{t(step.titleKey)}</h3>
+                          <p className="text-muted-foreground mb-4">{t(step.descKey)}</p>
                           <div className="space-y-2">
                             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                              Practical Tips
+                              {t('journey.practicalTips')}
                             </h4>
                             <ul className="grid gap-2">
-                              {step.tips.map((tip) => (
-                                <li key={tip} className="flex items-start gap-2 text-sm">
+                              {step.tipKeys.map((tipKey) => (
+                                <li key={tipKey} className="flex items-start gap-2 text-sm">
                                   <span className="text-primary mt-1">•</span>
-                                  <span>{tip}</span>
+                                  <span>{t(tipKey)}</span>
                                 </li>
                               ))}
                             </ul>
@@ -142,38 +112,38 @@ export default function Journey() {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-xl md:text-2xl font-bold text-center mb-8">
-                Recommended Resources
+                {t('journey.recommendedResources')}
               </h2>
 
               <div className="grid md:grid-cols-2 gap-6">
                 <Card className="hover-elevate">
                   <CardHeader>
-                    <CardTitle className="text-lg">Bible Reading Plan</CardTitle>
+                    <CardTitle className="text-lg">{t('journey.bibleReadingPlan')}</CardTitle>
                     <CardDescription>
-                      Start with these books of the Bible
+                      {t('journey.bibleReadingPlanDesc')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ol className="space-y-2 text-sm">
                       <li className="flex items-center gap-2">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
-                        Gospel of John - Who is Jesus?
+                        {t('journey.bibleBook1')}
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
-                        Acts - The early church
+                        {t('journey.bibleBook2')}
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
-                        Romans - Foundations of faith
+                        {t('journey.bibleBook3')}
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">4</span>
-                        Psalms - Prayer and worship
+                        {t('journey.bibleBook4')}
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">5</span>
-                        Proverbs - Wisdom for life
+                        {t('journey.bibleBook5')}
                       </li>
                     </ol>
                   </CardContent>
@@ -181,28 +151,28 @@ export default function Journey() {
 
                 <Card className="hover-elevate">
                   <CardHeader>
-                    <CardTitle className="text-lg">Daily Habits</CardTitle>
+                    <CardTitle className="text-lg">{t('journey.dailyHabits')}</CardTitle>
                     <CardDescription>
-                      Build these spiritual disciplines
+                      {t('journey.dailyHabitsDesc')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-3 text-sm">
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-0.5">&#10003;</span>
-                        <span><strong>Morning:</strong> Start with prayer and Bible reading</span>
+                        <span><strong>{t('journey.morning')}</strong> {t('journey.habitMorning')}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-0.5">&#10003;</span>
-                        <span><strong>Throughout day:</strong> Practice gratitude and thankfulness</span>
+                        <span><strong>{t('journey.throughoutDay')}</strong> {t('journey.habitDay')}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-0.5">&#10003;</span>
-                        <span><strong>Evening:</strong> Reflect on your day with God</span>
+                        <span><strong>{t('journey.evening')}</strong> {t('journey.habitEvening')}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-primary mt-0.5">&#10003;</span>
-                        <span><strong>Weekly:</strong> Attend church and connect with believers</span>
+                        <span><strong>{t('journey.weekly')}</strong> {t('journey.habitWeekly')}</span>
                       </li>
                     </ul>
                   </CardContent>
@@ -217,15 +187,14 @@ export default function Journey() {
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-xl md:text-2xl font-bold mb-4">
-                Need Help Getting Started?
+                {t('journey.needHelpGettingStarted')}
               </h2>
               <p className="text-muted-foreground mb-8">
-                We'd love to connect you with a local church and help you take your next steps
-                in faith. Reach out to us!
+                {t('journey.needHelpDesc')}
               </p>
               <Link href="/contact">
                 <Button size="lg" className="gap-2" data-testid="button-journey-contact">
-                  Contact Us
+                  {t('journey.contactUs')}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

@@ -29,17 +29,17 @@ interface JournalEntry {
   updatedAt: string;
 }
 
-const journalEntrySchema = z.object({
-  title: z.string().optional(),
-  content: z.string().min(1, "Content is required"),
-  isPrivate: z.boolean(),
-  shareWithMinistry: z.boolean(),
-});
-
-type JournalEntryFormData = z.infer<typeof journalEntrySchema>;
-
 export default function MemberJournal() {
   const { t } = useTranslation();
+
+  const journalEntrySchema = z.object({
+    title: z.string().optional(),
+    content: z.string().min(1, t('validation.contentRequired')),
+    isPrivate: z.boolean(),
+    shareWithMinistry: z.boolean(),
+  });
+
+  type JournalEntryFormData = z.infer<typeof journalEntrySchema>;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -74,14 +74,14 @@ export default function MemberJournal() {
       form.reset();
       setDialogOpen(false);
       toast({
-        title: "Entry created",
-        description: "Your journal entry has been saved.",
+        title: t('memberPortal.entryCreated'),
+        description: t('memberPortal.entryCreatedDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to save",
-        description: error.message || "Failed to save journal entry.",
+        title: t('memberPortal.failedToSave'),
+        description: error.message || t('memberPortal.failedToSaveDesc'),
         variant: "destructive",
       });
     },
@@ -102,14 +102,14 @@ export default function MemberJournal() {
       setDialogOpen(false);
       setEditingEntry(null);
       toast({
-        title: "Entry updated",
-        description: "Your journal entry has been updated.",
+        title: t('memberPortal.entryUpdated'),
+        description: t('memberPortal.entryUpdatedDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to update",
-        description: error.message || "Failed to update journal entry.",
+        title: t('memberPortal.failedToUpdate'),
+        description: error.message || t('memberPortal.failedToUpdateDesc'),
         variant: "destructive",
       });
     },
@@ -123,14 +123,14 @@ export default function MemberJournal() {
       queryClient.invalidateQueries({ queryKey: ["/api/member/journal"] });
       setDeleteConfirmId(null);
       toast({
-        title: "Entry deleted",
-        description: "Your journal entry has been removed.",
+        title: t('memberPortal.entryDeleted'),
+        description: t('memberPortal.entryDeletedDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to delete",
-        description: error.message || "Failed to delete journal entry.",
+        title: t('memberPortal.failedToDelete'),
+        description: error.message || t('memberPortal.failedToDeleteDesc'),
         variant: "destructive",
       });
     },
@@ -183,7 +183,7 @@ export default function MemberJournal() {
             </Link>
             <div>
               <h1 className="text-2xl font-bold">{t('memberPortal.journal')}</h1>
-              <p className="text-muted-foreground">Personal reflections and spiritual notes</p>
+              <p className="text-muted-foreground">{t('memberPortal.journalDescription')}</p>
             </div>
           </div>
           
@@ -198,7 +198,7 @@ export default function MemberJournal() {
               <DialogHeader>
                 <DialogTitle>{editingEntry ? t('forms.edit') : t('memberPortal.newJournalEntry')}</DialogTitle>
                 <DialogDescription>
-                  Write your thoughts, prayers, or reflections.
+                  {t('memberPortal.journalDialogDescription')}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -208,10 +208,10 @@ export default function MemberJournal() {
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Title (optional)</FormLabel>
+                        <FormLabel>{t('memberPortal.journalTitle')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Give your entry a title..."
+                            placeholder={t('memberPortal.journalTitlePlaceholder')}
                             {...field}
                             data-testid="input-title"
                           />
@@ -226,10 +226,10 @@ export default function MemberJournal() {
                     name="content"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Content</FormLabel>
+                        <FormLabel>{t('memberPortal.journalContent')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Write your thoughts..."
+                            placeholder={t('memberPortal.journalContentPlaceholder')}
                             className="min-h-[180px] resize-none"
                             {...field}
                             data-testid="textarea-content"
@@ -248,10 +248,10 @@ export default function MemberJournal() {
                         <div className="space-y-0.5">
                           <Label className="flex items-center gap-2">
                             <Lock className="h-4 w-4" />
-                            Private Entry
+                            {t('memberPortal.privateEntry')}
                           </Label>
                           <p className="text-sm text-muted-foreground">
-                            Only you can see this entry
+                            {t('memberPortal.privateEntryDesc')}
                           </p>
                         </div>
                         <FormControl>
@@ -274,10 +274,10 @@ export default function MemberJournal() {
                           <div className="space-y-0.5">
                             <Label className="flex items-center gap-2">
                               <Users className="h-4 w-4" />
-                              Share with Ministry Leaders
+                              {t('memberPortal.shareWithMinistryLeaders')}
                             </Label>
                             <p className="text-sm text-muted-foreground">
-                              Your ministry leaders can see this entry
+                              {t('memberPortal.shareWithMinistryLeadersDesc')}
                             </p>
                           </div>
                           <FormControl>
@@ -331,7 +331,7 @@ export default function MemberJournal() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <CardTitle className="text-lg">
-                        {entry.title || "Untitled Entry"}
+                        {entry.title || t('memberPortal.untitledEntry')}
                       </CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         {entry.isPrivate === "true" ? (
@@ -348,7 +348,7 @@ export default function MemberJournal() {
                         </span>
                         {entry.updatedAt !== entry.createdAt && (
                           <span className="text-sm text-muted-foreground italic">
-                            (edited)
+                            {t('memberPortal.edited')}
                           </span>
                         )}
                       </div>
@@ -384,13 +384,13 @@ export default function MemberJournal() {
             <CardContent className="pt-6">
               <div className="text-center py-8">
                 <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Journal Entries Yet</h3>
+                <h3 className="text-lg font-medium mb-2">{t('memberPortal.noJournalEntries')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Start documenting your spiritual journey with your first entry.
+                  {t('memberPortal.startDocumenting')}
                 </p>
                 <Button onClick={() => setDialogOpen(true)} data-testid="button-first-entry">
                   <Plus className="h-4 w-4 mr-2" />
-                  Create First Entry
+                  {t('memberPortal.createFirstEntry')}
                 </Button>
               </div>
             </CardContent>
@@ -401,9 +401,9 @@ export default function MemberJournal() {
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Journal Entry?</AlertDialogTitle>
+            <AlertDialogTitle>{t('memberPortal.deleteJournalEntry')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This entry will be permanently removed.
+              {t('memberPortal.deleteJournalEntryDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -416,7 +416,7 @@ export default function MemberJournal() {
               {deleteMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Delete"
+                t('forms.delete')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

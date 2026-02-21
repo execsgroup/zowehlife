@@ -32,14 +32,14 @@ export default function MemberLogin() {
       await apiRequest("POST", "/api/member/login", data);
       queryClient.invalidateQueries({ queryKey: ["/api/member/me"] });
       toast({
-        title: "Welcome!",
-        description: "You have successfully logged in.",
+        title: t('auth.welcomeBack'),
+        description: t('auth.loginSuccess'),
       });
       setLocation("/member-portal");
     } catch (error: any) {
       toast({
-        title: "Login failed",
-        description: error.message || "Invalid email or password. Please try again.",
+        title: t('auth.loginFailed'),
+        description: error.message || t('auth.invalidCredentials'),
         variant: "destructive",
       });
     } finally {
@@ -104,7 +104,7 @@ export default function MemberLogin() {
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
-                            placeholder="Enter your password"
+                            placeholder={t('auth.passwordPlaceholder')}
                             className="pl-10"
                             {...field}
                             data-testid="input-member-password"
@@ -136,9 +136,9 @@ export default function MemberLogin() {
 
             <div className="mt-6 text-center text-sm">
               <p className="text-muted-foreground">
-                First time here?{" "}
+                {t('memberPortal.firstTimeHere')}{" "}
                 <Link href="/member-portal/claim" className="text-primary hover:underline">
-                  Claim your account
+                  {t('memberPortal.claimYourAccount')}
                 </Link>
               </p>
             </div>
@@ -146,7 +146,7 @@ export default function MemberLogin() {
             <div className="mt-4 text-center">
               <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" />
-                Back to home
+                {t('memberPortal.backToHome')}
               </Link>
             </div>
           </CardContent>

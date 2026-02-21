@@ -17,11 +17,11 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Loader2, CheckCircle, Church, Heart, AlertCircle } from "lucide-react";
 
-const convertFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+const convertFormSchemaBase = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   phone: z.string().optional(),
-  email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
   dateOfBirth: z.string().optional(),
   country: z.string().optional(),
   salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus"]).optional(),
@@ -53,13 +53,28 @@ const countries = [
 ];
 
 
-type ConvertFormData = z.infer<typeof convertFormSchema>;
+type ConvertFormData = z.infer<typeof convertFormSchemaBase>;
 
 export default function NewConvert() {
   const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
+
+  const convertFormSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    phone: z.string().optional(),
+    email: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
+    dateOfBirth: z.string().optional(),
+    country: z.string().optional(),
+    salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus"]).optional(),
+    wantsContact: z.enum(["Yes", "No"]).optional(),
+    gender: z.enum(["Male", "Female"]).optional(),
+    ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
+    isChurchMember: z.enum(["Yes", "No"]).optional(),
+    prayerRequest: z.string().optional(),
+  });
 
   const { data: church, isLoading: churchLoading, error: churchError } = useQuery<{ id: string; name: string; logoUrl: string | null }>({
     queryKey: ["/api/public/church", token],
@@ -99,13 +114,13 @@ export default function NewConvert() {
     onSuccess: () => {
       setSubmitted(true);
       toast({
-        title: "Information Submitted",
-        description: "Thank you! Your information has been submitted successfully.",
+        title: t('publicForms.informationSubmitted'),
+        description: t('publicForms.thankYouSubmitted'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Submission Failed",
+        title: t('publicForms.submissionFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -123,7 +138,7 @@ export default function NewConvert() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">{t('forms.loading')}</p>
           </div>
         </main>
         <PublicFooter />
@@ -144,7 +159,7 @@ export default function NewConvert() {
                 {t('publicForms.invalidLink')}
               </p>
               <Link href="/">
-                <Button variant="outline">Return to Home</Button>
+                <Button variant="outline">{t('publicForms.returnToHome')}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -164,10 +179,10 @@ export default function NewConvert() {
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-2">{t('publicForms.thankYou')}</h2>
               <p className="text-muted-foreground mb-6">
-                {t('publicForms.formSubmitted')} A leader from {church.name} will be in touch with you soon.
+                {t('publicForms.formSubmitted')} {t('publicForms.leaderWillContact', { name: church.name })}
               </p>
               <Link href="/">
-                <Button>Return to Home</Button>
+                <Button>{t('publicForms.returnToHome')}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -198,7 +213,7 @@ export default function NewConvert() {
                 <Heart className="h-8 w-8 text-primary" />
               </div>
             )}
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Welcome to the Family!</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{t('publicForms.welcomeFamily')}</h1>
           </div>
 
           <Card>
@@ -209,11 +224,11 @@ export default function NewConvert() {
               </div>
               <CardTitle>{t('publicForms.salvationForm')}</CardTitle>
               <CardDescription className="space-y-3 text-sm">
-                <p>We celebrate your decision to accept Jesus Christ as your Lord and Savior.</p>
-                <p>If you've chosen to rededicate your life to Him, we honor that commitment.</p>
-                <p>God knows you completely, and this is the beginning of growing in a personal relationship with Him.</p>
-                <p>We would love to connect with you and support you on this journey.</p>
-                <p>Please complete the form below.</p>
+                <p>{t('publicForms.celebrateDecision')}</p>
+                <p>{t('publicForms.rededicateHonor')}</p>
+                <p>{t('publicForms.godKnowsYou')}</p>
+                <p>{t('publicForms.loveToConnect')}</p>
+                <p>{t('publicForms.completeFormBelow')}</p>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -224,16 +239,16 @@ export default function NewConvert() {
                     name="salvationDecision"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Please choose an option</FormLabel>
+                        <FormLabel>{t('publicForms.pleaseChooseOption')}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-salvation-decision">
-                              <SelectValue placeholder="Select an option" />
+                              <SelectValue placeholder={t('forms.selectOption')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="I just made Jesus Christ my Lord and Savior">I just made Jesus Christ my Lord and Savior</SelectItem>
-                            <SelectItem value="I have rededicated my life to Jesus">I have rededicated my life to Jesus</SelectItem>
+                            <SelectItem value="I just made Jesus Christ my Lord and Savior">{t('converts.salvationOption1')}</SelectItem>
+                            <SelectItem value="I have rededicated my life to Jesus">{t('converts.salvationOption2')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -247,9 +262,9 @@ export default function NewConvert() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name *</FormLabel>
+                          <FormLabel>{t('forms.firstName')} *</FormLabel>
                           <FormControl>
-                            <Input placeholder="John" {...field} data-testid="input-first-name" />
+                            <Input placeholder={t('forms.firstNamePlaceholder')} {...field} data-testid="input-first-name" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -260,9 +275,9 @@ export default function NewConvert() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last Name *</FormLabel>
+                          <FormLabel>{t('forms.lastName')} *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Doe" {...field} data-testid="input-last-name" />
+                            <Input placeholder={t('forms.lastNamePlaceholder')} {...field} data-testid="input-last-name" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -275,9 +290,9 @@ export default function NewConvert() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
+                        <FormLabel>{t('converts.phoneNumber')}</FormLabel>
                         <FormControl>
-                          <Input type="tel" placeholder="+1 (555) 000-0000" {...field} data-testid="input-phone" />
+                          <Input type="tel" placeholder={t('forms.phonePlaceholder')} {...field} data-testid="input-phone" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -289,9 +304,9 @@ export default function NewConvert() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address</FormLabel>
+                        <FormLabel>{t('converts.emailAddress')}</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="john@example.com" {...field} data-testid="input-email" />
+                          <Input type="email" placeholder={t('forms.emailPlaceholder')} {...field} data-testid="input-email" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -303,7 +318,7 @@ export default function NewConvert() {
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Date of Birth</FormLabel>
+                        <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} data-testid="input-date-of-birth" />
                         </FormControl>
@@ -317,11 +332,11 @@ export default function NewConvert() {
                     name="country"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Country of Residence</FormLabel>
+                        <FormLabel>{t('converts.countryOfResidence')}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-country">
-                              <SelectValue placeholder="Select country" />
+                              <SelectValue placeholder={t('forms.selectCountry')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -341,16 +356,16 @@ export default function NewConvert() {
                       name="wantsContact"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Would you like us to contact you?</FormLabel>
+                          <FormLabel>{t('converts.wantsContactQuestion')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-wants-contact">
-                                <SelectValue placeholder="Select an option" />
+                                <SelectValue placeholder={t('forms.selectOption')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Yes">Yes</SelectItem>
-                              <SelectItem value="No">No</SelectItem>
+                              <SelectItem value="Yes">{t('forms.yes')}</SelectItem>
+                              <SelectItem value="No">{t('forms.no')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -363,16 +378,16 @@ export default function NewConvert() {
                       name="gender"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Gender</FormLabel>
+                          <FormLabel>{t('forms.gender')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-gender">
-                                <SelectValue placeholder="Select gender" />
+                                <SelectValue placeholder={t('forms.selectGender')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Male">Male</SelectItem>
-                              <SelectItem value="Female">Female</SelectItem>
+                              <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                              <SelectItem value="Female">{t('forms.female')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -387,18 +402,18 @@ export default function NewConvert() {
                       name="ageGroup"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Age Group</FormLabel>
+                          <FormLabel>{t('forms.ageGroup')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-age-group">
-                                <SelectValue placeholder="Select age group" />
+                                <SelectValue placeholder={t('forms.selectAgeGroup')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Under 18">Under 18</SelectItem>
-                              <SelectItem value="18-24">18-24</SelectItem>
-                              <SelectItem value="25-34">25-34</SelectItem>
-                              <SelectItem value="35 and Above">35 and Above</SelectItem>
+                              <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                              <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                              <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                              <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -411,16 +426,16 @@ export default function NewConvert() {
                       name="isChurchMember"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Are you a member of any Ministry?</FormLabel>
+                          <FormLabel>{t('converts.churchMemberQuestion')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-church-member">
-                                <SelectValue placeholder="Select an option" />
+                                <SelectValue placeholder={t('forms.selectOption')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Yes">Yes</SelectItem>
-                              <SelectItem value="No">No</SelectItem>
+                              <SelectItem value="Yes">{t('forms.yes')}</SelectItem>
+                              <SelectItem value="No">{t('forms.no')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -434,10 +449,10 @@ export default function NewConvert() {
                     name="prayerRequest"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Prayer Request / Additional information you'd like to share</FormLabel>
+                        <FormLabel>{t('publicForms.prayerRequestAdditional')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Share any prayer requests or additional information..."
+                            placeholder={t('publicForms.prayerRequestPlaceholder')}
                             className="resize-none"
                             {...field}
                             data-testid="input-prayer-request"
@@ -457,10 +472,10 @@ export default function NewConvert() {
                     {submitMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Submitting...
+                        {t('forms.submitting')}
                       </>
                     ) : (
-                      "Submit Information"
+                      t('publicForms.submitInformation')
                     )}
                   </Button>
                 </form>

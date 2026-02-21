@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,20 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { adminSetupSchema, type AdminSetupData } from "@shared/schema";
 import { Heart, User, Mail, Lock, Key, Loader2, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Setup() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  const localSetupSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    email: z.string().email(t('validation.invalidEmail')),
+    password: z.string().min(8, t('validation.passwordMinLength')),
+    setupKey: z.string().min(1, t('validation.setupKeyRequired')),
+  });
 
   const { data: setupStatus, isLoading: checkingSetup } = useQuery<{ available: boolean }>({
     queryKey: ["/api/auth/setup-status"],
@@ -22,7 +33,7 @@ export default function Setup() {
   });
 
   const form = useForm<AdminSetupData>({
-    resolver: zodResolver(adminSetupSchema),
+    resolver: zodResolver(localSetupSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -38,16 +49,16 @@ export default function Setup() {
     },
     onSuccess: () => {
       toast({
-        title: "Admin account created!",
-        description: "You can now log in with your credentials.",
+        title: t('setup.adminAccountCreated'),
+        description: t('setup.adminAccountCreatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/setup-status"] });
       setLocation("/login");
     },
     onError: (error: Error) => {
       toast({
-        title: "Setup failed",
-        description: error.message || "Failed to create admin account. Please check your setup key.",
+        title: t('setup.setupFailed'),
+        description: error.message || t('setup.setupFailedDesc'),
         variant: "destructive",
       });
     },
@@ -62,7 +73,7 @@ export default function Setup() {
       <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="flex items-center gap-2">
           <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Checking setup status...</span>
+          <span>{t('setup.checkingSetup')}</span>
         </div>
       </div>
     );
@@ -77,12 +88,12 @@ export default function Setup() {
               <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
                 <CheckCircle2 className="h-8 w-8 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Setup Complete</h2>
+              <h2 className="text-2xl font-bold mb-2">{t('setup.setupComplete')}</h2>
               <p className="text-muted-foreground mb-6">
-                An admin account has already been created. You can log in using your admin credentials.
+                {t('setup.setupCompleteDesc')}
               </p>
               <Link href="/login">
-                <Button data-testid="button-go-login">Go to Login</Button>
+                <Button data-testid="button-go-login">{t('setup.goToLogin')}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -100,23 +111,22 @@ export default function Setup() {
               <Heart className="h-6 w-6 text-primary-foreground" />
             </div>
           </Link>
-          <h1 className="text-2xl font-bold">Admin Setup</h1>
-          <p className="text-muted-foreground mt-1">Create your first admin account</p>
+          <h1 className="text-2xl font-bold">{t('setup.adminSetup')}</h1>
+          <p className="text-muted-foreground mt-1">{t('setup.createFirstAdmin')}</p>
         </div>
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Create Admin Account</CardTitle>
+            <CardTitle className="text-xl">{t('setup.createAdminAccount')}</CardTitle>
             <CardDescription>
-              Use the setup key from your environment to create the first administrator
+              {t('setup.useSetupKey')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="bg-muted/50 rounded-md p-4 mb-6 flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
-                This setup page will be disabled after the first admin account is created. Make sure
-                to remember your credentials.
+                {t('setup.setupWarning')}
               </p>
             </div>
 
@@ -128,12 +138,12 @@ export default function Setup() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name</FormLabel>
+                        <FormLabel>{t('forms.firstName')}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
-                              placeholder="First name"
+                              placeholder={t('forms.firstNameShort')}
                               className="pl-10"
                               {...field}
                               data-testid="input-setup-first-name"
@@ -149,10 +159,10 @@ export default function Setup() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name</FormLabel>
+                        <FormLabel>{t('forms.lastName')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Last name"
+                            placeholder={t('forms.lastNameShort')}
                             {...field}
                             data-testid="input-setup-last-name"
                           />
@@ -168,7 +178,7 @@ export default function Setup() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('forms.email')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -191,13 +201,13 @@ export default function Setup() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('auth.password')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
-                            placeholder="Minimum 8 characters"
+                            placeholder={t('setup.passwordPlaceholder')}
                             className="pl-10"
                             {...field}
                             data-testid="input-setup-password"
@@ -214,13 +224,13 @@ export default function Setup() {
                   name="setupKey"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Setup Key</FormLabel>
+                      <FormLabel>{t('setup.setupKey')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
-                            placeholder="Enter ADMIN_SETUP_KEY"
+                            placeholder={t('setup.setupKeyPlaceholder')}
                             className="pl-10"
                             {...field}
                             data-testid="input-setup-key"
@@ -241,10 +251,10 @@ export default function Setup() {
                   {mutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating Account...
+                      {t('setup.creatingAccount')}
                     </>
                   ) : (
-                    "Create Admin Account"
+                    t('setup.createAdminAccount')
                   )}
                 </Button>
               </form>
@@ -256,7 +266,7 @@ export default function Setup() {
           <Link href="/">
             <Button variant="ghost" size="sm" className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to Home
+              {t('setup.backToHome')}
             </Button>
           </Link>
         </div>

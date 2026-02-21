@@ -49,11 +49,11 @@ import { ConvertScheduleFollowUpDialog } from "@/components/convert-schedule-fol
 import { ConvertAddNoteDialog } from "@/components/convert-add-note-dialog";
 
 
-const updateConvertSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+const updateConvertSchemaBase = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
   dateOfBirth: z.string().optional(),
   country: z.string().optional(),
   salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus", ""]).optional(),
@@ -86,7 +86,7 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-type UpdateConvertData = z.infer<typeof updateConvertSchema>;
+type UpdateConvertData = z.infer<typeof updateConvertSchemaBase>;
 
 const statusColors: Record<string, string> = {
   NEW: "bg-accent/10 text-accent border-accent/20",
@@ -102,6 +102,24 @@ interface ConvertWithCheckins extends Convert {
 
 export default function ConvertDetail() {
   const { t } = useTranslation();
+
+  const updateConvertSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    phone: z.string().optional(),
+    email: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
+    dateOfBirth: z.string().optional(),
+    country: z.string().optional(),
+    salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus", ""]).optional(),
+    wantsContact: z.enum(["Yes", "No", ""]).optional(),
+    gender: z.enum(["Male", "Female", ""]).optional(),
+    ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above", ""]).optional(),
+    isChurchMember: z.enum(["Yes", "No", ""]).optional(),
+    prayerRequest: z.string().optional(),
+    summaryNotes: z.string().optional(),
+    status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]),
+  });
+
   const { toast } = useToast();
   const basePath = useBasePath();
   const apiBasePath = useApiBasePath();

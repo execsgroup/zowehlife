@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
 export default function MinistryAdminGuests() {
+  const { t } = useTranslation();
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [search, setSearch] = useState("");
@@ -37,13 +39,13 @@ export default function MinistryAdminGuests() {
   });
 
   return (
-    <DashboardLayout title="Guest List">
+    <DashboardLayout title={t('guests.title')}>
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Guest List</h2>
+            <h2 className="text-2xl font-bold tracking-tight">{t('guests.title')}</h2>
             <p className="text-muted-foreground">
-              View guests in your ministry
+              {t('guests.viewGuestsInMinistry')}
             </p>
           </div>
         </div>
@@ -54,7 +56,7 @@ export default function MinistryAdminGuests() {
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, phone, or email..."
+                  placeholder={t('forms.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-9"
@@ -72,9 +74,9 @@ export default function MinistryAdminGuests() {
             ) : filteredGuests?.length === 0 ? (
               <div className="text-center py-12">
                 <Users2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mt-4 text-lg font-semibold">No guests found</h3>
+                <h3 className="mt-4 text-lg font-semibold">{t('guests.noGuests')}</h3>
                 <p className="text-muted-foreground">
-                  No guests have been added yet or your search returned no results.
+                  {t('guests.noGuestsDescription')}
                 </p>
               </div>
             ) : (
@@ -82,10 +84,10 @@ export default function MinistryAdminGuests() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Added</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('forms.gender')}</TableHead>
+                      <TableHead>{t('forms.createdAt')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -134,50 +136,50 @@ export default function MinistryAdminGuests() {
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Guest Details</DialogTitle>
+            <DialogTitle>{t('guests.editGuest')}</DialogTitle>
           </DialogHeader>
           {selectedGuest && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">First Name</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.firstName')}</p>
                   <p className="font-medium">{selectedGuest.firstName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Last Name</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.lastName')}</p>
                   <p className="font-medium">{selectedGuest.lastName}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.phone')}</p>
                   <p className="font-medium">{selectedGuest.phone || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.email')}</p>
                   <p className="font-medium">{selectedGuest.email || "-"}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Gender</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.gender')}</p>
                   <p className="font-medium">{selectedGuest.gender || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Age Group</p>
+                  <p className="text-sm text-muted-foreground">{t('forms.ageGroup')}</p>
                   <p className="font-medium">{selectedGuest.ageGroup || "-"}</p>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Country</p>
+                <p className="text-sm text-muted-foreground">{t('forms.country')}</p>
                 <p className="font-medium">{selectedGuest.country || "-"}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Address</p>
+                <p className="text-sm text-muted-foreground">{t('forms.address')}</p>
                 <p className="font-medium">{selectedGuest.address || "-"}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Date of Birth</p>
+                <p className="text-sm text-muted-foreground">{t('forms.dateOfBirth')}</p>
                 <p className="font-medium">
                   {selectedGuest.dateOfBirth 
                     ? format(new Date(selectedGuest.dateOfBirth), "MMMM d, yyyy") 
@@ -185,11 +187,11 @@ export default function MinistryAdminGuests() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Notes</p>
+                <p className="text-sm text-muted-foreground">{t('forms.notes')}</p>
                 <p className="font-medium">{selectedGuest.notes || "-"}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Added</p>
+                <p className="text-sm text-muted-foreground">{t('forms.createdAt')}</p>
                 <p className="font-medium">
                   {selectedGuest.createdAt 
                     ? format(new Date(selectedGuest.createdAt), "MMMM d, yyyy") 

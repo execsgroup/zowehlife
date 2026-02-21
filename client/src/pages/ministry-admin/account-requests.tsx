@@ -40,19 +40,19 @@ const statusColors: Record<string, string> = {
   DENIED: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
-const reviewFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().optional(),
-  reason: z.string().optional(),
-});
-
-type ReviewFormData = z.infer<typeof reviewFormSchema>;
-
 export default function MinistryAdminAccountRequests() {
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const reviewFormSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    email: z.string().email(t('validation.invalidEmail')),
+    phone: z.string().optional(),
+    reason: z.string().optional(),
+  });
+
+  type ReviewFormData = z.infer<typeof reviewFormSchema>;
   const [reviewingRequest, setReviewingRequest] = useState<AccountRequest | null>(null);
 
   const { data: requests, isLoading } = useQuery<AccountRequest[]>({

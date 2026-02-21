@@ -23,21 +23,6 @@ import { Plus, Mail, Users, Loader2, KeyRound, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 
-const leaderFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  churchId: z.string().min(1, "Please select a ministry"),
-});
-
-const resetPasswordSchema = z.object({
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-type LeaderFormData = z.infer<typeof leaderFormSchema>;
-type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
-
 interface LeaderWithChurch extends Omit<User, "passwordHash"> {
   church?: { id: string; name: string } | null;
 }
@@ -45,6 +30,21 @@ interface LeaderWithChurch extends Omit<User, "passwordHash"> {
 export default function AdminLeaders() {
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const leaderFormSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    email: z.string().email(t('validation.invalidEmail')),
+    password: z.string().min(8, t('validation.passwordMinLength')),
+    churchId: z.string().min(1, t('validation.selectMinistry')),
+  });
+
+  const resetPasswordSchema = z.object({
+    newPassword: z.string().min(8, t('validation.passwordMinLength')),
+  });
+
+  type LeaderFormData = z.infer<typeof leaderFormSchema>;
+  type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

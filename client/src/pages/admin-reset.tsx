@@ -25,20 +25,29 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Heart, ArrowLeft, KeyRound } from "lucide-react";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 
-const resetSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+const resetSchemaBase = z.object({
+  email: z.string().email(),
+  newPassword: z.string().min(8),
   confirmPassword: z.string(),
-  setupKey: z.string().min(1, "Setup key is required"),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+  setupKey: z.string().min(1),
 });
 
-type ResetFormData = z.infer<typeof resetSchema>;
+type ResetFormData = z.infer<typeof resetSchemaBase>;
 
 export default function AdminReset() {
+  const { t } = useTranslation();
+
+  const resetSchema = z.object({
+    email: z.string().email(t('validation.invalidEmail')),
+    newPassword: z.string().min(8, t('validation.passwordMinLength')),
+    confirmPassword: z.string(),
+    setupKey: z.string().min(1, t('validation.setupKeyRequired')),
+  }).refine((data) => data.newPassword === data.confirmPassword, {
+    message: t('validation.passwordsDontMatch'),
+    path: ["confirmPassword"],
+  });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [success, setSuccess] = useState(false);
@@ -64,13 +73,13 @@ export default function AdminReset() {
     onSuccess: () => {
       setSuccess(true);
       toast({
-        title: "Password Reset",
-        description: "Your admin password has been reset. You can now log in.",
+        title: t('adminReset.passwordReset'),
+        description: t('adminReset.passwordResetDesc'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Reset Failed",
+        title: t('adminReset.resetFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -89,9 +98,9 @@ export default function AdminReset() {
             <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
               <KeyRound className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
-            <CardTitle>Password Reset Successful</CardTitle>
+            <CardTitle>{t('adminReset.passwordResetSuccessful')}</CardTitle>
             <CardDescription>
-              Your admin password has been reset. You can now log in with your new password.
+              {t('adminReset.passwordResetSuccessfulDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -100,7 +109,7 @@ export default function AdminReset() {
               onClick={() => setLocation("/login")}
               data-testid="button-go-to-login"
             >
-              Go to Login
+              {t('adminReset.goToLogin')}
             </Button>
           </CardContent>
         </Card>
@@ -115,9 +124,9 @@ export default function AdminReset() {
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Heart className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle>Reset Admin Password</CardTitle>
+          <CardTitle>{t('adminReset.resetAdminPassword')}</CardTitle>
           <CardDescription>
-            Enter your admin email and the setup key to reset your password
+            {t('adminReset.resetDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -128,7 +137,7 @@ export default function AdminReset() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Admin Email</FormLabel>
+                    <FormLabel>{t('adminReset.adminEmail')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -147,11 +156,11 @@ export default function AdminReset() {
                 name="newPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New Password</FormLabel>
+                    <FormLabel>{t('adminReset.newPassword')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter new password"
+                        placeholder={t('adminReset.newPasswordPlaceholder')}
                         data-testid="input-reset-password"
                         {...field}
                       />
@@ -166,11 +175,11 @@ export default function AdminReset() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>{t('settings.confirmPassword')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Confirm new password"
+                        placeholder={t('adminReset.confirmPasswordPlaceholder')}
                         data-testid="input-reset-confirm-password"
                         {...field}
                       />
@@ -185,11 +194,11 @@ export default function AdminReset() {
                 name="setupKey"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Setup Key</FormLabel>
+                    <FormLabel>{t('setup.setupKey')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter your ADMIN_SETUP_KEY"
+                        placeholder={t('setup.setupKeyPlaceholder')}
                         data-testid="input-reset-key"
                         {...field}
                       />
@@ -205,7 +214,7 @@ export default function AdminReset() {
                 disabled={resetMutation.isPending}
                 data-testid="button-reset-submit"
               >
-                {resetMutation.isPending ? "Resetting..." : "Reset Password"}
+                {resetMutation.isPending ? t('adminReset.resetting') : t('adminReset.resetPassword')}
               </Button>
             </form>
           </Form>
@@ -214,7 +223,7 @@ export default function AdminReset() {
             <Link href="/login">
               <Button variant="ghost" size="sm" data-testid="link-back-to-login">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Login
+                {t('adminReset.backToLogin')}
               </Button>
             </Link>
           </div>

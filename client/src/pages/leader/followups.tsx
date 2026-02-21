@@ -85,12 +85,12 @@ interface MassFollowupData {
   createdAt: string;
 }
 
-const followUpNotesSchema = z.object({
+const followUpNotesSchemaBase = z.object({
   outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
   notes: z.string().optional(),
 });
 
-type FollowUpNotesData = z.infer<typeof followUpNotesSchema>;
+type FollowUpNotesData = z.infer<typeof followUpNotesSchemaBase>;
 
 const formatTime = (time: string) => {
   const [h, m] = time.split(':').map(Number);
@@ -99,8 +99,8 @@ const formatTime = (time: string) => {
   return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
 };
 
-const scheduleFollowUpSchema = z.object({
-  nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+const scheduleFollowUpSchemaBase = z.object({
+  nextFollowupDate: z.string().min(1),
   nextFollowupTime: z.string().optional(),
   customLeaderSubject: z.string().optional(),
   customLeaderMessage: z.string().optional(),
@@ -109,7 +109,7 @@ const scheduleFollowUpSchema = z.object({
   includeVideoLink: z.boolean().optional(),
 });
 
-type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchema>;
+type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchemaBase>;
 
 type FollowUpType = "convert" | "newMember";
 
@@ -124,6 +124,22 @@ interface SelectedFollowUp {
 
 export default function LeaderFollowups() {
   const { t } = useTranslation();
+
+  const followUpNotesSchema = z.object({
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+    notes: z.string().optional(),
+  });
+
+  const scheduleFollowUpSchema = z.object({
+    nextFollowupDate: z.string().min(1, t('validation.followUpDateRequired')),
+    nextFollowupTime: z.string().optional(),
+    customLeaderSubject: z.string().optional(),
+    customLeaderMessage: z.string().optional(),
+    customConvertSubject: z.string().optional(),
+    customConvertMessage: z.string().optional(),
+    includeVideoLink: z.boolean().optional(),
+  });
+
   const { toast } = useToast();
   const basePath = useBasePath();
   const apiBasePath = useApiBasePath();

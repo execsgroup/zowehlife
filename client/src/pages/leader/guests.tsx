@@ -46,11 +46,11 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-const guestFormSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+const guestFormSchemaBase = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
   dateOfBirth: z.string().optional(),
   country: z.string().optional(),
   gender: z.enum(["Male", "Female"]).optional(),
@@ -59,10 +59,24 @@ const guestFormSchema = z.object({
   notes: z.string().optional(),
 });
 
-type GuestFormData = z.infer<typeof guestFormSchema>;
+type GuestFormData = z.infer<typeof guestFormSchemaBase>;
 
 export default function LeaderGuests() {
   const { t } = useTranslation();
+
+  const guestFormSchema = z.object({
+    firstName: z.string().min(1, t('validation.firstNameRequired')),
+    lastName: z.string().min(1, t('validation.lastNameRequired')),
+    phone: z.string().optional(),
+    email: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
+    dateOfBirth: z.string().optional(),
+    country: z.string().optional(),
+    gender: z.enum(["Male", "Female"]).optional(),
+    ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
+    address: z.string().optional(),
+    notes: z.string().optional(),
+  });
+
   const { toast } = useToast();
   const basePath = useBasePath();
   const [dialogOpen, setDialogOpen] = useState(false);

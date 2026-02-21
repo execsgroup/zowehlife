@@ -13,17 +13,17 @@ import { Heart, Key, Lock, Loader2, ArrowLeft, CheckCircle } from "lucide-react"
 import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 
-const claimFormSchema = claimAccountSchema.extend({
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-type ClaimFormData = z.infer<typeof claimFormSchema>;
-
 export default function ClaimAccount() {
   const { t } = useTranslation();
+
+  const claimFormSchema = claimAccountSchema.extend({
+    confirmPassword: z.string().min(1, t('validation.confirmPasswordRequired')),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('validation.passwordsDontMatch'),
+    path: ["confirmPassword"],
+  });
+
+  type ClaimFormData = z.infer<typeof claimFormSchema>;
   const [, setLocation] = useLocation();
   const searchString = useSearch();
   const { toast } = useToast();
@@ -51,13 +51,13 @@ export default function ClaimAccount() {
       });
       setClaimed(true);
       toast({
-        title: "Account Claimed!",
-        description: "Your account is now active. You can sign in.",
+        title: t('memberPortal.accountClaimed'),
+        description: t('memberPortal.accountClaimedShort'),
       });
     } catch (error: any) {
       toast({
-        title: "Claim failed",
-        description: error.message || "Invalid or expired token. Please request a new one.",
+        title: t('memberPortal.claimFailed'),
+        description: error.message || t('memberPortal.claimFailedDesc'),
         variant: "destructive",
       });
     } finally {
@@ -77,9 +77,9 @@ export default function ClaimAccount() {
                     <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
-                <h2 className="text-2xl font-bold">Account Claimed!</h2>
+                <h2 className="text-2xl font-bold">{t('memberPortal.accountClaimed')}</h2>
                 <p className="text-muted-foreground">
-                  Your account is now active. You can now sign in with your email and password.
+                  {t('memberPortal.accountClaimedDesc')}
                 </p>
                 <Button onClick={() => setLocation("/member-portal/login")} className="w-full" data-testid="button-go-to-login">
                   {t('auth.signIn')}
@@ -101,15 +101,15 @@ export default function ClaimAccount() {
               <Heart className="h-6 w-6 text-primary-foreground" />
             </div>
           </Link>
-          <h1 className="text-2xl font-bold">Claim Your Account</h1>
-          <p className="text-muted-foreground mt-1">Set your password to activate your member portal</p>
+          <h1 className="text-2xl font-bold">{t('memberPortal.claimAccountTitle')}</h1>
+          <p className="text-muted-foreground mt-1">{t('memberPortal.claimAccountDescription')}</p>
         </div>
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Set Your Password</CardTitle>
+            <CardTitle className="text-xl">{t('memberPortal.setYourPassword')}</CardTitle>
             <CardDescription>
-              Enter the token from your email and create a password
+              {t('memberPortal.enterTokenCreatePassword')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -120,12 +120,12 @@ export default function ClaimAccount() {
                   name="token"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Claim Token</FormLabel>
+                      <FormLabel>{t('memberPortal.claimToken')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
-                            placeholder="Paste your token from email"
+                            placeholder={t('memberPortal.tokenPlaceholder')}
                             className="pl-10"
                             {...field}
                             data-testid="input-claim-token"
@@ -148,7 +148,7 @@ export default function ClaimAccount() {
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
-                            placeholder="Create a password (min 8 characters)"
+                            placeholder={t('memberPortal.createPasswordPlaceholder')}
                             className="pl-10"
                             {...field}
                             data-testid="input-claim-password"
@@ -165,13 +165,13 @@ export default function ClaimAccount() {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
+                      <FormLabel>{t('settings.confirmPassword')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="password"
-                            placeholder="Confirm your password"
+                            placeholder={t('memberPortal.confirmPasswordPlaceholder')}
                             className="pl-10"
                             {...field}
                             data-testid="input-claim-confirm-password"
@@ -192,10 +192,10 @@ export default function ClaimAccount() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Claiming Account...
+                      {t('memberPortal.claimingAccount')}
                     </>
                   ) : (
-                    "Claim Account"
+                    t('memberPortal.claimAccount')
                   )}
                 </Button>
               </form>
@@ -203,7 +203,7 @@ export default function ClaimAccount() {
 
             <div className="mt-6 text-center text-sm">
               <p className="text-muted-foreground">
-                Already have an account?{" "}
+                {t('memberPortal.alreadyHaveAccount')}{" "}
                 <Link href="/member-portal/login" className="text-primary hover:underline">
                   {t('auth.signIn')}
                 </Link>
@@ -213,7 +213,7 @@ export default function ClaimAccount() {
             <div className="mt-4 text-center">
               <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" />
-                Back to home
+                {t('memberPortal.backToHome')}
               </Link>
             </div>
           </CardContent>

@@ -70,8 +70,8 @@ export default function LeaderDashboard() {
       await navigator.clipboard.writeText(link);
       setCopiedLink(linkType);
       toast({
-        title: "Link Copied",
-        description: `The ${linkType} link has been copied to your clipboard.`,
+        title: t('dashboard.linkCopied'),
+        description: t('dashboard.linkCopiedDesc', { name: linkType }),
       });
       setTimeout(() => setCopiedLink(null), 2000);
     }

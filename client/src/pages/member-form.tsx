@@ -89,8 +89,8 @@ export default function MemberForm() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit registration",
+        title: t('common.error'),
+        description: error.message || t('publicForms.failedToSubmitRegistration'),
         variant: "destructive",
       });
     },
@@ -134,7 +134,7 @@ export default function MemberForm() {
               <CheckCircle2 className="h-16 w-16 mx-auto text-primary" />
               <h2 className="mt-4 text-2xl font-bold">{t('publicForms.thankYou')}</h2>
               <p className="text-muted-foreground mt-2">
-                {t('publicForms.formSubmitted')} Welcome to {church.name}!
+                {t('publicForms.formSubmitted')} {t('publicForms.welcomeTo', { name: church.name })}
               </p>
             </CardContent>
           </Card>
@@ -162,7 +162,7 @@ export default function MemberForm() {
             )}
             <CardTitle className="text-2xl">{t('publicForms.memberForm')}</CardTitle>
             <CardDescription>
-              Register as a member of {church.name}
+              {t('publicForms.registerAsMember', { name: church.name })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -177,9 +177,9 @@ export default function MemberForm() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name *</FormLabel>
+                        <FormLabel>{t('forms.firstName')} *</FormLabel>
                         <FormControl>
-                          <Input placeholder="First name" {...field} data-testid="input-firstname" />
+                          <Input placeholder={t('forms.firstNameShort')} {...field} data-testid="input-firstname" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -190,9 +190,9 @@ export default function MemberForm() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>{t('forms.lastName')} *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Last name" {...field} data-testid="input-lastname" />
+                          <Input placeholder={t('forms.lastNameShort')} {...field} data-testid="input-lastname" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -206,9 +206,9 @@ export default function MemberForm() {
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone</FormLabel>
+                        <FormLabel>{t('forms.phone')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Phone number" {...field} data-testid="input-phone" />
+                          <Input placeholder={t('forms.phoneNumberLabel')} {...field} data-testid="input-phone" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -219,9 +219,9 @@ export default function MemberForm() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t('forms.email')}</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="Email address" {...field} data-testid="input-email" />
+                          <Input type="email" placeholder={t('forms.emailAddressLabel')} {...field} data-testid="input-email" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -235,16 +235,16 @@ export default function MemberForm() {
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Gender</FormLabel>
+                        <FormLabel>{t('forms.gender')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-gender">
-                              <SelectValue placeholder="Select gender" />
+                              <SelectValue placeholder={t('forms.selectGender')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
+                            <SelectItem value="Male">{t('forms.male')}</SelectItem>
+                            <SelectItem value="Female">{t('forms.female')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -256,18 +256,18 @@ export default function MemberForm() {
                     name="ageGroup"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Age Group</FormLabel>
+                        <FormLabel>{t('forms.ageGroup')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-age-group">
-                              <SelectValue placeholder="Select age group" />
+                              <SelectValue placeholder={t('forms.selectAgeGroup')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Under 18">Under 18</SelectItem>
-                            <SelectItem value="18-24">18-24</SelectItem>
-                            <SelectItem value="25-34">25-34</SelectItem>
-                            <SelectItem value="35 and Above">35 and Above</SelectItem>
+                            <SelectItem value="Under 18">{t('forms.under18')}</SelectItem>
+                            <SelectItem value="18-24">{t('forms.age18to24')}</SelectItem>
+                            <SelectItem value="25-34">{t('forms.age25to34')}</SelectItem>
+                            <SelectItem value="35 and Above">{t('forms.age35plus')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -282,7 +282,7 @@ export default function MemberForm() {
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Date of Birth</FormLabel>
+                        <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} data-testid="input-dob" />
                         </FormControl>
@@ -295,7 +295,7 @@ export default function MemberForm() {
                     name="memberSince"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Member Since</FormLabel>
+                        <FormLabel>{t('forms.memberSince')}</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} data-testid="input-member-since" />
                         </FormControl>
@@ -310,11 +310,11 @@ export default function MemberForm() {
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country</FormLabel>
+                      <FormLabel>{t('forms.country')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-country">
-                            <SelectValue placeholder="Select country" />
+                            <SelectValue placeholder={t('forms.selectCountry')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -335,9 +335,9 @@ export default function MemberForm() {
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>{t('forms.address')}</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Full address" {...field} data-testid="input-address" />
+                        <Textarea placeholder={t('publicForms.fullAddress')} {...field} data-testid="input-address" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -349,9 +349,9 @@ export default function MemberForm() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Additional Notes and Prayer Requests</FormLabel>
+                      <FormLabel>{t('publicForms.additionalNotesAndPrayer')}</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Any additional information..." {...field} data-testid="input-notes" />
+                        <Textarea placeholder={t('publicForms.anyAdditionalInfo')} {...field} data-testid="input-notes" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -367,10 +367,10 @@ export default function MemberForm() {
                   {submitMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Submitting...
+                      {t('forms.submitting')}
                     </>
                   ) : (
-                    "Submit Registration"
+                    t('publicForms.submitRegistration')
                   )}
                 </Button>
               </form>

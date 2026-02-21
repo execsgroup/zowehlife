@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,6 +37,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function MinistryAdminMembers() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: members, isLoading } = useQuery<Member[]>({
@@ -59,9 +61,9 @@ export default function MinistryAdminMembers() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
               <Church className="h-6 w-6" />
-              Members
+              {t('membersPage.title')}
             </h1>
-            <p className="text-muted-foreground">View all members in your ministry</p>
+            <p className="text-muted-foreground">{t('membersPage.viewAllMembers')}</p>
           </div>
         </div>
 
@@ -70,7 +72,7 @@ export default function MinistryAdminMembers() {
             <div className="flex items-center gap-2 mb-4">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search members..."
+                placeholder={t('forms.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="max-w-sm"
@@ -89,11 +91,11 @@ export default function MinistryAdminMembers() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Gender / Age</TableHead>
-                      <TableHead>Member Since</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t('forms.name')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('forms.gender')} / {t('forms.ageGroup')}</TableHead>
+                      <TableHead>{t('forms.memberSince')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -154,9 +156,9 @@ export default function MinistryAdminMembers() {
             ) : (
               <div className="text-center py-12">
                 <Church className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No members found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('membersPage.noMembers')}</h3>
                 <p className="text-muted-foreground">
-                  {searchQuery ? "Try a different search term" : "Members will appear here once they register or are added by leaders"}
+                  {searchQuery ? t('common.tryDifferentSearch') : t('membersPage.membersWillAppear')}
                 </p>
               </div>
             )}

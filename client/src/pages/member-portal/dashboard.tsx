@@ -101,8 +101,8 @@ export default function MemberDashboard() {
       setLocation("/member-portal/login");
     } catch (error) {
       toast({
-        title: "Logout failed",
-        description: "Please try again.",
+        title: t('memberPortal.logoutFailed'),
+        description: t('memberPortal.logoutFailedDesc'),
         variant: "destructive",
       });
     }
@@ -115,13 +115,13 @@ export default function MemberDashboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/member/journey"] });
       queryClient.invalidateQueries({ queryKey: ["/api/member/follow-ups"] });
       toast({
-        title: "Ministry switched",
-        description: "Your ministry context has been updated.",
+        title: t('memberPortal.ministrySwitched'),
+        description: t('memberPortal.ministrySwitchedDesc'),
       });
     } catch (error: any) {
       toast({
-        title: "Switch failed",
-        description: error.message || "Failed to switch ministry.",
+        title: t('memberPortal.switchFailed'),
+        description: error.message || t('memberPortal.switchFailedDesc'),
         variant: "destructive",
       });
     }
@@ -130,11 +130,11 @@ export default function MemberDashboard() {
   const getRelationshipBadge = (type: string) => {
     switch (type) {
       case "convert":
-        return <Badge variant="secondary">New Believer</Badge>;
+        return <Badge variant="secondary">{t('memberPortal.newBeliever')}</Badge>;
       case "new_member":
-        return <Badge variant="secondary">New Member & Guest</Badge>;
+        return <Badge variant="secondary">{t('memberPortal.newMemberGuest')}</Badge>;
       case "member":
-        return <Badge variant="default">Member</Badge>;
+        return <Badge variant="default">{t('memberPortal.member')}</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
@@ -181,7 +181,7 @@ export default function MemberDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Church className="h-5 w-5" />
-                Current Ministry
+                {t('memberPortal.currentMinistry')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -190,7 +190,7 @@ export default function MemberDashboard() {
                 onValueChange={handleSwitchMinistry}
               >
                 <SelectTrigger className="w-full" data-testid="select-ministry">
-                  <SelectValue placeholder="Select a ministry" />
+                  <SelectValue placeholder={t('forms.selectMinistry')} />
                 </SelectTrigger>
                 <SelectContent>
                   {profile.affiliations.map((aff) => (
@@ -214,7 +214,7 @@ export default function MemberDashboard() {
                   </div>
                   <div>
                     <CardTitle className="text-lg">{t('memberPortal.myJourney')}</CardTitle>
-                    <CardDescription>View your spiritual journey</CardDescription>
+                    <CardDescription>{t('memberPortal.viewJourney')}</CardDescription>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -232,7 +232,7 @@ export default function MemberDashboard() {
                   <div>
                     <CardTitle className="text-lg">{t('memberPortal.prayerRequests')}</CardTitle>
                     <CardDescription>
-                      {prayerRequests?.length || 0} requests submitted
+                      {t('memberPortal.requestsSubmitted', { count: prayerRequests?.length || 0 })}
                     </CardDescription>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ export default function MemberDashboard() {
                   <div>
                     <CardTitle className="text-lg">{t('memberPortal.journal')}</CardTitle>
                     <CardDescription>
-                      Personal reflections and notes
+                      {t('memberPortal.personalReflections')}
                     </CardDescription>
                   </div>
                 </div>
@@ -267,10 +267,10 @@ export default function MemberDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Video className="h-5 w-5" />
-                Upcoming Follow-ups
+                {t('memberPortal.upcomingFollowUps')}
               </CardTitle>
               <CardDescription>
-                Your scheduled sessions with ministry leaders
+                {t('memberPortal.scheduledSessions')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -294,7 +294,7 @@ export default function MemberDashboard() {
                             {followUp.nextFollowupTime && (() => { const [h, m] = followUp.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Scheduled session with your leader
+                            {t('memberPortal.scheduledSession')}
                           </p>
                         </div>
                       </div>
@@ -312,12 +312,12 @@ export default function MemberDashboard() {
                               rel="noopener noreferrer"
                             >
                               <Video className="h-4 w-4 mr-1" />
-                              Join
+                              {t('dashboard.join')}
                               <ExternalLink className="h-3 w-3 ml-1" />
                             </a>
                           </Button>
                         )}
-                        <Badge variant="secondary">Scheduled</Badge>
+                        <Badge variant="secondary">{t('common.scheduled')}</Badge>
                       </div>
                     </div>
                   ))}
@@ -330,10 +330,10 @@ export default function MemberDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              My Ministry Connections
+              {t('memberPortal.myMinistryConnections')}
             </CardTitle>
             <CardDescription>
-              Your affiliations across ministries
+              {t('memberPortal.affiliationsDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -353,7 +353,7 @@ export default function MemberDashboard() {
                       <div>
                         <p className="font-medium">{item.ministryName}</p>
                         <p className="text-sm text-muted-foreground">
-                          Joined {new Date(item.joinedAt).toLocaleDateString()}
+                          {t('forms.joined')} {new Date(item.joinedAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -363,7 +363,7 @@ export default function MemberDashboard() {
               </div>
             ) : (
               <p className="text-center text-muted-foreground py-8">
-                No ministry connections found.
+                {t('memberPortal.noMinistryConnections')}
               </p>
             )}
           </CardContent>
