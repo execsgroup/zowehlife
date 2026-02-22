@@ -495,7 +495,7 @@ export default function LeaderFollowups() {
           }
         />
 
-        {/* Mass Follow-ups Section */}
+        {/* Group Follow-ups Section */}
         <Section title={t('followUps.massFollowUps')} noPadding>
               {isLoadingMass ? (
                 <div className="p-6 space-y-4">
@@ -1241,7 +1241,7 @@ export default function LeaderFollowups() {
         </DialogContent>
       </Dialog>
 
-      {/* Mass Follow-up Completion Dialog */}
+      {/* Group Follow-up Completion Dialog */}
       <Dialog open={massNotesDialogOpen} onOpenChange={setMassNotesDialogOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1315,7 +1315,7 @@ export default function LeaderFollowups() {
                 placeholder={t('followUps.massNotesPlaceholder')}
                 value={massNotes}
                 onChange={(text) => setMassNotes(text)}
-                context={selectedMassFollowup ? `Writing meeting notes for a mass follow-up session with ${selectedMassFollowup.category.replace("_", " ")} from a church ministry.` : undefined}
+                context={selectedMassFollowup ? `Writing meeting notes for a group follow-up session with ${selectedMassFollowup.category.replace("_", " ")} from a church ministry.` : undefined}
                 aiPlaceholder="e.g., Write a summary of the meeting..."
                 rows={4}
                 data-testid="input-mass-notes"

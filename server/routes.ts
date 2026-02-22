@@ -4003,7 +4003,7 @@ export async function registerRoutes(
     }
   });
 
-  // Ministry Admin Mass Follow-Up (delegates to the same logic as leader)
+  // Ministry Admin Group Follow-Up (delegates to the same logic as leader)
   app.post("/api/ministry-admin/mass-followup/candidates", requireMinistryAdmin, async (req, res) => {
     try {
       const user = (req as any).user;
@@ -4180,7 +4180,7 @@ export async function registerRoutes(
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
-      res.status(500).json({ message: "Failed to schedule mass follow-ups" });
+      res.status(500).json({ message: "Failed to schedule group follow-ups" });
     }
   });
 
@@ -4190,7 +4190,7 @@ export async function registerRoutes(
       const massFollowups = await storage.getMassFollowupsByChurch(user.churchId);
       res.json(massFollowups);
     } catch (error) {
-      res.status(500).json({ message: "Failed to get mass follow-ups" });
+      res.status(500).json({ message: "Failed to get group follow-ups" });
     }
   });
 
@@ -4199,12 +4199,12 @@ export async function registerRoutes(
       const user = (req as any).user;
       const massFollowup = await storage.getMassFollowup(req.params.id);
       if (!massFollowup || massFollowup.churchId !== user.churchId) {
-        return res.status(404).json({ message: "Mass follow-up not found" });
+        return res.status(404).json({ message: "Group follow-up not found" });
       }
       const participants = await storage.getMassFollowupParticipants(massFollowup.id);
       res.json({ ...massFollowup, participants });
     } catch (error) {
-      res.status(500).json({ message: "Failed to get mass follow-up" });
+      res.status(500).json({ message: "Failed to get group follow-up" });
     }
   });
 
@@ -4219,7 +4219,7 @@ export async function registerRoutes(
 
       const massFollowup = await storage.getMassFollowup(req.params.id);
       if (!massFollowup || massFollowup.churchId !== user.churchId) {
-        return res.status(404).json({ message: "Mass follow-up not found" });
+        return res.status(404).json({ message: "Group follow-up not found" });
       }
 
       const participants = await storage.getMassFollowupParticipants(massFollowup.id);
@@ -4233,7 +4233,7 @@ export async function registerRoutes(
             churchId: massFollowup.churchId,
             createdByUserId: user.id,
             checkinDate: new Date().toISOString().split("T")[0],
-            notes: data.notes || `Attended mass follow-up on ${massFollowup.scheduledDate}`,
+            notes: data.notes || `Attended group follow-up on ${massFollowup.scheduledDate}`,
             outcome: "CONNECTED" as const,
             nextFollowupDate: null,
             nextFollowupTime: null,
@@ -4273,7 +4273,7 @@ export async function registerRoutes(
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
-      res.status(500).json({ message: "Failed to complete mass follow-up" });
+      res.status(500).json({ message: "Failed to complete group follow-up" });
     }
   });
 
@@ -6277,7 +6277,7 @@ export async function registerRoutes(
     }
   });
 
-  // ===== MASS FOLLOW-UP ROUTES =====
+  // ===== GROUP FOLLOW-UP ROUTES =====
 
   app.post("/api/leader/mass-followup/candidates", requireLeader, async (req, res) => {
     try {
@@ -6457,7 +6457,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: error.errors[0].message });
       }
       console.error("Error in mass followup:", error);
-      res.status(500).json({ message: "Failed to schedule mass follow-ups" });
+      res.status(500).json({ message: "Failed to schedule group follow-ups" });
     }
   });
 
@@ -6467,7 +6467,7 @@ export async function registerRoutes(
       const massFollowups = await storage.getMassFollowupsByChurch(user.churchId);
       res.json(massFollowups);
     } catch (error) {
-      res.status(500).json({ message: "Failed to get mass follow-ups" });
+      res.status(500).json({ message: "Failed to get group follow-ups" });
     }
   });
 
@@ -6476,12 +6476,12 @@ export async function registerRoutes(
       const user = (req as any).user;
       const massFollowup = await storage.getMassFollowup(req.params.id);
       if (!massFollowup || massFollowup.churchId !== user.churchId) {
-        return res.status(404).json({ message: "Mass follow-up not found" });
+        return res.status(404).json({ message: "Group follow-up not found" });
       }
       const participants = await storage.getMassFollowupParticipants(massFollowup.id);
       res.json({ ...massFollowup, participants });
     } catch (error) {
-      res.status(500).json({ message: "Failed to get mass follow-up" });
+      res.status(500).json({ message: "Failed to get group follow-up" });
     }
   });
 
@@ -6496,7 +6496,7 @@ export async function registerRoutes(
 
       const massFollowup = await storage.getMassFollowup(req.params.id);
       if (!massFollowup || massFollowup.churchId !== user.churchId) {
-        return res.status(404).json({ message: "Mass follow-up not found" });
+        return res.status(404).json({ message: "Group follow-up not found" });
       }
 
       const participants = await storage.getMassFollowupParticipants(massFollowup.id);
@@ -6510,7 +6510,7 @@ export async function registerRoutes(
             churchId: massFollowup.churchId,
             createdByUserId: user.id,
             checkinDate: new Date().toISOString().split("T")[0],
-            notes: data.notes || `Attended mass follow-up on ${massFollowup.scheduledDate}`,
+            notes: data.notes || `Attended group follow-up on ${massFollowup.scheduledDate}`,
             outcome: "CONNECTED" as const,
             nextFollowupDate: null,
             nextFollowupTime: null,
@@ -6550,7 +6550,7 @@ export async function registerRoutes(
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
-      res.status(500).json({ message: "Failed to complete mass follow-up" });
+      res.status(500).json({ message: "Failed to complete group follow-up" });
     }
   });
 
