@@ -10,8 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Search, Users, Phone, Mail, Eye } from "lucide-react";
+import { Search, Users, Phone, Mail, Eye, CalendarPlus } from "lucide-react";
 import { format } from "date-fns";
+import { NewMemberScheduleFollowUpDialog } from "@/components/new-member-schedule-followup-dialog";
 
 interface NewMember {
   id: string;
@@ -36,6 +37,10 @@ const statusColors: Record<string, string> = {
   CONTACTED: "bg-accent/10 text-accent border-accent/20",
   ACTIVE: "bg-coral/10 text-coral border-coral/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
+  CONNECTED: "bg-coral/10 text-coral border-coral/20",
+  NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
+  NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
+  SCHEDULED_VISIT: "bg-accent/10 text-accent border-accent/20",
 };
 
 const followUpStageLabelKeys: Record<string, string> = {
@@ -64,9 +69,18 @@ const followUpStageColors: Record<string, string> = {
   FINAL_COMPLETED: "bg-coral/10 text-coral border-coral/20",
 };
 
-
 export default function MinistryAdminNewMembers() {
   const { t } = useTranslation();
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  const [selectedNewMember, setSelectedNewMember] = useState<NewMember | null>(null);
+
+  const statusLabels: Record<string, string> = {
+    CONNECTED: t('statusLabels.connected'),
+    NO_RESPONSE: t('statusLabels.notConnected'),
+    NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
+    SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: newMembers, isLoading } = useQuery<NewMember[]>({
@@ -123,8 +137,9 @@ export default function MinistryAdminNewMembers() {
                       <TableHead>{t('forms.name')}</TableHead>
                       <TableHead>{t('forms.contact')}</TableHead>
                       <TableHead>{t('forms.gender')} / {t('forms.ageGroup')}</TableHead>
-                      <TableHead>{t('newMembers.followUpStage')}</TableHead>
+                      <TableHead>{t('common.status')}</TableHead>
                       <TableHead>{t('forms.visitDate')}</TableHead>
+                      <TableHead className="text-right">{t('common.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -165,13 +180,53 @@ export default function MinistryAdminNewMembers() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={followUpStageColors[member.followUpStage || "NEW"]}>
-                            {t(followUpStageLabelKeys[member.followUpStage || "NEW"])}
-                          </Badge>
+                          {(member as any).lastFollowupOutcome ? (
+                            <Badge className={statusColors[(member as any).lastFollowupOutcome] || "bg-muted text-muted-foreground"}>
+                              {statusLabels[(member as any).lastFollowupOutcome] || (member as any).lastFollowupOutcome}
+                            </Badge>
+                          ) : (
+                            <Badge className={followUpStageColors[member.followUpStage || "NEW"]}>
+                              {t(followUpStageLabelKeys[member.followUpStage || "NEW"])}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm text-muted-foreground">
                             {format(new Date(member.createdAt), "MMM d, yyyy")}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="default"
+                                  onClick={() => {
+                                    setSelectedNewMember(member);
+                                    setFollowUpDialogOpen(true);
+                                  }}
+                                  data-testid={`button-schedule-followup-${member.id}`}
+                                >
+                                  <CalendarPlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('followUps.scheduleFollowUp')}</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Link href={`/ministry-admin/new-members/${member.id}`}>
+                                  <Button
+                                    size="icon"
+                                    variant="default"
+                                    data-testid={`button-view-member-${member.id}`}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('common.view')}</TooltipContent>
+                            </Tooltip>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -191,6 +246,21 @@ export default function MinistryAdminNewMembers() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Schedule Follow Up Dialog */}
+      {selectedNewMember && (
+        <NewMemberScheduleFollowUpDialog
+          open={followUpDialogOpen}
+          onOpenChange={(open) => {
+            setFollowUpDialogOpen(open);
+            if (!open) setSelectedNewMember(null);
+          }}
+          newMemberId={selectedNewMember.id}
+          newMemberFirstName={selectedNewMember.firstName}
+          newMemberLastName={selectedNewMember.lastName}
+          newMemberPhone={selectedNewMember.phone}
+        />
+      )}
     </DashboardLayout>
   );
 }

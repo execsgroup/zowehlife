@@ -14,31 +14,31 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
 
 const addNoteSchema = z.object({
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP"]),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE"]),
   notes: z.string().optional(),
 });
 
 type AddNoteData = z.infer<typeof addNoteSchema>;
 
-interface ConvertInfo {
+interface MemberInfo {
   id: string | number;
   firstName: string;
   lastName: string;
 }
 
-interface ConvertAddNoteDialogProps {
+interface MemberAddNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  convert: ConvertInfo | null;
+  member: MemberInfo | null;
   checkinId?: string | null;
 }
 
-export function ConvertAddNoteDialog({
+export function MemberAddNoteDialog({
   open,
   onOpenChange,
-  convert,
+  member,
   checkinId,
-}: ConvertAddNoteDialogProps) {
+}: MemberAddNoteDialogProps) {
   const { toast } = useToast();
   const apiBasePath = useApiBasePath();
   const { t } = useTranslation();
@@ -53,16 +53,16 @@ export function ConvertAddNoteDialog({
 
   const addNoteMutation = useMutation({
     mutationFn: async (data: AddNoteData) => {
-      if (!convert) return;
+      if (!member) return;
       if (checkinId) {
         const basePath = apiBasePath.includes("ministry-admin") ? "/api/ministry-admin" : "/api/leader";
-        await apiRequest("PATCH", `${basePath}/checkins/${checkinId}/complete`, {
+        await apiRequest("PATCH", `${basePath}/member-checkins/${checkinId}/complete`, {
           outcome: data.outcome,
           notes: data.notes || "",
         });
       } else {
         const today = new Date().toISOString().split("T")[0];
-        await apiRequest("POST", `${apiBasePath}/converts/${convert.id}/checkins`, {
+        await apiRequest("POST", `${apiBasePath}/members/${member.id}/checkins`, {
           checkinDate: today,
           outcome: data.outcome,
           notes: data.notes || "",
@@ -74,18 +74,15 @@ export function ConvertAddNoteDialog({
         title: t('followUps.notesRecorded'),
         description: t('followUps.notesSaved'),
       });
-      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
-      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, member?.id?.toString()] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/stats`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/members"] });
       onOpenChange(false);
-      form.reset({
-        outcome: "CONNECTED",
-        notes: "",
-      });
+      form.reset({ outcome: "CONNECTED", notes: "" });
     },
     onError: (error: Error) => {
       toast({
@@ -102,8 +99,8 @@ export function ConvertAddNoteDialog({
         <DialogHeader>
           <DialogTitle>{t('followUps.addNote')}</DialogTitle>
           <DialogDescription>
-            {convert && (
-              <>{t('followUps.recordFollowUp', { name: `${convert.firstName} ${convert.lastName}` })}</>
+            {member && (
+              <>{t('followUps.recordFollowUp', { name: `${member.firstName} ${member.lastName}` })}</>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -127,7 +124,6 @@ export function ConvertAddNoteDialog({
                     <SelectContent>
                       <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
                       <SelectItem value="NO_RESPONSE">{t('statusLabels.notConnected')}</SelectItem>
-                      <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -145,7 +141,7 @@ export function ConvertAddNoteDialog({
                       placeholder={t('followUps.followUpNotesPlaceholder')}
                       value={field.value || ""}
                       onChange={field.onChange}
-                      context="Follow-up note for a convert in a ministry"
+                      context="Follow-up note for a member in a ministry"
                       data-testid="input-note-content"
                     />
                   </FormControl>
@@ -154,23 +150,12 @@ export function ConvertAddNoteDialog({
               )}
             />
             <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 {t('forms.cancel')}
               </Button>
-              <Button
-                type="submit"
-                disabled={addNoteMutation.isPending}
-                data-testid="button-save-note"
-              >
+              <Button type="submit" disabled={addNoteMutation.isPending} data-testid="button-save-note">
                 {addNoteMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    {t('forms.saving')}
-                  </>
+                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />{t('forms.saving')}</>
                 ) : (
                   t('forms.saveNote')
                 )}

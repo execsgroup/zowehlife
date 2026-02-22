@@ -23,10 +23,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
-import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus, Church } from "lucide-react";
+import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus, Church, CalendarPlus } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
+import { MemberScheduleFollowUpDialog } from "@/components/member-schedule-followup-dialog";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -48,6 +49,11 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
+const statusColors: Record<string, string> = {
+  CONNECTED: "bg-coral/10 text-coral border-coral/20",
+  NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
+};
+
 const memberFormSchemaBase = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
@@ -65,6 +71,11 @@ type MemberFormData = z.infer<typeof memberFormSchemaBase>;
 
 export default function LeaderMembers() {
   const { t } = useTranslation();
+
+  const statusLabels: Record<string, string> = {
+    CONNECTED: t('statusLabels.connected'),
+    NO_RESPONSE: t('statusLabels.notConnected'),
+  };
 
   const memberFormSchema = z.object({
     firstName: z.string().min(1, t('validation.firstNameRequired')),
@@ -86,6 +97,8 @@ export default function LeaderMembers() {
   const [search, setSearch] = useState("");
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
+  const [scheduleFollowupDialogOpen, setScheduleFollowupDialogOpen] = useState(false);
+  const [selectedMemberForSchedule, setSelectedMemberForSchedule] = useState<Member | null>(null);
 
   const { data: members, isLoading } = useQuery<Member[]>({
     queryKey: ["/api/leader/members"],
@@ -139,6 +152,11 @@ export default function LeaderMembers() {
 
   const handleViewDetails = (member: Member) => {
     setLocation(`${basePath}/members/${member.id}`);
+  };
+
+  const handleScheduleFollowUp = (member: Member) => {
+    setSelectedMemberForSchedule(member);
+    setScheduleFollowupDialogOpen(true);
   };
 
   const createMutation = useMutation({
@@ -525,6 +543,7 @@ export default function LeaderMembers() {
                       <TableHead>{t('forms.contact')}</TableHead>
                       <TableHead>{t('forms.gender')}</TableHead>
                       <TableHead>{t('forms.memberSince')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -560,8 +579,32 @@ export default function LeaderMembers() {
                         <TableCell>
                           {m.memberSince ? format(new Date(m.memberSince), "MMM d, yyyy") : "-"}
                         </TableCell>
+                        <TableCell>
+                          {(m as any).lastFollowupOutcome ? (
+                            <Badge className={statusColors[(m as any).lastFollowupOutcome] || "bg-muted text-muted-foreground"}>
+                              {statusLabels[(m as any).lastFollowupOutcome] || (m as any).lastFollowupOutcome}
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-muted text-muted-foreground">
+                              {t('forms.noStatus')}
+                            </Badge>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="icon"
+                                  onClick={() => handleScheduleFollowUp(m)}
+                                  data-testid={`button-schedule-followup-${m.id}`}
+                                >
+                                  <CalendarPlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('followUps.scheduleFollowUp')}</TooltipContent>
+                            </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
@@ -630,6 +673,17 @@ export default function LeaderMembers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {selectedMemberForSchedule && (
+        <MemberScheduleFollowUpDialog
+          open={scheduleFollowupDialogOpen}
+          onOpenChange={setScheduleFollowupDialogOpen}
+          memberId={selectedMemberForSchedule.id}
+          memberFirstName={selectedMemberForSchedule.firstName}
+          memberLastName={selectedMemberForSchedule.lastName}
+          memberPhone={selectedMemberForSchedule.phone}
+        />
+      )}
     </DashboardLayout>
   );
 }

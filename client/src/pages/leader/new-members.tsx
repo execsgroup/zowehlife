@@ -72,6 +72,7 @@ const statusColors: Record<string, string> = {
   NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
   NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
   NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
+  SCHEDULED_VISIT: "bg-accent/10 text-accent border-accent/20",
   REFERRED: "bg-accent/10 text-accent border-accent/20",
   NOT_COMPLETED: "bg-destructive/10 text-destructive border-destructive/20",
   NEVER_CONTACTED: "bg-gold/10 text-gold border-gold/20",
@@ -144,9 +145,10 @@ export default function LeaderNewMembers() {
     NEW: t('statusLabels.new'),
     SCHEDULED: t('statusLabels.scheduled'),
     CONNECTED: t('statusLabels.connected'),
-    NO_RESPONSE: t('statusLabels.noResponse'),
+    NO_RESPONSE: t('statusLabels.notConnected'),
     NEEDS_PRAYER: t('statusLabels.needsPrayer'),
     NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
+    SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
     REFERRED: t('statusLabels.referred'),
     NOT_COMPLETED: t('statusLabels.notCompleted'),
     NEVER_CONTACTED: t('statusLabels.neverContacted'),
@@ -684,7 +686,7 @@ export default function LeaderNewMembers() {
                       <TableHead>{t('forms.name')}</TableHead>
                       <TableHead>{t('forms.contact')}</TableHead>
                       <TableHead>{t('forms.gender')}</TableHead>
-                      <TableHead>{t('newMembers.followUpStatus')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
                       <TableHead>{t('forms.visitDate')}</TableHead>
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
@@ -719,9 +721,15 @@ export default function LeaderNewMembers() {
                         </TableCell>
                         <TableCell>{nm.gender || "-"}</TableCell>
                         <TableCell>
-                          <Badge className={followUpStageColors[nm.followUpStage || "NEW"]}>
-                            {followUpStageLabels[nm.followUpStage || "NEW"]}
-                          </Badge>
+                          {(nm as any).lastFollowupOutcome ? (
+                            <Badge className={statusColors[(nm as any).lastFollowupOutcome] || "bg-muted text-muted-foreground"}>
+                              {statusLabels[(nm as any).lastFollowupOutcome] || (nm as any).lastFollowupOutcome}
+                            </Badge>
+                          ) : (
+                            <Badge className={statusColors[nm.status] || ""}>
+                              {statusLabels[nm.status] || nm.status}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           {nm.createdAt ? format(new Date(nm.createdAt), "MMM d, yyyy") : "-"}

@@ -10,8 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Search, Church, Phone, Mail, Eye } from "lucide-react";
+import { Search, Church, Phone, Mail, Eye, CalendarPlus } from "lucide-react";
 import { format } from "date-fns";
+import { MemberScheduleFollowUpDialog } from "@/components/member-schedule-followup-dialog";
 
 interface Member {
   id: string;
@@ -26,19 +27,27 @@ interface Member {
   ageGroup: string | null;
   memberSince: string | null;
   status: string;
+  lastFollowupOutcome?: string | null;
   notes: string | null;
   selfSubmitted: boolean;
   createdAt: string;
 }
 
 const statusColors: Record<string, string> = {
-  ACTIVE: "bg-coral/10 text-coral border-coral/20",
-  INACTIVE: "bg-muted text-muted-foreground border-muted",
+  CONNECTED: "bg-coral/10 text-coral border-coral/20",
+  NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
 };
 
 export default function MinistryAdminMembers() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [scheduleFollowupDialogOpen, setScheduleFollowupDialogOpen] = useState(false);
+  const [selectedMemberForSchedule, setSelectedMemberForSchedule] = useState<Member | null>(null);
+
+  const statusLabels: Record<string, string> = {
+    CONNECTED: t('statusLabels.connected'),
+    NO_RESPONSE: t('statusLabels.notConnected'),
+  };
 
   const { data: members, isLoading } = useQuery<Member[]>({
     queryKey: ["/api/ministry-admin/members"],
@@ -96,6 +105,7 @@ export default function MinistryAdminMembers() {
                       <TableHead>{t('forms.gender')} / {t('forms.ageGroup')}</TableHead>
                       <TableHead>{t('forms.memberSince')}</TableHead>
                       <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -144,9 +154,49 @@ export default function MinistryAdminMembers() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={statusColors[member.status] || ""}>
-                            {member.status}
-                          </Badge>
+                          {member.lastFollowupOutcome ? (
+                            <Badge className={statusColors[member.lastFollowupOutcome] || "bg-muted text-muted-foreground"}>
+                              {statusLabels[member.lastFollowupOutcome] || member.lastFollowupOutcome}
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-muted text-muted-foreground">
+                              {t('forms.noStatus')}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedMemberForSchedule(member);
+                                    setScheduleFollowupDialogOpen(true);
+                                  }}
+                                  data-testid={`button-schedule-followup-${member.id}`}
+                                >
+                                  <CalendarPlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('followUps.scheduleFollowUp')}</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Link href={`/ministry-admin/members/${member.id}`}>
+                                  <Button
+                                    variant="default"
+                                    size="icon"
+                                    data-testid={`button-view-member-${member.id}`}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('common.view')} {t('common.details')}</TooltipContent>
+                            </Tooltip>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -165,6 +215,17 @@ export default function MinistryAdminMembers() {
           </CardContent>
         </Card>
       </div>
+
+      {selectedMemberForSchedule && (
+        <MemberScheduleFollowUpDialog
+          open={scheduleFollowupDialogOpen}
+          onOpenChange={setScheduleFollowupDialogOpen}
+          memberId={selectedMemberForSchedule.id}
+          memberFirstName={selectedMemberForSchedule.firstName}
+          memberLastName={selectedMemberForSchedule.lastName}
+          memberPhone={selectedMemberForSchedule.phone}
+        />
+      )}
     </DashboardLayout>
   );
 }

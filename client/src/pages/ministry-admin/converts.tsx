@@ -7,8 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { type Convert } from "@shared/schema";
-import { Search, UserPlus, Phone, Mail } from "lucide-react";
+import { Search, UserPlus, Phone, Mail, CalendarPlus, Eye } from "lucide-react";
+import { Link } from "wouter";
+import { ConvertScheduleFollowUpDialog } from "@/components/convert-schedule-followup-dialog";
+import { useBasePath } from "@/hooks/use-base-path";
 
 const statusColors: Record<string, string> = {
   NEW: "bg-accent/10 text-accent border-accent/20",
@@ -17,6 +22,7 @@ const statusColors: Record<string, string> = {
   NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
   NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
   NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
+  SCHEDULED_VISIT: "bg-accent/10 text-accent border-accent/20",
   REFERRED: "bg-accent/10 text-accent border-accent/20",
   NOT_COMPLETED: "bg-destructive/10 text-destructive border-destructive/20",
   NEVER_CONTACTED: "bg-gold/10 text-gold border-gold/20",
@@ -25,24 +31,33 @@ const statusColors: Record<string, string> = {
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
-const statusLabelKeys: Record<string, string> = {
-  NEW: "common.new",
-  SCHEDULED: "common.scheduled",
-  CONNECTED: "common.connected",
-  NO_RESPONSE: "common.noResponse",
-  NEEDS_PRAYER: "common.needsPrayer",
-  NEEDS_FOLLOWUP: "common.needsFollowUp",
-  REFERRED: "common.referred",
-  NOT_COMPLETED: "common.notCompleted",
-  NEVER_CONTACTED: "common.neverContacted",
-  ACTIVE: "common.active",
-  IN_PROGRESS: "common.inProgress",
-  INACTIVE: "common.inactive",
-};
-
 export default function MinistryAdminConverts() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  const [selectedConvert, setSelectedConvert] = useState<Convert | null>(null);
+  const basePath = useBasePath();
+
+  const statusLabels: Record<string, string> = {
+    NEW: t('statusLabels.new'),
+    SCHEDULED: t('statusLabels.scheduled'),
+    CONNECTED: t('statusLabels.connected'),
+    NO_RESPONSE: t('statusLabels.notConnected'),
+    NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+    NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
+    SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
+    REFERRED: t('statusLabels.referred'),
+    NOT_COMPLETED: t('statusLabels.notCompleted'),
+    NEVER_CONTACTED: t('statusLabels.neverContacted'),
+    ACTIVE: t('statusLabels.active'),
+    IN_PROGRESS: t('statusLabels.inProgress'),
+    INACTIVE: t('statusLabels.inactive'),
+  };
+
+  const handleScheduleFollowUp = (convert: Convert) => {
+    setSelectedConvert(convert);
+    setFollowUpDialogOpen(true);
+  };
 
   const { data: converts, isLoading } = useQuery<Convert[]>({
     queryKey: ["/api/ministry-admin/converts"],
@@ -100,6 +115,7 @@ export default function MinistryAdminConverts() {
                       <TableHead>{t('converts.salvationDecision')}</TableHead>
                       <TableHead>{t('forms.status')}</TableHead>
                       <TableHead>{t('guests.source')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -135,14 +151,51 @@ export default function MinistryAdminConverts() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={statusColors[convert.status] || ""}>
-                            {statusLabelKeys[convert.status] ? t(statusLabelKeys[convert.status]) : convert.status}
-                          </Badge>
+                          {(convert as any).lastFollowupOutcome ? (
+                            <Badge className={statusColors[(convert as any).lastFollowupOutcome] || "bg-muted text-muted-foreground"}>
+                              {statusLabels[(convert as any).lastFollowupOutcome] || (convert as any).lastFollowupOutcome}
+                            </Badge>
+                          ) : (
+                            <Badge className={statusColors[convert.status] || ""}>
+                              {statusLabels[convert.status] || convert.status}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">
                             {convert.selfSubmitted ? t('converts.selfRegistered') : t('converts.addedByLeader')}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="icon"
+                                  onClick={() => handleScheduleFollowUp(convert)}
+                                  data-testid={`button-schedule-followup-${convert.id}`}
+                                >
+                                  <CalendarPlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('followUps.scheduleFollowUp')}</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Link href={`${basePath}/converts/${convert.id}`}>
+                                  <Button
+                                    variant="default"
+                                    size="icon"
+                                    data-testid={`button-view-convert-${convert.id}`}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('common.view')} {t('converts.convertDetails')}</TooltipContent>
+                            </Tooltip>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -161,6 +214,12 @@ export default function MinistryAdminConverts() {
           </CardContent>
         </Card>
       </div>
+
+      <ConvertScheduleFollowUpDialog
+        open={followUpDialogOpen}
+        onOpenChange={setFollowUpDialogOpen}
+        convert={selectedConvert}
+      />
     </DashboardLayout>
   );
 }

@@ -331,6 +331,23 @@ export interface IStorage {
   createMemberCheckin(checkin: InsertMemberCheckin): Promise<MemberCheckin>;
   completeMemberCheckin(id: string, data: { outcome: string; notes: string; checkinDate: string }): Promise<void>;
 
+  // Follow-up outcome lookups
+  getLastFollowupOutcomesForConverts(churchId: string): Promise<Map<string, string>>;
+  getLastFollowupOutcomesForNewMembers(churchId: string): Promise<Map<string, string>>;
+  getLastFollowupOutcomesForMembers(churchId: string): Promise<Map<string, string>>;
+  getMemberFollowupsDue(churchId: string): Promise<Array<{
+    id: string;
+    memberId: string;
+    memberFirstName: string;
+    memberLastName: string;
+    memberPhone: string | null;
+    memberEmail: string | null;
+    nextFollowupDate: string;
+    nextFollowupTime: string | null;
+    notes: string | null;
+    videoLink: string | null;
+  }>>;
+
   // Guests
   getGuest(id: string): Promise<Guest | undefined>;
   getGuestsByChurch(churchId: string): Promise<Guest[]>;
@@ -1608,6 +1625,92 @@ export class DatabaseStorage implements IStorage {
       notes: data.notes,
       checkinDate: data.checkinDate,
     }).where(eq(memberCheckins.id, id));
+  }
+
+  async getLastFollowupOutcomesForConverts(churchId: string): Promise<Map<string, string>> {
+    const results = await db.execute(sql`
+      SELECT DISTINCT ON (c.convert_id) c.convert_id, c.outcome
+      FROM checkins c
+      WHERE c.church_id = ${churchId}
+        AND c.outcome != 'SCHEDULED_VISIT'
+      ORDER BY c.convert_id, c.checkin_date DESC, c.created_at DESC
+    `);
+    const map = new Map<string, string>();
+    for (const row of results.rows as any[]) {
+      map.set(row.convert_id, row.outcome);
+    }
+    return map;
+  }
+
+  async getLastFollowupOutcomesForNewMembers(churchId: string): Promise<Map<string, string>> {
+    const results = await db.execute(sql`
+      SELECT DISTINCT ON (c.new_member_id) c.new_member_id, c.outcome
+      FROM new_member_checkins c
+      WHERE c.church_id = ${churchId}
+        AND c.outcome != 'SCHEDULED_VISIT'
+      ORDER BY c.new_member_id, c.checkin_date DESC, c.created_at DESC
+    `);
+    const map = new Map<string, string>();
+    for (const row of results.rows as any[]) {
+      map.set(row.new_member_id, row.outcome);
+    }
+    return map;
+  }
+
+  async getLastFollowupOutcomesForMembers(churchId: string): Promise<Map<string, string>> {
+    const results = await db.execute(sql`
+      SELECT DISTINCT ON (c.member_id) c.member_id, c.outcome
+      FROM member_checkins c
+      WHERE c.church_id = ${churchId}
+        AND c.outcome != 'SCHEDULED_VISIT'
+      ORDER BY c.member_id, c.checkin_date DESC, c.created_at DESC
+    `);
+    const map = new Map<string, string>();
+    for (const row of results.rows as any[]) {
+      map.set(row.member_id, row.outcome);
+    }
+    return map;
+  }
+
+  async getMemberFollowupsDue(churchId: string): Promise<Array<{
+    id: string;
+    memberId: string;
+    memberFirstName: string;
+    memberLastName: string;
+    memberPhone: string | null;
+    memberEmail: string | null;
+    nextFollowupDate: string;
+    nextFollowupTime: string | null;
+    notes: string | null;
+    videoLink: string | null;
+  }>> {
+    const results = await db
+      .select({
+        id: memberCheckins.id,
+        memberId: memberCheckins.memberId,
+        memberFirstName: members.firstName,
+        memberLastName: members.lastName,
+        memberPhone: members.phone,
+        memberEmail: members.email,
+        nextFollowupDate: memberCheckins.nextFollowupDate,
+        nextFollowupTime: memberCheckins.nextFollowupTime,
+        notes: memberCheckins.notes,
+        videoLink: memberCheckins.videoLink,
+      })
+      .from(memberCheckins)
+      .innerJoin(members, eq(memberCheckins.memberId, members.id))
+      .where(
+        and(
+          eq(memberCheckins.churchId, churchId),
+          eq(memberCheckins.outcome, "SCHEDULED_VISIT"),
+          isNotNull(memberCheckins.nextFollowupDate)
+        )
+      )
+      .orderBy(memberCheckins.nextFollowupDate);
+    return results.map(r => ({
+      ...r,
+      nextFollowupDate: r.nextFollowupDate || "",
+    }));
   }
 
   // Guests

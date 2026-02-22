@@ -3106,8 +3106,13 @@ export async function registerRoutes(
   app.get("/api/ministry-admin/converts", requireMinistryAdmin, async (req, res) => {
     try {
       const user = (req as any).user;
-      const converts = await storage.getConvertsByChurch(user.churchId);
-      res.json(converts);
+      const convertsList = await storage.getConvertsByChurch(user.churchId);
+      const outcomeMap = await storage.getLastFollowupOutcomesForConverts(user.churchId);
+      const convertsWithOutcome = convertsList.map(c => ({
+        ...c,
+        lastFollowupOutcome: outcomeMap.get(c.id) || null,
+      }));
+      res.json(convertsWithOutcome);
     } catch (error) {
       res.status(500).json({ message: "Failed to get converts" });
     }
@@ -3228,8 +3233,13 @@ export async function registerRoutes(
   app.get("/api/ministry-admin/new-members", requireMinistryAdmin, async (req, res) => {
     try {
       const user = (req as any).user;
-      const newMembers = await storage.getNewMembersByChurch(user.churchId);
-      res.json(newMembers);
+      const newMembersList = await storage.getNewMembersByChurch(user.churchId);
+      const outcomeMap = await storage.getLastFollowupOutcomesForNewMembers(user.churchId);
+      const newMembersWithOutcome = newMembersList.map(nm => ({
+        ...nm,
+        lastFollowupOutcome: outcomeMap.get(nm.id) || null,
+      }));
+      res.json(newMembersWithOutcome);
     } catch (error) {
       res.status(500).json({ message: "Failed to get new members" });
     }
@@ -3239,8 +3249,13 @@ export async function registerRoutes(
   app.get("/api/ministry-admin/members", requireMinistryAdmin, async (req, res) => {
     try {
       const user = (req as any).user;
-      const members = await storage.getMembersByChurch(user.churchId);
-      res.json(members);
+      const membersList = await storage.getMembersByChurch(user.churchId);
+      const outcomeMap = await storage.getLastFollowupOutcomesForMembers(user.churchId);
+      const membersWithOutcome = membersList.map(m => ({
+        ...m,
+        lastFollowupOutcome: outcomeMap.get(m.id) || null,
+      }));
+      res.json(membersWithOutcome);
     } catch (error) {
       res.status(500).json({ message: "Failed to get members" });
     }
@@ -3670,7 +3685,12 @@ export async function registerRoutes(
     try {
       const user = (req as any).user;
       const convertsList = await storage.getConvertsByChurch(user.churchId);
-      res.json(convertsList);
+      const outcomeMap = await storage.getLastFollowupOutcomesForConverts(user.churchId);
+      const convertsWithOutcome = convertsList.map(c => ({
+        ...c,
+        lastFollowupOutcome: outcomeMap.get(c.id) || null,
+      }));
+      res.json(convertsWithOutcome);
     } catch (error) {
       res.status(500).json({ message: "Failed to get converts" });
     }
@@ -4503,8 +4523,13 @@ export async function registerRoutes(
   app.get("/api/leader/new-members", requireLeader, async (req, res) => {
     try {
       const user = (req as any).user;
-      const newMembers = await storage.getNewMembersByChurch(user.churchId);
-      res.json(newMembers);
+      const newMembersList = await storage.getNewMembersByChurch(user.churchId);
+      const outcomeMap = await storage.getLastFollowupOutcomesForNewMembers(user.churchId);
+      const newMembersWithOutcome = newMembersList.map(nm => ({
+        ...nm,
+        lastFollowupOutcome: outcomeMap.get(nm.id) || null,
+      }));
+      res.json(newMembersWithOutcome);
     } catch (error) {
       console.error("Error fetching new members:", error);
       res.status(500).json({ message: "Failed to fetch new members" });
@@ -4948,14 +4973,31 @@ export async function registerRoutes(
     }
   });
 
+  // Get member followups due
+  app.get("/api/leader/member-followups", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const followups = await storage.getMemberFollowupsDue(user.churchId);
+      res.json(followups);
+    } catch (error) {
+      console.error("Error fetching member followups:", error);
+      res.status(500).json({ message: "Failed to fetch followups" });
+    }
+  });
+
   // ===== LEADER MEMBERS ROUTES =====
   
   // Get members for leader's church
   app.get("/api/leader/members", requireLeader, async (req, res) => {
     try {
       const user = (req as any).user;
-      const members = await storage.getMembersByChurch(user.churchId);
-      res.json(members);
+      const membersList = await storage.getMembersByChurch(user.churchId);
+      const outcomeMap = await storage.getLastFollowupOutcomesForMembers(user.churchId);
+      const membersWithOutcome = membersList.map(m => ({
+        ...m,
+        lastFollowupOutcome: outcomeMap.get(m.id) || null,
+      }));
+      res.json(membersWithOutcome);
     } catch (error) {
       console.error("Error fetching members:", error);
       res.status(500).json({ message: "Failed to fetch members" });

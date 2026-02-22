@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRoute, Link, useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { Section } from "@/components/section";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -21,9 +20,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { DatePicker } from "@/components/date-picker";
 import { type NewMember } from "@shared/schema";
 import { NewMemberScheduleFollowUpDialog } from "@/components/new-member-schedule-followup-dialog";
+import { NewMemberAddNoteDialog } from "@/components/new-member-add-note-dialog";
 import {
   ArrowLeft,
   Phone,
@@ -71,11 +70,6 @@ const updateNewMemberSchemaBase = z.object({
   status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
 });
 
-const checkinFormSchemaBase = z.object({
-  checkinDate: z.string().min(1),
-  notes: z.string().optional(),
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
-});
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -84,7 +78,6 @@ const countries = [
 ];
 
 type UpdateNewMemberData = z.infer<typeof updateNewMemberSchemaBase>;
-type CheckinFormData = z.infer<typeof checkinFormSchemaBase>;
 
 const statusColors: Record<string, string> = {
   NEW: "bg-accent/10 text-accent border-accent/20",
@@ -115,11 +108,6 @@ export default function NewMemberDetail() {
     status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
   });
 
-  const checkinFormSchema = z.object({
-    checkinDate: z.string().min(1, t('validation.dateRequired')),
-    notes: z.string().optional(),
-    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
-  });
 
   const { toast } = useToast();
   const basePath = useBasePath();
@@ -157,7 +145,7 @@ export default function NewMemberDetail() {
     return labels[key] || key;
   };
 
-  const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
@@ -165,15 +153,6 @@ export default function NewMemberDetail() {
   const { data: newMember, isLoading } = useQuery<NewMemberWithCheckins>({
     queryKey: ["/api/leader/new-members", newMemberId],
     enabled: !!newMemberId,
-  });
-
-  const checkinForm = useForm<CheckinFormData>({
-    resolver: zodResolver(checkinFormSchema),
-    defaultValues: {
-      checkinDate: format(new Date(), "yyyy-MM-dd"),
-      notes: "",
-      outcome: "CONNECTED",
-    },
   });
 
   const editForm = useForm<UpdateNewMemberData>({
@@ -211,41 +190,6 @@ export default function NewMemberDetail() {
     }
     setEditDialogOpen(true);
   };
-
-  const checkinMutation = useMutation({
-    mutationFn: async (data: CheckinFormData) => {
-      if (selectedCheckinId) {
-        const basePath = apiBasePath.includes("ministry-admin") ? "/api/ministry-admin" : "/api/leader";
-        await apiRequest("PATCH", `${basePath}/new-member-checkins/${selectedCheckinId}/complete`, {
-          outcome: data.outcome,
-          notes: data.notes || "",
-        });
-      } else {
-        await apiRequest("POST", `/api/leader/new-members/${newMemberId}/checkins`, data);
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: t('newMembers.checkinRecorded'),
-        description: t('newMembers.checkinRecordedDesc'),
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members", newMemberId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/stats"] });
-      setCheckinDialogOpen(false);
-      setSelectedCheckinId(null);
-      checkinForm.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: t('common.error'),
-        description: error.message || t('common.failedToSave'),
-        variant: "destructive",
-      });
-    },
-  });
 
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateNewMemberData) => {
@@ -421,14 +365,6 @@ export default function NewMemberDetail() {
             </Button>
           }
         >
-          <NewMemberScheduleFollowUpDialog
-            open={scheduleDialogOpen}
-            onOpenChange={setScheduleDialogOpen}
-            newMemberId={newMemberId || ""}
-            newMemberFirstName={newMember.firstName}
-            newMemberLastName={newMember.lastName}
-            newMemberPhone={newMember.phone}
-          />
             {newMember.checkins && newMember.checkins.length > 0 ? (
               <div className="space-y-4">
                 {newMember.checkins.map((checkin) => (
@@ -491,7 +427,7 @@ export default function NewMemberDetail() {
                               className="gap-2"
                               onClick={() => {
                                 setSelectedCheckinId(checkin.outcome === "SCHEDULED_VISIT" ? checkin.id : null);
-                                setCheckinDialogOpen(true);
+                                setNoteDialogOpen(true);
                               }}
                               data-testid={`button-add-note-${checkin.id}`}
                             >
@@ -513,96 +449,24 @@ export default function NewMemberDetail() {
             )}
         </Section>
 
-        <Dialog open={checkinDialogOpen} onOpenChange={setCheckinDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t('converts.recordFollowUpNote')}</DialogTitle>
-              <DialogDescription>
-                {t('converts.logFollowUpInteraction', { name: newMember.firstName })}
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...checkinForm}>
-              <form
-                onSubmit={checkinForm.handleSubmit((data) => checkinMutation.mutate(data))}
-                className="space-y-4"
-              >
-                <FormField
-                  control={checkinForm.control}
-                  name="checkinDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('forms.date')}</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onChange={field.onChange}
-                          data-testid="input-checkin-date"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={checkinForm.control}
-                  name="outcome"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('forms.outcome')}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-checkin-outcome">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
-                          <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
-                          <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
-                          <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={checkinForm.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('forms.notes')}</FormLabel>
-                      <FormControl>
-                        <AITextarea
-                          placeholder={t('converts.detailsAboutInteraction')}
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          context="Follow-up note for a new member in a ministry"
-                          data-testid="input-checkin-notes"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={checkinMutation.isPending}
-                >
-                  {checkinMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      {t('forms.saving')}
-                    </>
-                  ) : (
-                    t('converts.saveNote')
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <NewMemberScheduleFollowUpDialog
+          open={scheduleDialogOpen}
+          onOpenChange={setScheduleDialogOpen}
+          newMemberId={newMemberId || ""}
+          newMemberFirstName={newMember.firstName}
+          newMemberLastName={newMember.lastName}
+          newMemberPhone={newMember.phone}
+        />
+
+        <NewMemberAddNoteDialog
+          open={noteDialogOpen}
+          onOpenChange={(open) => {
+            setNoteDialogOpen(open);
+            if (!open) setSelectedCheckinId(null);
+          }}
+          newMember={newMember ? { id: newMember.id, firstName: newMember.firstName, lastName: newMember.lastName } : null}
+          checkinId={selectedCheckinId}
+        />
 
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">

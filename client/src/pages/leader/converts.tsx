@@ -75,6 +75,7 @@ const statusColors: Record<string, string> = {
   NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
   NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
   NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
+  SCHEDULED_VISIT: "bg-accent/10 text-accent border-accent/20",
   REFERRED: "bg-accent/10 text-accent border-accent/20",
   NOT_COMPLETED: "bg-destructive/10 text-destructive border-destructive/20",
   NEVER_CONTACTED: "bg-gold/10 text-gold border-gold/20",
@@ -119,9 +120,10 @@ export default function LeaderConverts() {
     NEW: t('statusLabels.new'),
     SCHEDULED: t('statusLabels.scheduled'),
     CONNECTED: t('statusLabels.connected'),
-    NO_RESPONSE: t('statusLabels.noResponse'),
+    NO_RESPONSE: t('statusLabels.notConnected'),
     NEEDS_PRAYER: t('statusLabels.needsPrayer'),
     NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
+    SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
     REFERRED: t('statusLabels.referred'),
     NOT_COMPLETED: t('statusLabels.notCompleted'),
     NEVER_CONTACTED: t('statusLabels.neverContacted'),
@@ -664,9 +666,15 @@ export default function LeaderConverts() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusColors[convert.status] || ""}>
-                          {statusLabels[convert.status] || convert.status}
-                        </Badge>
+                        {(convert as any).lastFollowupOutcome ? (
+                          <Badge className={statusColors[(convert as any).lastFollowupOutcome] || "bg-muted text-muted-foreground"}>
+                            {statusLabels[(convert as any).lastFollowupOutcome] || (convert as any).lastFollowupOutcome}
+                          </Badge>
+                        ) : (
+                          <Badge className={statusColors[convert.status] || ""}>
+                            {statusLabels[convert.status] || convert.status}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(convert.createdAt), "MMM d, yyyy")}

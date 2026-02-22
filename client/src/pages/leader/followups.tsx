@@ -55,6 +55,19 @@ interface NewMemberFollowUp {
   videoLink: string | null;
 }
 
+interface MemberFollowUp {
+  id: string;
+  memberId: string;
+  memberFirstName: string;
+  memberLastName: string;
+  memberPhone: string | null;
+  memberEmail: string | null;
+  nextFollowupDate: string;
+  nextFollowupTime: string | null;
+  notes: string | null;
+  videoLink: string | null;
+}
+
 interface MassFollowupParticipant {
   id: string;
   massFollowupId: string;
@@ -88,7 +101,7 @@ interface MassFollowupData {
 }
 
 const followUpNotesSchemaBase = z.object({
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP"]),
   notes: z.string().optional(),
 });
 
@@ -113,7 +126,7 @@ const scheduleFollowUpSchemaBase = z.object({
 
 type ScheduleFollowUpData = z.infer<typeof scheduleFollowUpSchemaBase>;
 
-type FollowUpType = "convert" | "newMember";
+type FollowUpType = "convert" | "newMember" | "member";
 
 interface SelectedFollowUp {
   type: FollowUpType;
@@ -128,7 +141,7 @@ export default function LeaderFollowups() {
   const { t } = useTranslation();
 
   const followUpNotesSchema = z.object({
-    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP"]),
     notes: z.string().optional(),
   });
 
@@ -178,11 +191,15 @@ export default function LeaderFollowups() {
     queryKey: ["/api/leader/new-member-followups"],
   });
 
+  const { data: memberFollowups, isLoading: isLoadingMembers } = useQuery<MemberFollowUp[]>({
+    queryKey: ["/api/leader/member-followups"],
+  });
+
   const { data: massFollowups, isLoading: isLoadingMass } = useQuery<MassFollowupData[]>({
     queryKey: [`${apiBasePath}/mass-followups`],
   });
 
-  const isLoading = isLoadingConverts || isLoadingNewMembers;
+  const isLoading = isLoadingConverts || isLoadingNewMembers || isLoadingMembers;
 
   const notesForm = useForm<FollowUpNotesData>({
     resolver: zodResolver(followUpNotesSchema),
@@ -208,9 +225,14 @@ export default function LeaderFollowups() {
   const notesMutation = useMutation({
     mutationFn: async (data: FollowUpNotesData) => {
       if (!selectedFollowUp) return;
-      const endpoint = selectedFollowUp.type === "convert"
-        ? `/api/leader/checkins/${selectedFollowUp.id}/complete`
-        : `/api/leader/new-member-checkins/${selectedFollowUp.id}/complete`;
+      let endpoint: string;
+      if (selectedFollowUp.type === "convert") {
+        endpoint = `/api/leader/checkins/${selectedFollowUp.id}/complete`;
+      } else if (selectedFollowUp.type === "newMember") {
+        endpoint = `/api/leader/new-member-checkins/${selectedFollowUp.id}/complete`;
+      } else {
+        endpoint = `/api/leader/member-checkins/${selectedFollowUp.id}/complete`;
+      }
       await apiRequest("PATCH", endpoint, {
         outcome: data.outcome,
         notes: data.notes || "",
@@ -223,8 +245,10 @@ export default function LeaderFollowups() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/member-followups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/stats"] });
@@ -247,9 +271,14 @@ export default function LeaderFollowups() {
   const scheduleMutation = useMutation({
     mutationFn: async (data: ScheduleFollowUpData) => {
       if (!selectedFollowUp) return;
-      const endpoint = selectedFollowUp.type === "convert"
-        ? `/api/leader/converts/${selectedFollowUp.entityId}/schedule-followup`
-        : `/api/leader/new-members/${selectedFollowUp.entityId}/schedule-followup`;
+      let endpoint: string;
+      if (selectedFollowUp.type === "convert") {
+        endpoint = `/api/leader/converts/${selectedFollowUp.entityId}/schedule-followup`;
+      } else if (selectedFollowUp.type === "newMember") {
+        endpoint = `/api/leader/new-members/${selectedFollowUp.entityId}/schedule-followup`;
+      } else {
+        endpoint = `/api/leader/members/${selectedFollowUp.entityId}/schedule-followup`;
+      }
       await apiRequest("POST", endpoint, data);
     },
     onSuccess: () => {
@@ -259,8 +288,10 @@ export default function LeaderFollowups() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/member-followups"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
       setScheduleDialogOpen(false);
       setSelectedFollowUp(null);
       scheduleForm.reset({
@@ -308,6 +339,43 @@ export default function LeaderFollowups() {
       notes: "",
     });
     setNotesDialogOpen(true);
+  };
+
+  const handleAddMemberNotes = (followup: MemberFollowUp) => {
+    setSelectedFollowUp({
+      type: "member",
+      id: followup.id,
+      entityId: followup.memberId,
+      firstName: followup.memberFirstName,
+      lastName: followup.memberLastName,
+      email: followup.memberEmail,
+    });
+    notesForm.reset({
+      outcome: "CONNECTED",
+      notes: "",
+    });
+    setNotesDialogOpen(true);
+  };
+
+  const handleScheduleMemberFollowUp = (followup: MemberFollowUp) => {
+    setSelectedFollowUp({
+      type: "member",
+      id: followup.id,
+      entityId: followup.memberId,
+      firstName: followup.memberFirstName,
+      lastName: followup.memberLastName,
+      email: followup.memberEmail,
+    });
+    scheduleForm.reset({
+      nextFollowupDate: "",
+      nextFollowupTime: "",
+      customLeaderSubject: "",
+      customLeaderMessage: "",
+      customConvertSubject: "",
+      customConvertMessage: "",
+      includeVideoLink: true,
+    });
+    setScheduleDialogOpen(true);
   };
 
   const handleScheduleConvertFollowUp = (followup: ConvertFollowUp) => {
@@ -754,6 +822,133 @@ export default function LeaderFollowups() {
                 </div>
               )}
         </Section>
+
+        {/* Member Follow-ups Section */}
+        <Section title={t('followUps.memberFollowUps')} noPadding>
+              {isLoadingMembers ? (
+                <div className="p-6 space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : memberFollowups && memberFollowups.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('membersPage.title')}</TableHead>
+                      <TableHead>{t('forms.contact')}</TableHead>
+                      <TableHead>{t('followUps.followUpDate')}</TableHead>
+                      <TableHead>{t('forms.status')}</TableHead>
+                      <TableHead>{t('forms.notes')}</TableHead>
+                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {memberFollowups.map((followup) => (
+                      <TableRow key={followup.id} data-testid={`row-member-followup-${followup.id}`}>
+                        <TableCell>
+                          <Link href={`${basePath}/members/${followup.memberId}`}>
+                            <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium" data-testid={`text-member-name-${followup.id}`}>
+                                {followup.memberFirstName} {followup.memberLastName}
+                              </span>
+                            </div>
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {followup.memberPhone && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                {followup.memberPhone}
+                              </div>
+                            )}
+                            {followup.memberEmail && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                {followup.memberEmail}
+                              </div>
+                            )}
+                            {!followup.memberPhone && !followup.memberEmail && (
+                              <span className="text-sm text-muted-foreground">{t('forms.noContactInfo')}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span data-testid={`text-member-date-${followup.id}`}>
+                              {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                              {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getDateBadge(followup.nextFollowupDate, followup.id)}
+                        </TableCell>
+                        <TableCell className="max-w-[200px]">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {followup.notes && !followup.notes.startsWith("Follow-up scheduled for") && !followup.notes.startsWith("Mass follow-up scheduled for") ? followup.notes : "—"}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="icon"
+                                  onClick={() => handleAddMemberNotes(followup)}
+                                  data-testid={`button-member-notes-${followup.id}`}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('followUps.followUpNote')}</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="icon"
+                                  onClick={() => handleScheduleMemberFollowUp(followup)}
+                                  data-testid={`button-member-schedule-${followup.id}`}
+                                >
+                                  <CalendarPlus className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('followUps.scheduleNext')}</TooltipContent>
+                            </Tooltip>
+                            {followup.videoLink && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={followup.videoLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Button variant="default" size="icon" data-testid={`button-member-meeting-${followup.id}`}>
+                                      <Video className="h-4 w-4" />
+                                    </Button>
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>{t('followUps.joinMeeting')}</TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="p-8 text-center">
+                  <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-muted-foreground">{t('followUps.noFollowUps')}</p>
+                </div>
+              )}
+        </Section>
       </div>
 
       {/* Follow Up Notes Dialog */}
@@ -786,9 +981,10 @@ export default function LeaderFollowups() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
-                        <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
-                        <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
-                        <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
+                        <SelectItem value="NO_RESPONSE">{t('statusLabels.notConnected')}</SelectItem>
+                        {selectedFollowUp?.type !== "member" && (
+                          <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

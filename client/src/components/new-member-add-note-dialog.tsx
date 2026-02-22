@@ -20,25 +20,25 @@ const addNoteSchema = z.object({
 
 type AddNoteData = z.infer<typeof addNoteSchema>;
 
-interface ConvertInfo {
+interface NewMemberInfo {
   id: string | number;
   firstName: string;
   lastName: string;
 }
 
-interface ConvertAddNoteDialogProps {
+interface NewMemberAddNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  convert: ConvertInfo | null;
+  newMember: NewMemberInfo | null;
   checkinId?: string | null;
 }
 
-export function ConvertAddNoteDialog({
+export function NewMemberAddNoteDialog({
   open,
   onOpenChange,
-  convert,
+  newMember,
   checkinId,
-}: ConvertAddNoteDialogProps) {
+}: NewMemberAddNoteDialogProps) {
   const { toast } = useToast();
   const apiBasePath = useApiBasePath();
   const { t } = useTranslation();
@@ -53,16 +53,16 @@ export function ConvertAddNoteDialog({
 
   const addNoteMutation = useMutation({
     mutationFn: async (data: AddNoteData) => {
-      if (!convert) return;
+      if (!newMember) return;
       if (checkinId) {
         const basePath = apiBasePath.includes("ministry-admin") ? "/api/ministry-admin" : "/api/leader";
-        await apiRequest("PATCH", `${basePath}/checkins/${checkinId}/complete`, {
+        await apiRequest("PATCH", `${basePath}/new-member-checkins/${checkinId}/complete`, {
           outcome: data.outcome,
           notes: data.notes || "",
         });
       } else {
         const today = new Date().toISOString().split("T")[0];
-        await apiRequest("POST", `${apiBasePath}/converts/${convert.id}/checkins`, {
+        await apiRequest("POST", `${apiBasePath}/new-members/${newMember.id}/checkins`, {
           checkinDate: today,
           outcome: data.outcome,
           notes: data.notes || "",
@@ -74,18 +74,15 @@ export function ConvertAddNoteDialog({
         title: t('followUps.notesRecorded'),
         description: t('followUps.notesSaved'),
       });
-      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
-      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`, newMember?.id?.toString()] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/stats`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/new-members"] });
       onOpenChange(false);
-      form.reset({
-        outcome: "CONNECTED",
-        notes: "",
-      });
+      form.reset({ outcome: "CONNECTED", notes: "" });
     },
     onError: (error: Error) => {
       toast({
@@ -102,8 +99,8 @@ export function ConvertAddNoteDialog({
         <DialogHeader>
           <DialogTitle>{t('followUps.addNote')}</DialogTitle>
           <DialogDescription>
-            {convert && (
-              <>{t('followUps.recordFollowUp', { name: `${convert.firstName} ${convert.lastName}` })}</>
+            {newMember && (
+              <>{t('followUps.recordFollowUp', { name: `${newMember.firstName} ${newMember.lastName}` })}</>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -145,7 +142,7 @@ export function ConvertAddNoteDialog({
                       placeholder={t('followUps.followUpNotesPlaceholder')}
                       value={field.value || ""}
                       onChange={field.onChange}
-                      context="Follow-up note for a convert in a ministry"
+                      context="Follow-up note for a new member in a ministry"
                       data-testid="input-note-content"
                     />
                   </FormControl>
@@ -154,23 +151,12 @@ export function ConvertAddNoteDialog({
               )}
             />
             <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 {t('forms.cancel')}
               </Button>
-              <Button
-                type="submit"
-                disabled={addNoteMutation.isPending}
-                data-testid="button-save-note"
-              >
+              <Button type="submit" disabled={addNoteMutation.isPending} data-testid="button-save-note">
                 {addNoteMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    {t('forms.saving')}
-                  </>
+                  <><Loader2 className="h-4 w-4 animate-spin mr-2" />{t('forms.saving')}</>
                 ) : (
                   t('forms.saveNote')
                 )}
