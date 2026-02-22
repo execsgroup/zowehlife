@@ -199,7 +199,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
     <div className="space-y-6">
       <Section
         title={t('formSettings.formDescription')}
-        headerAction={
+        actions={
           <Button variant="outline" size="sm" onClick={handleReset} data-testid="button-reset-form">
             {t('formSettings.resetToDefault')}
           </Button>
@@ -265,7 +265,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
 
       <Section
         title={t('formSettings.customFields')}
-        headerAction={
+        actions={
           <Button variant="outline" size="sm" onClick={addCustomField} data-testid="button-add-custom-field">
             <Plus className="h-4 w-4 mr-1" />
             {t('formSettings.addCustomField')}
