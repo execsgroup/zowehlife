@@ -461,7 +461,7 @@ export default function NewMemberDetail() {
                             <span className="text-muted-foreground">
                               {t('converts.nextFollowUp')}:{" "}
                               {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
-                              {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
+                              {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` ${t('common.at')} ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                             </span>
                           </div>
                         )}

@@ -82,7 +82,7 @@ export function MemberScheduleFollowUpDialog({
     },
     onSuccess: () => {
       const method = form.getValues("notificationMethod");
-      const methodLabel = method === "email" ? "email" : `email and ${method?.toUpperCase()}`;
+      const methodLabel = method === "email" ? t('followUps.email') : t('followUps.emailAndMethod', { method: method?.toUpperCase() });
       toast({
         title: t('followUps.followUpScheduled'),
         description: t('followUps.followUpScheduledNotification', { method: methodLabel }),

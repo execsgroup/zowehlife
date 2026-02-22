@@ -4309,6 +4309,66 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/leader/member-checkins/:checkinId/complete", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { checkinId } = req.params;
+
+      const schema = z.object({
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "NOT_COMPLETED", "OTHER"]),
+        notes: z.string().optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      const checkinRecord = await storage.getMemberCheckin(checkinId);
+      if (!checkinRecord || checkinRecord.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Checkin not found" });
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      await storage.completeMemberCheckin(checkinId, {
+        outcome: data.outcome,
+        notes: data.notes || "",
+        checkinDate: today,
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to complete checkin" });
+    }
+  });
+
+  app.patch("/api/ministry-admin/member-checkins/:checkinId/complete", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { checkinId } = req.params;
+
+      const schema = z.object({
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "NOT_COMPLETED", "OTHER"]),
+        notes: z.string().optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      const checkinRecord = await storage.getMemberCheckin(checkinId);
+      if (!checkinRecord || checkinRecord.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Checkin not found" });
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      await storage.completeMemberCheckin(checkinId, {
+        outcome: data.outcome,
+        notes: data.notes || "",
+        checkinDate: today,
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to complete checkin" });
+    }
+  });
+
   // ===== NEW MEMBERS ROUTES =====
   
   // Get church info by new member token

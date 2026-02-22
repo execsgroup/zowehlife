@@ -527,6 +527,8 @@
     "mmsRemainingCount": "MMS: {{remaining}}/{{limit}} remaining",
     "smsMmsPaidPlans": "SMS/MMS messaging is available on paid plans.",
     "followUpScheduledNotification": "The follow-up has been scheduled and {{method}} notifications sent.",
+    "email": "email",
+    "emailAndMethod": "email and {{method}}",
     "failedToScheduleFollowUp": "Failed to schedule follow-up"
   },
   "massFollowUp": {

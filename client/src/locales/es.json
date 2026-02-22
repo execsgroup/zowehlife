@@ -527,6 +527,8 @@
     "mmsRemainingCount": "MMS: {{remaining}}/{{limit}} restantes",
     "smsMmsPaidPlans": "La mensajería SMS/MMS está disponible en planes de pago.",
     "followUpScheduledNotification": "El seguimiento ha sido programado y las notificaciones de {{method}} enviadas.",
+    "email": "correo electrónico",
+    "emailAndMethod": "correo electrónico y {{method}}",
     "failedToScheduleFollowUp": "Error al programar el seguimiento"
   },
   "massFollowUp": {

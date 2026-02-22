@@ -475,7 +475,7 @@ END:VCALENDAR`;
                             <span className="text-muted-foreground">
                               {t('converts.nextFollowUp')}:{" "}
                               {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
-                              {checkin.nextFollowupTime && <span> at {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
+                              {checkin.nextFollowupTime && <span> {t('common.at')} {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
                             </span>
                             <Button
                               variant="ghost"

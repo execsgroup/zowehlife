@@ -329,6 +329,7 @@ export interface IStorage {
   getMemberCheckin(id: string): Promise<MemberCheckin | undefined>;
   getMemberCheckins(memberId: string): Promise<MemberCheckin[]>;
   createMemberCheckin(checkin: InsertMemberCheckin): Promise<MemberCheckin>;
+  completeMemberCheckin(id: string, data: { outcome: string; notes: string; checkinDate: string }): Promise<void>;
 
   // Guests
   getGuest(id: string): Promise<Guest | undefined>;
@@ -1599,6 +1600,14 @@ export class DatabaseStorage implements IStorage {
   async createMemberCheckin(checkin: InsertMemberCheckin): Promise<MemberCheckin> {
     const [created] = await db.insert(memberCheckins).values(checkin).returning();
     return created;
+  }
+
+  async completeMemberCheckin(id: string, data: { outcome: string; notes: string; checkinDate: string }): Promise<void> {
+    await db.update(memberCheckins).set({
+      outcome: data.outcome as any,
+      notes: data.notes,
+      checkinDate: data.checkinDate,
+    }).where(eq(memberCheckins.id, id));
   }
 
   // Guests

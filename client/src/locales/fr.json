@@ -527,6 +527,8 @@
     "mmsRemainingCount": "MMS : {{remaining}}/{{limit}} restants",
     "smsMmsPaidPlans": "La messagerie SMS/MMS est disponible sur les plans payants.",
     "followUpScheduledNotification": "Le suivi a été planifié et les notifications {{method}} envoyées.",
+    "email": "e-mail",
+    "emailAndMethod": "e-mail et {{method}}",
     "failedToScheduleFollowUp": "Échec de la planification du suivi"
   },
   "massFollowUp": {

@@ -129,6 +129,7 @@ export default function MemberDetail() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
+  const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
 
   const { data: member, isLoading } = useQuery<Member>({
     queryKey: [`${apiBasePath}/members`, memberId],
@@ -209,11 +210,19 @@ export default function MemberDetail() {
 
   const checkinMutation = useMutation({
     mutationFn: async (data: CheckinFormData) => {
-      await apiRequest("POST", `${apiBasePath}/members/${memberId}/checkins`, {
-        checkinDate: data.checkinDate,
-        outcome: data.outcome,
-        notes: data.notes || "",
-      });
+      if (selectedCheckinId) {
+        const basePath = apiBasePath.includes("ministry-admin") ? "/api/ministry-admin" : "/api/leader";
+        await apiRequest("PATCH", `${basePath}/member-checkins/${selectedCheckinId}/complete`, {
+          outcome: data.outcome,
+          notes: data.notes || "",
+        });
+      } else {
+        await apiRequest("POST", `${apiBasePath}/members/${memberId}/checkins`, {
+          checkinDate: data.checkinDate,
+          outcome: data.outcome,
+          notes: data.notes || "",
+        });
+      }
     },
     onSuccess: () => {
       toast({
@@ -222,7 +231,11 @@ export default function MemberDetail() {
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members/${memberId}/checkins`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, memberId] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/member-followups`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/stats"] });
       setCheckinDialogOpen(false);
+      setSelectedCheckinId(null);
       checkinForm.reset({
         checkinDate: new Date().toISOString().split("T")[0],
         notes: "",
@@ -425,7 +438,7 @@ export default function MemberDetail() {
                             <span className="text-muted-foreground">
                               {t('converts.nextFollowUp')}:{" "}
                               {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
-                              {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
+                              {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` ${t('common.at')} ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                             </span>
                           </div>
                         )}
@@ -453,7 +466,10 @@ export default function MemberDetail() {
                               variant="outline"
                               size="sm"
                               className="gap-2"
-                              onClick={() => setCheckinDialogOpen(true)}
+                              onClick={() => {
+                                setSelectedCheckinId(checkin.outcome === "SCHEDULED_VISIT" ? checkin.id : null);
+                                setCheckinDialogOpen(true);
+                              }}
                               data-testid={`button-add-note-${checkin.id}`}
                             >
                               <Plus className="h-4 w-4" />

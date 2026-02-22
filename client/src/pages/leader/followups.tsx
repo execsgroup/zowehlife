@@ -462,7 +462,7 @@ export default function LeaderFollowups() {
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span data-testid={`text-mass-date-${mf.id}`}>
                               {format(new Date(mf.scheduledDate), "MMM d, yyyy")}
-                              {mf.scheduledTime && <span> at {formatTime(mf.scheduledTime)}</span>}
+                              {mf.scheduledTime && <span> {t('common.at')} {formatTime(mf.scheduledTime)}</span>}
                             </span>
                           </div>
                         </TableCell>
@@ -558,7 +558,7 @@ export default function LeaderFollowups() {
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span data-testid={`text-followup-date-${followup.id}`}>
                               {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
-                              {followup.nextFollowupTime && <span> at {formatTime(followup.nextFollowupTime)}</span>}
+                              {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
                             </span>
                           </div>
                         </TableCell>
@@ -685,7 +685,7 @@ export default function LeaderFollowups() {
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span data-testid={`text-newmember-date-${followup.id}`}>
                               {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
-                              {followup.nextFollowupTime && <span> at {formatTime(followup.nextFollowupTime)}</span>}
+                              {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
                             </span>
                           </div>
                         </TableCell>

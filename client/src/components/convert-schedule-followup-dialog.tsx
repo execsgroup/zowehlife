@@ -252,8 +252,8 @@ export function ConvertScheduleFollowUpDialog({
 
             {(notificationMethod === "sms" || notificationMethod === "mms") && (
               <div className="space-y-3 p-3 bg-muted/50 rounded-lg border-t pt-4">
-                <p className="text-sm font-medium">Custom {notificationMethod.toUpperCase()} Message (optional)</p>
-                <p className="text-xs text-muted-foreground">An additional {notificationMethod.toUpperCase()} will be sent alongside the email above</p>
+                <p className="text-sm font-medium">{t('followUps.customMethodMessage', { method: notificationMethod.toUpperCase() })}</p>
+                <p className="text-xs text-muted-foreground">{t('followUps.additionalMethodSent', { method: notificationMethod.toUpperCase() })}</p>
                 <FormField
                   control={form.control}
                   name="smsMessage"

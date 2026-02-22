@@ -36,15 +36,15 @@ function getDateBadge(dateStr: string, id: string, t: (key: string) => string) {
   const daysUntil = differenceInDays(date, new Date());
   
   if (isToday(date)) {
-    return <Badge variant="destructive" data-testid={`badge-status-${id}`}>{t('dashboard.today')}</Badge>;
+    return <Badge variant="destructive" data-testid={`badge-status-${id}`}>{t('statusLabels.today')}</Badge>;
   }
   if (isTomorrow(date)) {
-    return <Badge variant="default" data-testid={`badge-status-${id}`}>{t('dashboard.tomorrow')}</Badge>;
+    return <Badge variant="default" data-testid={`badge-status-${id}`}>{t('statusLabels.tomorrow')}</Badge>;
   }
   if (daysUntil <= 7) {
-    return <Badge variant="secondary" data-testid={`badge-status-${id}`}>{t('common.thisWeek')}</Badge>;
+    return <Badge variant="secondary" data-testid={`badge-status-${id}`}>{t('statusLabels.thisWeek')}</Badge>;
   }
-  return <Badge variant="outline" data-testid={`badge-status-${id}`}>{t('common.upcoming')}</Badge>;
+  return <Badge variant="outline" data-testid={`badge-status-${id}`}>{t('statusLabels.upcoming')}</Badge>;
 }
 
 export default function MinistryAdminFollowups() {
@@ -129,7 +129,7 @@ export default function MinistryAdminFollowups() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm text-muted-foreground max-w-xs truncate">
-                            {followup.notes || "—"}
+                            {followup.notes && !followup.notes.startsWith("Follow-up scheduled for") && !followup.notes.startsWith("Mass follow-up scheduled for") ? followup.notes : "—"}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
