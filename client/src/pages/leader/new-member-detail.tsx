@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { DatePicker } from "@/components/date-picker";
 import { type NewMember } from "@shared/schema";
 import { NewMemberScheduleFollowUpDialog } from "@/components/new-member-schedule-followup-dialog";
 import {
@@ -511,7 +512,11 @@ export default function NewMemberDetail() {
                     <FormItem>
                       <FormLabel>{t('forms.date')}</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} data-testid="input-checkin-date" />
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          data-testid="input-checkin-date"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

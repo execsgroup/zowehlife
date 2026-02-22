@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/date-picker";
 import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -318,7 +319,7 @@ export default function AdminConverts() {
                   <FormItem>
                     <FormLabel>{t('forms.date')}</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} data-testid="input-admin-followup-date" />
+                      <DatePicker value={field.value} onChange={field.onChange} data-testid="input-admin-followup-date" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -375,7 +376,7 @@ export default function AdminConverts() {
                   <FormItem>
                     <FormLabel>{t('followUps.followUpDate')} ({t('forms.optional')})</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} data-testid="input-admin-next-followup-date" />
+                      <DatePicker value={field.value} onChange={field.onChange} data-testid="input-admin-next-followup-date" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

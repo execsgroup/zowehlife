@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { DatePicker } from "@/components/date-picker";
 import { type Convert, type Checkin } from "@shared/schema";
 import {
   ArrowLeft,
@@ -631,7 +632,12 @@ END:VCALENDAR`;
                     <FormItem>
                       <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} data-testid="input-edit-dob" />
+                        <DatePicker
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          maxDate={new Date()}
+                          data-testid="input-edit-dob"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

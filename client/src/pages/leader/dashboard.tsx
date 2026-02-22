@@ -114,23 +114,25 @@ export default function LeaderDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-3" data-testid="stats-grid">
         {[
-          { label: t('dashboard.totalConverts'), value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts" },
-          { label: t('dashboard.newThisMonth'), value: stats?.newConverts, icon: User, testId: "text-new-converts" },
-          { label: t('dashboard.followUpsDue'), value: stats?.followupsDue?.length, icon: Calendar, testId: "text-followups-due" },
+          { label: t('dashboard.totalConverts'), value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts", href: "/leader/converts" },
+          { label: t('dashboard.newThisMonth'), value: stats?.newConverts, icon: User, testId: "text-new-converts", href: "/leader/converts" },
+          { label: t('dashboard.followUpsDue'), value: stats?.followupsDue?.length, icon: Calendar, testId: "text-followups-due", href: "/leader/followups" },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-md border bg-card p-4">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </div>
-            {isLoading ? (
-              <Skeleton className="h-7 w-14" />
-            ) : (
-              <div className="text-2xl font-semibold" data-testid={stat.testId}>
-                {stat.value || 0}
+          <Link key={stat.label} href={stat.href} data-testid={`link-stat-${stat.testId}`}>
+            <div className="rounded-md border bg-card p-4 cursor-pointer hover-elevate transition-colors">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
               </div>
-            )}
-          </div>
+              {isLoading ? (
+                <Skeleton className="h-7 w-14" />
+              ) : (
+                <div className="text-2xl font-semibold" data-testid={stat.testId}>
+                  {stat.value || 0}
+                </div>
+              )}
+            </div>
+          </Link>
         ))}
       </div>
 

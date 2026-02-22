@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/date-picker";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
@@ -320,7 +321,12 @@ export default function NewConvert() {
                       <FormItem>
                         <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} data-testid="input-date-of-birth" />
+                          <DatePicker
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            maxDate={new Date()}
+                            data-testid="input-date-of-birth"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

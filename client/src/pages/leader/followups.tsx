@@ -18,6 +18,8 @@ import { AITextarea } from "@/components/ai-text-helper";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/date-picker";
+import { TimePicker } from "@/components/time-picker";
 import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Video, Users } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
@@ -864,9 +866,10 @@ export default function LeaderFollowups() {
                   <FormItem>
                     <FormLabel>{t('followUps.followUpDate')} *</FormLabel>
                     <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        minDate={new Date()}
                         data-testid="input-schedule-date"
                       />
                     </FormControl>
@@ -882,9 +885,9 @@ export default function LeaderFollowups() {
                   <FormItem>
                     <FormLabel>{t('followUps.followUpTimeOptional')}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="time"
-                        {...field}
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
                         data-testid="input-schedule-time"
                       />
                     </FormControl>

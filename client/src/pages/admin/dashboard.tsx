@@ -33,32 +33,34 @@ export default function AdminDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="stats-grid">
         {[
-          { label: t('dashboard.totalMinistries'), value: stats?.totalChurches, icon: Church, testId: "text-total-churches" },
-          { label: t('dashboard.totalLeaders'), value: stats?.totalLeaders, icon: Users, testId: "text-total-leaders" },
-          { label: t('dashboard.totalConverts'), value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts", sub: stats?.convertsLast30Days },
-          { label: t('dashboard.followUpsDue'), value: stats?.followupsDue, icon: Calendar, testId: "text-followups-due" },
+          { label: t('dashboard.totalMinistries'), value: stats?.totalChurches, icon: Church, testId: "text-total-churches", href: "/admin/churches" },
+          { label: t('dashboard.totalLeaders'), value: stats?.totalLeaders, icon: Users, testId: "text-total-leaders", href: "/admin/leaders" },
+          { label: t('dashboard.totalConverts'), value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts", sub: stats?.convertsLast30Days, href: "/admin/converts" },
+          { label: t('dashboard.followUpsDue'), value: stats?.followupsDue, icon: Calendar, testId: "text-followups-due", href: "/admin/converts" },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-md border bg-card p-4">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+          <Link key={stat.label} href={stat.href} data-testid={`link-stat-${stat.testId}`}>
+            <div className="rounded-md border bg-card p-4 cursor-pointer hover-elevate transition-colors">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {isLoading ? (
+                <Skeleton className="h-7 w-14" />
+              ) : (
+                <>
+                  <div className="text-2xl font-semibold" data-testid={stat.testId}>
+                    {stat.value || 0}
+                  </div>
+                  {stat.sub !== undefined && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <TrendingUp className="h-3 w-3" />
+                      {stat.sub || 0} {t('dashboard.inLast30Days')}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
-            {isLoading ? (
-              <Skeleton className="h-7 w-14" />
-            ) : (
-              <>
-                <div className="text-2xl font-semibold" data-testid={stat.testId}>
-                  {stat.value || 0}
-                </div>
-                {stat.sub !== undefined && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    <TrendingUp className="h-3 w-3" />
-                    {stat.sub || 0} {t('dashboard.inLast30Days')}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
+          </Link>
         ))}
       </div>
 

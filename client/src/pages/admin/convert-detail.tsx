@@ -12,6 +12,7 @@ import { Section } from "@/components/section";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -457,7 +458,7 @@ export default function AdminConvertDetail() {
                     <FormItem>
                       <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} data-testid="input-edit-dob" />
+                        <DatePicker value={field.value || ""} onChange={field.onChange} maxDate={new Date()} data-testid="input-edit-dob" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

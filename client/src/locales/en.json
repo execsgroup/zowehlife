@@ -260,7 +260,14 @@
     "attachImage": "Attach Image",
     "imageSizeInfo": "JPG, PNG, GIF up to 5MB",
     "couldNotUploadImage": "Could not upload image",
-    "mmsAttachment": "MMS attachment"
+    "mmsAttachment": "MMS attachment",
+    "pickDate": "Pick a date",
+    "pickTime": "Pick a time",
+    "selectTime": "Select time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "am": "AM",
+    "pm": "PM"
   },
   "converts": {
     "title": "Converts",

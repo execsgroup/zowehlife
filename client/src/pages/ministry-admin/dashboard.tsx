@@ -9,7 +9,8 @@ import { Section } from "@/components/section";
 import { QRCodeDialog } from "@/components/qr-code-dialog";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, Heart, UserCheck, UsersRound, Link, Copy, ExternalLink, QrCode } from "lucide-react";
+import { Users, UserPlus, Heart, UserCheck, UsersRound, Copy, ExternalLink, QrCode } from "lucide-react";
+import { Link } from "wouter";
 
 interface Stats {
   totalConverts: number;
@@ -76,11 +77,11 @@ export default function MinistryAdminDashboard() {
   };
 
   const statCards = [
-    { title: t('dashboard.totalConverts'), value: stats?.totalConverts || 0, icon: Heart },
-    { title: t('dashboard.newConverts'), value: stats?.newConverts || 0, icon: UserPlus },
-    { title: t('dashboard.newMembersGuestsCount'), value: stats?.totalNewMembers || 0, icon: UserCheck },
-    { title: t('dashboard.membersCount'), value: stats?.totalMembers || 0, icon: UsersRound },
-    { title: t('dashboard.leadersCount'), value: stats?.totalLeaders || 0, icon: Users },
+    { title: t('dashboard.totalConverts'), value: stats?.totalConverts || 0, icon: Heart, href: "/ministry-admin/converts" },
+    { title: t('dashboard.newConverts'), value: stats?.newConverts || 0, icon: UserPlus, href: "/ministry-admin/converts" },
+    { title: t('dashboard.newMembersGuestsCount'), value: stats?.totalNewMembers || 0, icon: UserCheck, href: "/ministry-admin/new-members" },
+    { title: t('dashboard.membersCount'), value: stats?.totalMembers || 0, icon: UsersRound, href: "/ministry-admin/members" },
+    { title: t('dashboard.leadersCount'), value: stats?.totalLeaders || 0, icon: Users, href: "/ministry-admin/leaders" },
   ];
 
   return (
@@ -92,19 +93,21 @@ export default function MinistryAdminDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="stats-grid">
         {statCards.map((stat) => (
-          <div key={stat.title} className="rounded-md border bg-card p-4">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-xs font-medium text-muted-foreground">{stat.title}</span>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </div>
-            {statsLoading ? (
-              <Skeleton className="h-7 w-14" />
-            ) : (
-              <div className="text-2xl font-semibold" data-testid={`stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                {stat.value}
+          <Link key={stat.title} href={stat.href} data-testid={`link-stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+            <div className="rounded-md border bg-card p-4 cursor-pointer hover-elevate transition-colors">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-medium text-muted-foreground">{stat.title}</span>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
               </div>
-            )}
-          </div>
+              {statsLoading ? (
+                <Skeleton className="h-7 w-14" />
+              ) : (
+                <div className="text-2xl font-semibold" data-testid={`stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                  {stat.value}
+                </div>
+              )}
+            </div>
+          </Link>
         ))}
       </div>
 

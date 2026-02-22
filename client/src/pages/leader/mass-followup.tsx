@@ -7,6 +7,8 @@ import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/date-picker";
+import { TimePicker } from "@/components/time-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -215,19 +217,17 @@ export default function MassFollowUp() {
                 <>
                   <div className="space-y-2">
                     <Label>{dateFilterLabels[category]} {t('forms.from')}</Label>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={dateFrom}
-                      onChange={(e) => setDateFrom(e.target.value)}
+                      onChange={setDateFrom}
                       data-testid="input-date-from"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>{dateFilterLabels[category]} {t('forms.to')}</Label>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={dateTo}
-                      onChange={(e) => setDateTo(e.target.value)}
+                      onChange={setDateTo}
                       data-testid="input-date-to"
                     />
                   </div>
@@ -357,28 +357,23 @@ export default function MassFollowUp() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="followup-date" className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
+                      <Label className="flex items-center gap-2">
                         {t('massFollowUp.followUpDate')}
                       </Label>
-                      <Input
-                        id="followup-date"
-                        type="date"
+                      <DatePicker
                         value={followUpDate}
-                        onChange={(e) => setFollowUpDate(e.target.value)}
+                        onChange={setFollowUpDate}
+                        minDate={new Date()}
                         data-testid="input-followup-date"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="followup-time" className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
+                      <Label className="flex items-center gap-2">
                         {t('massFollowUp.followUpTimeOptional')}
                       </Label>
-                      <Input
-                        id="followup-time"
-                        type="time"
+                      <TimePicker
                         value={followUpTime}
-                        onChange={(e) => setFollowUpTime(e.target.value)}
+                        onChange={setFollowUpTime}
                         data-testid="input-followup-time"
                       />
                     </div>

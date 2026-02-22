@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Loader2, CheckCircle2, Church } from "lucide-react";
@@ -282,7 +283,12 @@ export default function NewMemberForm() {
                     <FormItem>
                       <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} data-testid="input-dob" />
+                        <DatePicker
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          maxDate={new Date()}
+                          data-testid="input-dob"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

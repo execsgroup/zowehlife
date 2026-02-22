@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { AITextarea } from "@/components/ai-text-helper";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -370,9 +371,10 @@ export default function LeaderMembers() {
                           <FormItem>
                             <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                             <FormControl>
-                              <Input
-                                type="date"
-                                {...field}
+                              <DatePicker
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                maxDate={new Date()}
                                 data-testid="input-member-dob"
                               />
                             </FormControl>
@@ -387,9 +389,9 @@ export default function LeaderMembers() {
                           <FormItem>
                             <FormLabel>{t('forms.memberSince')}</FormLabel>
                             <FormControl>
-                              <Input
-                                type="date"
-                                {...field}
+                              <DatePicker
+                                value={field.value || ""}
+                                onChange={field.onChange}
                                 data-testid="input-member-since"
                               />
                             </FormControl>

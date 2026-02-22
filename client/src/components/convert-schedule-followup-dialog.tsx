@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Video } from "lucide-react";
+import { DatePicker } from "@/components/date-picker";
+import { TimePicker } from "@/components/time-picker";
 import { AITextarea } from "@/components/ai-text-helper";
 import { NotificationMethodSelector } from "@/components/notification-method-selector";
 import { MmsImageUpload } from "@/components/mms-image-upload";
@@ -138,7 +140,12 @@ export function ConvertScheduleFollowUpDialog({
                 <FormItem>
                   <FormLabel>{t('followUps.followUpDate')} *</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} data-testid="input-schedule-followup-date" />
+                    <DatePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      minDate={new Date()}
+                      data-testid="input-schedule-followup-date"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -152,7 +159,11 @@ export function ConvertScheduleFollowUpDialog({
                 <FormItem>
                   <FormLabel>{t('followUps.followUpTimeOptional')}</FormLabel>
                   <FormControl>
-                    <Input type="time" {...field} data-testid="input-schedule-followup-time" />
+                    <TimePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      data-testid="input-schedule-followup-time"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

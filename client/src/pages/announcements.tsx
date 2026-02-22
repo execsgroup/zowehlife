@@ -13,6 +13,8 @@ import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/date-picker";
+import { TimePicker } from "@/components/time-picker";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -586,23 +588,19 @@ export default function AnnouncementsPage() {
               {isScheduled && (
                 <div className="flex flex-wrap gap-3">
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-date" className="text-xs">{t('forms.date')}</Label>
-                    <Input
-                      id="schedule-date"
-                      type="date"
+                    <Label className="text-xs">{t('forms.date')}</Label>
+                    <DatePicker
                       value={scheduleDate}
-                      onChange={(e) => setScheduleDate(e.target.value)}
-                      min={new Date().toISOString().split("T")[0]}
+                      onChange={setScheduleDate}
+                      minDate={new Date()}
                       data-testid="input-schedule-date"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="schedule-time" className="text-xs">{t('forms.time')}</Label>
-                    <Input
-                      id="schedule-time"
-                      type="time"
+                    <Label className="text-xs">{t('forms.time')}</Label>
+                    <TimePicker
                       value={scheduleTime}
-                      onChange={(e) => setScheduleTime(e.target.value)}
+                      onChange={setScheduleTime}
                       data-testid="input-schedule-time"
                     />
                   </div>

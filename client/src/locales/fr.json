@@ -260,7 +260,14 @@
     "attachImage": "Joindre une Image",
     "imageSizeInfo": "JPG, PNG, GIF jusqu'à 5 Mo",
     "couldNotUploadImage": "Impossible de télécharger l'image",
-    "mmsAttachment": "Pièce jointe MMS"
+    "mmsAttachment": "Pièce jointe MMS",
+    "pickDate": "Choisir une date",
+    "pickTime": "Choisir une heure",
+    "selectTime": "Sélectionner l'heure",
+    "hour": "Heure",
+    "minute": "Minute",
+    "am": "AM",
+    "pm": "PM"
   },
   "converts": {
     "title": "Convertis",

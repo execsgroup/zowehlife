@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -387,9 +388,10 @@ export default function LeaderConverts() {
                       <FormItem>
                         <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                         <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
+                          <DatePicker
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            maxDate={new Date()}
                             data-testid="input-convert-dob"
                           />
                         </FormControl>
