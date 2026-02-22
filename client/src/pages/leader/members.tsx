@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
-import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus, Church, CalendarPlus } from "lucide-react";
+import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus, Church, CalendarPlus, FileSpreadsheet } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
@@ -226,6 +226,20 @@ export default function LeaderMembers() {
     return matchesSearch;
   });
 
+  const handleExportExcel = async () => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+
+    const response = await fetch(`/api/leader/members/export-excel?${params}`);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `members-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -234,6 +248,10 @@ export default function LeaderMembers() {
           description={t('membersPage.description')}
           actions={
             <div className="flex gap-2 flex-wrap">
+            <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
+              <FileSpreadsheet className="h-4 w-4" />
+              {t('forms.exportExcel')}
+            </Button>
             {tokens?.memberToken ? (
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Search, Users, Phone, Mail, Eye, CalendarPlus } from "lucide-react";
+import { Search, Users, Phone, Mail, Eye, CalendarPlus, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 import { NewMemberScheduleFollowUpDialog } from "@/components/new-member-schedule-followup-dialog";
 
@@ -110,6 +110,21 @@ export default function MinistryAdminNewMembers() {
             </h1>
             <p className="text-muted-foreground">{t('newMembers.viewAllNewMembers')}</p>
           </div>
+          <Button onClick={async () => {
+            const params = new URLSearchParams();
+            if (searchQuery) params.set("search", searchQuery);
+            const response = await fetch(`/api/ministry-admin/new-members/export-excel?${params}`);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `new-members-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }} variant="outline" className="gap-2" data-testid="button-export-excel">
+            <FileSpreadsheet className="h-4 w-4" />
+            {t('forms.exportExcel')}
+          </Button>
         </div>
 
         <Card>

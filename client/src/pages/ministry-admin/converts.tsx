@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { type Convert } from "@shared/schema";
-import { Search, UserPlus, Phone, Mail, CalendarPlus, Eye } from "lucide-react";
+import { Search, UserPlus, Phone, Mail, CalendarPlus, Eye, FileSpreadsheet } from "lucide-react";
 import { Link } from "wouter";
 import { ConvertScheduleFollowUpDialog } from "@/components/convert-schedule-followup-dialog";
 import { useBasePath } from "@/hooks/use-base-path";
@@ -84,6 +84,21 @@ export default function MinistryAdminConverts() {
             </h1>
             <p className="text-muted-foreground">{t('converts.viewAllConverts')}</p>
           </div>
+          <Button onClick={async () => {
+            const params = new URLSearchParams();
+            if (searchQuery) params.set("search", searchQuery);
+            const response = await fetch(`/api/ministry-admin/converts/export-excel?${params}`);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `converts-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }} variant="outline" className="gap-2" data-testid="button-export-excel">
+            <FileSpreadsheet className="h-4 w-4" />
+            {t('forms.exportExcel')}
+          </Button>
         </div>
 
         <Card>

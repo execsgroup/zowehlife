@@ -2223,8 +2223,25 @@ export async function registerRoutes(
         })
       );
 
+      const statusLabels: Record<string, string> = {
+        NEW: "New",
+        SCHEDULED: "Scheduled",
+        CONNECTED: "Connected",
+        NO_RESPONSE: "Not Connected",
+        NEEDS_PRAYER: "Needs Prayer",
+        NEEDS_FOLLOWUP: "Needs Follow-up",
+        SCHEDULED_VISIT: "Scheduled Visit",
+        REFERRED: "Referred",
+        NOT_COMPLETED: "Not Completed",
+        NEVER_CONTACTED: "Never Contacted",
+        ACTIVE: "Active",
+        IN_PROGRESS: "In Progress",
+        INACTIVE: "Inactive",
+      };
+
       // Build data for Excel
       const data = convertsWithChurch.map((c) => ({
+        "Category": "Convert",
         "First Name": c.firstName,
         "Last Name": c.lastName,
         "Phone": c.phone || "",
@@ -2238,7 +2255,7 @@ export async function registerRoutes(
         "Church Member": c.isChurchMember || "",
         "Prayer Request": c.prayerRequest || "",
         "Notes": c.summaryNotes || "",
-        "Status": c.status,
+        "Status": statusLabels[c.status] || c.status,
         "Church": c.churchName,
         "Self Submitted": c.selfSubmitted === "true" ? "Yes" : "No",
         "Created At": new Date(c.createdAt).toLocaleDateString(),
@@ -3099,6 +3116,165 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Failed to remove leader:", error);
       res.status(500).json({ message: "Failed to remove leader" });
+    }
+  });
+
+  // Export ministry admin's converts as Excel
+  app.get("/api/ministry-admin/converts/export-excel", requireMinistryAdmin, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const user = (req as any).user;
+      const { search } = req.query;
+
+      let convertsList = await storage.getConvertsByChurch(user.churchId);
+
+      if (search && typeof search === "string") {
+        const searchLower = search.toLowerCase();
+        convertsList = convertsList.filter(
+          (c) =>
+            `${c.firstName} ${c.lastName}`.toLowerCase().includes(searchLower) ||
+            c.phone?.includes(search) ||
+            c.email?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      const statusLabels: Record<string, string> = {
+        NEW: "New", SCHEDULED: "Scheduled", CONNECTED: "Connected",
+        NO_RESPONSE: "Not Connected", NEEDS_PRAYER: "Needs Prayer",
+        NEEDS_FOLLOWUP: "Needs Follow-up", SCHEDULED_VISIT: "Scheduled Visit",
+        REFERRED: "Referred", NOT_COMPLETED: "Not Completed",
+        NEVER_CONTACTED: "Never Contacted", ACTIVE: "Active",
+        IN_PROGRESS: "In Progress", INACTIVE: "Inactive",
+      };
+
+      const data = convertsList.map((c) => ({
+        "Category": "Convert",
+        "First Name": c.firstName,
+        "Last Name": c.lastName,
+        "Phone": c.phone || "",
+        "Email": c.email || "",
+        "Date of Birth": c.dateOfBirth || "",
+        "Country": c.country || "",
+        "Gender": c.gender || "",
+        "Status": statusLabels[c.status] || c.status,
+        "Self Submitted": c.selfSubmitted === "true" ? "Yes" : "No",
+        "Created At": new Date(c.createdAt).toLocaleDateString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Converts");
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=converts.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
+      res.status(500).json({ message: "Failed to export converts" });
+    }
+  });
+
+  // Export ministry admin's new members as Excel
+  app.get("/api/ministry-admin/new-members/export-excel", requireMinistryAdmin, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const user = (req as any).user;
+      const { search } = req.query;
+
+      let newMembersList = await storage.getNewMembersByChurch(user.churchId);
+
+      if (search && typeof search === "string") {
+        const searchLower = search.toLowerCase();
+        newMembersList = newMembersList.filter(
+          (nm) =>
+            `${nm.firstName} ${nm.lastName}`.toLowerCase().includes(searchLower) ||
+            nm.phone?.includes(search) ||
+            nm.email?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      const statusLabels: Record<string, string> = {
+        NEW: "New", SCHEDULED: "Scheduled", CONNECTED: "Connected",
+        NO_RESPONSE: "Not Connected", NEEDS_PRAYER: "Needs Prayer",
+        NEEDS_FOLLOWUP: "Needs Follow-up", NOT_COMPLETED: "Not Completed",
+        ACTIVE: "Active", IN_PROGRESS: "In Progress", INACTIVE: "Inactive",
+      };
+
+      const data = newMembersList.map((nm) => ({
+        "Category": "New Member",
+        "First Name": nm.firstName,
+        "Last Name": nm.lastName,
+        "Phone": nm.phone || "",
+        "Email": nm.email || "",
+        "Date of Birth": nm.dateOfBirth || "",
+        "Country": nm.country || "",
+        "Gender": nm.gender || "",
+        "Notes": nm.notes || "",
+        "Status": statusLabels[nm.status] || nm.status,
+        "Self Submitted": nm.selfSubmitted === "true" ? "Yes" : "No",
+        "Created At": new Date(nm.createdAt).toLocaleDateString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "New Members");
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=new-members.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
+      res.status(500).json({ message: "Failed to export new members" });
+    }
+  });
+
+  // Export ministry admin's members as Excel
+  app.get("/api/ministry-admin/members/export-excel", requireMinistryAdmin, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const user = (req as any).user;
+      const { search } = req.query;
+
+      let membersList = await storage.getMembersByChurch(user.churchId);
+
+      if (search && typeof search === "string") {
+        const searchLower = search.toLowerCase();
+        membersList = membersList.filter(
+          (m) =>
+            `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchLower) ||
+            m.phone?.includes(search) ||
+            m.email?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      const data = membersList.map((m) => ({
+        "Category": "Member",
+        "First Name": m.firstName,
+        "Last Name": m.lastName,
+        "Phone": m.phone || "",
+        "Email": m.email || "",
+        "Date of Birth": m.dateOfBirth || "",
+        "Country": m.country || "",
+        "Gender": m.gender || "",
+        "Member Since": m.memberSince || "",
+        "Notes": m.notes || "",
+        "Self Submitted": m.selfSubmitted === "true" ? "Yes" : "No",
+        "Created At": new Date(m.createdAt).toLocaleDateString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=members.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
+      res.status(500).json({ message: "Failed to export members" });
     }
   });
 
@@ -4396,8 +4572,25 @@ export async function registerRoutes(
         );
       }
 
+      const statusLabels: Record<string, string> = {
+        NEW: "New",
+        SCHEDULED: "Scheduled",
+        CONNECTED: "Connected",
+        NO_RESPONSE: "Not Connected",
+        NEEDS_PRAYER: "Needs Prayer",
+        NEEDS_FOLLOWUP: "Needs Follow-up",
+        SCHEDULED_VISIT: "Scheduled Visit",
+        REFERRED: "Referred",
+        NOT_COMPLETED: "Not Completed",
+        NEVER_CONTACTED: "Never Contacted",
+        ACTIVE: "Active",
+        IN_PROGRESS: "In Progress",
+        INACTIVE: "Inactive",
+      };
+
       // Build data for Excel
       const data = convertsList.map((c) => ({
+        "Category": "Convert",
         "First Name": c.firstName,
         "Last Name": c.lastName,
         "Phone": c.phone || "",
@@ -4411,7 +4604,7 @@ export async function registerRoutes(
         "Church Member": c.isChurchMember || "",
         "Prayer Request": c.prayerRequest || "",
         "Notes": c.summaryNotes || "",
-        "Status": c.status,
+        "Status": statusLabels[c.status] || c.status,
         "Self Submitted": c.selfSubmitted === "true" ? "Yes" : "No",
         "Created At": new Date(c.createdAt).toLocaleDateString(),
       }));
@@ -4431,23 +4624,48 @@ export async function registerRoutes(
     }
   });
 
-  // Export leader's follow-ups as Excel
+  // Export leader's follow-ups as Excel (all categories)
   app.get("/api/leader/followups/export-excel", requireLeader, async (req, res) => {
     try {
       const XLSX = await import("xlsx");
       const user = (req as any).user;
 
-      // Use the same data source as the follow-ups page
-      const followupsWithDetails = await storage.getUpcomingFollowups(user.churchId);
+      const convertFollowups = await storage.getUpcomingFollowups(user.churchId);
+      const newMemberFollowups = await storage.getNewMemberFollowupsDue(user.churchId);
+      const memberFollowups = await storage.getMemberFollowupsDue(user.churchId);
 
-      // Build data for Excel
-      const data = followupsWithDetails.map((f) => ({
-        "Convert Name": `${f.convertFirstName} ${f.convertLastName}`,
-        "Phone": f.convertPhone || "",
-        "Email": f.convertEmail || "",
-        "Follow-up Date": f.nextFollowupDate || "",
-        "Notes": f.notes || "",
-      }));
+      const data = [
+        ...convertFollowups.map((f) => ({
+          "Category": "Convert",
+          "Name": `${f.convertFirstName} ${f.convertLastName}`,
+          "Phone": f.convertPhone || "",
+          "Email": f.convertEmail || "",
+          "Follow-up Date": f.nextFollowupDate || "",
+          "Follow-up Time": f.nextFollowupTime || "",
+          "Video Link": f.videoLink || "",
+          "Notes": f.notes && !f.notes.startsWith("Follow-up scheduled for") && !f.notes.startsWith("Mass follow-up scheduled for") ? f.notes : "",
+        })),
+        ...newMemberFollowups.map((f) => ({
+          "Category": "New Member",
+          "Name": `${f.newMemberFirstName} ${f.newMemberLastName}`,
+          "Phone": f.newMemberPhone || "",
+          "Email": f.newMemberEmail || "",
+          "Follow-up Date": f.nextFollowupDate || "",
+          "Follow-up Time": f.nextFollowupTime || "",
+          "Video Link": f.videoLink || "",
+          "Notes": f.notes && !f.notes.startsWith("Follow-up scheduled for") && !f.notes.startsWith("Mass follow-up scheduled for") ? f.notes : "",
+        })),
+        ...memberFollowups.map((f) => ({
+          "Category": "Member",
+          "Name": `${f.memberFirstName} ${f.memberLastName}`,
+          "Phone": f.memberPhone || "",
+          "Email": f.memberEmail || "",
+          "Follow-up Date": f.nextFollowupDate || "",
+          "Follow-up Time": f.nextFollowupTime || "",
+          "Video Link": f.videoLink || "",
+          "Notes": f.notes && !f.notes.startsWith("Follow-up scheduled for") && !f.notes.startsWith("Mass follow-up scheduled for") ? f.notes : "",
+        })),
+      ];
 
       const worksheet = XLSX.utils.json_to_sheet(data);
       const workbook = XLSX.utils.book_new();
@@ -4461,6 +4679,121 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Excel export error:", error);
       res.status(500).json({ message: "Failed to export follow-ups" });
+    }
+  });
+
+  // Export leader's new members as Excel
+  app.get("/api/leader/new-members/export-excel", requireLeader, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const user = (req as any).user;
+      const { search } = req.query;
+
+      let newMembersList = await storage.getNewMembersByChurch(user.churchId);
+
+      if (search && typeof search === "string") {
+        const searchLower = search.toLowerCase();
+        newMembersList = newMembersList.filter(
+          (nm) =>
+            `${nm.firstName} ${nm.lastName}`.toLowerCase().includes(searchLower) ||
+            nm.phone?.includes(search) ||
+            nm.email?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      const statusLabels: Record<string, string> = {
+        NEW: "New",
+        SCHEDULED: "Scheduled",
+        CONNECTED: "Connected",
+        NO_RESPONSE: "Not Connected",
+        NEEDS_PRAYER: "Needs Prayer",
+        NEEDS_FOLLOWUP: "Needs Follow-up",
+        SCHEDULED_VISIT: "Scheduled Visit",
+        REFERRED: "Referred",
+        NOT_COMPLETED: "Not Completed",
+        NEVER_CONTACTED: "Never Contacted",
+        ACTIVE: "Active",
+        IN_PROGRESS: "In Progress",
+        INACTIVE: "Inactive",
+      };
+
+      const data = newMembersList.map((nm) => ({
+        "Category": "New Member",
+        "First Name": nm.firstName,
+        "Last Name": nm.lastName,
+        "Phone": nm.phone || "",
+        "Email": nm.email || "",
+        "Date of Birth": nm.dateOfBirth || "",
+        "Country": nm.country || "",
+        "Gender": nm.gender || "",
+        "Age Group": nm.ageGroup || "",
+        "Notes": nm.notes || "",
+        "Status": statusLabels[nm.status] || nm.status,
+        "Self Submitted": nm.selfSubmitted === "true" ? "Yes" : "No",
+        "Created At": new Date(nm.createdAt).toLocaleDateString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "New Members");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=new-members.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
+      res.status(500).json({ message: "Failed to export new members" });
+    }
+  });
+
+  // Export leader's members as Excel
+  app.get("/api/leader/members/export-excel", requireLeader, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const user = (req as any).user;
+      const { search } = req.query;
+
+      let membersList = await storage.getMembersByChurch(user.churchId);
+
+      if (search && typeof search === "string") {
+        const searchLower = search.toLowerCase();
+        membersList = membersList.filter(
+          (m) =>
+            `${m.firstName} ${m.lastName}`.toLowerCase().includes(searchLower) ||
+            m.phone?.includes(search) ||
+            m.email?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      const data = membersList.map((m) => ({
+        "Category": "Member",
+        "First Name": m.firstName,
+        "Last Name": m.lastName,
+        "Phone": m.phone || "",
+        "Email": m.email || "",
+        "Date of Birth": m.dateOfBirth || "",
+        "Country": m.country || "",
+        "Gender": m.gender || "",
+        "Member Since": m.memberSince || "",
+        "Notes": m.notes || "",
+        "Self Submitted": m.selfSubmitted === "true" ? "Yes" : "No",
+        "Created At": new Date(m.createdAt).toLocaleDateString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Members");
+
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=members.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
+      res.status(500).json({ message: "Failed to export members" });
     }
   });
 
