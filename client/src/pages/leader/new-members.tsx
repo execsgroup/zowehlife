@@ -1135,7 +1135,7 @@ function TimelineDialog({
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="font-medium">
-                        {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
+                        {format(new Date(checkin.checkinDate + "T00:00:00"), "MMMM d, yyyy")}
                       </p>
                       <Badge variant="outline">{outcomeLabels[checkin.outcome]}</Badge>
                       {checkin.notes && (
@@ -1143,7 +1143,7 @@ function TimelineDialog({
                       )}
                       {checkin.nextFollowupDate && (
                         <p className="text-sm text-muted-foreground">
-                          {t('converts.nextFollowUp')}: {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
+                          {t('converts.nextFollowUp')}: {format(new Date(checkin.nextFollowupDate + "T00:00:00"), "MMM d, yyyy")}
                           {checkin.nextFollowupTime && <span> {t('common.at')} {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
                         </p>
                       )}

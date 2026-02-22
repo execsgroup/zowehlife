@@ -357,7 +357,7 @@ export default function MemberDetail() {
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           {!(checkin.outcome === "SCHEDULED_VISIT" && checkin.nextFollowupDate) && (
                             <span className="font-medium">
-                              {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
+                              {format(new Date(checkin.checkinDate + "T00:00:00"), "MMMM d, yyyy")}
                             </span>
                           )}
                           <Badge variant="secondary" className="text-xs">
@@ -374,13 +374,12 @@ export default function MemberDetail() {
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <span className="text-muted-foreground">
                               {t('converts.nextFollowUp')}:{" "}
-                              {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
+                              {format(new Date(checkin.nextFollowupDate + "T00:00:00"), "MMM d, yyyy")}
                               {checkin.nextFollowupTime && (() => { const [h, m] = checkin.nextFollowupTime!.split(':').map(Number); return ` ${t('common.at')} ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                             </span>
                           </div>
                         )}
-                        {(checkin.outcome === "SCHEDULED_VISIT" &&
-                          (checkin.nextFollowupDate && new Date(checkin.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))) && (
+                        {checkin.outcome === "SCHEDULED_VISIT" && (
                           <div className="mt-2 flex items-center gap-2 flex-wrap">
                             {checkin.videoLink && (
                               <a

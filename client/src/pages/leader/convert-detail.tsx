@@ -458,7 +458,7 @@ END:VCALENDAR`;
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           {!(checkin.outcome === "SCHEDULED_VISIT" && checkin.nextFollowupDate) && (
                             <span className="font-medium">
-                              {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
+                              {format(new Date(checkin.checkinDate + "T00:00:00"), "MMMM d, yyyy")}
                             </span>
                           )}
                           <Badge variant="secondary" className="text-xs">
@@ -475,7 +475,7 @@ END:VCALENDAR`;
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <span className="text-muted-foreground">
                               {t('converts.nextFollowUp')}:{" "}
-                              {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
+                              {format(new Date(checkin.nextFollowupDate + "T00:00:00"), "MMM d, yyyy")}
                               {checkin.nextFollowupTime && <span> {t('common.at')} {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
                             </span>
                             <Button

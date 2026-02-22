@@ -238,7 +238,7 @@ export default function MinistryAdminNewMemberDetail() {
                   <div key={checkin.id} className="border-l-2 border-primary pl-4 py-2">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                       <Clock className="h-3 w-3" />
-                      {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
+                      {format(new Date(checkin.checkinDate + "T00:00:00"), "MMMM d, yyyy")}
                       <Badge variant="outline" className="ml-2">
                         {getOutcomeLabel(checkin.outcome)}
                       </Badge>
@@ -246,7 +246,7 @@ export default function MinistryAdminNewMemberDetail() {
                     {checkin.notes && !checkin.notes.startsWith("Follow-up scheduled for") && !checkin.notes.startsWith("Mass follow-up scheduled for") && <p className="text-sm">{checkin.notes}</p>}
                     {checkin.nextFollowupDate && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        {t('newMemberDetail.nextFollowUp')} {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}
+                        {t('newMemberDetail.nextFollowUp')} {format(new Date(checkin.nextFollowupDate + "T00:00:00"), "MMM d, yyyy")}
                         {checkin.nextFollowupTime && <span> {t('newMemberDetail.at')} {(() => { const [h, m] = checkin.nextFollowupTime.split(':').map(Number); return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}</span>}
                       </p>
                     )}
