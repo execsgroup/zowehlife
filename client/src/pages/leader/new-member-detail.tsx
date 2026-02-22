@@ -422,9 +422,11 @@ export default function NewMemberDetail() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="font-medium">
-                            {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
-                          </span>
+                          {!(checkin.outcome === "SCHEDULED_VISIT" && checkin.nextFollowupDate) && (
+                            <span className="font-medium">
+                              {format(new Date(checkin.checkinDate), "MMMM d, yyyy")}
+                            </span>
+                          )}
                           <Badge variant="secondary" className="text-xs">
                             {getOutcomeLabel(checkin.outcome)}
                           </Badge>
