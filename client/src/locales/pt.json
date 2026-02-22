@@ -539,9 +539,9 @@
   },
   "massFollowUp": {
     "description": "Agende acompanhamentos para várias pessoas de uma vez. Cada pessoa receberá um link de videochamada único e notificação por e-mail.",
-    "followUpConverts": "Acompanhar Convertidos",
-    "newMemberFollowUp": "Acompanhamento de Novos Membros e Visitantes",
-    "memberFollowUp": "Acompanhamento de Membros",
+    "followUpConverts": "Convertidos",
+    "newMemberFollowUp": "Novos Membros e Visitantes",
+    "memberFollowUp": "Membros",
     "guestList": "Lista de Visitantes",
     "scheduleForCount": "Agendar Acompanhamento para {{count}} {{people}}",
     "person": "Pessoa",

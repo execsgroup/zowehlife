@@ -539,9 +539,9 @@
   },
   "massFollowUp": {
     "description": "Schedule follow-ups for multiple people at once. Each person will receive a unique video call link and email notification.",
-    "followUpConverts": "Follow Up Converts",
-    "newMemberFollowUp": "New Member & Guest Follow Up",
-    "memberFollowUp": "Member Follow Up",
+    "followUpConverts": "Converts",
+    "newMemberFollowUp": "New Members & Guests",
+    "memberFollowUp": "Members",
     "guestList": "Guest List",
     "scheduleForCount": "Schedule Follow-Up for {{count}} {{people}}",
     "person": "Person",

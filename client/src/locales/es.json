@@ -539,9 +539,9 @@
   },
   "massFollowUp": {
     "description": "Programa seguimientos para múltiples personas a la vez. Cada persona recibirá un enlace único de videollamada y una notificación por correo electrónico.",
-    "followUpConverts": "Seguimiento a Convertidos",
-    "newMemberFollowUp": "Seguimiento a Nuevos Miembros y Huéspedes",
-    "memberFollowUp": "Seguimiento a Miembros",
+    "followUpConverts": "Convertidos",
+    "newMemberFollowUp": "Nuevos Miembros y Huéspedes",
+    "memberFollowUp": "Miembros",
     "guestList": "Lista de Huéspedes",
     "scheduleForCount": "Programar Seguimiento para {{count}} {{people}}",
     "person": "Persona",

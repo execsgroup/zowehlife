@@ -539,9 +539,9 @@
   },
   "massFollowUp": {
     "description": "Planifiez des suivis pour plusieurs personnes à la fois. Chaque personne recevra un lien d'appel vidéo unique et une notification par e-mail.",
-    "followUpConverts": "Suivi des Convertis",
-    "newMemberFollowUp": "Suivi des Nouveaux Membres & Invités",
-    "memberFollowUp": "Suivi des Membres",
+    "followUpConverts": "Convertis",
+    "newMemberFollowUp": "Nouveaux Membres & Invités",
+    "memberFollowUp": "Membres",
     "guestList": "Liste des Invités",
     "scheduleForCount": "Planifier le Suivi pour {{count}} {{people}}",
     "person": "Personne",
