@@ -47,6 +47,7 @@ export default function MemberForm() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [customFieldData, setCustomFieldData] = useState<Record<string, any>>({});
+  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
 
   const isFieldVisible = (key: string) => {
     if (!church?.formConfig?.fieldConfig) return true;
@@ -186,7 +187,23 @@ export default function MemberForm() {
           <CardContent>
             <Form {...form}>
               <form
-                onSubmit={form.handleSubmit((data) => submitMutation.mutate(data))}
+                onSubmit={form.handleSubmit((data) => {
+                  // Validate required custom fields
+                  if (church?.formConfig?.customFields?.length > 0) {
+                    const errors: Record<string, string> = {};
+                    for (const cf of church.formConfig.customFields) {
+                      if (cf.required && (!customFieldData[cf.id] || customFieldData[cf.id] === '')) {
+                        errors[cf.id] = `${cf.label} is required`;
+                      }
+                    }
+                    if (Object.keys(errors).length > 0) {
+                      setCustomFieldErrors(errors);
+                      return;
+                    }
+                  }
+                  setCustomFieldErrors({});
+                  submitMutation.mutate(data);
+                })}
                 className="space-y-4"
               >
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -414,14 +431,14 @@ export default function MemberForm() {
                         {cf.type === 'text' && (
                           <Input
                             value={customFieldData[cf.id] || ''}
-                            onChange={(e) => setCustomFieldData(prev => ({ ...prev, [cf.id]: e.target.value }))}
+                            onChange={(e) => { setCustomFieldData(prev => ({ ...prev, [cf.id]: e.target.value })); setCustomFieldErrors(prev => { const next = { ...prev }; delete next[cf.id]; return next; }); }}
                             data-testid={`input-custom-${cf.id}`}
                           />
                         )}
                         {cf.type === 'dropdown' && (
                           <Select
                             value={customFieldData[cf.id] || ''}
-                            onValueChange={(v) => setCustomFieldData(prev => ({ ...prev, [cf.id]: v }))}
+                            onValueChange={(v) => { setCustomFieldData(prev => ({ ...prev, [cf.id]: v })); setCustomFieldErrors(prev => { const next = { ...prev }; delete next[cf.id]; return next; }); }}
                           >
                             <SelectTrigger data-testid={`select-custom-${cf.id}`}>
                               <SelectValue placeholder="Select..." />
@@ -436,7 +453,7 @@ export default function MemberForm() {
                         {cf.type === 'yes_no' && (
                           <Select
                             value={customFieldData[cf.id] || ''}
-                            onValueChange={(v) => setCustomFieldData(prev => ({ ...prev, [cf.id]: v }))}
+                            onValueChange={(v) => { setCustomFieldData(prev => ({ ...prev, [cf.id]: v })); setCustomFieldErrors(prev => { const next = { ...prev }; delete next[cf.id]; return next; }); }}
                           >
                             <SelectTrigger data-testid={`select-custom-${cf.id}`}>
                               <SelectValue placeholder="Select..." />
@@ -446,6 +463,9 @@ export default function MemberForm() {
                               <SelectItem value="No">No</SelectItem>
                             </SelectContent>
                           </Select>
+                        )}
+                        {customFieldErrors[cf.id] && (
+                          <p className="text-sm text-destructive">{customFieldErrors[cf.id]}</p>
                         )}
                       </div>
                     ))}

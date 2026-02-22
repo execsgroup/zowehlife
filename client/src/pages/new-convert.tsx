@@ -61,6 +61,7 @@ export default function NewConvert() {
   const { token } = useParams<{ token: string }>();
   const [submitted, setSubmitted] = useState(false);
   const [customFieldData, setCustomFieldData] = useState<Record<string, any>>({});
+  const [customFieldErrors, setCustomFieldErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
   const isFieldVisible = (key: string) => {
@@ -142,6 +143,20 @@ export default function NewConvert() {
   });
 
   const onSubmit = (data: ConvertFormData) => {
+    // Validate required custom fields
+    if (church?.formConfig?.customFields?.length > 0) {
+      const errors: Record<string, string> = {};
+      for (const cf of church.formConfig.customFields) {
+        if (cf.required && (!customFieldData[cf.id] || customFieldData[cf.id] === '')) {
+          errors[cf.id] = `${cf.label} is required`;
+        }
+      }
+      if (Object.keys(errors).length > 0) {
+        setCustomFieldErrors(errors);
+        return;
+      }
+    }
+    setCustomFieldErrors({});
     submitMutation.mutate(data);
   };
 
@@ -515,14 +530,14 @@ export default function NewConvert() {
                           {cf.type === 'text' && (
                             <Input
                               value={customFieldData[cf.id] || ''}
-                              onChange={(e) => setCustomFieldData(prev => ({ ...prev, [cf.id]: e.target.value }))}
+                              onChange={(e) => { setCustomFieldData(prev => ({ ...prev, [cf.id]: e.target.value })); setCustomFieldErrors(prev => { const next = { ...prev }; delete next[cf.id]; return next; }); }}
                               data-testid={`input-custom-${cf.id}`}
                             />
                           )}
                           {cf.type === 'dropdown' && (
                             <Select
                               value={customFieldData[cf.id] || ''}
-                              onValueChange={(v) => setCustomFieldData(prev => ({ ...prev, [cf.id]: v }))}
+                              onValueChange={(v) => { setCustomFieldData(prev => ({ ...prev, [cf.id]: v })); setCustomFieldErrors(prev => { const next = { ...prev }; delete next[cf.id]; return next; }); }}
                             >
                               <SelectTrigger data-testid={`select-custom-${cf.id}`}>
                                 <SelectValue placeholder="Select..." />
@@ -537,7 +552,7 @@ export default function NewConvert() {
                           {cf.type === 'yes_no' && (
                             <Select
                               value={customFieldData[cf.id] || ''}
-                              onValueChange={(v) => setCustomFieldData(prev => ({ ...prev, [cf.id]: v }))}
+                              onValueChange={(v) => { setCustomFieldData(prev => ({ ...prev, [cf.id]: v })); setCustomFieldErrors(prev => { const next = { ...prev }; delete next[cf.id]; return next; }); }}
                             >
                               <SelectTrigger data-testid={`select-custom-${cf.id}`}>
                                 <SelectValue placeholder="Select..." />
@@ -547,6 +562,9 @@ export default function NewConvert() {
                                 <SelectItem value="No">No</SelectItem>
                               </SelectContent>
                             </Select>
+                          )}
+                          {customFieldErrors[cf.id] && (
+                            <p className="text-sm text-destructive">{customFieldErrors[cf.id]}</p>
                           )}
                         </div>
                       ))}
