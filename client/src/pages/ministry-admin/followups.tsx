@@ -1,17 +1,33 @@
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
+import { Section } from "@/components/section";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Calendar, Phone, Mail, Clock, Video, User } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { AITextarea } from "@/components/ai-text-helper";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/date-picker";
+import { TimePicker } from "@/components/time-picker";
+import { Calendar, Phone, Mail, User, Clock, Loader2, FileSpreadsheet, Users, Video } from "lucide-react";
+import { FollowUpActionButtons } from "@/components/followup-action-buttons";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
+import { Link, useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
-interface FollowUp {
+interface ConvertFollowUp {
   id: string;
   convertId: string;
   convertFirstName: string;
@@ -24,6 +40,90 @@ interface FollowUp {
   videoLink: string | null;
 }
 
+interface NewMemberFollowUp {
+  id: string;
+  newMemberId: string;
+  newMemberFirstName: string;
+  newMemberLastName: string;
+  newMemberPhone: string | null;
+  newMemberEmail: string | null;
+  nextFollowupDate: string;
+  nextFollowupTime: string | null;
+  notes: string | null;
+  videoLink: string | null;
+}
+
+interface MemberFollowUp {
+  id: string;
+  memberId: string;
+  memberFirstName: string;
+  memberLastName: string;
+  memberPhone: string | null;
+  memberEmail: string | null;
+  nextFollowupDate: string;
+  nextFollowupTime: string | null;
+  notes: string | null;
+  videoLink: string | null;
+}
+
+interface MassFollowupParticipant {
+  id: string;
+  massFollowupId: string;
+  personCategory: string;
+  convertId: string | null;
+  newMemberId: string | null;
+  memberId: string | null;
+  guestId: string | null;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  attended: string;
+  videoLink: string | null;
+}
+
+interface MassFollowupData {
+  id: string;
+  churchId: string;
+  createdByUserId: string;
+  category: string;
+  scheduledDate: string;
+  scheduledTime: string | null;
+  notes: string | null;
+  completionNotes: string | null;
+  status: string;
+  customSubject: string | null;
+  customMessage: string | null;
+  videoLink: string | null;
+  completedAt: string | null;
+  createdAt: string;
+}
+
+type FollowUpType = "convert" | "newMember" | "member";
+
+interface SelectedFollowUp {
+  type: FollowUpType;
+  id: string;
+  entityId: string;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+}
+
+type FollowUpNotesData = {
+  outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_FOLLOWUP";
+  notes?: string;
+};
+
+type ScheduleFollowUpData = {
+  nextFollowupDate: string;
+  nextFollowupTime: string;
+  customLeaderSubject?: string;
+  customLeaderMessage?: string;
+  customConvertSubject?: string;
+  customConvertMessage?: string;
+  includeVideoLink?: boolean;
+};
+
 const formatTime = (time: string) => {
   const [h, m] = time.split(':').map(Number);
   const ampm = h >= 12 ? 'PM' : 'AM';
@@ -31,144 +131,1009 @@ const formatTime = (time: string) => {
   return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`;
 };
 
-function getDateBadge(dateStr: string, id: string, t: (key: string) => string) {
-  const date = new Date(dateStr);
-  const daysUntil = differenceInDays(date, new Date());
-  
-  if (isToday(date)) {
-    return <Badge variant="destructive" data-testid={`badge-status-${id}`}>{t('statusLabels.today')}</Badge>;
-  }
-  if (isTomorrow(date)) {
-    return <Badge variant="default" data-testid={`badge-status-${id}`}>{t('statusLabels.tomorrow')}</Badge>;
-  }
-  if (daysUntil <= 7) {
-    return <Badge variant="secondary" data-testid={`badge-status-${id}`}>{t('statusLabels.thisWeek')}</Badge>;
-  }
-  return <Badge variant="outline" data-testid={`badge-status-${id}`}>{t('statusLabels.upcoming')}</Badge>;
-}
-
 export default function MinistryAdminFollowups() {
   const { t } = useTranslation();
-  const { data: followups, isLoading } = useQuery<FollowUp[]>({
+
+  const followUpNotesSchema = z.object({
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP"]),
+    notes: z.string().optional(),
+  });
+
+  const scheduleFollowUpSchema = z.object({
+    nextFollowupDate: z.string().min(1, t('validation.followUpDateRequired')),
+    nextFollowupTime: z.string().min(1, t('validation.followUpTimeRequired')),
+    customLeaderSubject: z.string().optional(),
+    customLeaderMessage: z.string().optional(),
+    customConvertSubject: z.string().optional(),
+    customConvertMessage: z.string().optional(),
+    includeVideoLink: z.boolean().optional(),
+  });
+
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [selectedFollowUp, setSelectedFollowUp] = useState<SelectedFollowUp | null>(null);
+  const [massNotesDialogOpen, setMassNotesDialogOpen] = useState(false);
+  const [selectedMassFollowup, setSelectedMassFollowup] = useState<MassFollowupData | null>(null);
+  const [massParticipants, setMassParticipants] = useState<MassFollowupParticipant[]>([]);
+  const [attendeeIds, setAttendeeIds] = useState<string[]>([]);
+  const [massNotes, setMassNotes] = useState("");
+
+  const getDateBadge = (dateStr: string, id: string) => {
+    const date = new Date(dateStr);
+    const daysUntil = differenceInDays(date, new Date());
+
+    if (isToday(date)) {
+      return <Badge variant="destructive" data-testid={`badge-status-${id}`}>{t('statusLabels.today')}</Badge>;
+    }
+    if (isTomorrow(date)) {
+      return <Badge variant="default" data-testid={`badge-status-${id}`}>{t('statusLabels.tomorrow')}</Badge>;
+    }
+    if (daysUntil <= 7) {
+      return <Badge variant="secondary" data-testid={`badge-status-${id}`}>{t('statusLabels.thisWeek')}</Badge>;
+    }
+    return <Badge variant="outline" data-testid={`badge-status-${id}`}>{t('statusLabels.upcoming')}</Badge>;
+  };
+
+  const { data: convertFollowups, isLoading: isLoadingConverts } = useQuery<ConvertFollowUp[]>({
     queryKey: ["/api/ministry-admin/followups"],
   });
+
+  const { data: newMemberFollowups, isLoading: isLoadingNewMembers } = useQuery<NewMemberFollowUp[]>({
+    queryKey: ["/api/ministry-admin/new-member-followups"],
+  });
+
+  const { data: memberFollowups, isLoading: isLoadingMembers } = useQuery<MemberFollowUp[]>({
+    queryKey: ["/api/ministry-admin/member-followups"],
+  });
+
+  const { data: massFollowups, isLoading: isLoadingMass } = useQuery<MassFollowupData[]>({
+    queryKey: ["/api/ministry-admin/mass-followups"],
+  });
+
+  const notesForm = useForm<FollowUpNotesData>({
+    resolver: zodResolver(followUpNotesSchema),
+    defaultValues: {
+      outcome: "CONNECTED",
+      notes: "",
+    },
+  });
+
+  const scheduleForm = useForm<ScheduleFollowUpData>({
+    resolver: zodResolver(scheduleFollowUpSchema),
+    defaultValues: {
+      nextFollowupDate: "",
+      nextFollowupTime: "",
+      customLeaderSubject: "",
+      customLeaderMessage: "",
+      customConvertSubject: "",
+      customConvertMessage: "",
+      includeVideoLink: true,
+    },
+  });
+
+  const notesMutation = useMutation({
+    mutationFn: async (data: FollowUpNotesData) => {
+      if (!selectedFollowUp) return;
+      let endpoint: string;
+      if (selectedFollowUp.type === "convert") {
+        endpoint = `/api/ministry-admin/checkins/${selectedFollowUp.id}/complete`;
+      } else if (selectedFollowUp.type === "newMember") {
+        endpoint = `/api/ministry-admin/new-member-checkins/${selectedFollowUp.id}/complete`;
+      } else {
+        endpoint = `/api/ministry-admin/member-checkins/${selectedFollowUp.id}/complete`;
+      }
+      await apiRequest("PATCH", endpoint, {
+        outcome: data.outcome,
+        notes: data.notes || "",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: t('followUps.notesRecorded'),
+        description: t('followUps.notesRecordedDesc'),
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/new-member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/new-members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/stats"] });
+      setNotesDialogOpen(false);
+      setSelectedFollowUp(null);
+      notesForm.reset({ outcome: "CONNECTED", notes: "" });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const scheduleMutation = useMutation({
+    mutationFn: async (data: ScheduleFollowUpData) => {
+      if (!selectedFollowUp) return;
+      let endpoint: string;
+      if (selectedFollowUp.type === "convert") {
+        endpoint = `/api/ministry-admin/converts/${selectedFollowUp.entityId}/schedule-followup`;
+      } else if (selectedFollowUp.type === "newMember") {
+        endpoint = `/api/ministry-admin/new-members/${selectedFollowUp.entityId}/schedule-followup`;
+      } else {
+        endpoint = `/api/ministry-admin/members/${selectedFollowUp.entityId}/schedule-followup`;
+      }
+      await apiRequest("POST", endpoint, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: t('followUps.followUpScheduled'),
+        description: t('followUps.followUpScheduledDesc'),
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/new-member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/new-members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/members"] });
+      setScheduleDialogOpen(false);
+      setSelectedFollowUp(null);
+      scheduleForm.reset({
+        nextFollowupDate: "",
+        nextFollowupTime: "",
+        includeVideoLink: true,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddNotes = (type: FollowUpType, followup: any) => {
+    const map: Record<FollowUpType, () => SelectedFollowUp> = {
+      convert: () => ({ type: "convert", id: followup.id, entityId: followup.convertId, firstName: followup.convertFirstName, lastName: followup.convertLastName, email: followup.convertEmail }),
+      newMember: () => ({ type: "newMember", id: followup.id, entityId: followup.newMemberId, firstName: followup.newMemberFirstName, lastName: followup.newMemberLastName, email: followup.newMemberEmail }),
+      member: () => ({ type: "member", id: followup.id, entityId: followup.memberId, firstName: followup.memberFirstName, lastName: followup.memberLastName, email: followup.memberEmail }),
+    };
+    setSelectedFollowUp(map[type]());
+    notesForm.reset({ outcome: "CONNECTED", notes: "" });
+    setNotesDialogOpen(true);
+  };
+
+  const handleSchedule = (type: FollowUpType, followup: any) => {
+    const map: Record<FollowUpType, () => SelectedFollowUp> = {
+      convert: () => ({ type: "convert", id: followup.id, entityId: followup.convertId, firstName: followup.convertFirstName, lastName: followup.convertLastName, email: followup.convertEmail }),
+      newMember: () => ({ type: "newMember", id: followup.id, entityId: followup.newMemberId, firstName: followup.newMemberFirstName, lastName: followup.newMemberLastName, email: followup.newMemberEmail }),
+      member: () => ({ type: "member", id: followup.id, entityId: followup.memberId, firstName: followup.memberFirstName, lastName: followup.memberLastName, email: followup.memberEmail }),
+    };
+    setSelectedFollowUp(map[type]());
+    scheduleForm.reset({
+      nextFollowupDate: "",
+      nextFollowupTime: "",
+      customLeaderSubject: "",
+      customLeaderMessage: "",
+      customConvertSubject: "",
+      customConvertMessage: "",
+      includeVideoLink: true,
+    });
+    setScheduleDialogOpen(true);
+  };
+
+  const handleOpenMassNotes = async (massFollowup: MassFollowupData) => {
+    setSelectedMassFollowup(massFollowup);
+    setMassNotes("");
+    try {
+      const res = await fetch(`/api/ministry-admin/mass-followups/${massFollowup.id}`, { credentials: "include" });
+      const data = await res.json();
+      setMassParticipants(data.participants || []);
+      setAttendeeIds((data.participants || []).map((p: MassFollowupParticipant) => p.id));
+    } catch {
+      setMassParticipants([]);
+      setAttendeeIds([]);
+    }
+    setMassNotesDialogOpen(true);
+  };
+
+  const completeMassMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedMassFollowup) return;
+      await apiRequest("POST", `/api/ministry-admin/mass-followups/${selectedMassFollowup.id}/complete`, {
+        notes: massNotes,
+        attendees: attendeeIds,
+      });
+    },
+    onSuccess: () => {
+      toast({ title: t('followUps.massCompleted'), description: t('followUps.massCompletedDesc') });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/mass-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/new-member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/new-members"] });
+      setMassNotesDialogOpen(false);
+      setSelectedMassFollowup(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: t('common.error'), description: error.message || t('common.failedToSave'), variant: "destructive" });
+    },
+  });
+
+  const handleExportExcel = async () => {
+    try {
+      const response = await fetch("/api/ministry-admin/followups/export-excel");
+      if (!response.ok) throw new Error("Export failed");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `followups-export-${format(new Date(), "yyyy-MM-dd")}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({
+        variant: "destructive",
+        title: t('followUps.exportFailed'),
+        description: t('followUps.exportFailedDesc'),
+      });
+    }
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2" data-testid="text-page-title">
-            <Calendar className="h-6 w-6" />
-            {t('followUps.title')}
-          </h1>
-          <p className="text-muted-foreground">{t('followUps.viewScheduledFollowUps')}</p>
-        </div>
+        <PageHeader
+          title={t('followUps.title')}
+          description={t('followUps.description')}
+          actions={
+            <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
+              <FileSpreadsheet className="h-4 w-4" />
+              {t('forms.exportExcel')}
+            </Button>
+          }
+        />
 
-        <Card>
-          <CardContent className="p-4">
-            {isLoading ? (
-              <div className="space-y-2">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+        {/* Group Follow-ups Section */}
+        <Section title={t('followUps.massFollowUps')} noPadding>
+          {isLoadingMass ? (
+            <div className="p-6 space-y-4">
+              {[...Array(2)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : massFollowups && massFollowups.filter(mf => mf.status === "SCHEDULED").length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('forms.category')}</TableHead>
+                  <TableHead>{t('forms.scheduledDate')}</TableHead>
+                  <TableHead>{t('forms.status')}</TableHead>
+                  <TableHead>{t('forms.notes')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {massFollowups.filter(mf => mf.status === "SCHEDULED").map((mf) => (
+                  <TableRow key={mf.id} data-testid={`row-mass-followup-${mf.id}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium capitalize" data-testid={`text-mass-category-${mf.id}`}>
+                          {mf.category.replace("_", " ")}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span data-testid={`text-mass-date-${mf.id}`}>
+                          {format(new Date(mf.scheduledDate), "MMM d, yyyy")}
+                          {mf.scheduledTime && <span> {t('common.at')} {formatTime(mf.scheduledTime)}</span>}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getDateBadge(mf.scheduledDate, `mass-${mf.id}`)}
+                    </TableCell>
+                    <TableCell className="max-w-[200px]">
+                      <p className="text-sm text-muted-foreground truncate">
+                        {mf.notes && !mf.notes.startsWith("Follow-up scheduled for") && !mf.notes.startsWith("Mass follow-up scheduled for") ? mf.notes : "—"}
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <FollowUpActionButtons
+                        id={mf.id}
+                        prefix="mass"
+                        videoLink={mf.videoLink}
+                        onNotes={() => handleOpenMassNotes(mf)}
+                        onSchedule={() => navigate("/ministry-admin/mass-followup")}
+                        notesLabel={t('followUps.recordAttendance')}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-8 text-center">
+              <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground">{t('followUps.noFollowUps')}</p>
+            </div>
+          )}
+        </Section>
+
+        {/* Convert Follow-ups Section */}
+        <Section title={t('followUps.convertFollowUps')} noPadding>
+          {isLoadingConverts ? (
+            <div className="p-6 space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : convertFollowups && convertFollowups.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('sidebar.converts')}</TableHead>
+                  <TableHead>{t('forms.contact')}</TableHead>
+                  <TableHead>{t('followUps.followUpDate')}</TableHead>
+                  <TableHead>{t('forms.status')}</TableHead>
+                  <TableHead>{t('forms.notes')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {convertFollowups.map((followup) => (
+                  <TableRow key={followup.id} data-testid={`row-convert-followup-${followup.id}`}>
+                    <TableCell>
+                      <Link href={`/ministry-admin/converts/${followup.convertId}`}>
+                        <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium" data-testid={`text-convert-name-${followup.id}`}>
+                            {followup.convertFirstName} {followup.convertLastName}
+                          </span>
+                        </div>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {followup.convertPhone && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {followup.convertPhone}
+                          </div>
+                        )}
+                        {followup.convertEmail && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            {followup.convertEmail}
+                          </div>
+                        )}
+                        {!followup.convertPhone && !followup.convertEmail && (
+                          <span className="text-sm text-muted-foreground">{t('forms.noContactInfo')}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span data-testid={`text-followup-date-${followup.id}`}>
+                          {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                          {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getDateBadge(followup.nextFollowupDate, followup.id)}
+                    </TableCell>
+                    <TableCell className="max-w-[200px]">
+                      <p className="text-sm text-muted-foreground truncate">
+                        {followup.notes && !followup.notes.startsWith("Follow-up scheduled for") && !followup.notes.startsWith("Mass follow-up scheduled for") ? followup.notes : "—"}
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <FollowUpActionButtons
+                        id={followup.id}
+                        prefix="convert"
+                        videoLink={followup.videoLink}
+                        onNotes={() => handleAddNotes("convert", followup)}
+                        onSchedule={() => handleSchedule("convert", followup)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-8 text-center">
+              <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground">{t('followUps.noFollowUps')}</p>
+            </div>
+          )}
+        </Section>
+
+        {/* New Member Follow-ups Section */}
+        <Section title={t('followUps.newMemberFollowUps')} noPadding>
+          {isLoadingNewMembers ? (
+            <div className="p-6 space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : newMemberFollowups && newMemberFollowups.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('newMembers.title')}</TableHead>
+                  <TableHead>{t('forms.contact')}</TableHead>
+                  <TableHead>{t('followUps.followUpDate')}</TableHead>
+                  <TableHead>{t('forms.status')}</TableHead>
+                  <TableHead>{t('forms.notes')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {newMemberFollowups.map((followup) => (
+                  <TableRow key={followup.id} data-testid={`row-newmember-followup-${followup.id}`}>
+                    <TableCell>
+                      <Link href={`/ministry-admin/new-members/${followup.newMemberId}`}>
+                        <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium" data-testid={`text-newmember-name-${followup.id}`}>
+                            {followup.newMemberFirstName} {followup.newMemberLastName}
+                          </span>
+                        </div>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {followup.newMemberPhone && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {followup.newMemberPhone}
+                          </div>
+                        )}
+                        {followup.newMemberEmail && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            {followup.newMemberEmail}
+                          </div>
+                        )}
+                        {!followup.newMemberPhone && !followup.newMemberEmail && (
+                          <span className="text-sm text-muted-foreground">{t('forms.noContactInfo')}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span data-testid={`text-newmember-date-${followup.id}`}>
+                          {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                          {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getDateBadge(followup.nextFollowupDate, followup.id)}
+                    </TableCell>
+                    <TableCell className="max-w-[200px]">
+                      <p className="text-sm text-muted-foreground truncate">
+                        {followup.notes && !followup.notes.startsWith("Follow-up scheduled for") && !followup.notes.startsWith("Mass follow-up scheduled for") ? followup.notes : "—"}
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <FollowUpActionButtons
+                        id={followup.id}
+                        prefix="newmember"
+                        videoLink={followup.videoLink}
+                        onNotes={() => handleAddNotes("newMember", followup)}
+                        onSchedule={() => handleSchedule("newMember", followup)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-8 text-center">
+              <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground">{t('followUps.noFollowUps')}</p>
+            </div>
+          )}
+        </Section>
+
+        {/* Member Follow-ups Section */}
+        <Section title={t('followUps.memberFollowUps')} noPadding>
+          {isLoadingMembers ? (
+            <div className="p-6 space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          ) : memberFollowups && memberFollowups.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('membersPage.title')}</TableHead>
+                  <TableHead>{t('forms.contact')}</TableHead>
+                  <TableHead>{t('followUps.followUpDate')}</TableHead>
+                  <TableHead>{t('forms.status')}</TableHead>
+                  <TableHead>{t('forms.notes')}</TableHead>
+                  <TableHead className="text-right">{t('forms.actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {memberFollowups.map((followup) => (
+                  <TableRow key={followup.id} data-testid={`row-member-followup-${followup.id}`}>
+                    <TableCell>
+                      <Link href={`/ministry-admin/members/${followup.memberId}`}>
+                        <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium" data-testid={`text-member-name-${followup.id}`}>
+                            {followup.memberFirstName} {followup.memberLastName}
+                          </span>
+                        </div>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {followup.memberPhone && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Phone className="h-3 w-3" />
+                            {followup.memberPhone}
+                          </div>
+                        )}
+                        {followup.memberEmail && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3" />
+                            {followup.memberEmail}
+                          </div>
+                        )}
+                        {!followup.memberPhone && !followup.memberEmail && (
+                          <span className="text-sm text-muted-foreground">{t('forms.noContactInfo')}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span data-testid={`text-member-date-${followup.id}`}>
+                          {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                          {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getDateBadge(followup.nextFollowupDate, followup.id)}
+                    </TableCell>
+                    <TableCell className="max-w-[200px]">
+                      <p className="text-sm text-muted-foreground truncate">
+                        {followup.notes && !followup.notes.startsWith("Follow-up scheduled for") && !followup.notes.startsWith("Mass follow-up scheduled for") ? followup.notes : "—"}
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <FollowUpActionButtons
+                        id={followup.id}
+                        prefix="member"
+                        videoLink={followup.videoLink}
+                        onNotes={() => handleAddNotes("member", followup)}
+                        onSchedule={() => handleSchedule("member", followup)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-8 text-center">
+              <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground">{t('followUps.noFollowUps')}</p>
+            </div>
+          )}
+        </Section>
+      </div>
+
+      {/* Follow Up Notes Dialog */}
+      <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('followUps.followUpNotes')}</DialogTitle>
+            <DialogDescription>
+              {selectedFollowUp && (
+                <>{t('followUps.recordNoteDesc', { name: `${selectedFollowUp.firstName} ${selectedFollowUp.lastName}` })}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...notesForm}>
+            <form
+              onSubmit={notesForm.handleSubmit((data) => notesMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <FormField
+                control={notesForm.control}
+                name="outcome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('followUps.outcome')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-notes-outcome">
+                          <SelectValue placeholder={t('forms.selectOutcome')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                        <SelectItem value="NO_RESPONSE">{t('statusLabels.notConnected')}</SelectItem>
+                        {selectedFollowUp?.type !== "member" && (
+                          <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={notesForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('forms.notes')}</FormLabel>
+                    <FormControl>
+                      <AITextarea
+                        placeholder={t('followUps.notesPlaceholder')}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        context="Follow-up note for a convert interaction"
+                        data-testid="input-notes-content"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setNotesDialogOpen(false)}
+                >
+                  {t('forms.cancel')}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={notesMutation.isPending}
+                  data-testid="button-save-notes"
+                >
+                  {notesMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      {t('forms.saving')}
+                    </>
+                  ) : (
+                    t('forms.saveNotes')
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Next Follow Up Dialog */}
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t('followUps.scheduleNext')}</DialogTitle>
+            <DialogDescription>
+              {selectedFollowUp && (
+                <>{t('followUps.scheduleDesc', { name: `${selectedFollowUp.firstName} ${selectedFollowUp.lastName}` })}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...scheduleForm}>
+            <form
+              onSubmit={scheduleForm.handleSubmit((data) => scheduleMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <FormField
+                control={scheduleForm.control}
+                name="nextFollowupDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('followUps.followUpDate')} *</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        minDate={new Date()}
+                        data-testid="input-schedule-date"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={scheduleForm.control}
+                name="nextFollowupTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('followUps.followUpTime')} *</FormLabel>
+                    <FormControl>
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        data-testid="input-schedule-time"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={scheduleForm.control}
+                name="includeVideoLink"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-include-video"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="flex items-center gap-2">
+                        <Video className="h-4 w-4" />
+                        {t('followUps.includeVideoCallLink')}
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        {t('followUps.videoCallDescription')}
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-4 border-t pt-4">
+                <p className="text-sm text-muted-foreground">
+                  {t('followUps.customizeEmails')}
+                </p>
+
+                {selectedFollowUp?.email && (
+                  <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm font-medium">{t('followUps.emailTo')} {selectedFollowUp.firstName} {selectedFollowUp.lastName}</p>
+                    <FormField
+                      control={scheduleForm.control}
+                      name="customConvertSubject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('followUps.subjectLine')}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={t('followUps.leaveBlankSubject')}
+                              {...field}
+                              data-testid="input-convert-subject"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={scheduleForm.control}
+                      name="customConvertMessage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('followUps.messageBody')}</FormLabel>
+                          <FormControl>
+                            <AITextarea
+                              value={field.value || ""}
+                              onChange={(text) => scheduleForm.setValue("customConvertMessage", text)}
+                              placeholder={t('followUps.leaveBlankMessage')}
+                              context={`Writing an initial follow-up email to ${selectedFollowUp?.firstName} ${selectedFollowUp?.lastName} from a church ministry.`}
+                              aiPlaceholder="e.g., Write a warm welcome message..."
+                              rows={4}
+                              data-testid="input-convert-message"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm font-medium">
+                    {t('followUps.yourReminderEmail')}{" "}
+                    <span className="italic text-muted-foreground font-normal">
+                      ({t('followUps.reminderEmailDesc', { firstName: selectedFollowUp?.firstName, lastName: selectedFollowUp?.lastName })})
+                    </span>
+                  </p>
+                  <FormField
+                    control={scheduleForm.control}
+                    name="customLeaderSubject"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('followUps.subjectLine')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t('followUps.leaveBlankSubject')}
+                            {...field}
+                            data-testid="input-leader-subject"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={scheduleForm.control}
+                    name="customLeaderMessage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('followUps.messageBody')}</FormLabel>
+                        <FormControl>
+                          <AITextarea
+                            value={field.value || ""}
+                            onChange={(text) => scheduleForm.setValue("customLeaderMessage", text)}
+                            placeholder={t('followUps.leaveBlankMessage')}
+                            context={`Writing a reminder email to ${selectedFollowUp?.firstName} ${selectedFollowUp?.lastName} about an upcoming follow-up meeting from a church ministry.`}
+                            aiPlaceholder="e.g., Write a friendly reminder..."
+                            rows={4}
+                            data-testid="input-leader-message"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setScheduleDialogOpen(false)}
+                >
+                  {t('forms.cancel')}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={scheduleMutation.isPending}
+                  data-testid="button-schedule-submit"
+                >
+                  {scheduleMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      {t('followUps.scheduling')}
+                    </>
+                  ) : (
+                    t('followUps.scheduleFollowUp')
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group Follow-up Completion Dialog */}
+      <Dialog open={massNotesDialogOpen} onOpenChange={setMassNotesDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t('followUps.recordMassFollowUp')}</DialogTitle>
+            <DialogDescription>
+              {selectedMassFollowup && (
+                <>
+                  {t('followUps.markAttendanceFor', {
+                    category: selectedMassFollowup.category.replace("_", " "),
+                    date: format(new Date(selectedMassFollowup.scheduledDate), "MMMM d, yyyy") + (selectedMassFollowup.scheduledTime ? ` ${t('common.at')} ${formatTime(selectedMassFollowup.scheduledTime)}` : '')
+                  })}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('followUps.attendanceCount', { selected: attendeeIds.length, total: massParticipants.length })}</label>
+              <div className="border rounded-md max-h-[240px] overflow-y-auto">
+                {massParticipants.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 p-3 border-b last:border-b-0"
+                    data-testid={`participant-row-${p.id}`}
+                  >
+                    <Checkbox
+                      checked={attendeeIds.includes(p.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setAttendeeIds((prev) => [...prev, p.id]);
+                        } else {
+                          setAttendeeIds((prev) => prev.filter((id) => id !== p.id));
+                        }
+                      }}
+                      data-testid={`checkbox-participant-${p.id}`}
+                    />
+                    <div className="flex-1">
+                      <span className="font-medium">{p.firstName} {p.lastName}</span>
+                      {p.email && (
+                        <span className="text-sm text-muted-foreground ml-2">{p.email}</span>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
-            ) : followups && followups.length > 0 ? (
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('converts.title')}</TableHead>
-                      <TableHead>{t('forms.contact')}</TableHead>
-                      <TableHead>{t('forms.scheduledDate')}</TableHead>
-                      <TableHead>{t('forms.status')}</TableHead>
-                      <TableHead>{t('forms.notes')}</TableHead>
-                      <TableHead className="text-right">{t('forms.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {followups.map((followup) => (
-                      <TableRow key={followup.id} data-testid={`row-followup-${followup.id}`}>
-                        <TableCell>
-                          <Link href={`/ministry-admin/converts/${followup.convertId}`}>
-                            <div className="flex items-center gap-2 hover:text-primary cursor-pointer transition-colors">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium" data-testid={`text-convert-name-${followup.id}`}>
-                                {followup.convertFirstName} {followup.convertLastName}
-                              </span>
-                            </div>
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            {followup.convertPhone && (
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Phone className="h-3 w-3" />
-                                {followup.convertPhone}
-                              </div>
-                            )}
-                            {followup.convertEmail && (
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Mail className="h-3 w-3" />
-                                {followup.convertEmail}
-                              </div>
-                            )}
-                            {!followup.convertPhone && !followup.convertEmail && (
-                              <span className="text-sm text-muted-foreground">{t('forms.noContactInfo')}</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                            {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
-                            {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {getDateBadge(followup.nextFollowupDate, followup.id, t)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm text-muted-foreground max-w-xs truncate">
-                            {followup.notes && !followup.notes.startsWith("Follow-up scheduled for") && !followup.notes.startsWith("Mass follow-up scheduled for") ? followup.notes : "—"}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {followup.videoLink && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <a
-                                    href={followup.videoLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Button variant="default" size="icon" data-testid={`button-join-meeting-${followup.id}`}>
-                                      <Video className="h-4 w-4" />
-                                    </Button>
-                                  </a>
-                                </TooltipTrigger>
-                                <TooltipContent>{t('followUps.joinMeeting')}</TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAttendeeIds(massParticipants.map((p) => p.id))}
+                  data-testid="button-select-all-attendees"
+                >
+                  {t('forms.selectAll')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAttendeeIds([])}
+                  data-testid="button-deselect-all-attendees"
+                >
+                  {t('forms.deselectAll')}
+                </Button>
               </div>
-            ) : (
-              <div className="text-center py-12">
-                <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">{t('followUps.noFollowUps')}</h3>
-                <p className="text-muted-foreground">
-                  {t('followUps.followUpsWillAppear')}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="mass-notes">{t('followUps.meetingNotes')}</label>
+              <AITextarea
+                id="mass-notes"
+                placeholder={t('followUps.massNotesPlaceholder')}
+                value={massNotes}
+                onChange={(text) => setMassNotes(text)}
+                context={selectedMassFollowup ? `Writing meeting notes for a group follow-up session with ${selectedMassFollowup.category.replace("_", " ")} from a church ministry.` : undefined}
+                aiPlaceholder="e.g., Write a summary of the meeting..."
+                rows={4}
+                data-testid="input-mass-notes"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMassNotesDialogOpen(false)}
+              >
+                {t('forms.cancel')}
+              </Button>
+              <Button
+                onClick={() => completeMassMutation.mutate()}
+                disabled={completeMassMutation.isPending}
+                data-testid="button-complete-mass-followup"
+              >
+                {completeMassMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    {t('followUps.completing')}
+                  </>
+                ) : (
+                  t('followUps.completeFollowUp')
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

@@ -4168,6 +4168,84 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/ministry-admin/new-member-followups", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const followups = await storage.getNewMemberFollowupsDue(user.churchId);
+      res.json(followups);
+    } catch (error) {
+      console.error("Error fetching new member followups:", error);
+      res.status(500).json({ message: "Failed to fetch followups" });
+    }
+  });
+
+  app.get("/api/ministry-admin/member-followups", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const followups = await storage.getMemberFollowupsDue(user.churchId);
+      res.json(followups);
+    } catch (error) {
+      console.error("Error fetching member followups:", error);
+      res.status(500).json({ message: "Failed to fetch followups" });
+    }
+  });
+
+  app.get("/api/ministry-admin/followups/export-excel", requireMinistryAdmin, async (req, res) => {
+    try {
+      const XLSX = await import("xlsx");
+      const user = (req as any).user;
+
+      const convertFollowups = await storage.getUpcomingFollowups(user.churchId);
+      const newMemberFollowups = await storage.getNewMemberFollowupsDue(user.churchId);
+      const memberFollowups = await storage.getMemberFollowupsDue(user.churchId);
+
+      const data = [
+        ...convertFollowups.map((f) => ({
+          "Category": "Convert",
+          "Name": `${f.convertFirstName} ${f.convertLastName}`,
+          "Phone": f.convertPhone || "",
+          "Email": f.convertEmail || "",
+          "Follow-up Date": f.nextFollowupDate || "",
+          "Follow-up Time": f.nextFollowupTime || "",
+          "Video Link": f.videoLink || "",
+          "Notes": f.notes && !f.notes.startsWith("Follow-up scheduled for") && !f.notes.startsWith("Mass follow-up scheduled for") ? f.notes : "",
+        })),
+        ...newMemberFollowups.map((f) => ({
+          "Category": "New Member",
+          "Name": `${f.newMemberFirstName} ${f.newMemberLastName}`,
+          "Phone": f.newMemberPhone || "",
+          "Email": f.newMemberEmail || "",
+          "Follow-up Date": f.nextFollowupDate || "",
+          "Follow-up Time": f.nextFollowupTime || "",
+          "Video Link": f.videoLink || "",
+          "Notes": f.notes && !f.notes.startsWith("Follow-up scheduled for") && !f.notes.startsWith("Mass follow-up scheduled for") ? f.notes : "",
+        })),
+        ...memberFollowups.map((f) => ({
+          "Category": "Member",
+          "Name": `${f.memberFirstName} ${f.memberLastName}`,
+          "Phone": f.memberPhone || "",
+          "Email": f.memberEmail || "",
+          "Follow-up Date": f.nextFollowupDate || "",
+          "Follow-up Time": f.nextFollowupTime || "",
+          "Video Link": f.videoLink || "",
+          "Notes": f.notes && !f.notes.startsWith("Follow-up scheduled for") && !f.notes.startsWith("Mass follow-up scheduled for") ? f.notes : "",
+        })),
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Follow-ups");
+      const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.setHeader("Content-Disposition", "attachment; filename=followups.xlsx");
+      res.send(buffer);
+    } catch (error) {
+      console.error("Excel export error:", error);
+      res.status(500).json({ message: "Failed to export follow-ups" });
+    }
+  });
+
   // Get guests for ministry admin's ministry
   app.get("/api/ministry-admin/guests", requireMinistryAdmin, async (req, res) => {
     try {

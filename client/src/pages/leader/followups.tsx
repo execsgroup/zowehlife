@@ -20,10 +20,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/date-picker";
 import { TimePicker } from "@/components/time-picker";
-import { Calendar, Phone, Mail, User, Clock, FileText, Loader2, FileSpreadsheet, CalendarPlus, Video, Users } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Calendar, Phone, Mail, User, Clock, Loader2, FileSpreadsheet, Users, Video } from "lucide-react";
+import { FollowUpActionButtons } from "@/components/followup-action-buttons";
 import { format, isToday, isTomorrow, differenceInDays } from "date-fns";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
@@ -158,6 +158,7 @@ export default function LeaderFollowups() {
   const { toast } = useToast();
   const basePath = useBasePath();
   const apiBasePath = useApiBasePath();
+  const [, navigate] = useLocation();
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [selectedFollowUp, setSelectedFollowUp] = useState<SelectedFollowUp | null>(null);
@@ -543,19 +544,14 @@ export default function LeaderFollowups() {
                           </p>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="default"
-                                size="icon"
-                                onClick={() => handleOpenMassNotes(mf)}
-                                data-testid={`button-mass-notes-${mf.id}`}
-                              >
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>{t('followUps.recordAttendance')}</TooltipContent>
-                          </Tooltip>
+                          <FollowUpActionButtons
+                            id={mf.id}
+                            prefix="mass"
+                            videoLink={mf.videoLink}
+                            onNotes={() => handleOpenMassNotes(mf)}
+                            onSchedule={() => navigate(`${basePath}/mass-followup`)}
+                            notesLabel={t('followUps.recordAttendance')}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -639,50 +635,13 @@ export default function LeaderFollowups() {
                           </p>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={() => handleAddConvertNotes(followup)}
-                                  data-testid={`button-convert-notes-${followup.id}`}
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{t('followUps.followUpNote')}</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={() => handleScheduleConvertFollowUp(followup)}
-                                  data-testid={`button-convert-schedule-${followup.id}`}
-                                >
-                                  <CalendarPlus className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{t('followUps.scheduleNext')}</TooltipContent>
-                            </Tooltip>
-                            {followup.videoLink && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <a
-                                    href={followup.videoLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Button variant="default" size="icon" data-testid={`button-convert-meeting-${followup.id}`}>
-                                      <Video className="h-4 w-4" />
-                                    </Button>
-                                  </a>
-                                </TooltipTrigger>
-                                <TooltipContent>{t('followUps.joinMeeting')}</TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
+                          <FollowUpActionButtons
+                            id={followup.id}
+                            prefix="convert"
+                            videoLink={followup.videoLink}
+                            onNotes={() => handleAddConvertNotes(followup)}
+                            onSchedule={() => handleScheduleConvertFollowUp(followup)}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -766,50 +725,13 @@ export default function LeaderFollowups() {
                           </p>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={() => handleAddNewMemberNotes(followup)}
-                                  data-testid={`button-newmember-notes-${followup.id}`}
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{t('followUps.followUpNote')}</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={() => handleScheduleNewMemberFollowUp(followup)}
-                                  data-testid={`button-newmember-schedule-${followup.id}`}
-                                >
-                                  <CalendarPlus className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{t('followUps.scheduleNext')}</TooltipContent>
-                            </Tooltip>
-                            {followup.videoLink && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <a
-                                    href={followup.videoLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Button variant="default" size="icon" data-testid={`button-newmember-meeting-${followup.id}`}>
-                                      <Video className="h-4 w-4" />
-                                    </Button>
-                                  </a>
-                                </TooltipTrigger>
-                                <TooltipContent>{t('followUps.joinMeeting')}</TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
+                          <FollowUpActionButtons
+                            id={followup.id}
+                            prefix="newmember"
+                            videoLink={followup.videoLink}
+                            onNotes={() => handleAddNewMemberNotes(followup)}
+                            onSchedule={() => handleScheduleNewMemberFollowUp(followup)}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -893,50 +815,13 @@ export default function LeaderFollowups() {
                           </p>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={() => handleAddMemberNotes(followup)}
-                                  data-testid={`button-member-notes-${followup.id}`}
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{t('followUps.followUpNote')}</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={() => handleScheduleMemberFollowUp(followup)}
-                                  data-testid={`button-member-schedule-${followup.id}`}
-                                >
-                                  <CalendarPlus className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{t('followUps.scheduleNext')}</TooltipContent>
-                            </Tooltip>
-                            {followup.videoLink && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <a
-                                    href={followup.videoLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Button variant="default" size="icon" data-testid={`button-member-meeting-${followup.id}`}>
-                                      <Video className="h-4 w-4" />
-                                    </Button>
-                                  </a>
-                                </TooltipTrigger>
-                                <TooltipContent>{t('followUps.joinMeeting')}</TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
+                          <FollowUpActionButtons
+                            id={followup.id}
+                            prefix="member"
+                            videoLink={followup.videoLink}
+                            onNotes={() => handleAddMemberNotes(followup)}
+                            onSchedule={() => handleScheduleMemberFollowUp(followup)}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
