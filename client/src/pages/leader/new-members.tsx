@@ -71,6 +71,7 @@ const statusColors: Record<string, string> = {
   CONNECTED: "bg-coral/10 text-coral border-coral/20",
   NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
   NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
+  NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
   REFERRED: "bg-accent/10 text-accent border-accent/20",
   NOT_COMPLETED: "bg-destructive/10 text-destructive border-destructive/20",
   NEVER_CONTACTED: "bg-gold/10 text-gold border-gold/20",
@@ -96,7 +97,7 @@ const followUpStageColors: Record<string, string> = {
 const followUpNoteSchemaBase = z.object({
   checkinDate: z.string().min(1),
   notes: z.string().optional(),
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
 });
 
 type FollowUpNoteData = z.infer<typeof followUpNoteSchemaBase>;
@@ -120,7 +121,7 @@ export default function LeaderNewMembers() {
   const followUpNoteSchema = z.object({
     checkinDate: z.string().min(1, t('validation.dateRequired')),
     notes: z.string().optional(),
-    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
   });
 
   const { toast } = useToast();
@@ -145,6 +146,7 @@ export default function LeaderNewMembers() {
     CONNECTED: t('statusLabels.connected'),
     NO_RESPONSE: t('statusLabels.noResponse'),
     NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+    NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
     REFERRED: t('statusLabels.referred'),
     NOT_COMPLETED: t('statusLabels.notCompleted'),
     NEVER_CONTACTED: t('statusLabels.neverContacted'),
@@ -977,9 +979,7 @@ export default function LeaderNewMembers() {
                       <SelectContent>
                         <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
                         <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
-                        <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
-                        <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
-                        <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                        <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
                         <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                       </SelectContent>
                     </Select>
@@ -1092,6 +1092,7 @@ function TimelineDialog({
     CONNECTED: t('statusLabels.connected'),
     NO_RESPONSE: t('statusLabels.noResponse'),
     NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+    NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
     SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
     REFERRED: t('statusLabels.referred'),
     OTHER: t('statusLabels.other'),

@@ -2030,7 +2030,7 @@ export async function registerRoutes(
 
       const schema = z.object({
         checkinDate: z.string(),
-        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
         notes: z.string().optional(),
         nextFollowupDate: z.string().optional(),
         customLeaderMessage: z.string().optional(),
@@ -4067,7 +4067,7 @@ export async function registerRoutes(
       const schema = z.object({
         checkinDate: z.string().min(1),
         notes: z.string().optional(),
-        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
         nextFollowupDate: z.string().optional(),
         customLeaderMessage: z.string().optional(),
         customConvertMessage: z.string().optional(),
@@ -4091,10 +4091,11 @@ export async function registerRoutes(
       const outcomeToStatus: Record<string, string> = {
         "CONNECTED": "CONNECTED",
         "NO_RESPONSE": "NO_RESPONSE",
+        "NEEDS_FOLLOWUP": "SCHEDULED",
         "NEEDS_PRAYER": "NEEDS_PRAYER",
         "REFERRED": "REFERRED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
         "SCHEDULED_VISIT": "SCHEDULED",
+        "NOT_COMPLETED": "NOT_COMPLETED",
       };
       if (outcomeToStatus[data.outcome]) {
         await storage.updateConvert(convertId, { status: outcomeToStatus[data.outcome] as any });
@@ -4459,7 +4460,7 @@ export async function registerRoutes(
       const schema = z.object({
         checkinDate: z.string().min(1),
         notes: z.string().optional(),
-        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
         nextFollowupDate: z.string().optional(),
         customLeaderMessage: z.string().optional(),
         customConvertMessage: z.string().optional(),
@@ -4483,10 +4484,11 @@ export async function registerRoutes(
       const outcomeToStatus: Record<string, string> = {
         "CONNECTED": "CONNECTED",
         "NO_RESPONSE": "NO_RESPONSE",
+        "NEEDS_FOLLOWUP": "SCHEDULED",
         "NEEDS_PRAYER": "NEEDS_PRAYER",
         "REFERRED": "REFERRED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
         "SCHEDULED_VISIT": "SCHEDULED",
+        "NOT_COMPLETED": "NOT_COMPLETED",
       };
       if (outcomeToStatus[data.outcome]) {
         await storage.updateNewMember(newMemberId, { status: outcomeToStatus[data.outcome] as any });
@@ -5136,7 +5138,7 @@ export async function registerRoutes(
       
       const schema = z.object({
         notes: z.string().optional(),
-        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "SCHEDULED_VISIT", "NOT_COMPLETED"]),
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "NOT_COMPLETED", "OTHER"]),
         nextFollowupDate: z.string().optional().nullable(),
         videoLink: z.string().optional().nullable(),
       });
@@ -5158,6 +5160,7 @@ export async function registerRoutes(
       const statusMap: Record<string, string> = {
         CONNECTED: "ACTIVE",
         NO_RESPONSE: "NO_RESPONSE",
+        NEEDS_FOLLOWUP: "SCHEDULED",
         NEEDS_PRAYER: "NEEDS_PRAYER",
         REFERRED: "REFERRED",
         SCHEDULED_VISIT: "SCHEDULED",

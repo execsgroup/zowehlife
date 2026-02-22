@@ -73,7 +73,7 @@ const updateNewMemberSchemaBase = z.object({
 const checkinFormSchemaBase = z.object({
   checkinDate: z.string().min(1),
   notes: z.string().optional(),
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
 });
 
 const countries = [
@@ -91,6 +91,7 @@ const statusColors: Record<string, string> = {
   CONNECTED: "bg-coral/10 text-coral border-coral/20",
   NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
   NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
+  NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
   ACTIVE: "bg-coral/10 text-coral border-coral/20",
   IN_PROGRESS: "bg-accent/10 text-accent border-accent/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
@@ -116,7 +117,7 @@ export default function NewMemberDetail() {
   const checkinFormSchema = z.object({
     checkinDate: z.string().min(1, t('validation.dateRequired')),
     notes: z.string().optional(),
-    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
   });
 
   const { toast } = useToast();
@@ -129,6 +130,7 @@ export default function NewMemberDetail() {
       CONNECTED: t('statusLabels.connected'),
       NO_RESPONSE: t('statusLabels.noResponse'),
       NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+      NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
       SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
       REFERRED: t('statusLabels.referred'),
       OTHER: t('statusLabels.other'),
@@ -537,9 +539,7 @@ export default function NewMemberDetail() {
                         <SelectContent>
                           <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
                           <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
-                          <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
-                          <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
-                          <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                          <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
                           <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                         </SelectContent>
                       </Select>

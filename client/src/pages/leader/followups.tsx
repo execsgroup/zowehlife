@@ -88,7 +88,7 @@ interface MassFollowupData {
 }
 
 const followUpNotesSchemaBase = z.object({
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
   notes: z.string().optional(),
 });
 
@@ -128,7 +128,7 @@ export default function LeaderFollowups() {
   const { t } = useTranslation();
 
   const followUpNotesSchema = z.object({
-    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
     notes: z.string().optional(),
   });
 
@@ -786,9 +786,7 @@ export default function LeaderFollowups() {
                       <SelectContent>
                         <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
                         <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
-                        <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
-                        <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
-                        <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                        <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
                         <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                       </SelectContent>
                     </Select>

@@ -132,6 +132,7 @@ export default function ConvertDetail() {
       CONNECTED: t('statusLabels.connected'),
       NO_RESPONSE: t('statusLabels.noResponse'),
       NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+      NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
       SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
       REFERRED: t('statusLabels.referred'),
       OTHER: t('statusLabels.other'),

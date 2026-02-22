@@ -868,6 +868,7 @@
     "outcomeConnected": "Connected",
     "outcomeNoResponse": "No Response",
     "outcomeNeedsPrayer": "Needs Prayer",
+    "outcomeNeedsFollowUp": "Needs Follow-Up",
     "outcomeScheduledVisit": "Scheduled Visit",
     "outcomeReferred": "Referred",
     "outcomeOther": "Other"
@@ -1325,6 +1326,7 @@
     "connected": "Connected",
     "noResponse": "No Response",
     "needsPrayer": "Needs Prayer",
+    "needsFollowUp": "Needs Follow-Up",
     "referred": "Referred",
     "notCompleted": "Not Completed",
     "neverContacted": "Never Contacted",
@@ -1354,6 +1356,7 @@
     "completed": "Completed",
     "scheduled": "Scheduled",
     "notCompleted": "Not Completed",
+    "needsFollowUp": "Needs Follow-Up",
     "new": "New",
     "error": "Error",
     "success": "Success",

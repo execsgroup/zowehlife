@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 const addNoteSchema = z.object({
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
   notes: z.string().optional(),
 });
 
@@ -112,12 +112,10 @@ export function ConvertAddNoteDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="CONNECTED">Connected</SelectItem>
-                      <SelectItem value="NO_RESPONSE">No Response</SelectItem>
-                      <SelectItem value="NEEDS_PRAYER">Needs Prayer</SelectItem>
-                      <SelectItem value="SCHEDULED_VISIT">Scheduled Visit</SelectItem>
-                      <SelectItem value="REFERRED">Referred</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
+                      <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
+                      <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
+                      <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
+                      <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

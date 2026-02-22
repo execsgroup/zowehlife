@@ -204,7 +204,7 @@ export interface IStorage {
     videoLink: string | null;
   }>>;
   getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>>;
-  updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED"): Promise<void>;
+  updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED" | "NEEDS_FOLLOWUP"): Promise<void>;
   markConvertsAsNeverContacted(): Promise<number>;
   getNewMemberCheckinsWithUpcomingFollowups(): Promise<Array<{
     checkinId: string;

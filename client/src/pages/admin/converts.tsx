@@ -42,7 +42,7 @@ export default function AdminConverts() {
 
   const checkinFormSchema = z.object({
     checkinDate: z.string().min(1, t('validation.dateRequired')),
-    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
     notes: z.string().optional(),
     nextFollowupDate: z.string().optional(),
   });
@@ -340,9 +340,7 @@ export default function AdminConverts() {
                       <SelectContent>
                         <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
                         <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
-                        <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
-                        <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
-                        <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                        <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
                         <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                       </SelectContent>
                     </Select>

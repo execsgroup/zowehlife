@@ -57,7 +57,7 @@ interface MemberCheckin {
 const checkinFormSchemaBase = z.object({
   checkinDate: z.string().min(1),
   notes: z.string().optional(),
-  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+  outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NOT_COMPLETED", "OTHER"]),
 });
 
 const updateMemberSchemaBase = z.object({
@@ -89,7 +89,7 @@ export default function MemberDetail() {
   const checkinFormSchema = z.object({
     checkinDate: z.string().min(1, t('validation.dateRequired')),
     notes: z.string().optional(),
-    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+    outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NOT_COMPLETED", "OTHER"]),
   });
 
   const updateMemberSchema = z.object({
@@ -117,6 +117,7 @@ export default function MemberDetail() {
       CONNECTED: t('statusLabels.connected'),
       NO_RESPONSE: t('statusLabels.noResponse'),
       NEEDS_PRAYER: t('statusLabels.needsPrayer'),
+      NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
       SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
       REFERRED: t('statusLabels.referred'),
       NOT_COMPLETED: t('statusLabels.notCompleted'),
@@ -527,9 +528,8 @@ export default function MemberDetail() {
                         <SelectContent>
                           <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
                           <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
-                          <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
-                          <SelectItem value="SCHEDULED_VISIT">{t('statusLabels.scheduledVisit')}</SelectItem>
-                          <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
+                          <SelectItem value="NEEDS_FOLLOWUP">{t('statusLabels.needsFollowUp')}</SelectItem>
+                          <SelectItem value="NOT_COMPLETED">{t('statusLabels.notCompleted')}</SelectItem>
                           <SelectItem value="OTHER">{t('statusLabels.other')}</SelectItem>
                         </SelectContent>
                       </Select>

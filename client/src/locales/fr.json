@@ -1274,6 +1274,7 @@
     "connected": "Contacté",
     "noResponse": "Sans Réponse",
     "needsPrayer": "Besoin de Prière",
+    "needsFollowUp": "Besoin de Suivi",
     "referred": "Référé",
     "notCompleted": "Non Terminé",
     "neverContacted": "Jamais Contacté",
@@ -1303,6 +1304,7 @@
     "completed": "Complété",
     "scheduled": "Planifié",
     "notCompleted": "Non Complété",
+    "needsFollowUp": "Besoin de Suivi",
     "new": "Nouveau",
     "error": "Erreur",
     "success": "Succès",
@@ -1453,6 +1455,7 @@
     "outcomeConnected": "Connecté",
     "outcomeNoResponse": "Pas de Réponse",
     "outcomeNeedsPrayer": "Besoin de Prière",
+    "outcomeNeedsFollowUp": "Besoin de Suivi",
     "outcomeScheduledVisit": "Visite Programmée",
     "outcomeReferred": "Référé",
     "outcomeOther": "Autre"
