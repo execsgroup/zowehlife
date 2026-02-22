@@ -205,6 +205,8 @@ export interface IStorage {
   }>>;
   getExpiredScheduledFollowups(): Promise<Array<{ id: string; nextFollowupDate: string }>>;
   updateCheckinOutcome(id: string, outcome: "CONNECTED" | "NO_RESPONSE" | "NEEDS_PRAYER" | "SCHEDULED_VISIT" | "REFERRED" | "OTHER" | "NOT_COMPLETED" | "NEEDS_FOLLOWUP"): Promise<void>;
+  completeCheckin(id: string, data: { outcome: string; notes: string; checkinDate: string }): Promise<void>;
+  completeNewMemberCheckin(id: string, data: { outcome: string; notes: string; checkinDate: string }): Promise<void>;
   markConvertsAsNeverContacted(): Promise<number>;
   getNewMemberCheckinsWithUpcomingFollowups(): Promise<Array<{
     checkinId: string;
@@ -778,7 +780,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           gte(checkins.nextFollowupDate, today),
-          eq(checkins.churchId, churchId)
+          eq(checkins.churchId, churchId),
+          eq(checkins.outcome, "SCHEDULED_VISIT")
         )
       )
       .orderBy(checkins.nextFollowupDate);
@@ -1198,6 +1201,22 @@ export class DatabaseStorage implements IStorage {
     await db.update(checkins).set({ outcome }).where(eq(checkins.id, id));
   }
 
+  async completeCheckin(id: string, data: { outcome: string; notes: string; checkinDate: string }): Promise<void> {
+    await db.update(checkins).set({
+      outcome: data.outcome as any,
+      notes: data.notes,
+      checkinDate: data.checkinDate,
+    }).where(eq(checkins.id, id));
+  }
+
+  async completeNewMemberCheckin(id: string, data: { outcome: string; notes: string; checkinDate: string }): Promise<void> {
+    await db.update(newMemberCheckins).set({
+      outcome: data.outcome as any,
+      notes: data.notes,
+      checkinDate: data.checkinDate,
+    }).where(eq(newMemberCheckins.id, id));
+  }
+
   async markConvertsAsNeverContacted(): Promise<number> {
     // Find converts that are still "NEW" and created more than 30 days ago
     const thirtyDaysAgo = new Date();
@@ -1419,7 +1438,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           gte(newMemberCheckins.nextFollowupDate, today),
-          eq(newMemberCheckins.churchId, churchId)
+          eq(newMemberCheckins.churchId, churchId),
+          eq(newMemberCheckins.outcome, "SCHEDULED_VISIT")
         )
       )
       .orderBy(newMemberCheckins.nextFollowupDate);

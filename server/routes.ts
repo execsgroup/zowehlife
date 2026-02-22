@@ -4137,6 +4137,92 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/leader/checkins/:checkinId/complete", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { checkinId } = req.params;
+
+      const schema = z.object({
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+        notes: z.string().optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      const checkin = await storage.getCheckin(checkinId);
+      if (!checkin || checkin.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Checkin not found" });
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      await storage.completeCheckin(checkinId, {
+        outcome: data.outcome,
+        notes: data.notes || "",
+        checkinDate: today,
+      });
+
+      const outcomeToStatus: Record<string, string> = {
+        "CONNECTED": "CONNECTED",
+        "NO_RESPONSE": "NO_RESPONSE",
+        "NEEDS_FOLLOWUP": "SCHEDULED",
+        "NEEDS_PRAYER": "NEEDS_PRAYER",
+        "REFERRED": "REFERRED",
+        "SCHEDULED_VISIT": "SCHEDULED",
+        "NOT_COMPLETED": "NOT_COMPLETED",
+      };
+      if (outcomeToStatus[data.outcome]) {
+        await storage.updateConvert(checkin.convertId, { status: outcomeToStatus[data.outcome] as any });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to complete checkin" });
+    }
+  });
+
+  app.patch("/api/leader/new-member-checkins/:checkinId/complete", requireLeader, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { checkinId } = req.params;
+
+      const schema = z.object({
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+        notes: z.string().optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      const checkinRecord = await storage.getNewMemberCheckin(checkinId);
+      if (!checkinRecord || checkinRecord.churchId !== user.churchId) {
+        return res.status(404).json({ message: "Checkin not found" });
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      await storage.completeNewMemberCheckin(checkinId, {
+        outcome: data.outcome,
+        notes: data.notes || "",
+        checkinDate: today,
+      });
+
+      const outcomeToStatus: Record<string, string> = {
+        "CONNECTED": "CONNECTED",
+        "NO_RESPONSE": "NO_RESPONSE",
+        "NEEDS_FOLLOWUP": "SCHEDULED",
+        "NEEDS_PRAYER": "NEEDS_PRAYER",
+        "REFERRED": "REFERRED",
+        "SCHEDULED_VISIT": "SCHEDULED",
+        "NOT_COMPLETED": "NOT_COMPLETED",
+      };
+      if (outcomeToStatus[data.outcome]) {
+        await storage.updateNewMember(checkinRecord.newMemberId, { status: outcomeToStatus[data.outcome] as any });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Failed to complete checkin" });
+    }
+  });
+
   // ===== NEW MEMBERS ROUTES =====
   
   // Get church info by new member token

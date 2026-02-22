@@ -209,10 +209,9 @@ export default function LeaderFollowups() {
     mutationFn: async (data: FollowUpNotesData) => {
       if (!selectedFollowUp) return;
       const endpoint = selectedFollowUp.type === "convert"
-        ? `/api/leader/converts/${selectedFollowUp.entityId}/checkins`
-        : `/api/leader/new-members/${selectedFollowUp.entityId}/checkins`;
-      await apiRequest("POST", endpoint, {
-        checkinDate: format(new Date(), "yyyy-MM-dd"),
+        ? `/api/leader/checkins/${selectedFollowUp.id}/complete`
+        : `/api/leader/new-member-checkins/${selectedFollowUp.id}/complete`;
+      await apiRequest("PATCH", endpoint, {
         outcome: data.outcome,
         notes: data.notes || "",
       });
@@ -227,6 +226,8 @@ export default function LeaderFollowups() {
       queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/stats"] });
       setNotesDialogOpen(false);
       setSelectedFollowUp(null);
       notesForm.reset({
