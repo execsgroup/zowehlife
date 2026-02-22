@@ -1408,6 +1408,7 @@
     "passwordMinLength": "A senha deve ter pelo menos 8 caracteres",
     "dateRequired": "A data é obrigatória",
     "followUpDateRequired": "A data de acompanhamento é obrigatória",
+    "followUpTimeRequired": "A hora de acompanhamento é obrigatória",
     "ministryNameMinLength": "O nome do ministério deve ter pelo menos 2 caracteres",
     "nameMinLength": "O nome deve ter pelo menos 2 caracteres",
     "locationRequired": "A localização é obrigatória",

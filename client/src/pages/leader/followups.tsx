@@ -116,7 +116,7 @@ const formatTime = (time: string) => {
 
 const scheduleFollowUpSchemaBase = z.object({
   nextFollowupDate: z.string().min(1),
-  nextFollowupTime: z.string().optional(),
+  nextFollowupTime: z.string().min(1),
   customLeaderSubject: z.string().optional(),
   customLeaderMessage: z.string().optional(),
   customConvertSubject: z.string().optional(),
@@ -147,7 +147,7 @@ export default function LeaderFollowups() {
 
   const scheduleFollowUpSchema = z.object({
     nextFollowupDate: z.string().min(1, t('validation.followUpDateRequired')),
-    nextFollowupTime: z.string().optional(),
+    nextFollowupTime: z.string().min(1, t('validation.followUpTimeRequired')),
     customLeaderSubject: z.string().optional(),
     customLeaderMessage: z.string().optional(),
     customConvertSubject: z.string().optional(),
@@ -1078,7 +1078,7 @@ export default function LeaderFollowups() {
                 name="nextFollowupTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('followUps.followUpTimeOptional')}</FormLabel>
+                    <FormLabel>{t('followUps.followUpTime')} *</FormLabel>
                     <FormControl>
                       <TimePicker
                         value={field.value}

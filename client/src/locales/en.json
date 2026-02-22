@@ -1460,6 +1460,7 @@
     "passwordMinLength": "Password must be at least 8 characters",
     "dateRequired": "Date is required",
     "followUpDateRequired": "Follow-up date is required",
+    "followUpTimeRequired": "Follow-up time is required",
     "ministryNameMinLength": "Ministry name must be at least 2 characters",
     "nameMinLength": "Name must be at least 2 characters",
     "locationRequired": "Location is required",

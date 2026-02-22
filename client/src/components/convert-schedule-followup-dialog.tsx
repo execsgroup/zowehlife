@@ -24,7 +24,7 @@ type ScheduleFollowUpData = z.infer<ReturnType<typeof createScheduleFollowUpSche
 function createScheduleFollowUpSchema(t: (key: string) => string) {
   return z.object({
     nextFollowupDate: z.string().min(1, t('validation.followUpDateRequired')),
-    nextFollowupTime: z.string().optional(),
+    nextFollowupTime: z.string().min(1, t('validation.followUpTimeRequired')),
     customLeaderSubject: z.string().optional(),
     customLeaderMessage: z.string().optional(),
     customConvertSubject: z.string().optional(),
@@ -157,7 +157,7 @@ export function ConvertScheduleFollowUpDialog({
               name="nextFollowupTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('followUps.followUpTimeOptional')}</FormLabel>
+                  <FormLabel>{t('followUps.followUpTime')} *</FormLabel>
                   <FormControl>
                     <TimePicker
                       value={field.value}

@@ -3764,7 +3764,8 @@ export async function registerRoutes(
       if (!newMember || newMember.churchId !== user.churchId) {
         return res.status(404).json({ message: "New member not found" });
       }
-      res.json(newMember);
+      const checkinsList = await storage.getNewMemberCheckinsByNewMember(req.params.id);
+      res.json({ ...newMember, checkins: checkinsList });
     } catch (error) {
       res.status(500).json({ message: "Failed to get new member" });
     }
@@ -3796,7 +3797,8 @@ export async function registerRoutes(
       if (!member || member.churchId !== user.churchId) {
         return res.status(404).json({ message: "Member not found" });
       }
-      res.json(member);
+      const checkinsList = await storage.getMemberCheckins(req.params.id);
+      res.json({ ...member, checkins: checkinsList });
     } catch (error) {
       res.status(500).json({ message: "Failed to get member" });
     }
@@ -5226,7 +5228,8 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Access denied" });
       }
       
-      res.json(newMember);
+      const checkinsList = await storage.getNewMemberCheckinsByNewMember(id);
+      res.json({ ...newMember, checkins: checkinsList });
     } catch (error) {
       console.error("Error fetching new member:", error);
       res.status(500).json({ message: "Failed to fetch new member" });
@@ -5694,7 +5697,8 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Access denied" });
       }
       
-      res.json(member);
+      const checkinsList = await storage.getMemberCheckins(id);
+      res.json({ ...member, checkins: checkinsList });
     } catch (error) {
       console.error("Error fetching member:", error);
       res.status(500).json({ message: "Failed to fetch member" });
