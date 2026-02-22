@@ -241,7 +241,7 @@ export default function MinistryAdminNewMemberDetail() {
                         {getOutcomeLabel(checkin.outcome)}
                       </Badge>
                     </div>
-                    {checkin.notes && <p className="text-sm">{checkin.notes}</p>}
+                    {checkin.notes && !checkin.notes.startsWith("Follow-up scheduled for") && !checkin.notes.startsWith("Mass follow-up scheduled for") && <p className="text-sm">{checkin.notes}</p>}
                     {checkin.nextFollowupDate && (
                       <p className="text-sm text-muted-foreground mt-1">
                         {t('newMemberDetail.nextFollowUp')} {format(new Date(checkin.nextFollowupDate), "MMM d, yyyy")}

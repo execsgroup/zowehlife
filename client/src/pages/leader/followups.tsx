@@ -468,7 +468,7 @@ export default function LeaderFollowups() {
                         </TableCell>
                         <TableCell className="max-w-[200px]">
                           <p className="text-sm text-muted-foreground truncate">
-                            {mf.notes || "—"}
+                            {mf.notes && !mf.notes.startsWith("Follow-up scheduled for") && !mf.notes.startsWith("Mass follow-up scheduled for") ? mf.notes : "—"}
                           </p>
                         </TableCell>
                         <TableCell className="text-right">
@@ -564,7 +564,7 @@ export default function LeaderFollowups() {
                         </TableCell>
                         <TableCell className="max-w-[200px]">
                           <p className="text-sm text-muted-foreground truncate">
-                            {followup.notes || "—"}
+                            {followup.notes && !followup.notes.startsWith("Follow-up scheduled for") && !followup.notes.startsWith("Mass follow-up scheduled for") ? followup.notes : "—"}
                           </p>
                         </TableCell>
                         <TableCell className="text-right">
@@ -691,7 +691,7 @@ export default function LeaderFollowups() {
                         </TableCell>
                         <TableCell className="max-w-[200px]">
                           <p className="text-sm text-muted-foreground truncate">
-                            {followup.notes || "—"}
+                            {followup.notes && !followup.notes.startsWith("Follow-up scheduled for") && !followup.notes.startsWith("Mass follow-up scheduled for") ? followup.notes : "—"}
                           </p>
                         </TableCell>
                         <TableCell className="text-right">

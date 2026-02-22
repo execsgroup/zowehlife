@@ -459,7 +459,7 @@ END:VCALENDAR`;
                             {getOutcomeLabel(checkin.outcome)}
                           </Badge>
                         </div>
-                        {checkin.notes && (
+                        {checkin.notes && !checkin.notes.startsWith("Follow-up scheduled for") && !checkin.notes.startsWith("Mass follow-up scheduled for") && (
                           <p className="text-muted-foreground text-sm mb-2">
                             {checkin.notes}
                           </p>
