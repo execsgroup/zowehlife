@@ -91,7 +91,6 @@ export default function MassFollowUp() {
     converts: t('massFollowUp.followUpConverts'),
     new_members: t('massFollowUp.newMemberFollowUp'),
     members: t('massFollowUp.memberFollowUp'),
-    guests: t('massFollowUp.guestList'),
   };
 
   const dateFilterLabels: Record<string, string> = {
@@ -208,7 +207,6 @@ export default function MassFollowUp() {
                     <SelectItem value="converts" data-testid="option-converts">{t('massFollowUp.followUpConverts')}</SelectItem>
                     <SelectItem value="new_members" data-testid="option-new-members">{t('massFollowUp.newMemberFollowUp')}</SelectItem>
                     <SelectItem value="members" data-testid="option-members">{t('massFollowUp.memberFollowUp')}</SelectItem>
-                    <SelectItem value="guests" data-testid="option-guests">{t('massFollowUp.guestList')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
