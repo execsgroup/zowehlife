@@ -66,18 +66,18 @@ const newMemberFormSchemaBase = z.object({
 type NewMemberFormData = z.infer<typeof newMemberFormSchemaBase>;
 
 const statusColors: Record<string, string> = {
-  NEW: "bg-accent/10 text-accent border-accent/20",
-  SCHEDULED: "bg-accent/10 text-accent border-accent/20",
-  CONNECTED: "bg-coral/10 text-coral border-coral/20",
+  NEW: "bg-muted text-muted-foreground border-muted",
+  SCHEDULED: "bg-primary/10 text-primary border-primary/20",
+  CONNECTED: "bg-success/10 text-success border-success/20",
   NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
   NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
-  NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
-  SCHEDULED_VISIT: "bg-accent/10 text-accent border-accent/20",
-  REFERRED: "bg-accent/10 text-accent border-accent/20",
-  NOT_COMPLETED: "bg-destructive/10 text-destructive border-destructive/20",
-  NEVER_CONTACTED: "bg-gold/10 text-gold border-gold/20",
-  ACTIVE: "bg-coral/10 text-coral border-coral/20",
-  IN_PROGRESS: "bg-accent/10 text-accent border-accent/20",
+  NEEDS_FOLLOWUP: "bg-gold/10 text-gold border-gold/20",
+  SCHEDULED_VISIT: "bg-primary/10 text-primary border-primary/20",
+  REFERRED: "bg-primary/10 text-primary border-primary/20",
+  NOT_COMPLETED: "bg-coral/10 text-coral border-coral/20",
+  NEVER_CONTACTED: "bg-muted text-muted-foreground border-muted",
+  ACTIVE: "bg-success/10 text-success border-success/20",
+  IN_PROGRESS: "bg-primary/10 text-primary border-primary/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
@@ -85,14 +85,14 @@ const statusColors: Record<string, string> = {
 const followUpStageColors: Record<string, string> = {
   NEW: "bg-muted text-muted-foreground border-muted",
   CONTACT_NEW_MEMBER: "bg-gold/10 text-gold border-gold/20",
-  SCHEDULED: "bg-accent/10 text-accent border-accent/20",
-  FIRST_COMPLETED: "bg-coral/10 text-coral border-coral/20",
-  INITIATE_SECOND: "bg-accent/10 text-accent border-accent/20",
-  SECOND_SCHEDULED: "bg-accent/10 text-accent border-accent/20",
-  SECOND_COMPLETED: "bg-coral/10 text-coral border-coral/20",
-  INITIATE_FINAL: "bg-accent/10 text-accent border-accent/20",
-  FINAL_SCHEDULED: "bg-accent/10 text-accent border-accent/20",
-  FINAL_COMPLETED: "bg-primary/10 text-primary border-primary/20",
+  SCHEDULED: "bg-primary/10 text-primary border-primary/20",
+  FIRST_COMPLETED: "bg-success/10 text-success border-success/20",
+  INITIATE_SECOND: "bg-gold/10 text-gold border-gold/20",
+  SECOND_SCHEDULED: "bg-primary/10 text-primary border-primary/20",
+  SECOND_COMPLETED: "bg-success/10 text-success border-success/20",
+  INITIATE_FINAL: "bg-gold/10 text-gold border-gold/20",
+  FINAL_SCHEDULED: "bg-primary/10 text-primary border-primary/20",
+  FINAL_COMPLETED: "bg-success/10 text-success border-success/20",
 };
 
 const followUpNoteSchemaBase = z.object({

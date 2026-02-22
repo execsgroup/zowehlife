@@ -69,18 +69,18 @@ const convertFormSchemaBase = z.object({
 type ConvertFormData = z.infer<typeof convertFormSchemaBase>;
 
 const statusColors: Record<string, string> = {
-  NEW: "bg-accent/10 text-accent border-accent/20",
-  SCHEDULED: "bg-accent/10 text-accent border-accent/20",
-  CONNECTED: "bg-coral/10 text-coral border-coral/20",
+  NEW: "bg-muted text-muted-foreground border-muted",
+  SCHEDULED: "bg-primary/10 text-primary border-primary/20",
+  CONNECTED: "bg-success/10 text-success border-success/20",
   NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
   NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
-  NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
-  SCHEDULED_VISIT: "bg-accent/10 text-accent border-accent/20",
-  REFERRED: "bg-accent/10 text-accent border-accent/20",
-  NOT_COMPLETED: "bg-destructive/10 text-destructive border-destructive/20",
-  NEVER_CONTACTED: "bg-gold/10 text-gold border-gold/20",
-  ACTIVE: "bg-coral/10 text-coral border-coral/20",
-  IN_PROGRESS: "bg-accent/10 text-accent border-accent/20",
+  NEEDS_FOLLOWUP: "bg-gold/10 text-gold border-gold/20",
+  SCHEDULED_VISIT: "bg-primary/10 text-primary border-primary/20",
+  REFERRED: "bg-primary/10 text-primary border-primary/20",
+  NOT_COMPLETED: "bg-coral/10 text-coral border-coral/20",
+  NEVER_CONTACTED: "bg-muted text-muted-foreground border-muted",
+  ACTIVE: "bg-success/10 text-success border-success/20",
+  IN_PROGRESS: "bg-primary/10 text-primary border-primary/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 

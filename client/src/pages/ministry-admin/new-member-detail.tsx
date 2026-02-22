@@ -39,14 +39,14 @@ interface NewMemberWithCheckins extends NewMember {
 }
 
 const statusColors: Record<string, string> = {
-  NEW: "bg-accent/10 text-accent border-accent/20",
-  SCHEDULED: "bg-accent/10 text-accent border-accent/20",
-  CONNECTED: "bg-coral/10 text-coral border-coral/20",
+  NEW: "bg-muted text-muted-foreground border-muted",
+  SCHEDULED: "bg-primary/10 text-primary border-primary/20",
+  CONNECTED: "bg-success/10 text-success border-success/20",
   NO_RESPONSE: "bg-gold/10 text-gold border-gold/20",
   NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
-  NEEDS_FOLLOWUP: "bg-primary/10 text-primary border-primary/20",
-  ACTIVE: "bg-coral/10 text-coral border-coral/20",
-  IN_PROGRESS: "bg-accent/10 text-accent border-accent/20",
+  NEEDS_FOLLOWUP: "bg-gold/10 text-gold border-gold/20",
+  ACTIVE: "bg-success/10 text-success border-success/20",
+  IN_PROGRESS: "bg-primary/10 text-primary border-primary/20",
   INACTIVE: "bg-muted text-muted-foreground border-muted",
 };
 
