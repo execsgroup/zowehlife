@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { DatePicker } from "@/components/date-picker";
 import { type NewMember } from "@shared/schema";
@@ -122,6 +123,7 @@ export default function NewMemberDetail() {
 
   const { toast } = useToast();
   const basePath = useBasePath();
+  const apiBasePath = useApiBasePath();
   const [location] = useLocation();
   const newMemberId = location.split('/').pop();
 
@@ -156,6 +158,7 @@ export default function NewMemberDetail() {
   };
 
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
+  const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
 
@@ -211,7 +214,15 @@ export default function NewMemberDetail() {
 
   const checkinMutation = useMutation({
     mutationFn: async (data: CheckinFormData) => {
-      await apiRequest("POST", `/api/leader/new-members/${newMemberId}/checkins`, data);
+      if (selectedCheckinId) {
+        const basePath = apiBasePath.includes("ministry-admin") ? "/api/ministry-admin" : "/api/leader";
+        await apiRequest("PATCH", `${basePath}/new-member-checkins/${selectedCheckinId}/complete`, {
+          outcome: data.outcome,
+          notes: data.notes || "",
+        });
+      } else {
+        await apiRequest("POST", `/api/leader/new-members/${newMemberId}/checkins`, data);
+      }
     },
     onSuccess: () => {
       toast({
@@ -219,7 +230,12 @@ export default function NewMemberDetail() {
         description: t('newMembers.checkinRecordedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members", newMemberId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/stats"] });
       setCheckinDialogOpen(false);
+      setSelectedCheckinId(null);
       checkinForm.reset();
     },
     onError: (error: Error) => {
@@ -473,7 +489,10 @@ export default function NewMemberDetail() {
                               variant="outline"
                               size="sm"
                               className="gap-2"
-                              onClick={() => setCheckinDialogOpen(true)}
+                              onClick={() => {
+                                setSelectedCheckinId(checkin.outcome === "SCHEDULED_VISIT" ? checkin.id : null);
+                                setCheckinDialogOpen(true);
+                              }}
                               data-testid={`button-add-note-${checkin.id}`}
                             >
                               <Plus className="h-4 w-4" />

@@ -152,6 +152,7 @@ export default function ConvertDetail() {
   };
 
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
@@ -512,7 +513,10 @@ END:VCALENDAR`;
                               variant="outline"
                               size="sm"
                               className="gap-2"
-                              onClick={() => setNoteDialogOpen(true)}
+                              onClick={() => {
+                                setSelectedCheckinId(checkin.outcome === "SCHEDULED_VISIT" ? checkin.id : null);
+                                setNoteDialogOpen(true);
+                              }}
                               data-testid={`button-add-note-${checkin.id}`}
                             >
                               <Plus className="h-4 w-4" />
@@ -856,8 +860,12 @@ END:VCALENDAR`;
 
         <ConvertAddNoteDialog
           open={noteDialogOpen}
-          onOpenChange={setNoteDialogOpen}
+          onOpenChange={(open) => {
+            setNoteDialogOpen(open);
+            if (!open) setSelectedCheckinId(null);
+          }}
           convert={convert}
+          checkinId={selectedCheckinId}
         />
 
         <ConvertScheduleFollowUpDialog

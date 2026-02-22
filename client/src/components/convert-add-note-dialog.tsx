@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
-import { format } from "date-fns";
 
 const addNoteSchema = z.object({
   outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "OTHER"]),
@@ -31,12 +30,14 @@ interface ConvertAddNoteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   convert: ConvertInfo | null;
+  checkinId?: string | null;
 }
 
 export function ConvertAddNoteDialog({
   open,
   onOpenChange,
   convert,
+  checkinId,
 }: ConvertAddNoteDialogProps) {
   const { toast } = useToast();
   const apiBasePath = useApiBasePath();
@@ -53,11 +54,20 @@ export function ConvertAddNoteDialog({
   const addNoteMutation = useMutation({
     mutationFn: async (data: AddNoteData) => {
       if (!convert) return;
-      await apiRequest("POST", `${apiBasePath}/converts/${convert.id}/checkins`, {
-        checkinDate: format(new Date(), "yyyy-MM-dd"),
-        outcome: data.outcome,
-        notes: data.notes || "",
-      });
+      if (checkinId) {
+        const basePath = apiBasePath.includes("ministry-admin") ? "/api/ministry-admin" : "/api/leader";
+        await apiRequest("PATCH", `${basePath}/checkins/${checkinId}/complete`, {
+          outcome: data.outcome,
+          notes: data.notes || "",
+        });
+      } else {
+        const today = new Date().toISOString().split("T")[0];
+        await apiRequest("POST", `${apiBasePath}/converts/${convert.id}/checkins`, {
+          checkinDate: today,
+          outcome: data.outcome,
+          notes: data.notes || "",
+        });
+      }
     },
     onSuccess: () => {
       toast({
@@ -68,6 +78,8 @@ export function ConvertAddNoteDialog({
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/stats`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
       onOpenChange(false);
       form.reset({
         outcome: "CONNECTED",
