@@ -38,6 +38,7 @@ import {
   Users,
   Video,
   Cake,
+  Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -147,6 +148,7 @@ export default function NewMemberDetail() {
 
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedCheckinId, setSelectedCheckinId] = useState<string | null>(null);
+  const [editingCheckin, setEditingCheckin] = useState<{ outcome: string; notes: string } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
 
@@ -370,10 +372,10 @@ export default function NewMemberDetail() {
                 {newMember.checkins.map((checkin) => (
                   <div
                     key={checkin.id}
-                    className="relative pl-6 pb-4 border-l-2 border-muted last:pb-0"
+                    className={`relative pl-6 pb-4 border-l-2 border-muted last:pb-0 ${checkin.outcome !== "SCHEDULED_VISIT" ? "opacity-60" : ""}`}
                     data-testid={`checkin-${checkin.id}`}
                   >
-                    <div className="absolute left-[-9px] top-0 h-4 w-4 rounded-full bg-primary border-2 border-background" />
+                    <div className={`absolute left-[-9px] top-0 h-4 w-4 rounded-full border-2 border-background ${checkin.outcome !== "SCHEDULED_VISIT" ? "bg-muted-foreground" : "bg-primary"}`} />
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -401,41 +403,58 @@ export default function NewMemberDetail() {
                             </span>
                           </div>
                         )}
-                        {(checkin.outcome === "SCHEDULED_VISIT" || 
-                          (checkin.nextFollowupDate && new Date(checkin.nextFollowupDate) >= new Date(new Date().setHours(0,0,0,0)))) && (
-                          <div className="mt-2 flex items-center gap-2 flex-wrap">
-                            {checkin.videoLink && (
-                              <a
-                                href={checkin.videoLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="gap-2"
-                                  data-testid={`button-join-meeting-${checkin.id}`}
+                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                          {checkin.outcome === "SCHEDULED_VISIT" && (
+                            <>
+                              {checkin.videoLink && (
+                                <a
+                                  href={checkin.videoLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
                                 >
-                                  <Video className="h-4 w-4" />
-                                  {t('converts.joinMeeting')}
-                                </Button>
-                              </a>
-                            )}
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    className="gap-2"
+                                    data-testid={`button-join-meeting-${checkin.id}`}
+                                  >
+                                    <Video className="h-4 w-4" />
+                                    {t('converts.joinMeeting')}
+                                  </Button>
+                                </a>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                onClick={() => {
+                                  setSelectedCheckinId(checkin.id);
+                                  setNoteDialogOpen(true);
+                                }}
+                                data-testid={`button-add-note-${checkin.id}`}
+                              >
+                                <Plus className="h-4 w-4" />
+                                {t('converts.addNote')}
+                              </Button>
+                            </>
+                          )}
+                          {checkin.outcome !== "SCHEDULED_VISIT" && checkin.outcome !== "NOT_COMPLETED" && (
                             <Button
                               variant="outline"
                               size="sm"
                               className="gap-2"
                               onClick={() => {
-                                setSelectedCheckinId(checkin.outcome === "SCHEDULED_VISIT" ? checkin.id : null);
+                                setSelectedCheckinId(checkin.id);
+                                setEditingCheckin({ outcome: checkin.outcome, notes: checkin.notes || "" });
                                 setNoteDialogOpen(true);
                               }}
-                              data-testid={`button-add-note-${checkin.id}`}
+                              data-testid={`button-edit-note-${checkin.id}`}
                             >
-                              <Plus className="h-4 w-4" />
-                              {t('converts.addNote')}
+                              <Pencil className="h-4 w-4" />
+                              {t('followUps.editNote')}
                             </Button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -462,10 +481,14 @@ export default function NewMemberDetail() {
           open={noteDialogOpen}
           onOpenChange={(open) => {
             setNoteDialogOpen(open);
-            if (!open) setSelectedCheckinId(null);
+            if (!open) {
+              setSelectedCheckinId(null);
+              setEditingCheckin(null);
+            }
           }}
           newMember={newMember ? { id: newMember.id, firstName: newMember.firstName, lastName: newMember.lastName } : null}
           checkinId={selectedCheckinId}
+          initialValues={editingCheckin}
         />
 
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

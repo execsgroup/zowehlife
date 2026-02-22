@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -31,6 +32,7 @@ interface ConvertAddNoteDialogProps {
   onOpenChange: (open: boolean) => void;
   convert: ConvertInfo | null;
   checkinId?: string | null;
+  initialValues?: { outcome: string; notes: string } | null;
 }
 
 export function ConvertAddNoteDialog({
@@ -38,6 +40,7 @@ export function ConvertAddNoteDialog({
   onOpenChange,
   convert,
   checkinId,
+  initialValues,
 }: ConvertAddNoteDialogProps) {
   const { toast } = useToast();
   const apiBasePath = useApiBasePath();
@@ -46,10 +49,21 @@ export function ConvertAddNoteDialog({
   const form = useForm<AddNoteData>({
     resolver: zodResolver(addNoteSchema),
     defaultValues: {
-      outcome: "CONNECTED",
-      notes: "",
+      outcome: (initialValues?.outcome || "CONNECTED") as "CONNECTED" | "NO_RESPONSE" | "NEEDS_FOLLOWUP",
+      notes: initialValues?.notes || "",
     },
   });
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        outcome: (initialValues?.outcome || "CONNECTED") as "CONNECTED" | "NO_RESPONSE" | "NEEDS_FOLLOWUP",
+        notes: initialValues?.notes || "",
+      });
+    }
+  }, [open, initialValues, form]);
+
+  const isEditing = !!initialValues;
 
   const addNoteMutation = useMutation({
     mutationFn: async (data: AddNoteData) => {
@@ -71,8 +85,8 @@ export function ConvertAddNoteDialog({
     },
     onSuccess: () => {
       toast({
-        title: t('followUps.notesRecorded'),
-        description: t('followUps.notesSaved'),
+        title: isEditing ? t('followUps.noteUpdated') : t('followUps.notesRecorded'),
+        description: isEditing ? t('followUps.noteUpdatedDesc') : t('followUps.notesSaved'),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
@@ -100,10 +114,10 @@ export function ConvertAddNoteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('followUps.addNote')}</DialogTitle>
+          <DialogTitle>{isEditing ? t('followUps.editNote') : t('followUps.addNote')}</DialogTitle>
           <DialogDescription>
             {convert && (
-              <>{t('followUps.recordFollowUp', { name: `${convert.firstName} ${convert.lastName}` })}</>
+              <>{isEditing ? t('followUps.editFollowUpNote', { name: `${convert.firstName} ${convert.lastName}` }) : t('followUps.recordFollowUp', { name: `${convert.firstName} ${convert.lastName}` })}</>
             )}
           </DialogDescription>
         </DialogHeader>

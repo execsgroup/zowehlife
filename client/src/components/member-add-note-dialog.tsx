@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +32,7 @@ interface MemberAddNoteDialogProps {
   onOpenChange: (open: boolean) => void;
   member: MemberInfo | null;
   checkinId?: string | null;
+  initialValues?: { outcome: string; notes: string } | null;
 }
 
 export function MemberAddNoteDialog({
@@ -38,6 +40,7 @@ export function MemberAddNoteDialog({
   onOpenChange,
   member,
   checkinId,
+  initialValues,
 }: MemberAddNoteDialogProps) {
   const { toast } = useToast();
   const apiBasePath = useApiBasePath();
@@ -46,10 +49,21 @@ export function MemberAddNoteDialog({
   const form = useForm<AddNoteData>({
     resolver: zodResolver(addNoteSchema),
     defaultValues: {
-      outcome: "CONNECTED",
-      notes: "",
+      outcome: (initialValues?.outcome as any) || "CONNECTED",
+      notes: initialValues?.notes || "",
     },
   });
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        outcome: (initialValues?.outcome as any) || "CONNECTED",
+        notes: initialValues?.notes || "",
+      });
+    }
+  }, [open, initialValues, form]);
+
+  const isEditing = !!initialValues;
 
   const addNoteMutation = useMutation({
     mutationFn: async (data: AddNoteData) => {
@@ -71,8 +85,8 @@ export function MemberAddNoteDialog({
     },
     onSuccess: () => {
       toast({
-        title: t('followUps.notesRecorded'),
-        description: t('followUps.notesSaved'),
+        title: isEditing ? t('followUps.noteUpdated') : t('followUps.notesRecorded'),
+        description: isEditing ? t('followUps.noteUpdatedDesc') : t('followUps.notesSaved'),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, member?.id?.toString()] });
@@ -97,10 +111,10 @@ export function MemberAddNoteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('followUps.addNote')}</DialogTitle>
+          <DialogTitle>{isEditing ? t('followUps.editNote') : t('followUps.addNote')}</DialogTitle>
           <DialogDescription>
             {member && (
-              <>{t('followUps.recordFollowUp', { name: `${member.firstName} ${member.lastName}` })}</>
+              <>{isEditing ? t('followUps.editFollowUpNote', { name: `${member.firstName} ${member.lastName}` }) : t('followUps.recordFollowUp', { name: `${member.firstName} ${member.lastName}` })}</>
             )}
           </DialogDescription>
         </DialogHeader>
