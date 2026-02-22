@@ -3186,6 +3186,233 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/ministry-admin/converts/:convertId/schedule-followup", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { convertId } = req.params;
+      const user = (req as any).user;
+
+      const convert = await storage.getConvert(convertId);
+      if (!convert) {
+        return res.status(404).json({ message: "Convert not found" });
+      }
+
+      if (convert.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const schema = z.object({
+        nextFollowupDate: z.string().min(1),
+        nextFollowupTime: z.string().optional(),
+        customLeaderSubject: z.string().optional(),
+        customLeaderMessage: z.string().optional(),
+        customConvertSubject: z.string().optional(),
+        customConvertMessage: z.string().optional(),
+        smsMessage: z.string().optional(),
+        mmsMediaUrl: z.string().optional(),
+        includeVideoLink: z.boolean().optional(),
+        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+      });
+
+      const data = schema.parse(req.body);
+
+      const church = await storage.getChurch(user.churchId);
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+        const plan = (church?.plan || "free") as string;
+        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+        const billingPeriod = getCurrentBillingPeriod();
+        const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
+        const type = data.notificationMethod;
+        const used = type === "sms" ? usage.smsCount : usage.mmsCount;
+        const limit = type === "sms" ? limits.sms : limits.mms;
+        if (used >= limit) {
+          return res.status(403).json({ message: `${type.toUpperCase()} limit reached for this billing period (${used}/${limit}). Please upgrade your plan or use email.` });
+        }
+      }
+
+      let videoCallLink: string | undefined;
+      if (data.includeVideoLink) {
+        videoCallLink = generatePersonalJitsiLink(church?.name || "zoweh", `${convert.firstName} ${convert.lastName}`);
+      }
+
+      const checkin = await storage.createCheckin({
+        convertId,
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        checkinDate: new Date().toISOString().split('T')[0],
+        notes: null,
+        outcome: "SCHEDULED_VISIT",
+        nextFollowupDate: data.nextFollowupDate,
+        nextFollowupTime: data.nextFollowupTime || null,
+        videoLink: videoCallLink || null,
+        notificationMethod: data.notificationMethod,
+      });
+
+      await storage.updateConvert(convertId, { status: "SCHEDULED" });
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "CREATE",
+        entityType: "CHECKIN",
+        entityId: checkin.id,
+      });
+
+      const contactUrl = buildUrl("/contact", req);
+
+      console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
+      sendFollowUpNotification({
+        convertName: `${convert.firstName} ${convert.lastName}`,
+        convertEmail: convert.email || undefined,
+        leaderName: `${user.firstName} ${user.lastName}`,
+        leaderEmail: user.email,
+        churchName: church?.name || "Ministry",
+        followUpDate: data.nextFollowupDate,
+        followUpTime: data.nextFollowupTime || undefined,
+        notes: data.notes || undefined,
+        videoCallLink,
+        contactUrl,
+        customLeaderMessage: data.customLeaderMessage || undefined,
+        customConvertMessage: data.customConvertMessage || undefined,
+        customLeaderSubject: data.customLeaderSubject || undefined,
+        customConvertSubject: data.customConvertSubject || undefined,
+      }).then(result => {
+        console.log(`Follow-up email result:`, result);
+      }).catch(err => console.error("Email notification failed:", err));
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+        const smsType = data.notificationMethod as "sms" | "mms";
+        const billingPeriod = getCurrentBillingPeriod();
+        const recipientPhone = convert.phone ? formatPhoneForSms(convert.phone) : null;
+        const churchName = church?.name || "Ministry";
+
+        if (recipientPhone) {
+          const msg = buildFollowUpSmsMessage({
+            recipientName: convert.firstName,
+            churchName,
+            followUpDate: data.nextFollowupDate,
+            followUpTime: data.nextFollowupTime,
+            videoCallLink,
+            customMessage: data.smsMessage,
+          });
+
+          if (smsType === "sms") {
+            sendSms({ to: recipientPhone, body: msg }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "sms");
+                console.log(`SMS sent to convert ${convert.firstName}: ${result.messageId}`);
+              } else {
+                console.error(`SMS failed for convert:`, result.error);
+              }
+            }).catch(err => console.error(`SMS send error:`, err));
+          } else {
+            sendMms({ to: recipientPhone, body: msg, mediaUrl: data.mmsMediaUrl }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "mms");
+                console.log(`MMS sent to convert ${convert.firstName}: ${result.messageId}`);
+              } else {
+                console.error(`MMS failed for convert:`, result.error);
+              }
+            }).catch(err => console.error(`MMS send error:`, err));
+          }
+        }
+      }
+
+      res.status(201).json({ ...checkin, videoCallLink });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error scheduling follow-up:", error);
+      res.status(500).json({ message: "Failed to schedule follow-up" });
+    }
+  });
+
+  app.post("/api/ministry-admin/converts/:convertId/checkins", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { convertId } = req.params;
+      const user = (req as any).user;
+
+      const convert = await storage.getConvert(convertId);
+      if (!convert) {
+        return res.status(404).json({ message: "Convert not found" });
+      }
+
+      if (convert.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const schema = z.object({
+        checkinDate: z.string().min(1),
+        notes: z.string().optional(),
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+        nextFollowupDate: z.string().optional(),
+        customLeaderMessage: z.string().optional(),
+        customConvertMessage: z.string().optional(),
+        customLeaderSubject: z.string().optional(),
+        customConvertSubject: z.string().optional(),
+      });
+
+      const data = schema.parse(req.body);
+
+      const checkin = await storage.createCheckin({
+        convertId,
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        checkinDate: data.checkinDate,
+        notes: data.notes || null,
+        outcome: data.outcome,
+        nextFollowupDate: data.nextFollowupDate || null,
+      });
+
+      const outcomeToStatus: Record<string, string> = {
+        "CONNECTED": "CONNECTED",
+        "NO_RESPONSE": "NO_RESPONSE",
+        "NEEDS_FOLLOWUP": "SCHEDULED",
+        "NEEDS_PRAYER": "NEEDS_PRAYER",
+        "REFERRED": "REFERRED",
+        "SCHEDULED_VISIT": "SCHEDULED",
+        "NOT_COMPLETED": "NOT_COMPLETED",
+      };
+      if (outcomeToStatus[data.outcome]) {
+        await storage.updateConvert(convertId, { status: outcomeToStatus[data.outcome] as any });
+      }
+
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "CREATE",
+        entityType: "CHECKIN",
+        entityId: checkin.id,
+      });
+
+      if (data.nextFollowupDate) {
+        const church = await storage.getChurch(user.churchId);
+        const contactUrl = buildUrl("/contact", req);
+        
+        sendFollowUpNotification({
+          convertName: `${convert.firstName} ${convert.lastName}`,
+          convertEmail: convert.email || undefined,
+          leaderName: `${user.firstName} ${user.lastName}`,
+          leaderEmail: user.email,
+          churchName: church?.name || "Ministry",
+          followUpDate: data.nextFollowupDate,
+          notes: data.notes || undefined,
+          contactUrl,
+          customLeaderMessage: data.customLeaderMessage || undefined,
+          customConvertMessage: data.customConvertMessage || undefined,
+          customLeaderSubject: data.customLeaderSubject || undefined,
+          customConvertSubject: data.customConvertSubject || undefined,
+        }).catch(err => console.error("Email notification failed:", err));
+      }
+
+      res.status(201).json(checkin);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Failed to create checkin" });
+    }
+  });
+
   // Update church logo - Ministry Admin
   app.patch("/api/ministry-admin/church/logo", requireMinistryAdmin, async (req, res) => {
     try {
@@ -3261,21 +3488,6 @@ export async function registerRoutes(
     }
   });
 
-  // Get single new member for ministry admin
-  app.get("/api/ministry-admin/new-members/:id", requireMinistryAdmin, async (req, res) => {
-    try {
-      const user = (req as any).user;
-      const newMember = await storage.getNewMember(req.params.id);
-      if (!newMember || newMember.churchId !== user.churchId) {
-        return res.status(404).json({ message: "New member not found" });
-      }
-      res.json(newMember);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get new member" });
-    }
-  });
-
-  // Get new member check-ins for ministry admin
   app.get("/api/ministry-admin/new-members/:id/checkins", requireMinistryAdmin, async (req, res) => {
     try {
       const user = (req as any).user;
@@ -3287,6 +3499,274 @@ export async function registerRoutes(
       res.json(checkins);
     } catch (error) {
       res.status(500).json({ message: "Failed to get check-ins" });
+    }
+  });
+
+  app.post("/api/ministry-admin/new-members/:newMemberId/checkins", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { newMemberId } = req.params;
+      const user = (req as any).user;
+      
+      const newMember = await storage.getNewMember(newMemberId);
+      if (!newMember) {
+        return res.status(404).json({ message: "New member not found" });
+      }
+      
+      if (newMember.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const schema = z.object({
+        checkinDate: z.string().min(1),
+        notes: z.string().optional(),
+        outcome: z.enum(["CONNECTED", "NO_RESPONSE", "NEEDS_FOLLOWUP", "NEEDS_PRAYER", "SCHEDULED_VISIT", "REFERRED", "OTHER"]),
+        nextFollowupDate: z.string().optional(),
+        customLeaderMessage: z.string().optional(),
+        customConvertMessage: z.string().optional(),
+        customLeaderSubject: z.string().optional(),
+        customConvertSubject: z.string().optional(),
+      });
+      
+      const data = schema.parse(req.body);
+      
+      const checkin = await storage.createNewMemberCheckin({
+        newMemberId,
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        checkinDate: data.checkinDate,
+        notes: data.notes || null,
+        outcome: data.outcome,
+        nextFollowupDate: data.nextFollowupDate || null,
+      });
+      
+      const outcomeToStatus: Record<string, string> = {
+        "CONNECTED": "CONNECTED",
+        "NO_RESPONSE": "NO_RESPONSE",
+        "NEEDS_FOLLOWUP": "SCHEDULED",
+        "NEEDS_PRAYER": "NEEDS_PRAYER",
+        "REFERRED": "REFERRED",
+        "SCHEDULED_VISIT": "SCHEDULED",
+        "NOT_COMPLETED": "NOT_COMPLETED",
+      };
+      if (outcomeToStatus[data.outcome]) {
+        await storage.updateNewMember(newMemberId, { status: outcomeToStatus[data.outcome] as any });
+      }
+      
+      let promptMoveToList = false;
+      if (data.outcome === "CONNECTED") {
+        const currentStage = newMember.followUpStage || "NEW";
+        let newFollowUpStage = currentStage;
+        
+        if (currentStage === "SCHEDULED" || currentStage === "NEW" || currentStage === "CONTACT_NEW_MEMBER") {
+          newFollowUpStage = "FIRST_COMPLETED";
+        } else if (currentStage === "SECOND_SCHEDULED" || currentStage === "INITIATE_SECOND") {
+          newFollowUpStage = "SECOND_COMPLETED";
+        } else if (currentStage === "FINAL_SCHEDULED" || currentStage === "INITIATE_FINAL") {
+          newFollowUpStage = "FINAL_COMPLETED";
+          promptMoveToList = true;
+        }
+        
+        if (newFollowUpStage !== currentStage) {
+          await storage.updateNewMemberFollowUpStage(newMemberId, newFollowUpStage, new Date());
+        }
+      }
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "CREATE",
+        entityType: "NEW_MEMBER_CHECKIN",
+        entityId: checkin.id,
+      });
+      
+      if (data.nextFollowupDate) {
+        const church = await storage.getChurch(user.churchId);
+        const contactUrl = buildUrl("/contact", req);
+        
+        sendFollowUpNotification({
+          convertName: `${newMember.firstName} ${newMember.lastName}`,
+          convertEmail: newMember.email || undefined,
+          leaderName: `${user.firstName} ${user.lastName}`,
+          leaderEmail: user.email,
+          churchName: church?.name || "Ministry",
+          followUpDate: data.nextFollowupDate,
+          notes: data.notes || undefined,
+          contactUrl,
+          customLeaderMessage: data.customLeaderMessage || undefined,
+          customConvertMessage: data.customConvertMessage || undefined,
+          customLeaderSubject: data.customLeaderSubject || undefined,
+          customConvertSubject: data.customConvertSubject || undefined,
+        }).catch(err => console.error("Email notification failed:", err));
+      }
+      
+      res.status(201).json({ ...checkin, promptMoveToList });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error creating new member checkin:", error);
+      res.status(500).json({ message: "Failed to create checkin" });
+    }
+  });
+
+  app.post("/api/ministry-admin/new-members/:newMemberId/schedule-followup", requireMinistryAdmin, async (req, res) => {
+    try {
+      const { newMemberId } = req.params;
+      const user = (req as any).user;
+      
+      const newMember = await storage.getNewMember(newMemberId);
+      if (!newMember) {
+        return res.status(404).json({ message: "New member not found" });
+      }
+      
+      if (newMember.churchId !== user.churchId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const schema = z.object({
+        nextFollowupDate: z.string().min(1, "Follow-up date is required"),
+        nextFollowupTime: z.string().optional(),
+        includeVideoLink: z.boolean().optional(),
+        customConvertMessage: z.string().optional(),
+        customConvertSubject: z.string().optional(),
+        customReminderSubject: z.string().optional(),
+        customReminderMessage: z.string().optional(),
+        smsMessage: z.string().optional(),
+        mmsMediaUrl: z.string().optional(),
+        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+      });
+      
+      const data = schema.parse(req.body);
+      const church = await storage.getChurch(user.churchId);
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+        const plan = (church?.plan || "free") as string;
+        const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+        const billingPeriod = getCurrentBillingPeriod();
+        const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
+        const type = data.notificationMethod;
+        const used = type === "sms" ? usage.smsCount : usage.mmsCount;
+        const limit = type === "sms" ? limits.sms : limits.mms;
+        if (used >= limit) {
+          return res.status(403).json({ message: `${type.toUpperCase()} limit reached for this billing period (${used}/${limit}). Please upgrade your plan or use email.` });
+        }
+      }
+      
+      let videoLink: string | undefined;
+      if (data.includeVideoLink) {
+        videoLink = generatePersonalJitsiLink(church?.name || "ministry", `${newMember.firstName} ${newMember.lastName}`);
+      }
+      
+      const checkin = await storage.createNewMemberCheckin({
+        newMemberId,
+        churchId: user.churchId,
+        createdByUserId: user.id,
+        checkinDate: new Date().toISOString().split("T")[0],
+        notes: null,
+        outcome: "SCHEDULED_VISIT",
+        nextFollowupDate: data.nextFollowupDate,
+        nextFollowupTime: data.nextFollowupTime || null,
+        videoLink: videoLink || null,
+        customReminderSubject: data.customReminderSubject || null,
+        customReminderMessage: data.customReminderMessage || null,
+        notificationMethod: data.notificationMethod,
+      });
+      
+      await storage.updateNewMember(newMemberId, { status: "SCHEDULED" });
+      
+      const currentStage = newMember.followUpStage || "NEW";
+      let newFollowUpStage = currentStage;
+      
+      if (currentStage === "NEW" || currentStage === "CONTACT_NEW_MEMBER") {
+        newFollowUpStage = "SCHEDULED";
+      } else if (currentStage === "INITIATE_SECOND") {
+        newFollowUpStage = "SECOND_SCHEDULED";
+      } else if (currentStage === "INITIATE_FINAL") {
+        newFollowUpStage = "FINAL_SCHEDULED";
+      }
+      
+      if (newFollowUpStage !== currentStage) {
+        await storage.updateNewMemberFollowUpStage(newMemberId, newFollowUpStage);
+      }
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "SCHEDULE_FOLLOWUP",
+        entityType: "NEW_MEMBER",
+        entityId: newMemberId,
+      });
+      
+      const contactUrl = buildUrl("/contact", req);
+      
+      sendFollowUpNotification({
+        convertName: `${newMember.firstName} ${newMember.lastName}`,
+        convertEmail: newMember.email || undefined,
+        leaderName: `${user.firstName} ${user.lastName}`,
+        leaderEmail: user.email,
+        churchName: church?.name || "Ministry",
+        followUpDate: data.nextFollowupDate,
+        followUpTime: data.nextFollowupTime || undefined,
+        notes: undefined,
+        videoCallLink: videoLink,
+        contactUrl,
+        customConvertMessage: data.customConvertMessage || undefined,
+        customConvertSubject: data.customConvertSubject || undefined,
+      }).catch(err => console.error("Email notification failed:", err));
+
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+        const smsType = data.notificationMethod as "sms" | "mms";
+        const billingPeriod = getCurrentBillingPeriod();
+        const recipientPhone = newMember.phone ? formatPhoneForSms(newMember.phone) : null;
+        const churchName = church?.name || "Ministry";
+
+        if (recipientPhone) {
+          const msg = buildFollowUpSmsMessage({
+            recipientName: newMember.firstName,
+            churchName,
+            followUpDate: data.nextFollowupDate,
+            followUpTime: data.nextFollowupTime,
+            videoCallLink: videoLink,
+            customMessage: data.smsMessage,
+          });
+          if (smsType === "sms") {
+            sendSms({ to: recipientPhone, body: msg }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "sms");
+              } else {
+                console.error(`SMS failed for new member:`, result.error);
+              }
+            }).catch(err => console.error(`SMS send error:`, err));
+          } else {
+            sendMms({ to: recipientPhone, body: msg, mediaUrl: data.mmsMediaUrl }).then(async (result) => {
+              if (result.success) {
+                await storage.incrementSmsUsage(user.churchId, billingPeriod, "mms");
+              } else {
+                console.error(`MMS failed for new member:`, result.error);
+              }
+            }).catch(err => console.error(`MMS send error:`, err));
+          }
+        }
+      }
+      
+      res.status(201).json(checkin);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error scheduling follow-up:", error);
+      res.status(500).json({ message: "Failed to schedule follow-up" });
+    }
+  });
+
+  app.get("/api/ministry-admin/new-members/:id", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const newMember = await storage.getNewMember(req.params.id);
+      if (!newMember || newMember.churchId !== user.churchId) {
+        return res.status(404).json({ message: "New member not found" });
+      }
+      res.json(newMember);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get new member" });
     }
   });
 
