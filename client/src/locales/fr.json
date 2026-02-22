@@ -93,7 +93,8 @@
     "settings": "Paramètres",
     "ministrySettings": "Paramètres du Ministère",
     "accountRequests": "Demandes de Compte",
-    "guests": "Invités"
+    "guests": "Invités",
+    "formSettings": "Paramètres de Formulaire"
   },
   "dashboard": {
     "platformOverview": "Aperçu de la Plateforme",
@@ -1477,5 +1478,37 @@
     "goToPreviousPage": "Aller à la page précédente",
     "goToNextPage": "Aller à la page suivante",
     "ariaLabel": "pagination"
+  },
+  "formSettings": {
+    "title": "Paramètres de Formulaire",
+    "description": "Personnalisez vos formulaires d'enregistrement publics",
+    "salvationForm": "Formulaire de Salut",
+    "newMemberForm": "Formulaire de Nouveau Membre",
+    "memberForm": "Formulaire de Membre",
+    "formDescription": "Description du Formulaire",
+    "formDescriptionPlaceholder": "Entrez une description personnalisée pour ce formulaire...",
+    "standardFields": "Champs Standard",
+    "customFields": "Champs Personnalisés",
+    "addCustomField": "Ajouter un Champ Personnalisé",
+    "fieldLabel": "Étiquette du Champ",
+    "fieldType": "Type de Champ",
+    "textField": "Texte",
+    "dropdownField": "Liste Déroulante",
+    "yesNoField": "Oui / Non",
+    "required": "Requis",
+    "visible": "Visible",
+    "options": "Options",
+    "addOption": "Ajouter une Option",
+    "removeField": "Supprimer le Champ",
+    "saveChanges": "Enregistrer les Modifications",
+    "saving": "Enregistrement en cours...",
+    "saved": "Modifications enregistrées avec succès",
+    "lockedField": "Ce champ ne peut pas être supprimé",
+    "noCustomFields": "Aucun champ personnalisé ajouté pour l'instant",
+    "previewForm": "Aperçu du Formulaire",
+    "resetToDefault": "Réinitialiser aux Paramètres par Défaut",
+    "resetConfirm": "Êtes-vous sûr de vouloir réinitialiser aux paramètres par défaut?",
+    "optionPlaceholder": "Entrez une option...",
+    "fieldLabelPlaceholder": "Entrez l'étiquette du champ..."
   }
 }

@@ -43,6 +43,7 @@ import {
   UsersRound,
   CreditCard,
   Megaphone,
+  FileEdit,
 } from "lucide-react";
 
 interface ChurchData {
@@ -79,6 +80,7 @@ export function AppSidebar() {
     { title: t('sidebar.contactRequests'), url: "/ministry-admin/contact-requests", icon: MessageSquare },
     { title: t('sidebar.manageLeaders'), url: "/ministry-admin/leaders", icon: ClipboardList },
     { title: t('sidebar.billing'), url: "/ministry-admin/billing", icon: CreditCard },
+    { title: t('sidebar.formSettings'), url: "/ministry-admin/form-settings", icon: FileEdit },
     { title: t('sidebar.settings'), url: "/ministry-admin/settings", icon: Settings },
   ];
 

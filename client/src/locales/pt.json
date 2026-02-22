@@ -93,7 +93,8 @@
     "settings": "Configurações",
     "ministrySettings": "Configurações do Ministério",
     "accountRequests": "Solicitações de Conta",
-    "guests": "Visitantes"
+    "guests": "Visitantes",
+    "formSettings": "Configurações de Formulário"
   },
   "dashboard": {
     "platformOverview": "Visão Geral da Plataforma",
@@ -1477,5 +1478,37 @@
     "goToPreviousPage": "Ir para a página anterior",
     "goToNextPage": "Ir para a próxima página",
     "ariaLabel": "paginação"
+  },
+  "formSettings": {
+    "title": "Configurações de Formulário",
+    "description": "Personalize seus formulários de registro públicos",
+    "salvationForm": "Formulário de Salvação",
+    "newMemberForm": "Formulário de Novo Membro",
+    "memberForm": "Formulário de Membro",
+    "formDescription": "Descrição do Formulário",
+    "formDescriptionPlaceholder": "Insira uma descrição personalizada para este formulário...",
+    "standardFields": "Campos Padrão",
+    "customFields": "Campos Personalizados",
+    "addCustomField": "Adicionar Campo Personalizado",
+    "fieldLabel": "Rótulo do Campo",
+    "fieldType": "Tipo de Campo",
+    "textField": "Texto",
+    "dropdownField": "Caixa de Seleção",
+    "yesNoField": "Sim / Não",
+    "required": "Obrigatório",
+    "visible": "Visível",
+    "options": "Opções",
+    "addOption": "Adicionar Opção",
+    "removeField": "Remover Campo",
+    "saveChanges": "Salvar Alterações",
+    "saving": "Salvando...",
+    "saved": "Alterações salvas com sucesso",
+    "lockedField": "Este campo não pode ser removido",
+    "noCustomFields": "Nenhum campo personalizado adicionado ainda",
+    "previewForm": "Visualizar Formulário",
+    "resetToDefault": "Redefinir para Padrão",
+    "resetConfirm": "Tem certeza de que deseja redefinir para as configurações padrão?",
+    "optionPlaceholder": "Insira a opção...",
+    "fieldLabelPlaceholder": "Insira o rótulo do campo..."
   }
 }

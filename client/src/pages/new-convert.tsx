@@ -60,7 +60,20 @@ export default function NewConvert() {
   const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [submitted, setSubmitted] = useState(false);
+  const [customFieldData, setCustomFieldData] = useState<Record<string, any>>({});
   const { toast } = useToast();
+
+  const isFieldVisible = (key: string) => {
+    if (!church?.formConfig?.fieldConfig) return true;
+    const cfg = church.formConfig.fieldConfig.find((f: any) => f.key === key);
+    return cfg ? cfg.visible : true;
+  };
+
+  const getFieldLabel = (key: string, defaultLabel: string) => {
+    if (!church?.formConfig?.fieldConfig) return defaultLabel;
+    const cfg = church.formConfig.fieldConfig.find((f: any) => f.key === key);
+    return cfg?.label || defaultLabel;
+  };
 
   const convertFormSchema = z.object({
     firstName: z.string().min(1, t('validation.firstNameRequired')),
@@ -77,7 +90,7 @@ export default function NewConvert() {
     prayerRequest: z.string().optional(),
   });
 
-  const { data: church, isLoading: churchLoading, error: churchError } = useQuery<{ id: string; name: string; logoUrl: string | null }>({
+  const { data: church, isLoading: churchLoading, error: churchError } = useQuery<{ id: string; name: string; logoUrl: string | null; formConfig: any }>({
     queryKey: ["/api/public/church", token],
     queryFn: async () => {
       const res = await fetch(`/api/public/church/${token}`);
@@ -109,7 +122,7 @@ export default function NewConvert() {
 
   const submitMutation = useMutation({
     mutationFn: async (data: ConvertFormData) => {
-      const res = await apiRequest("POST", `/api/public/church/${token}/converts`, data);
+      const res = await apiRequest("POST", `/api/public/church/${token}/converts`, { ...data, customFieldData: Object.keys(customFieldData).length > 0 ? customFieldData : undefined });
       return res.json();
     },
     onSuccess: () => {
@@ -225,6 +238,9 @@ export default function NewConvert() {
               </div>
               <CardTitle>{t('publicForms.salvationForm')}</CardTitle>
               <CardDescription className="space-y-3 text-sm">
+                {church?.formConfig?.description && (
+                  <p>{church.formConfig.description}</p>
+                )}
                 <p>{t('publicForms.celebrateDecision')}</p>
                 <p>{t('publicForms.rededicateHonor')}</p>
                 <p>{t('publicForms.godKnowsYou')}</p>
@@ -235,12 +251,13 @@ export default function NewConvert() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {isFieldVisible('salvationDecision') && (
                   <FormField
                     control={form.control}
                     name="salvationDecision"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('publicForms.pleaseChooseOption')}</FormLabel>
+                        <FormLabel>{getFieldLabel('salvationDecision', t('publicForms.pleaseChooseOption'))}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-salvation-decision">
@@ -256,6 +273,7 @@ export default function NewConvert() {
                       </FormItem>
                     )}
                   />
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
@@ -263,7 +281,7 @@ export default function NewConvert() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('forms.firstName')} *</FormLabel>
+                          <FormLabel>{getFieldLabel('firstName', t('forms.firstName'))} *</FormLabel>
                           <FormControl>
                             <Input placeholder={t('forms.firstNamePlaceholder')} {...field} data-testid="input-first-name" />
                           </FormControl>
@@ -276,7 +294,7 @@ export default function NewConvert() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('forms.lastName')} *</FormLabel>
+                          <FormLabel>{getFieldLabel('lastName', t('forms.lastName'))} *</FormLabel>
                           <FormControl>
                             <Input placeholder={t('forms.lastNamePlaceholder')} {...field} data-testid="input-last-name" />
                           </FormControl>
@@ -286,12 +304,13 @@ export default function NewConvert() {
                     />
                   </div>
 
+                  {isFieldVisible('phone') && (
                   <FormField
                     control={form.control}
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('converts.phoneNumber')}</FormLabel>
+                        <FormLabel>{getFieldLabel('phone', t('converts.phoneNumber'))}</FormLabel>
                         <FormControl>
                           <Input type="tel" placeholder={t('forms.phonePlaceholder')} {...field} data-testid="input-phone" />
                         </FormControl>
@@ -299,13 +318,15 @@ export default function NewConvert() {
                       </FormItem>
                     )}
                   />
+                  )}
 
+                  {isFieldVisible('email') && (
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('converts.emailAddress')}</FormLabel>
+                        <FormLabel>{getFieldLabel('email', t('converts.emailAddress'))}</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder={t('forms.emailPlaceholder')} {...field} data-testid="input-email" />
                         </FormControl>
@@ -313,13 +334,15 @@ export default function NewConvert() {
                       </FormItem>
                     )}
                   />
+                  )}
 
+                  {isFieldVisible('dateOfBirth') && (
                   <FormField
                     control={form.control}
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
+                        <FormLabel>{getFieldLabel('dateOfBirth', t('forms.dateOfBirth'))}</FormLabel>
                         <FormControl>
                           <DatePicker
                             value={field.value || ""}
@@ -332,13 +355,15 @@ export default function NewConvert() {
                       </FormItem>
                     )}
                   />
+                  )}
 
+                  {isFieldVisible('country') && (
                   <FormField
                     control={form.control}
                     name="country"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('converts.countryOfResidence')}</FormLabel>
+                        <FormLabel>{getFieldLabel('country', t('converts.countryOfResidence'))}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-country">
@@ -355,14 +380,16 @@ export default function NewConvert() {
                       </FormItem>
                     )}
                   />
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {isFieldVisible('wantsContact') && (
                     <FormField
                       control={form.control}
                       name="wantsContact"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('converts.wantsContactQuestion')}</FormLabel>
+                          <FormLabel>{getFieldLabel('wantsContact', t('converts.wantsContactQuestion'))}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-wants-contact">
@@ -378,13 +405,15 @@ export default function NewConvert() {
                         </FormItem>
                       )}
                     />
+                    )}
 
+                    {isFieldVisible('gender') && (
                     <FormField
                       control={form.control}
                       name="gender"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('forms.gender')}</FormLabel>
+                          <FormLabel>{getFieldLabel('gender', t('forms.gender'))}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-gender">
@@ -400,15 +429,17 @@ export default function NewConvert() {
                         </FormItem>
                       )}
                     />
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {isFieldVisible('ageGroup') && (
                     <FormField
                       control={form.control}
                       name="ageGroup"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('forms.ageGroup')}</FormLabel>
+                          <FormLabel>{getFieldLabel('ageGroup', t('forms.ageGroup'))}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-age-group">
@@ -426,13 +457,15 @@ export default function NewConvert() {
                         </FormItem>
                       )}
                     />
+                    )}
 
+                    {isFieldVisible('isChurchMember') && (
                     <FormField
                       control={form.control}
                       name="isChurchMember"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('converts.churchMemberQuestion')}</FormLabel>
+                          <FormLabel>{getFieldLabel('isChurchMember', t('converts.churchMemberQuestion'))}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-church-member">
@@ -448,14 +481,16 @@ export default function NewConvert() {
                         </FormItem>
                       )}
                     />
+                    )}
                   </div>
 
+                  {isFieldVisible('prayerRequest') && (
                   <FormField
                     control={form.control}
                     name="prayerRequest"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('publicForms.prayerRequestAdditional')}</FormLabel>
+                        <FormLabel>{getFieldLabel('prayerRequest', t('publicForms.prayerRequestAdditional'))}</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder={t('publicForms.prayerRequestPlaceholder')}
@@ -468,6 +503,55 @@ export default function NewConvert() {
                       </FormItem>
                     )}
                   />
+                  )}
+
+                  {church?.formConfig?.customFields?.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t">
+                      {church.formConfig.customFields.map((cf: any) => (
+                        <div key={cf.id} className="space-y-2">
+                          <label className="text-sm font-medium">
+                            {cf.label}{cf.required ? ' *' : ''}
+                          </label>
+                          {cf.type === 'text' && (
+                            <Input
+                              value={customFieldData[cf.id] || ''}
+                              onChange={(e) => setCustomFieldData(prev => ({ ...prev, [cf.id]: e.target.value }))}
+                              data-testid={`input-custom-${cf.id}`}
+                            />
+                          )}
+                          {cf.type === 'dropdown' && (
+                            <Select
+                              value={customFieldData[cf.id] || ''}
+                              onValueChange={(v) => setCustomFieldData(prev => ({ ...prev, [cf.id]: v }))}
+                            >
+                              <SelectTrigger data-testid={`select-custom-${cf.id}`}>
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(cf.options || []).map((opt: string) => (
+                                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                          {cf.type === 'yes_no' && (
+                            <Select
+                              value={customFieldData[cf.id] || ''}
+                              onValueChange={(v) => setCustomFieldData(prev => ({ ...prev, [cf.id]: v }))}
+                            >
+                              <SelectTrigger data-testid={`select-custom-${cf.id}`}>
+                                <SelectValue placeholder="Select..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Yes">Yes</SelectItem>
+                                <SelectItem value="No">No</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <Button
                     type="submit"

@@ -93,7 +93,8 @@
     "settings": "Settings",
     "ministrySettings": "Ministry Settings",
     "accountRequests": "Account Requests",
-    "guests": "Guests"
+    "guests": "Guests",
+    "formSettings": "Form Settings"
   },
   "dashboard": {
     "platformOverview": "Platform Overview",
@@ -1477,5 +1478,37 @@
     "passwordRequired": "Password is required",
     "messageMinLength": "Message must be at least 10 characters",
     "subjectMinLength": "Subject must be at least 3 characters"
+  },
+  "formSettings": {
+    "title": "Form Settings",
+    "description": "Customize your public registration forms",
+    "salvationForm": "Salvation Form",
+    "newMemberForm": "New Member Form",
+    "memberForm": "Member Form",
+    "formDescription": "Form Description",
+    "formDescriptionPlaceholder": "Enter a custom description for this form...",
+    "standardFields": "Standard Fields",
+    "customFields": "Custom Fields",
+    "addCustomField": "Add Custom Field",
+    "fieldLabel": "Field Label",
+    "fieldType": "Field Type",
+    "textField": "Text",
+    "dropdownField": "Dropdown",
+    "yesNoField": "Yes / No",
+    "required": "Required",
+    "visible": "Visible",
+    "options": "Options",
+    "addOption": "Add Option",
+    "removeField": "Remove Field",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "saved": "Changes saved successfully",
+    "lockedField": "This field cannot be removed",
+    "noCustomFields": "No custom fields added yet",
+    "previewForm": "Preview Form",
+    "resetToDefault": "Reset to Default",
+    "resetConfirm": "Are you sure you want to reset to default settings?",
+    "optionPlaceholder": "Enter option...",
+    "fieldLabelPlaceholder": "Enter field label..."
   }
 }

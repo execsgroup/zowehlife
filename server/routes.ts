@@ -34,6 +34,7 @@ import {
   claimAccountSchema,
   memberLoginSchema,
   memberPrayerRequestSubmissionSchema,
+  formConfigUpdateSchema,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -1240,7 +1241,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Church not found" });
       }
       
-      res.json({ id: church.id, name: church.name, logoUrl: church.logoUrl });
+      const formConfig = await storage.getFormConfiguration(church.id, "convert");
+      res.json({ id: church.id, name: church.name, logoUrl: church.logoUrl, formConfig: formConfig || null });
     } catch (error) {
       res.status(500).json({ message: "Failed to get church info" });
     }
@@ -1271,6 +1273,7 @@ export async function registerRoutes(
         ageGroup: data.ageGroup,
         isChurchMember: data.isChurchMember,
         prayerRequest: data.prayerRequest,
+        customFieldData: data.customFieldData,
       });
       
       // Auto-provision member account if email provided
@@ -4246,6 +4249,52 @@ export async function registerRoutes(
     }
   });
 
+  // Form Configurations - Ministry Admin
+  app.get("/api/ministry-admin/form-configurations", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const configs = await storage.getFormConfigurations(user.churchId);
+      res.json(configs);
+    } catch (error) {
+      console.error("Error fetching form configurations:", error);
+      res.status(500).json({ message: "Failed to fetch form configurations" });
+    }
+  });
+
+  app.get("/api/ministry-admin/form-configurations/:formType", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { formType } = req.params;
+      if (!["convert", "new_member", "member"].includes(formType)) {
+        return res.status(400).json({ message: "Invalid form type" });
+      }
+      const config = await storage.getFormConfiguration(user.churchId, formType as any);
+      res.json(config || null);
+    } catch (error) {
+      console.error("Error fetching form configuration:", error);
+      res.status(500).json({ message: "Failed to fetch form configuration" });
+    }
+  });
+
+  app.put("/api/ministry-admin/form-configurations/:formType", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const { formType } = req.params;
+      if (!["convert", "new_member", "member"].includes(formType)) {
+        return res.status(400).json({ message: "Invalid form type" });
+      }
+      const data = formConfigUpdateSchema.parse(req.body);
+      const config = await storage.upsertFormConfiguration(user.churchId, formType as any, data);
+      res.json(config);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error updating form configuration:", error);
+      res.status(500).json({ message: "Failed to update form configuration" });
+    }
+  });
+
   // Get guests for ministry admin's ministry
   app.get("/api/ministry-admin/guests", requireMinistryAdmin, async (req, res) => {
     try {
@@ -5489,11 +5538,13 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Ministry not found" });
       }
       
+      const formConfig = await storage.getFormConfiguration(church.id, "new_member");
       res.json({
         id: church.id,
         name: church.name,
         location: church.location,
         logoUrl: church.logoUrl,
+        formConfig: formConfig || null,
       });
     } catch (error) {
       console.error("Error fetching church by new member token:", error);
@@ -5552,11 +5603,13 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Ministry not found" });
       }
       
+      const formConfig = await storage.getFormConfiguration(church.id, "member");
       res.json({
         id: church.id,
         name: church.name,
         location: church.location,
         logoUrl: church.logoUrl,
+        formConfig: formConfig || null,
       });
     } catch (error) {
       console.error("Error fetching church by member token:", error);

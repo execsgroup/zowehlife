@@ -75,6 +75,8 @@ import {
   scheduledAnnouncements,
   type ScheduledAnnouncement,
   type InsertScheduledAnnouncement,
+  formConfigurations,
+  type FormConfiguration,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
@@ -127,6 +129,7 @@ export interface IStorage {
     ageGroup?: string;
     isChurchMember?: string;
     prayerRequest?: string;
+    customFieldData?: Record<string, any>;
   }): Promise<Convert>;
   updateConvert(id: string, convert: Partial<InsertConvert>): Promise<Convert>;
   deleteConvert(id: string): Promise<void>;
@@ -283,6 +286,7 @@ export interface IStorage {
     gender?: string;
     ageGroup?: string;
     notes?: string;
+    customFieldData?: Record<string, any>;
   }): Promise<NewMember>;
   updateNewMember(id: string, data: Partial<InsertNewMember>): Promise<NewMember>;
   deleteNewMember(id: string): Promise<void>;
@@ -321,6 +325,7 @@ export interface IStorage {
     gender?: string;
     memberSince?: string;
     notes?: string;
+    customFieldData?: Record<string, any>;
   }): Promise<Member>;
   updateMember(id: string, data: Partial<InsertMember>): Promise<Member>;
   deleteMember(id: string): Promise<void>;
@@ -444,6 +449,11 @@ export interface IStorage {
   getScheduledAnnouncement(id: string): Promise<ScheduledAnnouncement | undefined>;
   updateScheduledAnnouncementStatus(id: string, status: "PENDING" | "SENT" | "FAILED" | "CANCELLED", errorMessage?: string): Promise<void>;
   getPendingScheduledAnnouncements(beforeDate: Date): Promise<ScheduledAnnouncement[]>;
+
+  // Form Configurations
+  getFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member"): Promise<FormConfiguration | undefined>;
+  getFormConfigurations(churchId: string): Promise<FormConfiguration[]>;
+  upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -698,6 +708,7 @@ export class DatabaseStorage implements IStorage {
     ageGroup?: string;
     isChurchMember?: string;
     prayerRequest?: string;
+    customFieldData?: Record<string, any>;
   }): Promise<Convert> {
     const [convert] = await db.insert(converts).values({
       churchId,
@@ -713,6 +724,7 @@ export class DatabaseStorage implements IStorage {
       ageGroup: data.ageGroup || null,
       isChurchMember: data.isChurchMember || null,
       prayerRequest: data.prayerRequest || null,
+      customFieldData: data.customFieldData || null,
       selfSubmitted: "true",
       createdByUserId: null,
     }).returning();
@@ -1361,6 +1373,7 @@ export class DatabaseStorage implements IStorage {
     gender?: string;
     ageGroup?: string;
     notes?: string;
+    customFieldData?: Record<string, any>;
   }): Promise<NewMember> {
     const [newMember] = await db.insert(newMembers).values({
       churchId,
@@ -1374,6 +1387,7 @@ export class DatabaseStorage implements IStorage {
       gender: data.gender || null,
       ageGroup: data.ageGroup || null,
       notes: data.notes || null,
+      customFieldData: data.customFieldData || null,
       selfSubmitted: "true",
       createdByUserId: null,
     }).returning();
@@ -1510,6 +1524,7 @@ export class DatabaseStorage implements IStorage {
     gender?: string;
     memberSince?: string;
     notes?: string;
+    customFieldData?: Record<string, any>;
   }): Promise<Member> {
     const [member] = await db.insert(members).values({
       churchId,
@@ -1523,6 +1538,7 @@ export class DatabaseStorage implements IStorage {
       gender: data.gender || null,
       memberSince: data.memberSince || null,
       notes: data.notes || null,
+      customFieldData: data.customFieldData || null,
       selfSubmitted: "true",
       createdByUserId: null,
     }).returning();
@@ -2480,6 +2496,47 @@ export class DatabaseStorage implements IStorage {
         eq(scheduledAnnouncements.status, "PENDING"),
         lte(scheduledAnnouncements.scheduledAt, beforeDate)
       ));
+  }
+
+  async getFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member"): Promise<FormConfiguration | undefined> {
+    const [config] = await db.select().from(formConfigurations)
+      .where(and(
+        eq(formConfigurations.churchId, churchId),
+        eq(formConfigurations.formType, formType)
+      ));
+    return config || undefined;
+  }
+
+  async getFormConfigurations(churchId: string): Promise<FormConfiguration[]> {
+    return await db.select().from(formConfigurations)
+      .where(eq(formConfigurations.churchId, churchId));
+  }
+
+  async upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration> {
+    const existing = await this.getFormConfiguration(churchId, formType);
+    if (existing) {
+      const [updated] = await db.update(formConfigurations)
+        .set({
+          description: data.description,
+          fieldConfig: data.fieldConfig,
+          customFields: data.customFields,
+          updatedAt: new Date(),
+        })
+        .where(eq(formConfigurations.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(formConfigurations)
+        .values({
+          churchId,
+          formType,
+          description: data.description,
+          fieldConfig: data.fieldConfig,
+          customFields: data.customFields,
+        })
+        .returning();
+      return created;
+    }
   }
 }
 

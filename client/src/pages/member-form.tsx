@@ -46,12 +46,26 @@ export default function MemberForm() {
   const token = params?.token;
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [customFieldData, setCustomFieldData] = useState<Record<string, any>>({});
+
+  const isFieldVisible = (key: string) => {
+    if (!church?.formConfig?.fieldConfig) return true;
+    const cfg = church.formConfig.fieldConfig.find((f: any) => f.key === key);
+    return cfg ? cfg.visible : true;
+  };
+
+  const getFieldLabel = (key: string, defaultLabel: string) => {
+    if (!church?.formConfig?.fieldConfig) return defaultLabel;
+    const cfg = church.formConfig.fieldConfig.find((f: any) => f.key === key);
+    return cfg?.label || defaultLabel;
+  };
 
   const { data: church, isLoading: churchLoading, error: churchError } = useQuery<{
     id: string;
     name: string;
     location: string | null;
     logoUrl: string | null;
+    formConfig: any;
   }>({
     queryKey: ["/api/public/church/member", token],
     queryFn: async () => {
@@ -83,7 +97,7 @@ export default function MemberForm() {
 
   const submitMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      await apiRequest("POST", `/api/public/church/member/${token}/submit`, data);
+      await apiRequest("POST", `/api/public/church/member/${token}/submit`, { ...data, customFieldData: Object.keys(customFieldData).length > 0 ? customFieldData : undefined });
     },
     onSuccess: () => {
       setSubmitted(true);
@@ -163,6 +177,9 @@ export default function MemberForm() {
             )}
             <CardTitle className="text-2xl">{t('publicForms.memberForm')}</CardTitle>
             <CardDescription>
+              {church?.formConfig?.description && (
+                <p className="mb-2">{church.formConfig.description}</p>
+              )}
               {t('publicForms.registerAsMember', { name: church.name })}
             </CardDescription>
           </CardHeader>
@@ -178,7 +195,7 @@ export default function MemberForm() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.firstName')} *</FormLabel>
+                        <FormLabel>{getFieldLabel('firstName', t('forms.firstName'))} *</FormLabel>
                         <FormControl>
                           <Input placeholder={t('forms.firstNameShort')} {...field} data-testid="input-firstname" />
                         </FormControl>
@@ -191,7 +208,7 @@ export default function MemberForm() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.lastName')} *</FormLabel>
+                        <FormLabel>{getFieldLabel('lastName', t('forms.lastName'))} *</FormLabel>
                         <FormControl>
                           <Input placeholder={t('forms.lastNameShort')} {...field} data-testid="input-lastname" />
                         </FormControl>
@@ -202,12 +219,13 @@ export default function MemberForm() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
+                  {isFieldVisible('phone') && (
                   <FormField
                     control={form.control}
                     name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.phone')}</FormLabel>
+                        <FormLabel>{getFieldLabel('phone', t('forms.phone'))}</FormLabel>
                         <FormControl>
                           <Input placeholder={t('forms.phoneNumberLabel')} {...field} data-testid="input-phone" />
                         </FormControl>
@@ -215,12 +233,14 @@ export default function MemberForm() {
                       </FormItem>
                     )}
                   />
+                  )}
+                  {isFieldVisible('email') && (
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.email')}</FormLabel>
+                        <FormLabel>{getFieldLabel('email', t('forms.email'))}</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder={t('forms.emailAddressLabel')} {...field} data-testid="input-email" />
                         </FormControl>
@@ -228,15 +248,17 @@ export default function MemberForm() {
                       </FormItem>
                     )}
                   />
+                  )}
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
+                  {isFieldVisible('gender') && (
                   <FormField
                     control={form.control}
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.gender')}</FormLabel>
+                        <FormLabel>{getFieldLabel('gender', t('forms.gender'))}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-gender">
@@ -252,12 +274,14 @@ export default function MemberForm() {
                       </FormItem>
                     )}
                   />
+                  )}
+                  {isFieldVisible('ageGroup') && (
                   <FormField
                     control={form.control}
                     name="ageGroup"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.ageGroup')}</FormLabel>
+                        <FormLabel>{getFieldLabel('ageGroup', t('forms.ageGroup'))}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-age-group">
@@ -275,15 +299,17 @@ export default function MemberForm() {
                       </FormItem>
                     )}
                   />
+                  )}
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
+                  {isFieldVisible('dateOfBirth') && (
                   <FormField
                     control={form.control}
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
+                        <FormLabel>{getFieldLabel('dateOfBirth', t('forms.dateOfBirth'))}</FormLabel>
                         <FormControl>
                           <DatePicker
                             value={field.value || ""}
@@ -296,12 +322,14 @@ export default function MemberForm() {
                       </FormItem>
                     )}
                   />
+                  )}
+                  {isFieldVisible('memberSince') && (
                   <FormField
                     control={form.control}
                     name="memberSince"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('forms.memberSince')}</FormLabel>
+                        <FormLabel>{getFieldLabel('memberSince', t('forms.memberSince'))}</FormLabel>
                         <FormControl>
                           <DatePicker
                             value={field.value || ""}
@@ -314,14 +342,16 @@ export default function MemberForm() {
                       </FormItem>
                     )}
                   />
+                  )}
                 </div>
 
+                {isFieldVisible('country') && (
                 <FormField
                   control={form.control}
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('forms.country')}</FormLabel>
+                      <FormLabel>{getFieldLabel('country', t('forms.country'))}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-country">
@@ -340,13 +370,15 @@ export default function MemberForm() {
                     </FormItem>
                   )}
                 />
+                )}
 
+                {isFieldVisible('address') && (
                 <FormField
                   control={form.control}
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('forms.address')}</FormLabel>
+                      <FormLabel>{getFieldLabel('address', t('forms.address'))}</FormLabel>
                       <FormControl>
                         <Textarea placeholder={t('publicForms.fullAddress')} {...field} data-testid="input-address" />
                       </FormControl>
@@ -354,13 +386,15 @@ export default function MemberForm() {
                     </FormItem>
                   )}
                 />
+                )}
 
+                {isFieldVisible('notes') && (
                 <FormField
                   control={form.control}
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('publicForms.additionalNotesAndPrayer')}</FormLabel>
+                      <FormLabel>{getFieldLabel('notes', t('publicForms.additionalNotesAndPrayer'))}</FormLabel>
                       <FormControl>
                         <Textarea placeholder={t('publicForms.anyAdditionalInfo')} {...field} data-testid="input-notes" />
                       </FormControl>
@@ -368,6 +402,55 @@ export default function MemberForm() {
                     </FormItem>
                   )}
                 />
+                )}
+
+                {church?.formConfig?.customFields?.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t">
+                    {church.formConfig.customFields.map((cf: any) => (
+                      <div key={cf.id} className="space-y-2">
+                        <label className="text-sm font-medium">
+                          {cf.label}{cf.required ? ' *' : ''}
+                        </label>
+                        {cf.type === 'text' && (
+                          <Input
+                            value={customFieldData[cf.id] || ''}
+                            onChange={(e) => setCustomFieldData(prev => ({ ...prev, [cf.id]: e.target.value }))}
+                            data-testid={`input-custom-${cf.id}`}
+                          />
+                        )}
+                        {cf.type === 'dropdown' && (
+                          <Select
+                            value={customFieldData[cf.id] || ''}
+                            onValueChange={(v) => setCustomFieldData(prev => ({ ...prev, [cf.id]: v }))}
+                          >
+                            <SelectTrigger data-testid={`select-custom-${cf.id}`}>
+                              <SelectValue placeholder="Select..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(cf.options || []).map((opt: string) => (
+                                <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                        {cf.type === 'yes_no' && (
+                          <Select
+                            value={customFieldData[cf.id] || ''}
+                            onValueChange={(v) => setCustomFieldData(prev => ({ ...prev, [cf.id]: v }))}
+                          >
+                            <SelectTrigger data-testid={`select-custom-${cf.id}`}>
+                              <SelectValue placeholder="Select..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Yes">Yes</SelectItem>
+                              <SelectItem value="No">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <Button
                   type="submit"

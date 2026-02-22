@@ -22,6 +22,9 @@ export const notificationMethodEnum = pgEnum("notification_method", ["email", "s
 // Subscription status enum
 export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "past_due", "suspended", "canceled", "free"]);
 
+// Form type enum for form configurations
+export const formTypeEnum = pgEnum("form_type", ["convert", "new_member", "member"]);
+
 // Scheduled announcement status enum
 export const scheduledAnnouncementStatusEnum = pgEnum("scheduled_announcement_status", ["PENDING", "SENT", "FAILED", "CANCELLED"]);
 
@@ -76,6 +79,7 @@ export const converts = pgTable("converts", {
   ageGroup: text("age_group"),
   isChurchMember: text("is_church_member"),
   prayerRequest: text("prayer_request"),
+  customFieldData: jsonb("custom_field_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -115,6 +119,7 @@ export const newMembers = pgTable("new_members", {
   followUpStage: followUpStageEnum("follow_up_stage").notNull().default("NEW"),
   lastFollowUpCompletedAt: timestamp("last_follow_up_completed_at"),
   selfSubmitted: text("self_submitted").default("false"),
+  customFieldData: jsonb("custom_field_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -154,6 +159,7 @@ export const members = pgTable("members", {
   memberSince: date("member_since"),
   notes: text("notes"),
   selfSubmitted: text("self_submitted").default("false"),
+  customFieldData: jsonb("custom_field_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -487,6 +493,17 @@ export const journalEntries = pgTable("journal_entries", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Form Configurations table - stores per-ministry form customization
+export const formConfigurations = pgTable("form_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  formType: formTypeEnum("form_type").notNull(),
+  description: text("description"),
+  fieldConfig: jsonb("field_config").notNull().default(sql`'[]'::jsonb`),
+  customFields: jsonb("custom_fields").notNull().default(sql`'[]'::jsonb`),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertChurchSchema = createInsertSchema(churches).omit({
   id: true,
@@ -627,6 +644,38 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
   updatedAt: true,
 });
 
+export const insertFormConfigurationSchema = createInsertSchema(formConfigurations).omit({
+  id: true,
+  updatedAt: true,
+});
+
+// Form field config type definitions
+export const formFieldConfigSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  visible: z.boolean().default(true),
+  required: z.boolean().default(false),
+  locked: z.boolean().default(false),
+});
+
+export const customFieldSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  type: z.enum(["text", "dropdown", "yes_no"]),
+  required: z.boolean().default(false),
+  options: z.array(z.string()).optional(),
+});
+
+export const formConfigUpdateSchema = z.object({
+  description: z.string().optional(),
+  fieldConfig: z.array(formFieldConfigSchema),
+  customFields: z.array(customFieldSchema),
+});
+
+export type FormFieldConfig = z.infer<typeof formFieldConfigSchema>;
+export type CustomField = z.infer<typeof customFieldSchema>;
+export type FormConfigUpdate = z.infer<typeof formConfigUpdateSchema>;
+
 // Public convert submission schema (for self-submissions via church link)
 export const publicConvertSubmissionSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -641,6 +690,7 @@ export const publicConvertSubmissionSchema = z.object({
   ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
   isChurchMember: z.enum(["Yes", "No"]).optional(),
   prayerRequest: z.string().optional(),
+  customFieldData: z.record(z.string(), z.any()).optional(),
 });
 
 export type PublicConvertSubmission = z.infer<typeof publicConvertSubmissionSchema>;
@@ -657,6 +707,7 @@ export const publicNewMemberSubmissionSchema = z.object({
   gender: z.enum(["Male", "Female"]).optional(),
   ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
   notes: z.string().optional(),
+  customFieldData: z.record(z.string(), z.any()).optional(),
 });
 
 export type PublicNewMemberSubmission = z.infer<typeof publicNewMemberSubmissionSchema>;
@@ -674,6 +725,7 @@ export const publicMemberSubmissionSchema = z.object({
   ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above"]).optional(),
   memberSince: z.string().optional(),
   notes: z.string().optional(),
+  customFieldData: z.record(z.string(), z.any()).optional(),
 });
 
 export type PublicMemberSubmission = z.infer<typeof publicMemberSubmissionSchema>;
@@ -771,6 +823,9 @@ export type InsertMemberPrayerRequest = z.infer<typeof insertMemberPrayerRequest
 
 export type JournalEntry = typeof journalEntries.$inferSelect;
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
+
+export type FormConfiguration = typeof formConfigurations.$inferSelect;
+export type InsertFormConfiguration = z.infer<typeof insertFormConfigurationSchema>;
 
 // Member claim account schema
 export const claimAccountSchema = z.object({
