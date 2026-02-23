@@ -80,7 +80,6 @@ export function AppSidebar() {
         { title: t('sidebar.converts'), url: "/ministry-admin/converts", icon: UserPlus },
         { title: t('sidebar.newMembersGuests'), url: "/ministry-admin/new-members", icon: Users },
         { title: t('sidebar.members'), url: "/ministry-admin/members", icon: Church },
-        { title: t('sidebar.memberAccounts'), url: "/ministry-admin/member-accounts", icon: UserCog },
       ],
     },
     {
@@ -97,6 +96,7 @@ export function AppSidebar() {
         { title: t('sidebar.prayerRequests'), url: "/ministry-admin/prayer-requests", icon: HandHeart },
         { title: t('sidebar.contactRequests'), url: "/ministry-admin/contact-requests", icon: MessageSquare },
         { title: t('sidebar.manageLeaders'), url: "/ministry-admin/leaders", icon: ClipboardList },
+        { title: t('sidebar.memberAccounts'), url: "/ministry-admin/member-accounts", icon: UserCog },
       ],
     },
     {
@@ -122,7 +122,6 @@ export function AppSidebar() {
         { title: t('sidebar.myConverts'), url: "/leader/converts", icon: UserPlus },
         { title: t('sidebar.newMembersGuests'), url: "/leader/new-members", icon: Users },
         { title: t('sidebar.members'), url: "/leader/members", icon: Church },
-        { title: t('sidebar.memberAccounts'), url: "/leader/member-accounts", icon: UserCog },
       ],
     },
     {
@@ -138,6 +137,7 @@ export function AppSidebar() {
       items: [
         { title: t('sidebar.prayerRequests'), url: "/leader/prayer-requests", icon: HandHeart },
         { title: t('sidebar.contactRequests'), url: "/leader/contact-requests", icon: MessageSquare },
+        { title: t('sidebar.memberAccounts'), url: "/leader/member-accounts", icon: UserCog },
       ],
     },
     {
