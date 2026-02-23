@@ -455,7 +455,7 @@ export interface IStorage {
   // Form Configurations
   getFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member"): Promise<FormConfiguration | undefined>;
   getFormConfigurations(churchId: string): Promise<FormConfiguration[]>;
-  upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { title?: string; description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration>;
+  upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { title?: string; heroTitle?: string; description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration>;
 
   // Password Reset Tokens
   createPasswordResetToken(email: string, tokenHash: string, accountType: "staff" | "member", expiresAt: Date): Promise<PasswordResetToken>;
@@ -2520,12 +2520,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(formConfigurations.churchId, churchId));
   }
 
-  async upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration> {
+  async upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { title?: string; heroTitle?: string; description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration> {
     const existing = await this.getFormConfiguration(churchId, formType);
     if (existing) {
       const [updated] = await db.update(formConfigurations)
         .set({
           title: data.title,
+          heroTitle: data.heroTitle,
           description: data.description,
           fieldConfig: data.fieldConfig,
           customFields: data.customFields,
@@ -2540,6 +2541,7 @@ export class DatabaseStorage implements IStorage {
           churchId,
           formType,
           title: data.title,
+          heroTitle: data.heroTitle,
           description: data.description,
           fieldConfig: data.fieldConfig,
           customFields: data.customFields,

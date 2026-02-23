@@ -163,18 +163,25 @@ export default function NewMemberForm() {
     <div className="min-h-screen bg-background">
       <PublicNav />
       <div className="container max-w-lg mx-auto py-8 px-4">
+        <div className="text-center mb-8">
+          {church.logoUrl ? (
+            <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden">
+              <img
+                src={church.logoUrl}
+                alt={church.name}
+                className="w-full h-full object-cover"
+                data-testid="img-church-logo"
+              />
+            </div>
+          ) : (
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
+              <Church className="h-8 w-8 text-primary" />
+            </div>
+          )}
+          <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-hero-title">{church?.formConfig?.heroTitle || t('publicForms.welcomeNewMember')}</h1>
+        </div>
         <Card>
           <CardHeader className="text-center">
-            {church.logoUrl && (
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden">
-                <img
-                  src={church.logoUrl}
-                  alt={church.name}
-                  className="w-full h-full object-cover"
-                  data-testid="img-church-logo"
-                />
-              </div>
-            )}
             <CardTitle className="text-2xl">{church?.formConfig?.title || t('publicForms.newMemberForm')}</CardTitle>
             <CardDescription>
               {church?.formConfig?.description && (

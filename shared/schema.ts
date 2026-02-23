@@ -499,6 +499,7 @@ export const formConfigurations = pgTable("form_configurations", {
   churchId: varchar("church_id").notNull().references(() => churches.id),
   formType: formTypeEnum("form_type").notNull(),
   title: text("title"),
+  heroTitle: text("hero_title"),
   description: text("description"),
   fieldConfig: jsonb("field_config").notNull().default(sql`'[]'::jsonb`),
   customFields: jsonb("custom_fields").notNull().default(sql`'[]'::jsonb`),
@@ -684,6 +685,7 @@ export const customFieldSchema = z.object({
 
 export const formConfigUpdateSchema = z.object({
   title: z.string().optional(),
+  heroTitle: z.string().optional(),
   description: z.string().optional(),
   fieldConfig: z.array(formFieldConfigSchema),
   customFields: z.array(customFieldSchema),

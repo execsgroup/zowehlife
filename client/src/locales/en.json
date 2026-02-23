@@ -1087,6 +1087,8 @@
     "invalidLink": "This registration link is invalid or has expired.",
     "returnToHome": "Return to Home",
     "welcomeFamily": "Welcome to the Family!",
+    "welcomeNewMember": "Welcome! We're Glad You're Here",
+    "welcomeMember": "Welcome to Our Community!",
     "celebrateDecision": "We celebrate your decision to accept Jesus Christ as your Lord and Savior.",
     "rededicateHonor": "If you've chosen to rededicate your life to Him, we honor that commitment.",
     "godKnowsYou": "God knows you completely, and this is the beginning of growing in a personal relationship with Him.",
@@ -1489,7 +1491,7 @@
     "salvationForm": "Salvation Form",
     "newMemberForm": "New Member Form",
     "memberForm": "Member Form",
-    "formTitleAndDescription": "Form Title & Description",
+    "formTitleAndDescription": "Welcome Heading, Title & Description",
     "formTitle": "Form Title",
     "formTitlePlaceholder": "Enter a custom title for this form...",
     "formDescription": "Form Description",
@@ -1516,7 +1518,9 @@
     "resetToDefault": "Reset to Default",
     "resetConfirm": "Are you sure you want to reset to default settings?",
     "optionPlaceholder": "Enter option...",
-    "fieldLabelPlaceholder": "Enter field label..."
+    "fieldLabelPlaceholder": "Enter field label...",
+    "heroTitle": "Welcome Heading",
+    "heroTitleHelp": "The large heading displayed at the top of the public form page."
   },
   "forgotPassword": {
     "title": "Forgot Password",

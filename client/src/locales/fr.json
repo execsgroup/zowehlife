@@ -1035,6 +1035,8 @@
     "invalidLink": "Ce lien d'enregistrement est invalide ou a expiré.",
     "returnToHome": "Retour à l'Accueil",
     "welcomeFamily": "Bienvenue dans la famille !",
+    "welcomeNewMember": "Bienvenue ! Nous Sommes Heureux de Vous Accueillir",
+    "welcomeMember": "Bienvenue dans Notre Communauté !",
     "celebrateDecision": "Nous célébrons votre décision de foi.",
     "rededicateHonor": "C'est un honneur que vous ayez redédié votre vie au Christ.",
     "godKnowsYou": "Dieu vous connaît et vous aime.",
@@ -1489,7 +1491,7 @@
     "salvationForm": "Formulaire de Salut",
     "newMemberForm": "Formulaire de Nouveau Membre",
     "memberForm": "Formulaire de Membre",
-    "formTitleAndDescription": "Titre et Description du Formulaire",
+    "formTitleAndDescription": "Titre d'Accueil, Titre et Description",
     "formTitle": "Titre du Formulaire",
     "formTitlePlaceholder": "Entrez un titre personnalisé pour ce formulaire...",
     "formDescription": "Description du Formulaire",
@@ -1516,7 +1518,9 @@
     "resetToDefault": "Réinitialiser aux Paramètres par Défaut",
     "resetConfirm": "Êtes-vous sûr de vouloir réinitialiser aux paramètres par défaut?",
     "optionPlaceholder": "Entrez une option...",
-    "fieldLabelPlaceholder": "Entrez l'étiquette du champ..."
+    "fieldLabelPlaceholder": "Entrez l'étiquette du champ...",
+    "heroTitle": "Titre d'Accueil",
+    "heroTitleHelp": "Le grand titre affiché en haut de la page du formulaire public."
   },
   "forgotPassword": {
     "title": "Mot de Passe Oublié",

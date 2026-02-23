@@ -39,6 +39,7 @@ interface FormConfig {
   churchId: string;
   formType: string;
   title: string | null;
+  heroTitle: string | null;
   description: string | null;
   fieldConfig: FormFieldConfig[];
   customFields: CustomField[];
@@ -101,6 +102,15 @@ function getDefaultTitle(formType: string, t: (key: string) => string): string {
     case "convert": return t('publicForms.salvationForm');
     case "new_member": return t('publicForms.newMemberForm');
     case "member": return t('publicForms.memberForm');
+    default: return "";
+  }
+}
+
+function getDefaultHeroTitle(formType: string, t: (key: string) => string): string {
+  switch (formType) {
+    case "convert": return t('publicForms.welcomeFamily');
+    case "new_member": return t('publicForms.welcomeNewMember');
+    case "member": return t('publicForms.welcomeMember');
     default: return "";
   }
 }
@@ -197,6 +207,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
 
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [title, setTitle] = useState(config?.title || "");
+  const [heroTitle, setHeroTitle] = useState(config?.heroTitle || "");
   const [description, setDescription] = useState(config?.description || "");
   const [fieldConfig, setFieldConfig] = useState<FormFieldConfig[]>(
     config?.fieldConfig && (config.fieldConfig as FormFieldConfig[]).length > 0
@@ -216,6 +227,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
 
   useEffect(() => {
     setTitle(config?.title || "");
+    setHeroTitle(config?.heroTitle || "");
     setDescription(config?.description || "");
     setFieldConfig(
       config?.fieldConfig && (config.fieldConfig as FormFieldConfig[]).length > 0
@@ -244,6 +256,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
     mutationFn: async () => {
       await apiRequest("PUT", `/api/ministry-admin/form-configurations/${formType}`, {
         title: title || undefined,
+        heroTitle: heroTitle || undefined,
         description: description || undefined,
         fieldConfig,
         customFields,
@@ -323,6 +336,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
 
   const handleReset = () => {
     setTitle("");
+    setHeroTitle("");
     setDescription("");
     setFieldConfig(getDefaultFields(formType));
     setCustomFields([]);
@@ -340,6 +354,16 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
         }
       >
         <div className="space-y-4">
+          <div>
+            <Label className="text-xs mb-1 block">{t('formSettings.heroTitle')}</Label>
+            <Input
+              value={heroTitle}
+              onChange={(e) => setHeroTitle(e.target.value)}
+              placeholder={getDefaultHeroTitle(formType, t)}
+              data-testid="input-hero-title"
+            />
+            <p className="text-xs text-muted-foreground mt-1">{t('formSettings.heroTitleHelp')}</p>
+          </div>
           <div>
             <Label className="text-xs mb-1 block">{t('formSettings.formTitle')}</Label>
             <Input

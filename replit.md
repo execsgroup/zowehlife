@@ -116,6 +116,7 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Routes: `/leader/announcements` and `/ministry-admin/announcements`
     - API: `POST /api/{role}/announcements/send`, `POST /api/{role}/announcements/schedule`, `GET /api/{role}/announcements/scheduled`, `PATCH /api/{role}/announcements/scheduled/:id/cancel`, `GET /api/{role}/announcements/recipient-counts`
 - **Form Customization**: Ministry Admins can customize public registration forms (Salvation, New Member, Member):
+    - Edit welcome heading (hero title) displayed prominently at the top of each public form page
     - Edit form titles displayed on public forms (falls back to default if empty)
     - Edit form descriptions displayed to respondents
     - Drag-and-drop reordering of standard fields using @dnd-kit

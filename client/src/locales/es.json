@@ -1035,6 +1035,8 @@
     "invalidLink": "Este enlace de registro es inválido o ha expirado.",
     "returnToHome": "Volver al Inicio",
     "welcomeFamily": "¡Bienvenido a la familia!",
+    "welcomeNewMember": "¡Bienvenido! Nos Alegra Que Estés Aquí",
+    "welcomeMember": "¡Bienvenido a Nuestra Comunidad!",
     "celebrateDecision": "Celebramos su decisión de fe.",
     "rededicateHonor": "Es un honor que haya rededicado su vida a Cristo.",
     "godKnowsYou": "Dios lo conoce y lo ama.",
@@ -1489,7 +1491,7 @@
     "salvationForm": "Formulario de Salvación",
     "newMemberForm": "Formulario de Nuevo Miembro",
     "memberForm": "Formulario de Miembro",
-    "formTitleAndDescription": "Título y Descripción del Formulario",
+    "formTitleAndDescription": "Encabezado de Bienvenida, Título y Descripción",
     "formTitle": "Título del Formulario",
     "formTitlePlaceholder": "Ingresa un título personalizado para este formulario...",
     "formDescription": "Descripción del Formulario",
@@ -1516,7 +1518,9 @@
     "resetToDefault": "Restablecer a Predeterminado",
     "resetConfirm": "¿Estás seguro de que deseas restablecer a la configuración predeterminada?",
     "optionPlaceholder": "Ingresa opción...",
-    "fieldLabelPlaceholder": "Ingresa etiqueta del campo..."
+    "fieldLabelPlaceholder": "Ingresa etiqueta del campo...",
+    "heroTitle": "Encabezado de Bienvenida",
+    "heroTitleHelp": "El encabezado grande que se muestra en la parte superior de la página del formulario público."
   },
   "forgotPassword": {
     "title": "Olvidé mi Contraseña",

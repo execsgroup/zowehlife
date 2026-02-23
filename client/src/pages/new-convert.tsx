@@ -242,7 +242,7 @@ export default function NewConvert() {
                 <Heart className="h-8 w-8 text-primary" />
               </div>
             )}
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">{t('publicForms.welcomeFamily')}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{church?.formConfig?.heroTitle || t('publicForms.welcomeFamily')}</h1>
           </div>
 
           <Card>
