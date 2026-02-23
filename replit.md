@@ -116,14 +116,16 @@ The application is built with a clear separation of concerns, utilizing a React 
     - Routes: `/leader/announcements` and `/ministry-admin/announcements`
     - API: `POST /api/{role}/announcements/send`, `POST /api/{role}/announcements/schedule`, `GET /api/{role}/announcements/scheduled`, `PATCH /api/{role}/announcements/scheduled/:id/cancel`, `GET /api/{role}/announcements/recipient-counts`
 - **Form Customization**: Ministry Admins can customize public registration forms (Salvation, New Member, Member):
+    - Edit form titles displayed on public forms (falls back to default if empty)
     - Edit form descriptions displayed to respondents
+    - Drag-and-drop reordering of standard fields using @dnd-kit
     - Show/hide standard fields (firstName and lastName are locked and always visible)
     - Rename field labels for any standard field
     - Toggle fields as required/optional
     - Add custom fields: Text, Dropdown (with configurable options), Yes/No
     - Custom fields support required validation with error messages
     - Custom field responses stored as JSONB in `customFieldData` column on converts/new_members/members tables
-    - Form configurations stored in `form_configurations` table (churchId + formType unique combo)
+    - Form configurations stored in `form_configurations` table (churchId + formType unique combo, with title column)
     - Admin UI: Tabbed page at `/ministry-admin/form-settings` with tabs for each form type
     - Public forms dynamically render based on saved configuration (backward compatible - all fields shown if no config)
     - API: `GET/PUT /api/ministry-admin/form-configurations/:formType`
