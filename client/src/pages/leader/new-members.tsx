@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type NewMember } from "@shared/schema";
 import { Plus, Search, UserPlus, Phone, Mail, Loader2, CalendarPlus, Eye, ClipboardCheck, Clock, Church, Users2, Users, UserMinus, Video, Trash2, FileSpreadsheet } from "lucide-react";
@@ -105,6 +106,7 @@ type FollowUpNoteData = z.infer<typeof followUpNoteSchemaBase>;
 
 export default function LeaderNewMembers() {
   const { t } = useTranslation();
+  const apiBasePath = useApiBasePath();
 
   const newMemberFormSchema = z.object({
     firstName: z.string().min(1, t('validation.firstNameRequired')),
@@ -171,23 +173,23 @@ export default function LeaderNewMembers() {
   };
 
   const { data: newMembers, isLoading } = useQuery<NewMember[]>({
-    queryKey: ["/api/leader/new-members"],
+    queryKey: [`${apiBasePath}/new-members`],
   });
 
   const { data: church } = useQuery<{ id: string; name: string }>({
-    queryKey: ["/api/leader/church"],
+    queryKey: [`${apiBasePath}/church`],
   });
 
   const removeMutation = useMutation({
     mutationFn: async (newMemberId: string) => {
-      await apiRequest("DELETE", `/api/leader/remove/new_member/${newMemberId}`);
+      await apiRequest("DELETE", `${apiBasePath}/remove/new_member/${newMemberId}`);
     },
     onSuccess: async () => {
       toast({
         title: t('newMembers.newMemberRemoved'),
         description: t('newMembers.newMemberRemovedDesc'),
       });
-      await queryClient.refetchQueries({ queryKey: ["/api/leader/new-members"] });
+      await queryClient.refetchQueries({ queryKey: [`${apiBasePath}/new-members`] });
       setRemoveDialogOpen(false);
       setNewMemberToRemove(null);
     },
@@ -234,7 +236,7 @@ export default function LeaderNewMembers() {
   const followUpNoteMutation = useMutation({
     mutationFn: async (data: FollowUpNoteData) => {
       if (!selectedNewMember) return null;
-      const response = await apiRequest("POST", `/api/leader/new-members/${selectedNewMember.id}/checkins`, data);
+      const response = await apiRequest("POST", `${apiBasePath}/new-members/${selectedNewMember.id}/checkins`, data);
       return response.json();
     },
     onSuccess: (result) => {
@@ -242,7 +244,7 @@ export default function LeaderNewMembers() {
         title: t('newMembers.noteAdded'),
         description: t('newMembers.noteAddedDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
       setFollowUpNoteDialogOpen(false);
       followUpNoteForm.reset();
       
@@ -288,14 +290,14 @@ export default function LeaderNewMembers() {
 
   const createMutation = useMutation({
     mutationFn: async (data: NewMemberFormData) => {
-      await apiRequest("POST", "/api/leader/new-members", data);
+      await apiRequest("POST", `${apiBasePath}/new-members`, data);
     },
     onSuccess: () => {
       toast({
         title: t('newMembers.newMemberAdded'),
         description: t('newMembers.newMemberAddedDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
       setDialogOpen(false);
       form.reset();
     },
@@ -310,15 +312,15 @@ export default function LeaderNewMembers() {
 
   const convertToMemberMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("POST", `/api/leader/new-members/${id}/convert-to-member`);
+      await apiRequest("POST", `${apiBasePath}/new-members/${id}/convert-to-member`);
     },
     onSuccess: () => {
       toast({
         title: t('newMembers.movedToMembers'),
         description: t('newMembers.movedToMembersDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
       setConvertToMemberDialogOpen(false);
       setSelectedNewMember(null);
     },
@@ -333,15 +335,15 @@ export default function LeaderNewMembers() {
 
   const convertToGuestMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("POST", `/api/leader/new-members/${id}/convert-to-guest`);
+      await apiRequest("POST", `${apiBasePath}/new-members/${id}/convert-to-guest`);
     },
     onSuccess: () => {
       toast({
         title: t('newMembers.movedToGuests'),
         description: t('newMembers.movedToGuestsDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/guests"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/guests`] });
       setConvertToGuestDialogOpen(false);
       setSelectedNewMember(null);
     },
@@ -380,7 +382,7 @@ export default function LeaderNewMembers() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
 
-    const response = await fetch(`/api/leader/new-members/export-excel?${params}`);
+    const response = await fetch(`${apiBasePath}/new-members/export-excel?${params}`);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1104,11 +1106,13 @@ function TimelineDialog({
   onOpenChange: (open: boolean) => void;
   newMember: NewMember | null;
 }) {
+  const apiBasePath = useApiBasePath();
+
   const { data: checkins, isLoading } = useQuery({
-    queryKey: ["/api/leader/new-members", newMember?.id, "checkins"],
+    queryKey: [`${apiBasePath}/new-members`, newMember?.id, "checkins"],
     queryFn: async () => {
       if (!newMember) return [];
-      const res = await fetch(`/api/leader/new-members/${newMember.id}/checkins`);
+      const res = await fetch(`${apiBasePath}/new-members/${newMember.id}/checkins`);
       if (!res.ok) throw new Error("Failed to fetch checkins");
       return res.json();
     },

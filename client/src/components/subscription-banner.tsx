@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { AlertTriangle, CreditCard } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,9 @@ interface SubscriptionData {
 
 export function SubscriptionBanner() {
   const { user } = useAuth();
+  const apiBasePath = useApiBasePath();
 
-  const apiPath = user?.role === "MINISTRY_ADMIN" ? "/api/ministry-admin/subscription" : "/api/leader/subscription";
+  const apiPath = `${apiBasePath}/subscription`;
 
   const { data: subscription } = useQuery<SubscriptionData>({
     queryKey: [apiPath],

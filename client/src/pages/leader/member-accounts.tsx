@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Search, Users, Mail, RefreshCw, UserCheck, UserX, Loader2, Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -41,6 +42,7 @@ interface MemberAccountInfo {
 export default function LeaderMemberAccounts() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const apiBasePath = useApiBasePath();
   const [search, setSearch] = useState("");
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [suspendDialog, setSuspendDialog] = useState<{ open: boolean; account: MemberAccountInfo | null; action: "ACTIVE" | "SUSPENDED" }>({
@@ -50,13 +52,13 @@ export default function LeaderMemberAccounts() {
   });
 
   const { data: accounts, isLoading } = useQuery<MemberAccountInfo[]>({
-    queryKey: ["/api/leader/member-accounts"],
+    queryKey: [`${apiBasePath}/member-accounts`],
   });
 
   const resendClaimMutation = useMutation({
     mutationFn: async (accountId: string) => {
       setResendingId(accountId);
-      await apiRequest("POST", `/api/leader/member-accounts/${accountId}/resend-claim`);
+      await apiRequest("POST", `${apiBasePath}/member-accounts/${accountId}/resend-claim`);
     },
     onSuccess: () => {
       toast({
@@ -77,10 +79,10 @@ export default function LeaderMemberAccounts() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: "ACTIVE" | "SUSPENDED" }) => {
-      await apiRequest("PATCH", `/api/leader/member-accounts/${id}/status`, { status });
+      await apiRequest("PATCH", `${apiBasePath}/member-accounts/${id}/status`, { status });
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/member-accounts"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/member-accounts`] });
       toast({
         title: variables.status === "SUSPENDED" ? t('common.suspended') : t('statusLabels.active'),
         description: t('common.updatedSuccessfully'),

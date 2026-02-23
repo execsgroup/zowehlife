@@ -979,7 +979,7 @@ export async function registerRoutes(
   // ==================== LEADER MEMBER ACCOUNT MANAGEMENT ====================
 
   // Get member accounts for ministry (leaders/admins only)
-  app.get("/api/leader/member-accounts", requireAuth, async (req, res) => {
+  async function handleGetMemberAccounts(req: Request, res: Response) {
     try {
       // Get ministry ID based on user role
       const user = await storage.getUser(req.session.userId!);
@@ -1024,10 +1024,13 @@ export async function registerRoutes(
       console.error("Failed to get member accounts:", error);
       res.status(500).json({ message: "Failed to get member accounts" });
     }
-  });
+  }
+
+  app.get("/api/leader/member-accounts", requireAuth, handleGetMemberAccounts);
+  app.get("/api/ministry-admin/member-accounts", requireAuth, handleGetMemberAccounts);
 
   // Resend claim token for a pending member account
-  app.post("/api/leader/member-accounts/:id/resend-claim", requireAuth, async (req, res) => {
+  async function handleResendClaim(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -1081,10 +1084,13 @@ export async function registerRoutes(
       console.error("Failed to resend claim token:", error);
       res.status(500).json({ message: "Failed to resend claim token" });
     }
-  });
+  }
+
+  app.post("/api/leader/member-accounts/:id/resend-claim", requireAuth, handleResendClaim);
+  app.post("/api/ministry-admin/member-accounts/:id/resend-claim", requireAuth, handleResendClaim);
 
   // Update member account status (suspend/activate)
-  app.patch("/api/leader/member-accounts/:id/status", requireAuth, async (req, res) => {
+  async function handleUpdateMemberAccountStatus(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -1126,10 +1132,13 @@ export async function registerRoutes(
       console.error("Failed to update member account status:", error);
       res.status(500).json({ message: "Failed to update account status" });
     }
-  });
+  }
+
+  app.patch("/api/leader/member-accounts/:id/status", requireAuth, handleUpdateMemberAccountStatus);
+  app.patch("/api/ministry-admin/member-accounts/:id/status", requireAuth, handleUpdateMemberAccountStatus);
 
   // Remove a person from ministry by record type (convert, new_member, member)
-  app.delete("/api/leader/remove/:type/:recordId", requireAuth, async (req, res) => {
+  async function handleRemoveFromMinistry(req: Request, res: Response) {
     try {
       const { type, recordId } = req.params;
       
@@ -1249,10 +1258,13 @@ export async function registerRoutes(
       console.error("Failed to remove person from ministry:", error);
       res.status(500).json({ message: "Failed to remove person from ministry" });
     }
-  });
+  }
+
+  app.delete("/api/leader/remove/:type/:recordId", requireAuth, handleRemoveFromMinistry);
+  app.delete("/api/ministry-admin/remove/:type/:recordId", requireAuth, handleRemoveFromMinistry);
 
   // Remove a person from ministry (delete affiliation)
-  app.delete("/api/leader/affiliations/:id", requireAuth, async (req, res) => {
+  async function handleDeleteAffiliation(req: Request, res: Response) {
     try {
       const { id } = req.params;
       
@@ -1306,7 +1318,10 @@ export async function registerRoutes(
       console.error("Failed to remove person from ministry:", error);
       res.status(500).json({ message: "Failed to remove person from ministry" });
     }
-  });
+  }
+
+  app.delete("/api/leader/affiliations/:id", requireAuth, handleDeleteAffiliation);
+  app.delete("/api/ministry-admin/affiliations/:id", requireAuth, handleDeleteAffiliation);
 
   // ==================== PUBLIC ROUTES ====================
 
@@ -4711,7 +4726,7 @@ export async function registerRoutes(
   });
 
   // Get prayer requests for leader's church
-  app.get("/api/leader/prayer-requests", requireLeader, async (req, res) => {
+  async function handleGetPrayerRequests(req: Request, res: Response) {
     try {
       const user = (req as any).user;
       const church = await storage.getChurch(user.churchId);
@@ -4723,10 +4738,13 @@ export async function registerRoutes(
     } catch (error) {
       res.status(500).json({ message: "Failed to get prayer requests" });
     }
-  });
+  }
+
+  app.get("/api/leader/prayer-requests", requireLeader, handleGetPrayerRequests);
+  app.get("/api/ministry-admin/prayer-requests", requireMinistryAdmin, handleGetPrayerRequests);
 
   // Get contact requests for leader's church
-  app.get("/api/leader/contact-requests", requireLeader, async (req, res) => {
+  async function handleGetContactRequests(req: Request, res: Response) {
     try {
       const user = (req as any).user;
       const church = await storage.getChurch(user.churchId);
@@ -4738,7 +4756,10 @@ export async function registerRoutes(
     } catch (error) {
       res.status(500).json({ message: "Failed to get contact requests" });
     }
-  });
+  }
+
+  app.get("/api/leader/contact-requests", requireLeader, handleGetContactRequests);
+  app.get("/api/ministry-admin/contact-requests", requireMinistryAdmin, handleGetContactRequests);
 
   // Get leader's church info
   app.get("/api/leader/church", requireLeader, async (req, res) => {
@@ -5077,7 +5098,7 @@ export async function registerRoutes(
   });
 
   // Create convert
-  app.post("/api/leader/converts", requireLeader, async (req, res) => {
+  async function handleCreateConvert(req: Request, res: Response) {
     try {
       const user = (req as any).user;
 
@@ -5132,7 +5153,10 @@ export async function registerRoutes(
       }
       res.status(500).json({ message: "Failed to create convert" });
     }
-  });
+  }
+
+  app.post("/api/leader/converts", requireLeader, handleCreateConvert);
+  app.post("/api/ministry-admin/converts", requireMinistryAdmin, handleCreateConvert);
 
   // Update convert
   app.patch("/api/leader/converts/:id", requireLeader, async (req, res) => {
@@ -5818,7 +5842,7 @@ export async function registerRoutes(
   });
   
   // Create new member
-  app.post("/api/leader/new-members", requireLeader, async (req, res) => {
+  async function handleCreateNewMember(req: Request, res: Response) {
     try {
       const user = (req as any).user;
       
@@ -5884,10 +5908,13 @@ export async function registerRoutes(
       console.error("Error creating new member:", error);
       res.status(500).json({ message: "Failed to create new member" });
     }
-  });
+  }
+
+  app.post("/api/leader/new-members", requireLeader, handleCreateNewMember);
+  app.post("/api/ministry-admin/new-members", requireMinistryAdmin, handleCreateNewMember);
   
   // Update new member
-  app.patch("/api/leader/new-members/:id", requireLeader, async (req, res) => {
+  async function handleUpdateNewMember(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const user = (req as any).user;
@@ -5933,7 +5960,10 @@ export async function registerRoutes(
       console.error("Error updating new member:", error);
       res.status(500).json({ message: "Failed to update new member" });
     }
-  });
+  }
+
+  app.patch("/api/leader/new-members/:id", requireLeader, handleUpdateNewMember);
+  app.patch("/api/ministry-admin/new-members/:id", requireMinistryAdmin, handleUpdateNewMember);
   
   // Get new member checkins
   app.get("/api/leader/new-members/:id/checkins", requireLeader, async (req, res) => {
@@ -6287,7 +6317,7 @@ export async function registerRoutes(
   });
   
   // Create member
-  app.post("/api/leader/members", requireLeader, async (req, res) => {
+  async function handleCreateMember(req: Request, res: Response) {
     try {
       const user = (req as any).user;
       
@@ -6353,10 +6383,13 @@ export async function registerRoutes(
       console.error("Error creating member:", error);
       res.status(500).json({ message: "Failed to create member" });
     }
-  });
+  }
+
+  app.post("/api/leader/members", requireLeader, handleCreateMember);
+  app.post("/api/ministry-admin/members", requireMinistryAdmin, handleCreateMember);
   
   // Update member
-  app.patch("/api/leader/members/:id", requireLeader, async (req, res) => {
+  async function handleUpdateMember(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const user = (req as any).user;
@@ -6401,10 +6434,13 @@ export async function registerRoutes(
       console.error("Error updating member:", error);
       res.status(500).json({ message: "Failed to update member" });
     }
-  });
+  }
+
+  app.patch("/api/leader/members/:id", requireLeader, handleUpdateMember);
+  app.patch("/api/ministry-admin/members/:id", requireMinistryAdmin, handleUpdateMember);
   
   // Generate new member token for church
-  app.post("/api/leader/church/generate-new-member-token", requireLeader, async (req, res) => {
+  async function handleGenerateNewMemberToken(req: Request, res: Response) {
     try {
       const user = (req as any).user;
       const church = await storage.generateNewMemberTokenForChurch(user.churchId);
@@ -6421,10 +6457,13 @@ export async function registerRoutes(
       console.error("Error generating new member token:", error);
       res.status(500).json({ message: "Failed to generate token" });
     }
-  });
+  }
+
+  app.post("/api/leader/church/generate-new-member-token", requireLeader, handleGenerateNewMemberToken);
+  app.post("/api/ministry-admin/church/generate-new-member-token", requireMinistryAdmin, handleGenerateNewMemberToken);
   
   // Generate member token for church
-  app.post("/api/leader/church/generate-member-token", requireLeader, async (req, res) => {
+  async function handleGenerateMemberToken(req: Request, res: Response) {
     try {
       const user = (req as any).user;
       const church = await storage.generateMemberTokenForChurch(user.churchId);
@@ -6441,10 +6480,13 @@ export async function registerRoutes(
       console.error("Error generating member token:", error);
       res.status(500).json({ message: "Failed to generate token" });
     }
-  });
+  }
+
+  app.post("/api/leader/church/generate-member-token", requireLeader, handleGenerateMemberToken);
+  app.post("/api/ministry-admin/church/generate-member-token", requireMinistryAdmin, handleGenerateMemberToken);
   
   // Get church tokens for leader
-  app.get("/api/leader/church/tokens", requireLeader, async (req, res) => {
+  async function handleGetChurchTokens(req: Request, res: Response) {
     try {
       const user = (req as any).user;
       const church = await storage.getChurch(user.churchId);
@@ -6462,7 +6504,10 @@ export async function registerRoutes(
       console.error("Error fetching church tokens:", error);
       res.status(500).json({ message: "Failed to fetch tokens" });
     }
-  });
+  }
+
+  app.get("/api/leader/church/tokens", requireLeader, handleGetChurchTokens);
+  app.get("/api/ministry-admin/church/tokens", requireMinistryAdmin, handleGetChurchTokens);
 
   // ===== LEADER GUESTS ROUTES =====
   
@@ -6479,7 +6524,7 @@ export async function registerRoutes(
   });
 
   // Get single guest
-  app.get("/api/leader/guests/:id", requireLeader, async (req, res) => {
+  async function handleGetGuestById(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const user = (req as any).user;
@@ -6498,10 +6543,13 @@ export async function registerRoutes(
       console.error("Error fetching guest:", error);
       res.status(500).json({ message: "Failed to fetch guest" });
     }
-  });
+  }
+
+  app.get("/api/leader/guests/:id", requireLeader, handleGetGuestById);
+  app.get("/api/ministry-admin/guests/:id", requireMinistryAdmin, handleGetGuestById);
 
   // Create guest
-  app.post("/api/leader/guests", requireLeader, async (req, res) => {
+  async function handleCreateGuest(req: Request, res: Response) {
     try {
       const user = (req as any).user;
       const schema = z.object({
@@ -6549,10 +6597,13 @@ export async function registerRoutes(
       console.error("Error creating guest:", error);
       res.status(500).json({ message: "Failed to create guest" });
     }
-  });
+  }
+
+  app.post("/api/leader/guests", requireLeader, handleCreateGuest);
+  app.post("/api/ministry-admin/guests", requireMinistryAdmin, handleCreateGuest);
 
   // Update guest
-  app.patch("/api/leader/guests/:id", requireLeader, async (req, res) => {
+  async function handleUpdateGuest(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const user = (req as any).user;
@@ -6597,10 +6648,13 @@ export async function registerRoutes(
       console.error("Error updating guest:", error);
       res.status(500).json({ message: "Failed to update guest" });
     }
-  });
+  }
+
+  app.patch("/api/leader/guests/:id", requireLeader, handleUpdateGuest);
+  app.patch("/api/ministry-admin/guests/:id", requireMinistryAdmin, handleUpdateGuest);
 
   // Delete guest
-  app.delete("/api/leader/guests/:id", requireLeader, async (req, res) => {
+  async function handleDeleteGuest(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const user = (req as any).user;
@@ -6628,7 +6682,10 @@ export async function registerRoutes(
       console.error("Error deleting guest:", error);
       res.status(500).json({ message: "Failed to delete guest" });
     }
-  });
+  }
+
+  app.delete("/api/leader/guests/:id", requireLeader, handleDeleteGuest);
+  app.delete("/api/ministry-admin/guests/:id", requireMinistryAdmin, handleDeleteGuest);
 
   // ===== MEMBER CHECKINS ROUTES =====
 
@@ -7138,7 +7195,7 @@ export async function registerRoutes(
   // ===== NEW MEMBER CONVERSION ROUTES =====
 
   // Convert new member to member
-  app.post("/api/leader/new-members/:id/convert-to-member", requireLeader, async (req, res) => {
+  async function handleConvertToMember(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const user = (req as any).user;
@@ -7166,10 +7223,13 @@ export async function registerRoutes(
       console.error("Error converting to member:", error);
       res.status(500).json({ message: "Failed to convert to member" });
     }
-  });
+  }
+
+  app.post("/api/leader/new-members/:id/convert-to-member", requireLeader, handleConvertToMember);
+  app.post("/api/ministry-admin/new-members/:id/convert-to-member", requireMinistryAdmin, handleConvertToMember);
 
   // Convert new member to guest
-  app.post("/api/leader/new-members/:id/convert-to-guest", requireLeader, async (req, res) => {
+  async function handleConvertToGuest(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const user = (req as any).user;
@@ -7197,10 +7257,13 @@ export async function registerRoutes(
       console.error("Error converting to guest:", error);
       res.status(500).json({ message: "Failed to convert to guest" });
     }
-  });
+  }
+
+  app.post("/api/leader/new-members/:id/convert-to-guest", requireLeader, handleConvertToGuest);
+  app.post("/api/ministry-admin/new-members/:id/convert-to-guest", requireMinistryAdmin, handleConvertToGuest);
 
   // Update new member follow-up stage
-  app.patch("/api/leader/new-members/:id/follow-up-stage", requireLeader, async (req, res) => {
+  async function handleFollowUpStage(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const user = (req as any).user;
@@ -7239,7 +7302,10 @@ export async function registerRoutes(
       console.error("Error updating follow-up stage:", error);
       res.status(500).json({ message: "Failed to update follow-up stage" });
     }
-  });
+  }
+
+  app.patch("/api/leader/new-members/:id/follow-up-stage", requireLeader, handleFollowUpStage);
+  app.patch("/api/ministry-admin/new-members/:id/follow-up-stage", requireMinistryAdmin, handleFollowUpStage);
 
   // AI Text Generation endpoint
   const openai = new OpenAI({

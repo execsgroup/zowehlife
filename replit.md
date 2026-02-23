@@ -1,151 +1,62 @@
 # Zoweh Life
 
 ## Overview
-Zoweh Life is a ministry management web application designed to track new converts across multiple ministries. Its primary purpose is to streamline the process of spiritual growth and community integration. The application features a robust three-tier role system (Platform Admin, Ministry Admin, Leader) to manage ministry operations, approve leaders, and oversee convert follow-ups. The vision is to empower ministries with efficient tools for disciple-making, enhancing their reach and impact.
+Zoweh Life is a ministry management web application designed to track new converts across multiple ministries, empowering disciple-making. It features a three-tier role system (Platform Admin, Ministry Admin, Leader) to manage operations, approve leaders, and oversee convert follow-ups, aiming to enhance the reach and impact of ministries.
 
 ## User Preferences
 - Uses dark/light theme toggle
 - Mobile-responsive design with sidebar navigation for dashboard
+- **MANDATORY**: All new UI text in any new feature MUST use `t('key')` calls with translations added to all 4 locale files (`en.json`, `es.json`, `fr.json`, `pt.json`). Never hardcode English strings in components.
 
 ## System Architecture
-The application is built with a clear separation of concerns, utilizing a React frontend and an Express backend.
+The application uses a React frontend and an Express backend with a clear separation of concerns.
 
 ### UI/UX Decisions
-- **Frontend Framework**: React
-- **Styling**: TailwindCSS for utility-first styling.
-- **UI Components**: `shadcn/ui` for accessible and customizable UI components.
-- **Responsiveness**: Mobile-responsive design is a core principle, ensuring usability across various devices.
-- **Theming**: Enterprise Neutral theme with dark/light theme toggle.
-  - **Design Language**: Clean, structured enterprise admin UI — neutral-first with a single blue accent.
-  - **Light**: Background slate-50 (#F8FAFC), surfaces white, Primary Blue-600 (#2563EB), borders slate-200
-  - **Dark**: Background slate-950 (#020617), surfaces slate-900, Primary Blue-500 (#3B82F6), borders slate-800
-  - Semantic tokens: `coral` (red), `gold`, `success` (green) in tailwind.config.ts
-  - No gradients — borders/dividers used instead of shadows for visual separation
-  - Sidebar uses white background with blue active indicator
-  - Typography: Inter font, text-sm base, headings text-xl/text-2xl max
-  - **Reusable Layout Components**:
-    - `PageHeader` (`@/components/page-header`) — title, description, action buttons
-    - `Section` (`@/components/section`) — bordered container with optional header row, used instead of Card for operational content
-    - `DashboardLayout` — sidebar + topbar wrapper (compact 12px top bar)
-  - **Internationalization (i18n)**: Multi-language support using `react-i18next`
-    - Supported languages: English, Spanish (Español), French (Français), Portuguese (Português)
-    - Translation files: `client/src/locales/{en,es,fr,pt}.json`
-    - i18n config: `client/src/lib/i18n.ts`
-    - `LanguageToggle` component (`@/components/language-toggle`) — globe icon dropdown in PublicNav and DashboardLayout header
-    - Language preference persisted in localStorage (`appLanguage` key)
-    - Browser language auto-detected on first visit
-    - **MANDATORY**: All new UI text in any new feature MUST use `t('key')` calls with translations added to all 4 locale files (`en.json`, `es.json`, `fr.json`, `pt.json`). Never hardcode English strings in components.
+- **Frontend Framework**: React, styled with TailwindCSS and `shadcn/ui` components.
+- **Responsiveness**: Core principle for usability across devices.
+- **Theming**: Enterprise Neutral theme with dark/light toggle. Clean, structured admin UI with a single blue accent.
+- **Reusable Layout Components**: `PageHeader`, `Section`, `DashboardLayout`.
+- **Internationalization (i18n)**: `react-i18next` for English, Spanish, French, Portuguese translations.
 
 ### Technical Implementations
-- **Authentication**: Session-based authentication is used with `bcrypt` for secure password hashing. Member accounts use a separate session namespace (`memberAccountId`, `personId`, `currentMinistryId`).
-- **Authorization**: A three-tier staff role system plus member accounts:
-    - **ADMIN (Platform Admin)**: Manages platform-wide settings and ministry registrations.
-    - **MINISTRY_ADMIN**: Manages a specific ministry, including leader approvals.
-    - **LEADER**: Manages converts within their assigned ministry.
-    - **Member Accounts**: Converts and members can access their own portal to view journey and submit prayer requests.
-- **Database**: PostgreSQL is the chosen relational database, managed with Drizzle ORM.
-- **Routing**: `wouter` is used for client-side routing.
-- **Email Notifications**: Automated email reminders are sent for follow-ups, including initial emails and day-before reminders.
-- **AI Integration**: An AI Text Helper, powered by OpenAI (gpt-5.2 model), assists leaders in drafting follow-up emails.
-- **Follow-Up System**: A structured workflow for new member follow-ups includes automated stage progression and completion prompts.
-- **Public Registration Links**: Churches can generate unique, shareable links for Salvation Forms, New Member Forms, and Member Forms, allowing self-submission which is automatically associated with the correct church.
-- **Ministry & Leader Registration Flow**:
-    - Ministries register and are approved by a Platform Admin.
-    - Ministry Admins can directly add leaders (max 3 per ministry) with auto-generated passwords.
-- **Dynamic API Routing**: Role-based API path hooks (`useBasePath` and `useApiBasePath`) enable shared components to work across Leader, Ministry Admin, and Admin roles by dynamically resolving frontend routes and API endpoints.
-- **Church Logo Upload**: Leaders can upload church logos (up to 5MB, image only) via their dashboard, stored in Replit's Object Storage and displayed on public forms.
-- **Video Conferencing**: Jitsi Meet integration allows for auto-generated unique video call links for follow-ups without requiring external accounts or API keys.
+- **Authentication**: Session-based with `bcrypt` for password hashing.
+- **Authorization**: Three-tier staff (ADMIN, MINISTRY_ADMIN, LEADER) and Member accounts.
+- **Database**: PostgreSQL with Drizzle ORM.
+- **Routing**: `wouter` for client-side routing.
+- **Email Notifications**: Automated reminders for follow-ups.
+- **AI Integration**: OpenAI (gpt-5.2) powered AI Text Helper for email drafting.
+- **Follow-Up System**: Structured workflow with automated stage progression.
+- **Public Registration Links**: Shareable links for forms (Salvation, New Member, Member) with auto-association to churches.
+- **Ministry & Leader Registration**: Ministries approved by Platform Admin; Ministry Admins add leaders.
+- **Dynamic API Routing**: Role-based API path hooks (`useBasePath`, `useApiBasePath`) for shared components.
+- **Shared Page Components**: Common pages used across Leader and Ministry Admin roles via dynamic path resolution.
+- **Church Logo Upload**: Leaders upload logos (max 5MB, image only) stored in Replit's Object Storage.
+- **Video Conferencing**: Jitsi Meet integration for unique video call links.
 
 ### Core Features
-- **Convert Management**: Leaders can add, update, and track converts.
-- **Follow-Up Scheduling**: Tools to schedule follow-ups with customizable email templates and optional video call links.
-- **Check-in Recording**: Leaders can record outcomes and notes for completed follow-ups.
-- **Dashboard Statistics**: Role-based dashboards provide relevant statistics for Platform Admins, Ministry Admins, and Leaders.
-- **Account Request Management**: Admins can approve or deny ministry and leader account requests.
-- **Prayer Request Submission**: Public form for submitting prayer requests.
-- **Member Portal**: A dedicated portal for converts and members to:
-    - View their spiritual journey timeline across ministries
-    - Track scheduled and completed follow-up sessions with video meeting links
-    - Submit and view prayer requests
-    - Write private journal entries with optional ministry sharing
-    - Switch between multiple ministry affiliations
-- **Member Account System**: Secure account provisioning with:
-    - Automatic account creation when converts/members register via public forms
-    - Claim tokens (SHA-256 hashed, 24-hour expiry, one-time use via usedAt field) sent via email for secure password setup
-    - Multi-ministry affiliation support (one person can belong to multiple ministries)
-    - Person identity management using normalized email as primary key
-    - Account status lifecycle: PENDING_CLAIM → ACTIVE (can be SUSPENDED by admins)
-    - Session separation: Staff login clears member session and vice versa to prevent role confusion
-- **Member Account Management**: Leaders and Ministry Admins can:
-    - View all member portal accounts for their ministry
-    - See account status (Pending Claim, Active, Suspended)
-    - Resend claim tokens for accounts that haven't been claimed yet
-    - Suspend or activate member accounts (Ministry Admins only)
-    - View member affiliation type (convert, new_member, member) and last login
-- **Ministry Plan Model**: A 4-tier subscription plan system per ministry with Stripe payment integration:
-    - **Free** ($0/mo): 1 Admin + 1 Leader account, all platform features, auto-approved immediately
-    - **Foundations** ($19.99/mo): 1 Admin + 1 Leader account, all platform features
-    - **Formation** ($29.99/mo): 1 Admin + up to 3 Leader accounts, all platform features
-    - **Stewardship** ($59.99/mo): 1 Admin + up to 10 Leader accounts, all platform features
-    - Plan is stored on the `churches` table as a `ministry_plan` enum column
-    - Leader limits are enforced at all creation points (direct add, account requests)
-    - Platform Admins can view and change a ministry's plan from the Ministries page and edit dialog
-    - Plan is displayed as a badge on the ministry list table and ministry profile page
-    - **Auto-Approval System**: Ministries are auto-approved upon successful payment (free tier approves immediately without Stripe checkout). The `autoApproveMinistry()` helper in `server/routes.ts` creates the church, generates a temporary password, creates the admin user account, and sends credentials via email.
-    - **Subscription Lifecycle**: Tracked via `stripeCustomerId`, `stripeSubscriptionId`, and `subscriptionStatus` columns on the `churches` table. Status values: `active`, `free`, `past_due`, `suspended`, `canceled`.
-    - **Stripe Webhook Integration**: Handles `invoice.payment_failed` (sets status to `past_due`), `invoice.payment_succeeded` (restores to `active`), `customer.subscription.deleted` (sets to `suspended`), and `checkout.session.completed` (auto-approves pending ministries).
-    - **Read-Only Enforcement**: Middleware blocks POST/PATCH/DELETE operations for ministries with inactive subscriptions (`past_due`, `suspended`, `canceled`). Billing endpoints are excluded to allow payment updates.
-    - **Billing Management**: Ministry admins can access their Stripe Customer Portal via `/api/ministry-admin/billing/portal` to update payment methods and view invoices. Dedicated billing page at `/ministry-admin/billing`.
-    - **Subscription Status Banner**: Dashboard-wide banner component alerts users of inactive subscriptions with quick-fix actions for admins.
-    - **Stripe Payment Flow**: Ministry registration requires Stripe checkout before auto-approval
-      - Plans/prices fetched from Stripe API at `/api/stripe/ministry-plans`
-      - Registration creates ministry_request, then Stripe checkout session
-      - On payment success, webhook auto-approves and creates ministry + admin account
-      - Stripe credentials managed via Replit connector (sandbox mode)
-      - Products seeded via `server/seed-stripe-products.ts`
-- **Announcements**: Ministry Admins and Leaders can send mass communications:
-    - Select recipient groups: Converts, New Members & Guests, Members, Guests (with email/phone counts per group)
-    - Notification methods: Email Only, Email + SMS, Email + MMS (plan-based restrictions apply)
-    - Email content with subject, message body, and optional image attachment
-    - SMS/MMS message with optional MMS image attachment
-    - Deduplication of recipients across groups for both email and phone
-    - SMS/MMS limits enforced per billing period with skipped count reporting
-    - Schedule announcements for future delivery with date/time picker
-    - Scheduled announcements listed on page with cancel option, auto-removed after sending
-    - Scheduler checks every minute for due announcements and sends them automatically
-    - Routes: `/leader/announcements` and `/ministry-admin/announcements`
-    - API: `POST /api/{role}/announcements/send`, `POST /api/{role}/announcements/schedule`, `GET /api/{role}/announcements/scheduled`, `PATCH /api/{role}/announcements/scheduled/:id/cancel`, `GET /api/{role}/announcements/recipient-counts`
-- **Form Customization**: Ministry Admins can customize public registration forms (Salvation, New Member, Member):
-    - Edit welcome heading (hero title) displayed prominently at the top of each public form page
-    - Edit form titles displayed on public forms (falls back to default if empty)
-    - Edit form descriptions displayed to respondents
-    - Drag-and-drop reordering of standard fields using @dnd-kit
-    - Show/hide standard fields (firstName and lastName are locked and always visible)
-    - Rename field labels for any standard field
-    - Toggle fields as required/optional
-    - Add custom fields: Text, Dropdown (with configurable options), Yes/No
-    - Custom fields support required validation with error messages
-    - Custom field responses stored as JSONB in `customFieldData` column on converts/new_members/members tables
-    - Form configurations stored in `form_configurations` table (churchId + formType unique combo, with title column)
-    - Admin UI: Tabbed page at `/ministry-admin/form-settings` with tabs for each form type
-    - Public forms dynamically render based on saved configuration (backward compatible - all fields shown if no config)
-    - API: `GET/PUT /api/ministry-admin/form-configurations/:formType`
-- **Remove from Ministry**: Leaders and Admins can remove converts, new members, and members from their ministry:
-    - Removes the ministry affiliation only (does NOT deactivate member portal account)
-    - Person is notified via email about removal (if email is on file)
-    - Person can still join other ministries through public registration forms
-
-## Environment Configuration
-The application uses environment-aware URL generation to ensure consistent behavior across development and production:
-- **APP_URL**: Set in production (e.g., `https://zowehlife.com`) for all email links and URLs
-- **REPLIT_DEV_DOMAIN**: Automatically available in development for dev URLs
-- **Centralized URL Utility**: `server/utils/url.ts` provides `getBaseUrl()` and `buildUrl()` functions used across the application
-- All components use dynamic paths via `useBasePath()` (frontend routes) and `useApiBasePath()` (API endpoints)
+- **Convert Management**: Add, update, track converts.
+- **Follow-Up Scheduling**: Customizable templates and video call links.
+- **Check-in Recording**: Record outcomes and notes.
+- **Dashboard Statistics**: Role-based insights.
+- **Account Request Management**: Approve/deny ministry/leader requests.
+- **Prayer Request Submission**: Public form.
+- **Member Portal**: Dedicated portal for converts/members to view journey, follow-ups, prayer requests, journal, and manage multi-ministry affiliations.
+- **Member Account System**: Secure provisioning, claim tokens, multi-ministry support, status lifecycle (PENDING_CLAIM, ACTIVE, SUSPENDED).
+- **Member Account Management**: View, resend claim tokens, suspend/activate accounts.
+- **Ministry Plan Model**: 4-tier subscription system (Free, Foundations, Formation, Stewardship) with Stripe integration.
+    - **Auto-Approval System**: Ministries auto-approved upon payment (free tier immediate).
+    - **Subscription Lifecycle**: Tracked via Stripe IDs and status.
+    - **Stripe Webhook Integration**: Handles payment events and subscription status.
+    - **Read-Only Enforcement**: Blocks operations for inactive subscriptions.
+    - **Billing Management**: Ministry admins access Stripe Customer Portal.
+- **Announcements**: Mass communication to selected recipient groups (Email, SMS, MMS) with scheduling and tracking.
+- **Form Customization**: Ministry Admins customize public forms (Salvation, New Member, Member) with editable titles, descriptions, reorderable standard fields, and custom fields (Text, Dropdown, Yes/No).
+- **Remove from Ministry**: Remove individuals from ministry affiliation.
 
 ## External Dependencies
-- **PostgreSQL**: Primary database for data storage.
-- **Drizzle ORM**: Used for interacting with the PostgreSQL database.
-- **Replit Object Storage**: Stores uploaded church logos.
-- **OpenAI API**: Powers the AI Text Helper for generating and refining email content (gpt-5.2 model).
-- **Jitsi Meet**: Integrated for generating unique video conferencing links for follow-ups.
-- **Stripe**: Payment processing for ministry subscription plans, managed via Replit connector (sandbox mode).
+- **PostgreSQL**: Primary data store.
+- **Drizzle ORM**: Database interaction.
+- **Replit Object Storage**: Stores church logos.
+- **OpenAI API**: AI Text Helper.
+- **Jitsi Meet**: Video conferencing integration.
+- **Stripe**: Payment processing for subscriptions.

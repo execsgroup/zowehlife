@@ -185,15 +185,15 @@ export default function LeaderFollowups() {
   };
 
   const { data: convertFollowups, isLoading: isLoadingConverts } = useQuery<ConvertFollowUp[]>({
-    queryKey: ["/api/leader/followups"],
+    queryKey: [`${apiBasePath}/followups`],
   });
 
   const { data: newMemberFollowups, isLoading: isLoadingNewMembers } = useQuery<NewMemberFollowUp[]>({
-    queryKey: ["/api/leader/new-member-followups"],
+    queryKey: [`${apiBasePath}/new-member-followups`],
   });
 
   const { data: memberFollowups, isLoading: isLoadingMembers } = useQuery<MemberFollowUp[]>({
-    queryKey: ["/api/leader/member-followups"],
+    queryKey: [`${apiBasePath}/member-followups`],
   });
 
   const { data: massFollowups, isLoading: isLoadingMass } = useQuery<MassFollowupData[]>({
@@ -228,11 +228,11 @@ export default function LeaderFollowups() {
       if (!selectedFollowUp) return;
       let endpoint: string;
       if (selectedFollowUp.type === "convert") {
-        endpoint = `/api/leader/checkins/${selectedFollowUp.id}/complete`;
+        endpoint = `${apiBasePath}/checkins/${selectedFollowUp.id}/complete`;
       } else if (selectedFollowUp.type === "newMember") {
-        endpoint = `/api/leader/new-member-checkins/${selectedFollowUp.id}/complete`;
+        endpoint = `${apiBasePath}/new-member-checkins/${selectedFollowUp.id}/complete`;
       } else {
-        endpoint = `/api/leader/member-checkins/${selectedFollowUp.id}/complete`;
+        endpoint = `${apiBasePath}/member-checkins/${selectedFollowUp.id}/complete`;
       }
       await apiRequest("PATCH", endpoint, {
         outcome: data.outcome,
@@ -244,15 +244,13 @@ export default function LeaderFollowups() {
         title: t('followUps.notesRecorded'),
         description: t('followUps.notesRecordedDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/member-followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-member-followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/member-followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/stats`] });
       setNotesDialogOpen(false);
       setSelectedFollowUp(null);
       notesForm.reset({
@@ -274,11 +272,11 @@ export default function LeaderFollowups() {
       if (!selectedFollowUp) return;
       let endpoint: string;
       if (selectedFollowUp.type === "convert") {
-        endpoint = `/api/leader/converts/${selectedFollowUp.entityId}/schedule-followup`;
+        endpoint = `${apiBasePath}/converts/${selectedFollowUp.entityId}/schedule-followup`;
       } else if (selectedFollowUp.type === "newMember") {
-        endpoint = `/api/leader/new-members/${selectedFollowUp.entityId}/schedule-followup`;
+        endpoint = `${apiBasePath}/new-members/${selectedFollowUp.entityId}/schedule-followup`;
       } else {
-        endpoint = `/api/leader/members/${selectedFollowUp.entityId}/schedule-followup`;
+        endpoint = `${apiBasePath}/members/${selectedFollowUp.entityId}/schedule-followup`;
       }
       await apiRequest("POST", endpoint, data);
     },
@@ -287,12 +285,12 @@ export default function LeaderFollowups() {
         title: t('followUps.followUpScheduled'),
         description: t('followUps.followUpScheduledDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/member-followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-member-followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/member-followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
       setScheduleDialogOpen(false);
       setSelectedFollowUp(null);
       scheduleForm.reset({
@@ -448,10 +446,9 @@ export default function LeaderFollowups() {
       toast({ title: t('followUps.massCompleted'), description: t('followUps.massCompletedDesc') });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/mass-followups`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-member-followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-member-followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
       setMassNotesDialogOpen(false);
       setSelectedMassFollowup(null);
     },
@@ -462,7 +459,7 @@ export default function LeaderFollowups() {
 
   const handleExportExcel = async () => {
     try {
-      const response = await fetch("/api/leader/followups/export-excel");
+      const response = await fetch(`${apiBasePath}/followups/export-excel`);
       if (!response.ok) {
         throw new Error("Export failed");
       }

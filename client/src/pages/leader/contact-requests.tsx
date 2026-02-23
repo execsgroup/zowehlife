@@ -7,11 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { MessageSquare, Mail, Phone, Calendar } from "lucide-react";
 import type { ContactRequest } from "@shared/schema";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 
 export default function LeaderContactRequests() {
   const { t } = useTranslation();
+  const apiBasePath = useApiBasePath();
   const { data: requests, isLoading } = useQuery<ContactRequest[]>({
-    queryKey: ["/api/leader/contact-requests"],
+    queryKey: [`${apiBasePath}/contact-requests`],
   });
 
   return (

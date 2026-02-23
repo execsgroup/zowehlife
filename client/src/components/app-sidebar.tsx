@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import {
   Sidebar,
   SidebarContent,
@@ -119,7 +120,7 @@ export function AppSidebar() {
     {
       label: t('sidebar.people'),
       items: [
-        { title: t('sidebar.myConverts'), url: "/leader/converts", icon: UserPlus },
+        { title: t('sidebar.converts'), url: "/leader/converts", icon: UserPlus },
         { title: t('sidebar.newMembersGuests'), url: "/leader/new-members", icon: Users },
         { title: t('sidebar.members'), url: "/leader/members", icon: Church },
       ],
@@ -141,14 +142,11 @@ export function AppSidebar() {
     },
   ];
 
-  const { data: church } = useQuery<ChurchData>({
-    queryKey: ["/api/leader/church"],
-    enabled: user?.role === "LEADER",
-  });
+  const apiBasePath = useApiBasePath();
 
-  const { data: ministryAdminChurch } = useQuery<ChurchData>({
-    queryKey: ["/api/ministry-admin/church"],
-    enabled: user?.role === "MINISTRY_ADMIN",
+  const { data: church } = useQuery<ChurchData>({
+    queryKey: [`${apiBasePath}/church`],
+    enabled: user?.role === "LEADER" || user?.role === "MINISTRY_ADMIN",
   });
 
   const getNavGroups = () => {
@@ -159,12 +157,12 @@ export function AppSidebar() {
   const navGroups = getNavGroups();
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || "U";
 
-  const currentChurch = user?.role === "LEADER" ? church : user?.role === "MINISTRY_ADMIN" ? ministryAdminChurch : null;
+  const currentChurch = (user?.role === "LEADER" || user?.role === "MINISTRY_ADMIN") ? church : null;
   const showChurchLogo = currentChurch?.logoUrl;
 
   const getSidebarTitle = () => {
     if (user?.role === "LEADER" && church?.name) return church.name;
-    if (user?.role === "MINISTRY_ADMIN" && ministryAdminChurch?.name) return ministryAdminChurch.name;
+    if (user?.role === "MINISTRY_ADMIN" && church?.name) return church.name;
     return "Zoweh Life";
   };
 

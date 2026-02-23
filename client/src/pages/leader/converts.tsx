@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
 import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, UserMinus, Church } from "lucide-react";
@@ -107,6 +108,7 @@ export default function LeaderConverts() {
 
   const { toast } = useToast();
   const basePath = useBasePath();
+  const apiBasePath = useApiBasePath();
   const [location] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -133,23 +135,23 @@ export default function LeaderConverts() {
   };
 
   const { data: converts, isLoading } = useQuery<Convert[]>({
-    queryKey: ["/api/leader/converts"],
+    queryKey: [`${apiBasePath}/converts`],
   });
 
   const { data: church } = useQuery<{ id: string; name: string }>({
-    queryKey: ["/api/leader/church"],
+    queryKey: [`${apiBasePath}/church`],
   });
 
   const removeMutation = useMutation({
     mutationFn: async (convertId: string) => {
-      await apiRequest("DELETE", `/api/leader/remove/convert/${convertId}`);
+      await apiRequest("DELETE", `${apiBasePath}/remove/convert/${convertId}`);
     },
     onSuccess: async () => {
       toast({
         title: t('converts.convertRemoved'),
         description: t('converts.convertRemovedDesc'),
       });
-      await queryClient.refetchQueries({ queryKey: ["/api/leader/converts"] });
+      await queryClient.refetchQueries({ queryKey: [`${apiBasePath}/converts`] });
       setRemoveDialogOpen(false);
       setConvertToRemove(null);
     },
@@ -196,15 +198,15 @@ export default function LeaderConverts() {
 
   const createMutation = useMutation({
     mutationFn: async (data: ConvertFormData) => {
-      await apiRequest("POST", "/api/leader/converts", data);
+      await apiRequest("POST", `${apiBasePath}/converts`, data);
     },
     onSuccess: () => {
       toast({
         title: t('converts.convertAdded'),
         description: t('converts.convertAddedDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/stats"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/stats`] });
       setDialogOpen(false);
       form.reset();
     },
@@ -234,7 +236,7 @@ export default function LeaderConverts() {
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (search) params.set("search", search);
 
-    const response = await fetch(`/api/leader/converts/export-excel?${params}`);
+    const response = await fetch(`${apiBasePath}/converts/export-excel?${params}`);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

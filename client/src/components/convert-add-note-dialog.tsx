@@ -69,8 +69,7 @@ export function ConvertAddNoteDialog({
     mutationFn: async (data: AddNoteData) => {
       if (!convert) return;
       if (checkinId) {
-        const basePath = apiBasePath.includes("ministry-admin") ? "/api/ministry-admin" : "/api/leader";
-        await apiRequest("PATCH", `${basePath}/checkins/${checkinId}/complete`, {
+        await apiRequest("PATCH", `${apiBasePath}/checkins/${checkinId}/complete`, {
           outcome: data.outcome,
           notes: data.notes || "",
         });
@@ -92,9 +91,6 @@ export function ConvertAddNoteDialog({
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/stats`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/converts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/converts"] });
       onOpenChange(false);
       form.reset({
         outcome: "CONNECTED",

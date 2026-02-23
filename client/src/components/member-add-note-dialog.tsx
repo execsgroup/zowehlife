@@ -69,8 +69,7 @@ export function MemberAddNoteDialog({
     mutationFn: async (data: AddNoteData) => {
       if (!member) return;
       if (checkinId) {
-        const basePath = apiBasePath.includes("ministry-admin") ? "/api/ministry-admin" : "/api/leader";
-        await apiRequest("PATCH", `${basePath}/member-checkins/${checkinId}/complete`, {
+        await apiRequest("PATCH", `${apiBasePath}/member-checkins/${checkinId}/complete`, {
           outcome: data.outcome,
           notes: data.notes || "",
         });
@@ -91,10 +90,8 @@ export function MemberAddNoteDialog({
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`, member?.id?.toString()] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/followups`] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/member-followups`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/stats`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/member-followups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ministry-admin/members"] });
       onOpenChange(false);
       form.reset({ outcome: "CONNECTED", notes: "" });
     },

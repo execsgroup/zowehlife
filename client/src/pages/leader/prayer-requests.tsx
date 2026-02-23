@@ -8,11 +8,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { type PrayerRequest } from "@shared/schema";
 import { HandHeart, Mail, Phone, Calendar } from "lucide-react";
 import { format } from "date-fns";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 
 export default function LeaderPrayerRequests() {
   const { t } = useTranslation();
+  const apiBasePath = useApiBasePath();
   const { data: requests, isLoading } = useQuery<PrayerRequest[]>({
-    queryKey: ["/api/leader/prayer-requests"],
+    queryKey: [`${apiBasePath}/prayer-requests`],
   });
 
   return (

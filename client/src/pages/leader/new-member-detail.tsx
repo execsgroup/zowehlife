@@ -153,7 +153,7 @@ export default function NewMemberDetail() {
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
 
   const { data: newMember, isLoading } = useQuery<NewMemberWithCheckins>({
-    queryKey: ["/api/leader/new-members", newMemberId],
+    queryKey: [`${apiBasePath}/new-members`, newMemberId],
     enabled: !!newMemberId,
   });
 
@@ -195,15 +195,15 @@ export default function NewMemberDetail() {
 
   const updateMutation = useMutation({
     mutationFn: async (data: UpdateNewMemberData) => {
-      await apiRequest("PATCH", `/api/leader/new-members/${newMemberId}`, data);
+      await apiRequest("PATCH", `${apiBasePath}/new-members/${newMemberId}`, data);
     },
     onSuccess: () => {
       toast({
         title: t('newMembers.newMemberUpdated'),
         description: t('newMembers.newMemberUpdatedDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members", newMemberId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/new-members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`, newMemberId] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
       setEditDialogOpen(false);
     },
     onError: (error: Error) => {

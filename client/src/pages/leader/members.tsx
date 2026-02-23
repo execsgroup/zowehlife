@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
 import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus, Church, CalendarPlus, FileSpreadsheet } from "lucide-react";
@@ -96,6 +97,7 @@ export default function LeaderMembers() {
 
   const { toast } = useToast();
   const basePath = useBasePath();
+  const apiBasePath = useApiBasePath();
   const [, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -105,19 +107,19 @@ export default function LeaderMembers() {
   const [selectedMemberForSchedule, setSelectedMemberForSchedule] = useState<Member | null>(null);
 
   const { data: members, isLoading } = useQuery<Member[]>({
-    queryKey: ["/api/leader/members"],
+    queryKey: [`${apiBasePath}/members`],
   });
 
   const removeMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      await apiRequest("DELETE", `/api/leader/remove/member/${memberId}`);
+      await apiRequest("DELETE", `${apiBasePath}/remove/member/${memberId}`);
     },
     onSuccess: async () => {
       toast({
         title: t('membersPage.memberRemoved'),
         description: t('membersPage.memberRemovedDesc'),
       });
-      await queryClient.refetchQueries({ queryKey: ["/api/leader/members"] });
+      await queryClient.refetchQueries({ queryKey: [`${apiBasePath}/members`] });
       setRemoveDialogOpen(false);
       setMemberToRemove(null);
     },
@@ -131,11 +133,11 @@ export default function LeaderMembers() {
   });
 
   const { data: tokens } = useQuery<{ publicToken: string | null; newMemberToken: string | null; memberToken: string | null }>({
-    queryKey: ["/api/leader/church/tokens"],
+    queryKey: [`${apiBasePath}/church/tokens`],
   });
 
   const { data: church } = useQuery<{ id: string; name: string }>({
-    queryKey: ["/api/leader/church"],
+    queryKey: [`${apiBasePath}/church`],
   });
 
   const form = useForm<MemberFormData>({
@@ -165,14 +167,14 @@ export default function LeaderMembers() {
 
   const createMutation = useMutation({
     mutationFn: async (data: MemberFormData) => {
-      await apiRequest("POST", "/api/leader/members", data);
+      await apiRequest("POST", `${apiBasePath}/members`, data);
     },
     onSuccess: () => {
       toast({
         title: t('membersPage.memberAdded'),
         description: t('membersPage.memberAddedDesc'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/members"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
       setDialogOpen(false);
       form.reset();
     },
@@ -187,14 +189,14 @@ export default function LeaderMembers() {
 
   const generateTokenMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/leader/church/generate-member-token", {});
+      await apiRequest("POST", `${apiBasePath}/church/generate-member-token`, {});
     },
     onSuccess: () => {
       toast({
         title: t('common.success'),
         description: t('common.savedSuccessfully'),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/church/tokens"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/church/tokens`] });
     },
     onError: (error: Error) => {
       toast({
@@ -230,7 +232,7 @@ export default function LeaderMembers() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
 
-    const response = await fetch(`/api/leader/members/export-excel?${params}`);
+    const response = await fetch(`${apiBasePath}/members/export-excel?${params}`);
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

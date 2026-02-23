@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Guest } from "@shared/schema";
 import { Plus, Search, Users2, Phone, Mail, Loader2, Eye, Trash2, Edit } from "lucide-react";
@@ -80,6 +81,7 @@ export default function LeaderGuests() {
 
   const { toast } = useToast();
   const basePath = useBasePath();
+  const apiBasePath = useApiBasePath();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -88,7 +90,7 @@ export default function LeaderGuests() {
   const [search, setSearch] = useState("");
 
   const { data: guests, isLoading } = useQuery<Guest[]>({
-    queryKey: ["/api/leader/guests"],
+    queryKey: [`${apiBasePath}/guests`],
   });
 
   const form = useForm<GuestFormData>({
@@ -125,10 +127,10 @@ export default function LeaderGuests() {
 
   const createMutation = useMutation({
     mutationFn: async (data: GuestFormData) => {
-      await apiRequest("POST", "/api/leader/guests", data);
+      await apiRequest("POST", `${apiBasePath}/guests`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/guests"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/guests`] });
       setDialogOpen(false);
       form.reset();
       toast({
@@ -147,10 +149,10 @@ export default function LeaderGuests() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: GuestFormData }) => {
-      await apiRequest("PATCH", `/api/leader/guests/${id}`, data);
+      await apiRequest("PATCH", `${apiBasePath}/guests/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/guests"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/guests`] });
       setEditDialogOpen(false);
       setSelectedGuest(null);
       editForm.reset();
@@ -170,10 +172,10 @@ export default function LeaderGuests() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiRequest("DELETE", `/api/leader/guests/${id}`);
+      await apiRequest("DELETE", `${apiBasePath}/guests/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/leader/guests"] });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/guests`] });
       setDeleteDialogOpen(false);
       setSelectedGuest(null);
       toast({

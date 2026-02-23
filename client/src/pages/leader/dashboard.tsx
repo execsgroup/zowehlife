@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { UserPlus, Calendar, ArrowRight, Clock, User, Copy, Check, Video, QrCode } from "lucide-react";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
@@ -42,15 +43,16 @@ export default function LeaderDashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
+  const apiBasePath = useApiBasePath();
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [qrDialog, setQrDialog] = useState<{ url: string; title: string } | null>(null);
 
   const { data: stats, isLoading } = useQuery<LeaderStats>({
-    queryKey: ["/api/leader/stats"],
+    queryKey: [`${apiBasePath}/stats`],
   });
 
   const { data: church } = useQuery<ChurchInfo>({
-    queryKey: ["/api/leader/church"],
+    queryKey: [`${apiBasePath}/church`],
   });
 
   const convertFormLink = church?.publicToken
