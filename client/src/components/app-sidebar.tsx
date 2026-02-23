@@ -137,13 +137,6 @@ export function AppSidebar() {
       items: [
         { title: t('sidebar.prayerRequests'), url: "/leader/prayer-requests", icon: HandHeart },
         { title: t('sidebar.contactRequests'), url: "/leader/contact-requests", icon: MessageSquare },
-        { title: t('sidebar.memberAccounts'), url: "/leader/member-accounts", icon: UserCog },
-      ],
-    },
-    {
-      label: t('sidebar.configuration'),
-      items: [
-        { title: t('sidebar.ministrySettings'), url: "/leader/settings", icon: Settings },
       ],
     },
   ];
