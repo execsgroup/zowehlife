@@ -15,6 +15,8 @@ import ContactUs from "@/pages/contact-us";
 import Login from "@/pages/login";
 import Setup from "@/pages/setup";
 import AdminReset from "@/pages/admin-reset";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminChurches from "@/pages/admin/churches";
 import AdminLeaders from "@/pages/admin/leaders";
@@ -141,6 +143,8 @@ function Router() {
       <Route path="/login" component={AuthRedirect} />
       <Route path="/setup" component={Setup} />
       <Route path="/admin-reset" component={AdminReset} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
       
       {/* Admin routes */}
       <Route path="/admin">

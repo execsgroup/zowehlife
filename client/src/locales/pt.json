@@ -31,7 +31,7 @@
     "loginTitle": "Login da Equipe do Ministério",
     "loginDescription": "Digite suas credenciais para acessar o painel do ministério",
     "loginError": "Falha ao fazer login. Verifique suas credenciais.",
-    "forgotPassword": "Esqueceu sua senha? Entre em contato com o administrador do seu ministério.",
+    "forgotPassword": "Esqueceu sua senha?",
     "welcomeBack": "Bem-vindo de volta!",
     "loginSuccess": "Login realizado com sucesso.",
     "loginFailed": "Falha no login",
@@ -1517,5 +1517,35 @@
     "resetConfirm": "Tem certeza de que deseja redefinir para as configurações padrão?",
     "optionPlaceholder": "Insira a opção...",
     "fieldLabelPlaceholder": "Insira o rótulo do campo..."
+  },
+  "forgotPassword": {
+    "title": "Esqueci Minha Senha",
+    "description": "Insira seu endereço de e-mail e enviaremos um link para redefinir sua senha.",
+    "emailLabel": "Endereço de E-mail",
+    "emailPlaceholder": "Insira seu endereço de e-mail",
+    "sendResetLink": "Enviar Link de Redefinição",
+    "sending": "Enviando...",
+    "checkEmail": "Verifique Seu E-mail",
+    "checkEmailDesc": "Se existe uma conta com esse e-mail, enviamos um link de redefinição. Verifique sua caixa de entrada e pasta de spam.",
+    "backToLogin": "Voltar ao Login",
+    "memberLogin": "Login do Portal de Membros"
+  },
+  "resetPassword": {
+    "title": "Redefinir Senha",
+    "description": "Insira sua nova senha abaixo.",
+    "newPassword": "Nova Senha",
+    "newPasswordPlaceholder": "Insira nova senha (mín. 8 caracteres)",
+    "confirmPassword": "Confirmar Senha",
+    "confirmPasswordPlaceholder": "Confirme sua nova senha",
+    "resetPassword": "Redefinir Senha",
+    "resetting": "Redefinindo...",
+    "passwordReset": "Senha Redefinida com Sucesso",
+    "passwordResetDesc": "Sua senha foi redefinida. Agora você pode fazer login com sua nova senha.",
+    "resetFailed": "Falha na Redefinição",
+    "goToLogin": "Ir para o Login",
+    "invalidLink": "Link de Redefinição Inválido",
+    "invalidLinkDesc": "Este link de redefinição é inválido ou expirou. Por favor solicite um novo.",
+    "requestNewLink": "Solicitar Novo Link",
+    "backToLogin": "Voltar ao Login"
   }
 }

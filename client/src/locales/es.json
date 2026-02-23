@@ -31,7 +31,7 @@
     "loginTitle": "Inicio de Sesión del Personal del Ministerio",
     "loginDescription": "Ingresa tus credenciales para acceder al panel de control del ministerio",
     "loginError": "Error en el inicio de sesión. Por favor, verifica tus credenciales.",
-    "forgotPassword": "¿Olvidaste tu contraseña? Contacta al administrador de tu ministerio.",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
     "welcomeBack": "¡Bienvenido de nuevo!",
     "loginSuccess": "Has iniciado sesión exitosamente.",
     "loginFailed": "Error de inicio de sesión",
@@ -1517,5 +1517,35 @@
     "resetConfirm": "¿Estás seguro de que deseas restablecer a la configuración predeterminada?",
     "optionPlaceholder": "Ingresa opción...",
     "fieldLabelPlaceholder": "Ingresa etiqueta del campo..."
+  },
+  "forgotPassword": {
+    "title": "Olvidé mi Contraseña",
+    "description": "Ingresa tu dirección de correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
+    "emailLabel": "Dirección de Correo Electrónico",
+    "emailPlaceholder": "Ingresa tu correo electrónico",
+    "sendResetLink": "Enviar Enlace de Restablecimiento",
+    "sending": "Enviando...",
+    "checkEmail": "Revisa tu Correo Electrónico",
+    "checkEmailDesc": "Si existe una cuenta con ese correo, hemos enviado un enlace de restablecimiento. Revisa tu bandeja de entrada y carpeta de spam.",
+    "backToLogin": "Volver al Inicio de Sesión",
+    "memberLogin": "Inicio de Sesión del Portal de Miembros"
+  },
+  "resetPassword": {
+    "title": "Restablecer Contraseña",
+    "description": "Ingresa tu nueva contraseña a continuación.",
+    "newPassword": "Nueva Contraseña",
+    "newPasswordPlaceholder": "Ingresa nueva contraseña (mín. 8 caracteres)",
+    "confirmPassword": "Confirmar Contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu nueva contraseña",
+    "resetPassword": "Restablecer Contraseña",
+    "resetting": "Restableciendo...",
+    "passwordReset": "Contraseña Restablecida Exitosamente",
+    "passwordResetDesc": "Tu contraseña ha sido restablecida. Ahora puedes iniciar sesión con tu nueva contraseña.",
+    "resetFailed": "Error al Restablecer",
+    "goToLogin": "Ir al Inicio de Sesión",
+    "invalidLink": "Enlace de Restablecimiento Inválido",
+    "invalidLinkDesc": "Este enlace de restablecimiento es inválido o ha expirado. Por favor solicita uno nuevo.",
+    "requestNewLink": "Solicitar Nuevo Enlace",
+    "backToLogin": "Volver al Inicio de Sesión"
   }
 }

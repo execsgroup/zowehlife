@@ -361,6 +361,123 @@ export async function registerRoutes(
     }
   });
 
+  // Password Reset - Request reset link (works for all account types)
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = z.object({ email: z.string().email() }).parse(req.body);
+      const normalizedEmail = email.toLowerCase().trim();
+
+      let accountType: "staff" | "member" | null = null;
+      let userName = "";
+
+      const staffUser = await storage.getUserByEmail(normalizedEmail);
+      if (staffUser) {
+        accountType = "staff";
+        userName = `${staffUser.firstName} ${staffUser.lastName}`.trim();
+      } else {
+        const memberAccount = await storage.getMemberAccountByEmail(normalizedEmail);
+        if (memberAccount && memberAccount.status === "ACTIVE") {
+          accountType = "member";
+          const person = await storage.getPerson(memberAccount.personId);
+          userName = person ? `${person.firstName} ${person.lastName}` : "Member";
+        }
+      }
+
+      if (accountType) {
+        await storage.invalidatePasswordResetTokens(normalizedEmail, accountType);
+
+        const crypto = await import("crypto");
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+        await storage.createPasswordResetToken(normalizedEmail, tokenHash, accountType, expiresAt);
+
+        const resetUrl = buildUrl(`/reset-password?token=${rawToken}&type=${accountType}`, req);
+
+        try {
+          const { client, fromEmail } = await getUncachableResendClient();
+          await client.emails.send({
+            from: fromEmail || "noreply@zowehlife.com",
+            to: normalizedEmail,
+            subject: "Password Reset Request",
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563EB;">Password Reset Request</h2>
+                <p>Hello ${userName},</p>
+                <p>We received a request to reset your password. Click the button below to set a new password:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${resetUrl}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                    Reset Password
+                  </a>
+                </div>
+                <p style="color: #666; font-size: 14px;">This link will expire in 1 hour.</p>
+                <p style="color: #666; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                <p style="color: #999; font-size: 12px;">Zoweh Life Ministry Platform</p>
+              </div>
+            `,
+          });
+        } catch (emailError) {
+          console.error("Failed to send password reset email:", emailError);
+        }
+      }
+
+      res.json({ message: "If an account exists with that email, a reset link has been sent." });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error in forgot password:", error);
+      res.status(500).json({ message: "Failed to process request" });
+    }
+  });
+
+  // Password Reset - Complete reset with token
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const data = z.object({
+        token: z.string().min(1),
+        newPassword: z.string().min(8),
+        accountType: z.enum(["staff", "member"]),
+      }).parse(req.body);
+
+      const crypto = await import("crypto");
+      const tokenHash = crypto.createHash("sha256").update(data.token).digest("hex");
+
+      const resetToken = await storage.getPasswordResetTokenByHash(tokenHash);
+      if (!resetToken || resetToken.accountType !== data.accountType) {
+        return res.status(400).json({ message: "Invalid or expired reset link. Please request a new one." });
+      }
+
+      const passwordHash = await bcrypt.hash(data.newPassword, 10);
+
+      if (data.accountType === "staff") {
+        const user = await storage.getUserByEmail(resetToken.email);
+        if (!user) {
+          return res.status(404).json({ message: "Account not found" });
+        }
+        await storage.updateUserPassword(user.id, passwordHash);
+      } else {
+        const memberAccount = await storage.getMemberAccountByEmail(resetToken.email);
+        if (!memberAccount) {
+          return res.status(404).json({ message: "Account not found" });
+        }
+        await storage.updateMemberAccountPassword(memberAccount.id, passwordHash);
+      }
+
+      await storage.markPasswordResetTokenUsed(resetToken.id);
+
+      res.json({ message: "Password reset successfully. You can now log in." });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error in reset password:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
   // Check if setup is available
   app.get("/api/auth/setup-status", async (req, res) => {
     try {

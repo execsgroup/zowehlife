@@ -505,6 +505,21 @@ export const formConfigurations = pgTable("form_configurations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Password Reset Tokens table
+export const accountTypeEnum = pgEnum("account_type", ["staff", "member"]);
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull(),
+  tokenHash: varchar("token_hash").notNull(),
+  accountType: accountTypeEnum("account_type").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
 // Insert schemas
 export const insertChurchSchema = createInsertSchema(churches).omit({
   id: true,

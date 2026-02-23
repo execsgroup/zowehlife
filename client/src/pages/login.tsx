@@ -141,7 +141,7 @@ export default function Login() {
 
             <div className="mt-6 text-center text-sm space-y-2">
               <div>
-                <Link href="/admin-reset" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-forgot-password">
+                <Link href="/forgot-password" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-forgot-password">
                   {t('auth.forgotPassword')}
                 </Link>
               </div>

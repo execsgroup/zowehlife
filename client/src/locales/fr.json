@@ -31,7 +31,7 @@
     "loginTitle": "Connexion du Personnel du Ministère",
     "loginDescription": "Entrez vos identifiants pour accéder au tableau de bord du ministère",
     "loginError": "La connexion a échoué. Veuillez vérifier vos identifiants.",
-    "forgotPassword": "Mot de passe oublié? Contactez l'administrateur de votre ministère.",
+    "forgotPassword": "Mot de passe oublié?",
     "welcomeBack": "Bon retour !",
     "loginSuccess": "Connexion réussie.",
     "loginFailed": "Échec de la connexion",
@@ -1517,5 +1517,35 @@
     "resetConfirm": "Êtes-vous sûr de vouloir réinitialiser aux paramètres par défaut?",
     "optionPlaceholder": "Entrez une option...",
     "fieldLabelPlaceholder": "Entrez l'étiquette du champ..."
+  },
+  "forgotPassword": {
+    "title": "Mot de Passe Oublié",
+    "description": "Entrez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+    "emailLabel": "Adresse E-mail",
+    "emailPlaceholder": "Entrez votre adresse e-mail",
+    "sendResetLink": "Envoyer le Lien de Réinitialisation",
+    "sending": "Envoi en cours...",
+    "checkEmail": "Vérifiez Votre E-mail",
+    "checkEmailDesc": "Si un compte existe avec cet e-mail, nous avons envoyé un lien de réinitialisation. Veuillez vérifier votre boîte de réception et votre dossier spam.",
+    "backToLogin": "Retour à la Connexion",
+    "memberLogin": "Connexion au Portail des Membres"
+  },
+  "resetPassword": {
+    "title": "Réinitialiser le Mot de Passe",
+    "description": "Entrez votre nouveau mot de passe ci-dessous.",
+    "newPassword": "Nouveau Mot de Passe",
+    "newPasswordPlaceholder": "Entrez le nouveau mot de passe (min. 8 caractères)",
+    "confirmPassword": "Confirmer le Mot de Passe",
+    "confirmPasswordPlaceholder": "Confirmez votre nouveau mot de passe",
+    "resetPassword": "Réinitialiser le Mot de Passe",
+    "resetting": "Réinitialisation...",
+    "passwordReset": "Mot de Passe Réinitialisé avec Succès",
+    "passwordResetDesc": "Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+    "resetFailed": "Échec de la Réinitialisation",
+    "goToLogin": "Aller à la Connexion",
+    "invalidLink": "Lien de Réinitialisation Invalide",
+    "invalidLinkDesc": "Ce lien de réinitialisation est invalide ou a expiré. Veuillez en demander un nouveau.",
+    "requestNewLink": "Demander un Nouveau Lien",
+    "backToLogin": "Retour à la Connexion"
   }
 }

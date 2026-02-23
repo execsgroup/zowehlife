@@ -134,7 +134,13 @@ export default function MemberLogin() {
               </form>
             </Form>
 
-            <div className="mt-6 text-center text-sm">
+            <div className="mt-4 text-center text-sm">
+              <Link href="/forgot-password" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-member-forgot-password">
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
+
+            <div className="mt-3 text-center text-sm">
               <p className="text-muted-foreground">
                 {t('memberPortal.firstTimeHere')}{" "}
                 <Link href="/member-portal/claim" className="text-primary hover:underline">

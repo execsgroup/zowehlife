@@ -31,7 +31,7 @@
     "loginTitle": "Ministry Staff Login",
     "loginDescription": "Enter your credentials to access the ministry dashboard",
     "loginError": "Login failed. Please check your credentials.",
-    "forgotPassword": "Forgot your password? Contact your ministry administrator.",
+    "forgotPassword": "Forgot your password?",
     "welcomeBack": "Welcome back!",
     "loginSuccess": "You have successfully logged in.",
     "loginFailed": "Login failed",
@@ -1517,5 +1517,35 @@
     "resetConfirm": "Are you sure you want to reset to default settings?",
     "optionPlaceholder": "Enter option...",
     "fieldLabelPlaceholder": "Enter field label..."
+  },
+  "forgotPassword": {
+    "title": "Forgot Password",
+    "description": "Enter your email address and we'll send you a link to reset your password.",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "sendResetLink": "Send Reset Link",
+    "sending": "Sending...",
+    "checkEmail": "Check Your Email",
+    "checkEmailDesc": "If an account exists with that email, we've sent a password reset link. Please check your inbox and spam folder.",
+    "backToLogin": "Back to Login",
+    "memberLogin": "Member Portal Login"
+  },
+  "resetPassword": {
+    "title": "Reset Password",
+    "description": "Enter your new password below.",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter new password (min 8 characters)",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "resetPassword": "Reset Password",
+    "resetting": "Resetting...",
+    "passwordReset": "Password Reset Successful",
+    "passwordResetDesc": "Your password has been reset. You can now log in with your new password.",
+    "resetFailed": "Reset Failed",
+    "goToLogin": "Go to Login",
+    "invalidLink": "Invalid Reset Link",
+    "invalidLinkDesc": "This reset link is invalid or has expired. Please request a new one.",
+    "requestNewLink": "Request New Reset Link",
+    "backToLogin": "Back to Login"
   }
 }
