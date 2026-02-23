@@ -453,7 +453,7 @@ export interface IStorage {
   // Form Configurations
   getFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member"): Promise<FormConfiguration | undefined>;
   getFormConfigurations(churchId: string): Promise<FormConfiguration[]>;
-  upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration>;
+  upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { title?: string; description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2517,6 +2517,7 @@ export class DatabaseStorage implements IStorage {
     if (existing) {
       const [updated] = await db.update(formConfigurations)
         .set({
+          title: data.title,
           description: data.description,
           fieldConfig: data.fieldConfig,
           customFields: data.customFields,
@@ -2530,6 +2531,7 @@ export class DatabaseStorage implements IStorage {
         .values({
           churchId,
           formType,
+          title: data.title,
           description: data.description,
           fieldConfig: data.fieldConfig,
           customFields: data.customFields,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,29 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Plus, Trash2, GripVertical, Lock } from "lucide-react";
 import type { FormFieldConfig, CustomField } from "@shared/schema";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface FormConfig {
   id: string;
   churchId: string;
   formType: string;
+  title: string | null;
   description: string | null;
   fieldConfig: FormFieldConfig[];
   customFields: CustomField[];
@@ -78,11 +96,107 @@ function getDefaultFields(formType: string): FormFieldConfig[] {
   }
 }
 
+function getDefaultTitle(formType: string, t: (key: string) => string): string {
+  switch (formType) {
+    case "convert": return t('publicForms.salvationForm');
+    case "new_member": return t('publicForms.newMemberForm');
+    case "member": return t('publicForms.memberForm');
+    default: return "";
+  }
+}
+
+function SortableFieldRow({
+  field,
+  index,
+  onToggleVisibility,
+  onToggleRequired,
+  onUpdateLabel,
+  t,
+}: {
+  field: FormFieldConfig;
+  index: number;
+  onToggleVisibility: (index: number) => void;
+  onToggleRequired: (index: number) => void;
+  onUpdateLabel: (index: number, label: string) => void;
+  t: (key: string) => string;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: field.key });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.5 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-3 rounded-lg border ${
+        !field.visible ? "opacity-50 bg-muted/50" : "bg-background"
+      }`}
+      data-testid={`field-row-${field.key}`}
+    >
+      <button
+        type="button"
+        className="cursor-grab active:cursor-grabbing touch-none"
+        {...attributes}
+        {...listeners}
+        data-testid={`drag-handle-${field.key}`}
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
+      </button>
+      <div className="flex-1 min-w-0">
+        <Input
+          value={field.label}
+          onChange={(e) => onUpdateLabel(index, e.target.value)}
+          className="h-8 text-sm"
+          data-testid={`input-field-label-${field.key}`}
+        />
+      </div>
+      {field.locked ? (
+        <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+          <Lock className="h-3.5 w-3.5" />
+          <span className="text-xs">{t('formSettings.lockedField')}</span>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 shrink-0">
+            <Label className="text-xs text-muted-foreground">{t('formSettings.visible')}</Label>
+            <Switch
+              checked={field.visible}
+              onCheckedChange={() => onToggleVisibility(index)}
+              data-testid={`switch-visible-${field.key}`}
+            />
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Label className="text-xs text-muted-foreground">{t('formSettings.required')}</Label>
+            <Switch
+              checked={field.required}
+              onCheckedChange={() => onToggleRequired(index)}
+              data-testid={`switch-required-${field.key}`}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function FormConfigEditor({ formType, config }: { formType: string; config: FormConfig | null }) {
   const { t } = useTranslation();
   const { toast } = useToast();
 
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [title, setTitle] = useState(config?.title || "");
   const [description, setDescription] = useState(config?.description || "");
   const [fieldConfig, setFieldConfig] = useState<FormFieldConfig[]>(
     config?.fieldConfig && (config.fieldConfig as FormFieldConfig[]).length > 0
@@ -95,7 +209,13 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
       : []
   );
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   useEffect(() => {
+    setTitle(config?.title || "");
     setDescription(config?.description || "");
     setFieldConfig(
       config?.fieldConfig && (config.fieldConfig as FormFieldConfig[]).length > 0
@@ -109,9 +229,21 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
     );
   }, [config, formType]);
 
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setFieldConfig((items) => {
+        const oldIndex = items.findIndex((i) => i.key === active.id);
+        const newIndex = items.findIndex((i) => i.key === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }, []);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("PUT", `/api/ministry-admin/form-configurations/${formType}`, {
+        title: title || undefined,
         description: description || undefined,
         fieldConfig,
         customFields,
@@ -190,6 +322,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
   };
 
   const handleReset = () => {
+    setTitle("");
     setDescription("");
     setFieldConfig(getDefaultFields(formType));
     setCustomFields([]);
@@ -199,69 +332,61 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
   return (
     <div className="space-y-6">
       <Section
-        title={t('formSettings.formDescription')}
+        title={t('formSettings.formTitleAndDescription')}
         actions={
           <Button variant="outline" size="sm" onClick={() => setShowResetDialog(true)} data-testid="button-reset-form">
             {t('formSettings.resetToDefault')}
           </Button>
         }
       >
-        <Textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder={t('formSettings.formDescriptionPlaceholder')}
-          className="min-h-[80px]"
-          data-testid="textarea-form-description"
-        />
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs mb-1 block">{t('formSettings.formTitle')}</Label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={getDefaultTitle(formType, t)}
+              data-testid="input-form-title"
+            />
+          </div>
+          <div>
+            <Label className="text-xs mb-1 block">{t('formSettings.formDescription')}</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t('formSettings.formDescriptionPlaceholder')}
+              className="min-h-[80px]"
+              data-testid="textarea-form-description"
+            />
+          </div>
+        </div>
       </Section>
 
       <Section title={t('formSettings.standardFields')}>
-        <div className="space-y-3">
-          {fieldConfig.map((field, index) => (
-            <div
-              key={field.key}
-              className={`flex items-center gap-3 p-3 rounded-lg border ${
-                !field.visible ? "opacity-50 bg-muted/50" : "bg-background"
-              }`}
-              data-testid={`field-row-${field.key}`}
-            >
-              <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-              <div className="flex-1 min-w-0">
-                <Input
-                  value={field.label}
-                  onChange={(e) => updateFieldLabel(index, e.target.value)}
-                  className="h-8 text-sm"
-                  data-testid={`input-field-label-${field.key}`}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={fieldConfig.map((f) => f.key)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {fieldConfig.map((field, index) => (
+                <SortableFieldRow
+                  key={field.key}
+                  field={field}
+                  index={index}
+                  onToggleVisibility={toggleFieldVisibility}
+                  onToggleRequired={toggleFieldRequired}
+                  onUpdateLabel={updateFieldLabel}
+                  t={t}
                 />
-              </div>
-              {field.locked ? (
-                <div className="flex items-center gap-1 text-muted-foreground shrink-0">
-                  <Lock className="h-3.5 w-3.5" />
-                  <span className="text-xs">{t('formSettings.lockedField')}</span>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Label className="text-xs text-muted-foreground">{t('formSettings.visible')}</Label>
-                    <Switch
-                      checked={field.visible}
-                      onCheckedChange={() => toggleFieldVisibility(index)}
-                      data-testid={`switch-visible-${field.key}`}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Label className="text-xs text-muted-foreground">{t('formSettings.required')}</Label>
-                    <Switch
-                      checked={field.required}
-                      onCheckedChange={() => toggleFieldRequired(index)}
-                      data-testid={`switch-required-${field.key}`}
-                    />
-                  </div>
-                </>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       </Section>
 
       <Section

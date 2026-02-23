@@ -175,7 +175,7 @@ export default function NewMemberForm() {
                 />
               </div>
             )}
-            <CardTitle className="text-2xl">{t('publicForms.newMemberForm')}</CardTitle>
+            <CardTitle className="text-2xl">{church?.formConfig?.title || t('publicForms.newMemberForm')}</CardTitle>
             <CardDescription>
               {church?.formConfig?.description && (
                 <p className="mb-2">{church.formConfig.description}</p>

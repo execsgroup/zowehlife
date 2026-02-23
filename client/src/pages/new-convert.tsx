@@ -251,7 +251,7 @@ export default function NewConvert() {
                 <Church className="h-5 w-5" />
                 <span className="font-medium">{church.name}</span>
               </div>
-              <CardTitle>{t('publicForms.salvationForm')}</CardTitle>
+              <CardTitle>{church?.formConfig?.title || t('publicForms.salvationForm')}</CardTitle>
               <CardDescription className="space-y-3 text-sm">
                 {church?.formConfig?.description && (
                   <p>{church.formConfig.description}</p>
