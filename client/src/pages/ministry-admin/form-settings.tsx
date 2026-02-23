@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
@@ -81,6 +82,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
   const { t } = useTranslation();
   const { toast } = useToast();
 
+  const [showResetDialog, setShowResetDialog] = useState(false);
   const [description, setDescription] = useState(config?.description || "");
   const [fieldConfig, setFieldConfig] = useState<FormFieldConfig[]>(
     config?.fieldConfig && (config.fieldConfig as FormFieldConfig[]).length > 0
@@ -188,11 +190,10 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
   };
 
   const handleReset = () => {
-    if (window.confirm(t('formSettings.resetConfirm'))) {
-      setDescription("");
-      setFieldConfig(getDefaultFields(formType));
-      setCustomFields([]);
-    }
+    setDescription("");
+    setFieldConfig(getDefaultFields(formType));
+    setCustomFields([]);
+    setShowResetDialog(false);
   };
 
   return (
@@ -200,7 +201,7 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
       <Section
         title={t('formSettings.formDescription')}
         actions={
-          <Button variant="outline" size="sm" onClick={handleReset} data-testid="button-reset-form">
+          <Button variant="outline" size="sm" onClick={() => setShowResetDialog(true)} data-testid="button-reset-form">
             {t('formSettings.resetToDefault')}
           </Button>
         }
@@ -386,6 +387,23 @@ function FormConfigEditor({ formType, config }: { formType: string; config: Form
           )}
         </Button>
       </div>
+
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('formSettings.resetToDefault')}</DialogTitle>
+            <DialogDescription>{t('formSettings.resetConfirm')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResetDialog(false)} data-testid="button-cancel-reset">
+              {t('common.cancel')}
+            </Button>
+            <Button variant="destructive" onClick={handleReset} data-testid="button-confirm-reset">
+              {t('formSettings.resetToDefault')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
