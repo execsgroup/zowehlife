@@ -94,7 +94,11 @@
     "ministrySettings": "Ministry Settings",
     "accountRequests": "Account Requests",
     "guests": "Guests",
-    "formSettings": "Form Settings"
+    "formSettings": "Form Settings",
+    "people": "People",
+    "engagement": "Engagement",
+    "management": "Management",
+    "configuration": "Configuration"
   },
   "dashboard": {
     "platformOverview": "Platform Overview",

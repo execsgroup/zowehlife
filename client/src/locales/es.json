@@ -94,7 +94,11 @@
     "ministrySettings": "Configuración del Ministerio",
     "accountRequests": "Solicitudes de Cuentas",
     "guests": "Huéspedes",
-    "formSettings": "Configuración de Formularios"
+    "formSettings": "Configuración de Formularios",
+    "people": "Personas",
+    "engagement": "Interacción",
+    "management": "Gestión",
+    "configuration": "Configuración"
   },
   "dashboard": {
     "platformOverview": "Descripción General de la Plataforma",

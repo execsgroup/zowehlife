@@ -67,35 +67,85 @@ export function AppSidebar() {
     { title: t('sidebar.deletedAccounts'), url: "/admin/deleted-accounts", icon: Archive },
   ];
 
-  const ministryAdminNavItems = [
-    { title: t('sidebar.dashboard'), url: "/ministry-admin/dashboard", icon: LayoutDashboard },
-    { title: t('sidebar.converts'), url: "/ministry-admin/converts", icon: UserPlus },
-    { title: t('sidebar.newMembersGuests'), url: "/ministry-admin/new-members", icon: Users },
-    { title: t('sidebar.members'), url: "/ministry-admin/members", icon: Church },
-    { title: t('sidebar.followUps'), url: "/ministry-admin/followups", icon: CalendarClock },
-    { title: t('sidebar.massFollowUp'), url: "/ministry-admin/mass-followup", icon: UsersRound },
-    { title: t('sidebar.memberAccounts'), url: "/ministry-admin/member-accounts", icon: UserCog },
-    { title: t('sidebar.prayerRequests'), url: "/ministry-admin/prayer-requests", icon: HandHeart },
-    { title: t('sidebar.announcements'), url: "/ministry-admin/announcements", icon: Megaphone },
-    { title: t('sidebar.contactRequests'), url: "/ministry-admin/contact-requests", icon: MessageSquare },
-    { title: t('sidebar.manageLeaders'), url: "/ministry-admin/leaders", icon: ClipboardList },
-    { title: t('sidebar.billing'), url: "/ministry-admin/billing", icon: CreditCard },
-    { title: t('sidebar.formSettings'), url: "/ministry-admin/form-settings", icon: FileEdit },
-    { title: t('sidebar.settings'), url: "/ministry-admin/settings", icon: Settings },
+  const ministryAdminNavGroups = [
+    {
+      label: null,
+      items: [
+        { title: t('sidebar.dashboard'), url: "/ministry-admin/dashboard", icon: LayoutDashboard },
+      ],
+    },
+    {
+      label: t('sidebar.people'),
+      items: [
+        { title: t('sidebar.converts'), url: "/ministry-admin/converts", icon: UserPlus },
+        { title: t('sidebar.newMembersGuests'), url: "/ministry-admin/new-members", icon: Users },
+        { title: t('sidebar.members'), url: "/ministry-admin/members", icon: Church },
+        { title: t('sidebar.memberAccounts'), url: "/ministry-admin/member-accounts", icon: UserCog },
+      ],
+    },
+    {
+      label: t('sidebar.engagement'),
+      items: [
+        { title: t('sidebar.followUps'), url: "/ministry-admin/followups", icon: CalendarClock },
+        { title: t('sidebar.massFollowUp'), url: "/ministry-admin/mass-followup", icon: UsersRound },
+        { title: t('sidebar.announcements'), url: "/ministry-admin/announcements", icon: Megaphone },
+      ],
+    },
+    {
+      label: t('sidebar.management'),
+      items: [
+        { title: t('sidebar.prayerRequests'), url: "/ministry-admin/prayer-requests", icon: HandHeart },
+        { title: t('sidebar.contactRequests'), url: "/ministry-admin/contact-requests", icon: MessageSquare },
+        { title: t('sidebar.manageLeaders'), url: "/ministry-admin/leaders", icon: ClipboardList },
+      ],
+    },
+    {
+      label: t('sidebar.configuration'),
+      items: [
+        { title: t('sidebar.formSettings'), url: "/ministry-admin/form-settings", icon: FileEdit },
+        { title: t('sidebar.settings'), url: "/ministry-admin/settings", icon: Settings },
+        { title: t('sidebar.billing'), url: "/ministry-admin/billing", icon: CreditCard },
+      ],
+    },
   ];
 
-  const leaderNavItems = [
-    { title: t('sidebar.dashboard'), url: "/leader/dashboard", icon: LayoutDashboard },
-    { title: t('sidebar.myConverts'), url: "/leader/converts", icon: UserPlus },
-    { title: t('sidebar.newMembersGuests'), url: "/leader/new-members", icon: Users },
-    { title: t('sidebar.members'), url: "/leader/members", icon: Church },
-    { title: t('sidebar.followUps'), url: "/leader/followups", icon: CalendarClock },
-    { title: t('sidebar.massFollowUp'), url: "/leader/mass-followup", icon: UsersRound },
-    { title: t('sidebar.memberAccounts'), url: "/leader/member-accounts", icon: UserCog },
-    { title: t('sidebar.prayerRequests'), url: "/leader/prayer-requests", icon: HandHeart },
-    { title: t('sidebar.announcements'), url: "/leader/announcements", icon: Megaphone },
-    { title: t('sidebar.contactRequests'), url: "/leader/contact-requests", icon: MessageSquare },
-    { title: t('sidebar.ministrySettings'), url: "/leader/settings", icon: Settings },
+  const leaderNavGroups = [
+    {
+      label: null,
+      items: [
+        { title: t('sidebar.dashboard'), url: "/leader/dashboard", icon: LayoutDashboard },
+      ],
+    },
+    {
+      label: t('sidebar.people'),
+      items: [
+        { title: t('sidebar.myConverts'), url: "/leader/converts", icon: UserPlus },
+        { title: t('sidebar.newMembersGuests'), url: "/leader/new-members", icon: Users },
+        { title: t('sidebar.members'), url: "/leader/members", icon: Church },
+        { title: t('sidebar.memberAccounts'), url: "/leader/member-accounts", icon: UserCog },
+      ],
+    },
+    {
+      label: t('sidebar.engagement'),
+      items: [
+        { title: t('sidebar.followUps'), url: "/leader/followups", icon: CalendarClock },
+        { title: t('sidebar.massFollowUp'), url: "/leader/mass-followup", icon: UsersRound },
+        { title: t('sidebar.announcements'), url: "/leader/announcements", icon: Megaphone },
+      ],
+    },
+    {
+      label: t('sidebar.management'),
+      items: [
+        { title: t('sidebar.prayerRequests'), url: "/leader/prayer-requests", icon: HandHeart },
+        { title: t('sidebar.contactRequests'), url: "/leader/contact-requests", icon: MessageSquare },
+      ],
+    },
+    {
+      label: t('sidebar.configuration'),
+      items: [
+        { title: t('sidebar.ministrySettings'), url: "/leader/settings", icon: Settings },
+      ],
+    },
   ];
 
   const { data: church } = useQuery<ChurchData>({
@@ -108,12 +158,12 @@ export function AppSidebar() {
     enabled: user?.role === "MINISTRY_ADMIN",
   });
 
-  const getNavItems = () => {
-    if (user?.role === "ADMIN") return adminNavItems;
-    if (user?.role === "MINISTRY_ADMIN") return ministryAdminNavItems;
-    return leaderNavItems;
+  const getNavGroups = () => {
+    if (user?.role === "ADMIN") return [{ label: null, items: adminNavItems }];
+    if (user?.role === "MINISTRY_ADMIN") return ministryAdminNavGroups;
+    return leaderNavGroups;
   };
-  const navItems = getNavItems();
+  const navGroups = getNavGroups();
   const initials = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase() || "U";
 
   const currentChurch = user?.role === "LEADER" ? church : user?.role === "MINISTRY_ADMIN" ? ministryAdminChurch : null;
@@ -154,23 +204,27 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{t('nav.navigation')}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location === item.url || (item.url !== "/admin/dashboard" && item.url !== "/ministry-admin/dashboard" && item.url !== "/leader/dashboard" && location.startsWith(item.url))}>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span className="text-sm">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {navGroups.map((group, groupIndex) => (
+          <SidebarGroup key={groupIndex}>
+            {group.label && (
+              <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{group.label}</SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild isActive={location === item.url || (item.url !== "/admin/dashboard" && item.url !== "/ministry-admin/dashboard" && item.url !== "/leader/dashboard" && location.startsWith(item.url))}>
+                      <Link href={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span className="text-sm">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{t('nav.quickLinks')}</SidebarGroupLabel>
