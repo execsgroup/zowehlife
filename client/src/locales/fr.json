@@ -1551,5 +1551,102 @@
     "invalidLinkDesc": "Ce lien de réinitialisation est invalide ou a expiré. Veuillez en demander un nouveau.",
     "requestNewLink": "Demander un Nouveau Lien",
     "backToLogin": "Retour à la Connexion"
+  },
+  "tutorial": {
+    "startTutorial": "Démarrer le Tutoriel",
+    "next": "Suivant",
+    "previous": "Retour",
+    "finish": "Terminer",
+    "stepCounter": "Étape {{current}} sur {{total}}",
+    "steps": {
+      "welcome": {
+        "title": "Bienvenue !",
+        "description": "Bienvenue dans le tableau de bord de votre ministère ! Ce tour rapide vous montrera comment naviguer dans les fonctionnalités principales. Commençons."
+      },
+      "welcomeAdmin": {
+        "description": "Bienvenue dans le tableau de bord Administrateur de Ministère ! Ce tour vous guidera à travers tous les outils disponibles pour gérer votre ministère efficacement."
+      },
+      "welcomePlatform": {
+        "description": "Bienvenue dans le tableau de bord Administrateur de Plateforme ! Ce tour vous montrera comment superviser tous les ministères et gérer la plateforme."
+      },
+      "dashboard": {
+        "title": "Tableau de Bord",
+        "description": "Votre tableau de bord affiche un aperçu des statistiques clés — convertis, suivis et activité récente en un coup d'œil."
+      },
+      "dashboardAdmin": {
+        "description": "Votre tableau de bord fournit une vue complète des statistiques de votre ministère, y compris les convertis, membres, leaders et la progression des suivis."
+      },
+      "dashboardPlatform": {
+        "description": "Votre tableau de bord vous donne une vue d'ensemble de tous les ministères sur la plateforme, y compris le total des convertis, les ministères actifs et les demandes en attente."
+      },
+      "converts": {
+        "title": "Convertis",
+        "description": "Gérez les nouveaux convertis ici. Vous pouvez ajouter des personnes, consulter leurs profils, suivre leur parcours spirituel et planifier des suivis."
+      },
+      "newMembers": {
+        "title": "Nouveaux Membres et Invités",
+        "description": "Suivez les nouveaux membres et invités qui ont récemment rejoint. Gérez leurs informations et aidez-les à s'intégrer."
+      },
+      "members": {
+        "title": "Membres",
+        "description": "Consultez et gérez vos membres établis. Suivez leur implication et maintenez leurs coordonnées."
+      },
+      "followUps": {
+        "title": "Suivis",
+        "description": "Planifiez et suivez les réunions de suivi avec les convertis et membres. Définissez des rappels, ajoutez des notes et surveillez les progrès."
+      },
+      "massFollowUp": {
+        "title": "Suivi de Masse",
+        "description": "Envoyez des communications de suivi à plusieurs personnes à la fois. Idéal pour les vérifications de groupe et la sensibilisation ministérielle."
+      },
+      "announcements": {
+        "title": "Annonces",
+        "description": "Envoyez des annonces à votre ministère par e-mail, SMS ou MMS. Planifiez les messages et suivez la livraison."
+      },
+      "prayerRequests": {
+        "title": "Demandes de Prière",
+        "description": "Consultez et répondez aux demandes de prière soumises via vos formulaires publics. Restez connecté aux besoins de votre communauté."
+      },
+      "manageLeaders": {
+        "title": "Gérer les Leaders",
+        "description": "Ajoutez et gérez les leaders dans votre ministère. Chaque leader peut gérer les convertis et les suivis au sein de votre église."
+      },
+      "memberAccounts": {
+        "title": "Comptes des Membres",
+        "description": "Gérez les comptes du portail des membres. Envoyez des jetons de réclamation, consultez l'état des comptes et contrôlez l'accès de vos membres."
+      },
+      "formSettings": {
+        "title": "Paramètres des Formulaires",
+        "description": "Personnalisez vos formulaires publics — modifiez les titres, descriptions, l'ordre des champs et ajoutez des champs personnalisés."
+      },
+      "settings": {
+        "title": "Paramètres",
+        "description": "Configurez les paramètres de votre ministère, mettez à jour les informations de l'église, téléchargez votre logo et gérez les liens d'inscription publics."
+      },
+      "billing": {
+        "title": "Facturation",
+        "description": "Gérez votre plan d'abonnement, consultez l'historique de facturation et mettez à jour les informations de paiement via le portail Stripe."
+      },
+      "ministries": {
+        "title": "Ministères",
+        "description": "Consultez et gérez tous les ministères enregistrés sur la plateforme. Approuvez les nouvelles inscriptions et surveillez l'activité ministérielle."
+      },
+      "allLeaders": {
+        "title": "Tous les Leaders",
+        "description": "Consultez tous les leaders de chaque ministère sur la plateforme. Surveillez les affectations et l'activité des leaders."
+      },
+      "allConverts": {
+        "title": "Tous les Convertis",
+        "description": "Consultez les convertis de tous les ministères. Obtenez une vue de toute la plateforme sur l'activité de conversion et de formation."
+      },
+      "ministryRequests": {
+        "title": "Demandes de Ministère",
+        "description": "Examinez et approuvez les demandes d'inscription de nouveaux ministères. Chaque demande inclut les détails du ministère et les informations de l'administrateur."
+      },
+      "userMenu": {
+        "title": "Votre Compte",
+        "description": "Accédez aux paramètres de votre compte, relancez ce tutoriel à tout moment ou déconnectez-vous depuis ici."
+      }
+    }
   }
 }

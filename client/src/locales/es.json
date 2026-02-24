@@ -1551,5 +1551,102 @@
     "invalidLinkDesc": "Este enlace de restablecimiento es inválido o ha expirado. Por favor solicita uno nuevo.",
     "requestNewLink": "Solicitar Nuevo Enlace",
     "backToLogin": "Volver al Inicio de Sesión"
+  },
+  "tutorial": {
+    "startTutorial": "Iniciar Tutorial",
+    "next": "Siguiente",
+    "previous": "Atrás",
+    "finish": "Finalizar",
+    "stepCounter": "Paso {{current}} de {{total}}",
+    "steps": {
+      "welcome": {
+        "title": "¡Bienvenido!",
+        "description": "¡Bienvenido al panel de tu ministerio! Este recorrido rápido te mostrará cómo navegar por las funciones principales. Comencemos."
+      },
+      "welcomeAdmin": {
+        "description": "¡Bienvenido al panel de Administrador de Ministerio! Este recorrido te guiará por todas las herramientas disponibles para gestionar tu ministerio eficazmente."
+      },
+      "welcomePlatform": {
+        "description": "¡Bienvenido al panel de Administrador de Plataforma! Este recorrido te mostrará cómo supervisar todos los ministerios y gestionar la plataforma."
+      },
+      "dashboard": {
+        "title": "Panel",
+        "description": "Tu panel muestra un resumen de estadísticas clave: conversos, seguimientos y actividad reciente de un vistazo."
+      },
+      "dashboardAdmin": {
+        "description": "Tu panel proporciona una visión completa de las estadísticas de tu ministerio, incluyendo conversos, miembros, líderes y progreso de seguimientos."
+      },
+      "dashboardPlatform": {
+        "description": "Tu panel te da una vista panorámica de todos los ministerios en la plataforma, incluyendo total de conversos, ministerios activos y solicitudes pendientes."
+      },
+      "converts": {
+        "title": "Conversos",
+        "description": "Gestiona nuevos conversos aquí. Puedes agregar personas, ver sus perfiles, seguir su camino espiritual y programar seguimientos."
+      },
+      "newMembers": {
+        "title": "Nuevos Miembros e Invitados",
+        "description": "Rastrea nuevos miembros e invitados que se han unido recientemente. Gestiona su información y ayúdalos a conectarse."
+      },
+      "members": {
+        "title": "Miembros",
+        "description": "Ve y gestiona tus miembros establecidos. Rastrea su participación y mantén su información de contacto."
+      },
+      "followUps": {
+        "title": "Seguimientos",
+        "description": "Programa y rastrea reuniones de seguimiento con conversos y miembros. Establece recordatorios, agrega notas y monitorea el progreso."
+      },
+      "massFollowUp": {
+        "title": "Seguimiento Masivo",
+        "description": "Envía comunicaciones de seguimiento a múltiples personas a la vez. Ideal para verificaciones grupales y alcance ministerial."
+      },
+      "announcements": {
+        "title": "Anuncios",
+        "description": "Envía anuncios a tu ministerio por correo electrónico, SMS o MMS. Programa mensajes y rastrea la entrega."
+      },
+      "prayerRequests": {
+        "title": "Peticiones de Oración",
+        "description": "Ve y responde a peticiones de oración enviadas a través de tus formularios públicos. Mantente conectado con las necesidades de tu comunidad."
+      },
+      "manageLeaders": {
+        "title": "Gestionar Líderes",
+        "description": "Agrega y gestiona líderes en tu ministerio. Cada líder puede gestionar conversos y seguimientos dentro de tu iglesia."
+      },
+      "memberAccounts": {
+        "title": "Cuentas de Miembros",
+        "description": "Gestiona cuentas del portal de miembros. Envía tokens de reclamación, ve el estado de las cuentas y controla el acceso de tus miembros."
+      },
+      "formSettings": {
+        "title": "Configuración de Formularios",
+        "description": "Personaliza tus formularios públicos: edita títulos, descripciones, orden de campos y agrega campos personalizados."
+      },
+      "settings": {
+        "title": "Configuración",
+        "description": "Configura los ajustes de tu ministerio, actualiza la información de la iglesia, sube tu logo y gestiona los enlaces de registro público."
+      },
+      "billing": {
+        "title": "Facturación",
+        "description": "Gestiona tu plan de suscripción, ve el historial de facturación y actualiza la información de pago a través del portal de Stripe."
+      },
+      "ministries": {
+        "title": "Ministerios",
+        "description": "Ve y gestiona todos los ministerios registrados en la plataforma. Aprueba nuevos registros y monitorea la actividad ministerial."
+      },
+      "allLeaders": {
+        "title": "Todos los Líderes",
+        "description": "Ve todos los líderes en cada ministerio de la plataforma. Monitorea las asignaciones y actividad de los líderes."
+      },
+      "allConverts": {
+        "title": "Todos los Conversos",
+        "description": "Ve conversos en todos los ministerios. Obtén una vista de toda la plataforma sobre la actividad de conversión y discipulado."
+      },
+      "ministryRequests": {
+        "title": "Solicitudes de Ministerio",
+        "description": "Revisa y aprueba solicitudes de registro de nuevos ministerios. Cada solicitud incluye los detalles del ministerio y la información del administrador."
+      },
+      "userMenu": {
+        "title": "Tu Cuenta",
+        "description": "Accede a la configuración de tu cuenta, reinicia este tutorial en cualquier momento o cierra sesión desde aquí."
+      }
+    }
   }
 }

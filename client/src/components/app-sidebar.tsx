@@ -45,7 +45,9 @@ import {
   CreditCard,
   Megaphone,
   FileEdit,
+  GraduationCap,
 } from "lucide-react";
+import { useTutorialSafe } from "./interactive-tutorial";
 
 interface ChurchData {
   id: string;
@@ -57,6 +59,7 @@ export function AppSidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { t } = useTranslation();
+  const tutorial = useTutorialSafe();
 
   const adminNavItems = [
     { title: t('sidebar.dashboard'), url: "/admin/dashboard", icon: LayoutDashboard },
@@ -262,6 +265,15 @@ export function AppSidebar() {
               <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>
             <DropdownMenuSeparator />
+            {tutorial && (
+              <DropdownMenuItem
+                onClick={() => tutorial!.startTutorial()}
+                data-testid="button-start-tutorial"
+              >
+                <GraduationCap className="mr-2 h-4 w-4" />
+                {t('tutorial.startTutorial')}
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               onClick={() => logout()}
               className="text-destructive focus:text-destructive"

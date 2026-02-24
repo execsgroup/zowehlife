@@ -1551,5 +1551,102 @@
     "invalidLinkDesc": "This reset link is invalid or has expired. Please request a new one.",
     "requestNewLink": "Request New Reset Link",
     "backToLogin": "Back to Login"
+  },
+  "tutorial": {
+    "startTutorial": "Start Tutorial",
+    "next": "Next",
+    "previous": "Back",
+    "finish": "Finish",
+    "stepCounter": "Step {{current}} of {{total}}",
+    "steps": {
+      "welcome": {
+        "title": "Welcome!",
+        "description": "Welcome to your ministry dashboard! This quick tour will show you how to navigate the key features. Let's get started."
+      },
+      "welcomeAdmin": {
+        "description": "Welcome to your Ministry Admin dashboard! This tour will guide you through all the tools available to manage your ministry effectively."
+      },
+      "welcomePlatform": {
+        "description": "Welcome to the Platform Admin dashboard! This tour will show you how to oversee all ministries and manage the platform."
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Your dashboard shows an overview of key statistics — converts, follow-ups, and recent activity at a glance."
+      },
+      "dashboardAdmin": {
+        "description": "Your dashboard provides a complete overview of your ministry's statistics, including converts, members, leaders, and follow-up progress."
+      },
+      "dashboardPlatform": {
+        "description": "Your dashboard gives you a bird's-eye view of all ministries on the platform, including total converts, active ministries, and pending requests."
+      },
+      "converts": {
+        "title": "Converts",
+        "description": "Manage new converts here. You can add new people, view their profiles, track their spiritual journey, and schedule follow-ups."
+      },
+      "newMembers": {
+        "title": "New Members & Guests",
+        "description": "Track new members and guests who have recently joined. Manage their information and help them get connected."
+      },
+      "members": {
+        "title": "Members",
+        "description": "View and manage your established members. Track their involvement and maintain their contact information."
+      },
+      "followUps": {
+        "title": "Follow-Ups",
+        "description": "Schedule and track follow-up meetings with converts and members. Set reminders, add notes, and monitor progress."
+      },
+      "massFollowUp": {
+        "title": "Mass Follow-Up",
+        "description": "Send follow-up communications to multiple people at once. Great for group check-ins and ministry-wide outreach."
+      },
+      "announcements": {
+        "title": "Announcements",
+        "description": "Send announcements to your ministry via email, SMS, or MMS. Schedule messages and track delivery."
+      },
+      "prayerRequests": {
+        "title": "Prayer Requests",
+        "description": "View and respond to prayer requests submitted through your public forms. Stay connected with your community's needs."
+      },
+      "manageLeaders": {
+        "title": "Manage Leaders",
+        "description": "Add and manage leaders in your ministry. Each leader can manage converts and follow-ups within your church."
+      },
+      "memberAccounts": {
+        "title": "Member Accounts",
+        "description": "Manage member portal accounts. Send claim tokens, view account status, and control access for your members."
+      },
+      "formSettings": {
+        "title": "Form Settings",
+        "description": "Customize your public forms — edit titles, descriptions, field order, and add custom fields for Salvation, New Member, and Member forms."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Configure your ministry settings, update church information, upload your logo, and manage public registration links."
+      },
+      "billing": {
+        "title": "Billing",
+        "description": "Manage your subscription plan, view billing history, and update payment information through the Stripe portal."
+      },
+      "ministries": {
+        "title": "Ministries",
+        "description": "View and manage all registered ministries on the platform. Approve new registrations and monitor ministry activity."
+      },
+      "allLeaders": {
+        "title": "All Leaders",
+        "description": "View all leaders across every ministry on the platform. Monitor leader assignments and activity."
+      },
+      "allConverts": {
+        "title": "All Converts",
+        "description": "View converts across all ministries. Get a platform-wide view of conversion and discipleship activity."
+      },
+      "ministryRequests": {
+        "title": "Ministry Requests",
+        "description": "Review and approve new ministry registration requests. Each request includes the ministry details and admin information."
+      },
+      "userMenu": {
+        "title": "Your Account",
+        "description": "Access your account settings, restart this tutorial anytime, or sign out from here."
+      }
+    }
   }
 }

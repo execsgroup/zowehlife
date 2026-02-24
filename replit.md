@@ -52,6 +52,7 @@ The application uses a React frontend and an Express backend with a clear separa
 - **Announcements**: Mass communication to selected recipient groups (Email, SMS, MMS) with scheduling and tracking.
 - **Form Customization**: Ministry Admins customize public forms (Salvation, New Member, Member) with editable titles, descriptions, reorderable standard fields, and custom fields (Text, Dropdown, Yes/No).
 - **Remove from Ministry**: Remove individuals from ministry affiliation.
+- **Interactive Tutorial**: Role-aware guided walkthrough for new users. Auto-launches on first login, replayable from user menu. SVG spotlight overlay highlights sidebar items with step-by-step descriptions. Keyboard navigation (arrows, Esc). Completion persisted in localStorage per role. Fully translated (en/es/fr/pt). Component: `client/src/components/interactive-tutorial.tsx`.
 
 ## External Dependencies
 - **PostgreSQL**: Primary data store.

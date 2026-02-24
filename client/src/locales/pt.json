@@ -1551,5 +1551,102 @@
     "invalidLinkDesc": "Este link de redefinição é inválido ou expirou. Por favor solicite um novo.",
     "requestNewLink": "Solicitar Novo Link",
     "backToLogin": "Voltar ao Login"
+  },
+  "tutorial": {
+    "startTutorial": "Iniciar Tutorial",
+    "next": "Próximo",
+    "previous": "Voltar",
+    "finish": "Concluir",
+    "stepCounter": "Passo {{current}} de {{total}}",
+    "steps": {
+      "welcome": {
+        "title": "Bem-vindo!",
+        "description": "Bem-vindo ao painel do seu ministério! Este tour rápido mostrará como navegar pelos recursos principais. Vamos começar."
+      },
+      "welcomeAdmin": {
+        "description": "Bem-vindo ao painel de Administrador de Ministério! Este tour irá guiá-lo por todas as ferramentas disponíveis para gerenciar seu ministério com eficácia."
+      },
+      "welcomePlatform": {
+        "description": "Bem-vindo ao painel de Administrador da Plataforma! Este tour mostrará como supervisionar todos os ministérios e gerenciar a plataforma."
+      },
+      "dashboard": {
+        "title": "Painel",
+        "description": "Seu painel mostra uma visão geral das estatísticas principais — conversos, acompanhamentos e atividade recente de relance."
+      },
+      "dashboardAdmin": {
+        "description": "Seu painel fornece uma visão completa das estatísticas do seu ministério, incluindo conversos, membros, líderes e progresso dos acompanhamentos."
+      },
+      "dashboardPlatform": {
+        "description": "Seu painel oferece uma visão panorâmica de todos os ministérios na plataforma, incluindo total de conversos, ministérios ativos e solicitações pendentes."
+      },
+      "converts": {
+        "title": "Conversos",
+        "description": "Gerencie novos conversos aqui. Você pode adicionar pessoas, ver seus perfis, acompanhar sua jornada espiritual e agendar acompanhamentos."
+      },
+      "newMembers": {
+        "title": "Novos Membros e Visitantes",
+        "description": "Acompanhe novos membros e visitantes que se juntaram recentemente. Gerencie suas informações e ajude-os a se conectar."
+      },
+      "members": {
+        "title": "Membros",
+        "description": "Veja e gerencie seus membros estabelecidos. Acompanhe seu envolvimento e mantenha suas informações de contato."
+      },
+      "followUps": {
+        "title": "Acompanhamentos",
+        "description": "Agende e acompanhe reuniões de acompanhamento com conversos e membros. Defina lembretes, adicione notas e monitore o progresso."
+      },
+      "massFollowUp": {
+        "title": "Acompanhamento em Massa",
+        "description": "Envie comunicações de acompanhamento para várias pessoas de uma vez. Ótimo para verificações em grupo e alcance ministerial."
+      },
+      "announcements": {
+        "title": "Anúncios",
+        "description": "Envie anúncios para seu ministério por e-mail, SMS ou MMS. Agende mensagens e acompanhe a entrega."
+      },
+      "prayerRequests": {
+        "title": "Pedidos de Oração",
+        "description": "Veja e responda a pedidos de oração enviados através dos seus formulários públicos. Mantenha-se conectado com as necessidades da sua comunidade."
+      },
+      "manageLeaders": {
+        "title": "Gerenciar Líderes",
+        "description": "Adicione e gerencie líderes no seu ministério. Cada líder pode gerenciar conversos e acompanhamentos dentro da sua igreja."
+      },
+      "memberAccounts": {
+        "title": "Contas de Membros",
+        "description": "Gerencie contas do portal de membros. Envie tokens de reivindicação, veja o status das contas e controle o acesso dos seus membros."
+      },
+      "formSettings": {
+        "title": "Configurações de Formulários",
+        "description": "Personalize seus formulários públicos — edite títulos, descrições, ordem dos campos e adicione campos personalizados."
+      },
+      "settings": {
+        "title": "Configurações",
+        "description": "Configure as definições do seu ministério, atualize as informações da igreja, envie seu logo e gerencie os links de registro público."
+      },
+      "billing": {
+        "title": "Faturamento",
+        "description": "Gerencie seu plano de assinatura, veja o histórico de faturamento e atualize as informações de pagamento através do portal Stripe."
+      },
+      "ministries": {
+        "title": "Ministérios",
+        "description": "Veja e gerencie todos os ministérios registrados na plataforma. Aprove novos registros e monitore a atividade ministerial."
+      },
+      "allLeaders": {
+        "title": "Todos os Líderes",
+        "description": "Veja todos os líderes em cada ministério da plataforma. Monitore as atribuições e atividade dos líderes."
+      },
+      "allConverts": {
+        "title": "Todos os Conversos",
+        "description": "Veja conversos em todos os ministérios. Obtenha uma visão de toda a plataforma sobre atividade de conversão e discipulado."
+      },
+      "ministryRequests": {
+        "title": "Solicitações de Ministério",
+        "description": "Revise e aprove solicitações de registro de novos ministérios. Cada solicitação inclui os detalhes do ministério e informações do administrador."
+      },
+      "userMenu": {
+        "title": "Sua Conta",
+        "description": "Acesse as configurações da sua conta, reinicie este tutorial a qualquer momento ou saia por aqui."
+      }
+    }
   }
 }

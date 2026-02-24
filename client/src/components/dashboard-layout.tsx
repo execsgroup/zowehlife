@@ -4,6 +4,7 @@ import { AppSidebar } from "./app-sidebar";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageToggle } from "./language-toggle";
 import { SubscriptionBanner } from "./subscription-banner";
+import { TutorialProvider } from "./interactive-tutorial";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -18,27 +19,29 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center justify-between gap-4 border-b bg-card px-4 h-12 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger data-testid="button-sidebar-toggle" />
-              {title && <h1 className="font-medium text-sm">{title}</h1>}
-            </div>
-            <div className="flex items-center gap-1">
-              <LanguageToggle />
-              <ThemeToggle />
-            </div>
-          </header>
-          <main className="flex-1 overflow-auto px-6 py-6">
-            <SubscriptionBanner />
-            <div className="space-y-6">
-              {children}
-            </div>
-          </main>
+      <TutorialProvider>
+        <div className="flex h-screen w-full">
+          <AppSidebar />
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <header className="flex items-center justify-between gap-4 border-b bg-card px-4 h-12 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <SidebarTrigger data-testid="button-sidebar-toggle" />
+                {title && <h1 className="font-medium text-sm">{title}</h1>}
+              </div>
+              <div className="flex items-center gap-1">
+                <LanguageToggle />
+                <ThemeToggle />
+              </div>
+            </header>
+            <main className="flex-1 overflow-auto px-6 py-6">
+              <SubscriptionBanner />
+              <div className="space-y-6">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
+      </TutorialProvider>
     </SidebarProvider>
   );
 }
