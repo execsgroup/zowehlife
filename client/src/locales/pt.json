@@ -345,7 +345,7 @@
     "description": "Gerenciar novos membros e visitantes do seu ministério",
     "addNewMember": "Adicionar Novo Membro",
     "editNewMember": "Editar Novo Membro",
-    "copyNewMemberLink": "Copiar Link de Registro",
+    "copyNewMemberLink": "Copiar Link de Novos Membros e Visitantes",
     "copyNewMemberLinkTooltip": "Copiar link de registro de novos membros",
     "generateNewMemberLink": "Gerar Link de Registro",
     "newMemberDetails": "Detalhes do Novo Membro",

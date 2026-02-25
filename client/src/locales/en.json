@@ -345,7 +345,7 @@
     "description": "Manage new members and guests at your ministry",
     "addNewMember": "Add New Member",
     "editNewMember": "Edit New Member",
-    "copyNewMemberLink": "Copy Registration Link",
+    "copyNewMemberLink": "Copy New Member & Guest Link",
     "copyNewMemberLinkTooltip": "Copy new member registration link",
     "generateNewMemberLink": "Generate Registration Link",
     "newMemberDetails": "New Member Details",
