@@ -2863,6 +2863,16 @@ export async function registerRoutes(
     }
   }
 
+  app.get("/api/ministry-admin/reports/leader-performance", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const data = await storage.getLeaderPerformanceMetrics(user.churchId);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get leader performance metrics" });
+    }
+  });
+
   app.get("/api/ministry-admin/reports/growth", requireMinistryAdmin, handleReportsGrowth);
   app.get("/api/ministry-admin/reports/status-breakdown", requireMinistryAdmin, handleReportsStatusBreakdown);
   app.get("/api/ministry-admin/reports/followup-stages", requireMinistryAdmin, handleReportsFollowUpStages);

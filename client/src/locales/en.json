@@ -1699,6 +1699,18 @@
     "month": "Month",
     "count": "Count",
     "noDataAvailable": "No data available",
-    "chartsAndReports": "Charts & Reports"
+    "chartsAndReports": "Charts & Reports",
+    "leaderPerformance": "Leader Performance",
+    "leaderName": "Leader",
+    "totalConvertsCol": "Converts",
+    "totalNewMembersCol": "New Members",
+    "totalMembersCol": "Members",
+    "totalGuestsCol": "Guests",
+    "scheduledFollowups": "Scheduled",
+    "completedFollowups": "Completed",
+    "lastActivity": "Last Activity",
+    "noLeaderData": "No leader data available",
+    "totalRegistered": "Total Registered",
+    "followUpsBreakdown": "Follow-Ups"
   }
 }

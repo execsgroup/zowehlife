@@ -279,6 +279,17 @@ export interface IStorage {
   getStatusBreakdown(churchId?: string): Promise<Array<{ status: string; count: number }>>;
   getFollowUpStageBreakdown(churchId?: string): Promise<Array<{ stage: string; count: number }>>;
   getCheckinOutcomes(churchId?: string): Promise<Array<{ outcome: string; count: number }>>;
+  getLeaderPerformanceMetrics(churchId: string): Promise<Array<{
+    leaderId: string;
+    leaderName: string;
+    totalConverts: number;
+    totalNewMembers: number;
+    totalMembers: number;
+    totalGuests: number;
+    scheduledFollowups: number;
+    completedFollowups: number;
+    lastActivity: string | null;
+  }>>;
 
   // New Members
   getNewMember(id: string): Promise<NewMember | undefined>;
@@ -1236,6 +1247,95 @@ export class DatabaseStorage implements IStorage {
       .where(condition)
       .groupBy(checkins.outcome);
     return results.map(r => ({ outcome: r.outcome, count: Number(r.count) }));
+  }
+
+  async getLeaderPerformanceMetrics(churchId: string): Promise<Array<{
+    leaderId: string;
+    leaderName: string;
+    totalConverts: number;
+    totalNewMembers: number;
+    totalMembers: number;
+    totalGuests: number;
+    scheduledFollowups: number;
+    completedFollowups: number;
+    lastActivity: string | null;
+  }>> {
+    const leaders = await this.getLeadersByChurch(churchId);
+
+    const results = await Promise.all(
+      leaders.map(async (leader) => {
+        const [convertCount] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(converts)
+          .where(and(eq(converts.churchId, churchId), eq(converts.createdByUserId, leader.id)));
+
+        const [newMemberCount] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(newMembers)
+          .where(and(eq(newMembers.churchId, churchId), eq(newMembers.createdByUserId, leader.id)));
+
+        const [memberCount] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(members)
+          .where(and(eq(members.churchId, churchId), eq(members.createdByUserId, leader.id)));
+
+        const [guestCount] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(guests)
+          .where(and(eq(guests.churchId, churchId), eq(guests.createdByUserId, leader.id)));
+
+        const [scheduledCount] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(checkins)
+          .where(and(
+            eq(checkins.churchId, churchId),
+            eq(checkins.createdByUserId, leader.id),
+            eq(checkins.outcome, "SCHEDULED_VISIT")
+          ));
+
+        const [completedCount] = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(checkins)
+          .where(and(
+            eq(checkins.churchId, churchId),
+            eq(checkins.createdByUserId, leader.id),
+            sql`${checkins.outcome} != 'SCHEDULED_VISIT'`
+          ));
+
+        const [lastCheckin] = await db
+          .select({ date: checkins.createdAt })
+          .from(checkins)
+          .where(and(eq(checkins.churchId, churchId), eq(checkins.createdByUserId, leader.id)))
+          .orderBy(desc(checkins.createdAt))
+          .limit(1);
+
+        const [lastConvert] = await db
+          .select({ date: converts.createdAt })
+          .from(converts)
+          .where(and(eq(converts.churchId, churchId), eq(converts.createdByUserId, leader.id)))
+          .orderBy(desc(converts.createdAt))
+          .limit(1);
+
+        const dates = [lastCheckin?.date, lastConvert?.date].filter(Boolean) as Date[];
+        const lastActivity = dates.length > 0
+          ? new Date(Math.max(...dates.map(d => d.getTime()))).toISOString()
+          : null;
+
+        return {
+          leaderId: leader.id,
+          leaderName: `${leader.firstName} ${leader.lastName}`,
+          totalConverts: Number(convertCount.count),
+          totalNewMembers: Number(newMemberCount.count),
+          totalMembers: Number(memberCount.count),
+          totalGuests: Number(guestCount.count),
+          scheduledFollowups: Number(scheduledCount.count),
+          completedFollowups: Number(completedCount.count),
+          lastActivity,
+        };
+      })
+    );
+
+    return results;
   }
 
   // Email Reminders

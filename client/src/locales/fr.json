@@ -1699,6 +1699,18 @@
     "month": "Mois",
     "count": "Nombre",
     "noDataAvailable": "Aucune donnée disponible",
-    "chartsAndReports": "Graphiques et Rapports"
+    "chartsAndReports": "Graphiques et Rapports",
+    "leaderPerformance": "Performance des Leaders",
+    "leaderName": "Leader",
+    "totalConvertsCol": "Convertis",
+    "totalNewMembersCol": "Nouveaux Membres",
+    "totalMembersCol": "Membres",
+    "totalGuestsCol": "Invités",
+    "scheduledFollowups": "Planifiés",
+    "completedFollowups": "Terminés",
+    "lastActivity": "Dernière Activité",
+    "noLeaderData": "Aucune donnée de leader disponible",
+    "totalRegistered": "Total Inscrits",
+    "followUpsBreakdown": "Suivis"
   }
 }

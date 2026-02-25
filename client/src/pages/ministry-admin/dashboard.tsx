@@ -7,8 +7,11 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
 import { QRCodeDialog } from "@/components/qr-code-dialog";
+import { Table, TableBody, TableCell, TableRow, TableHeader } from "@/components/ui/table";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 import {
   GrowthTrendChart,
   StatusBreakdownChart,
@@ -16,8 +19,11 @@ import {
   CheckinOutcomeChart,
   ExportCsvButton,
 } from "@/components/dashboard-charts";
-import { Users, UserPlus, Heart, UserCheck, UsersRound, Copy, ExternalLink, QrCode, TrendingUp, BarChart3, PieChart, ClipboardCheck } from "lucide-react";
+import { Users, UserPlus, Heart, UserCheck, UsersRound, Copy, ExternalLink, QrCode, TrendingUp, BarChart3, PieChart, ClipboardCheck, UserCog, Calendar } from "lucide-react";
 import { Link } from "wouter";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
 
 interface Stats {
   totalConverts: number;
