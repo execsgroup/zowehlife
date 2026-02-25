@@ -303,6 +303,11 @@ export default function LeaderDashboard() {
                       {format(new Date(followup.nextFollowupDate), "EEEE, MMM d")}
                       {followup.nextFollowupTime && (() => { const [h, m] = followup.nextFollowupTime!.split(':').map(Number); return ` at ${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; })()}
                     </p>
+                    {followup.scheduledByName && (
+                      <p className="text-xs text-muted-foreground" data-testid={`text-scheduled-by-${followup.id}`}>
+                        {t('followUps.scheduledBy', { name: followup.scheduledByName })}
+                      </p>
+                    )}
                   </div>
                 </Link>
                 <div className="flex items-center gap-2">
