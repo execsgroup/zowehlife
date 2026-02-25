@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Heart } from "lucide-react";
+import zowehLogoPath from "@assets/zoweh_logo_2_1771985257647.png";
 import { useTranslation } from "react-i18next";
 
 export function PublicFooter() {
@@ -11,9 +11,7 @@ export function PublicFooter() {
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-                <Heart className="h-4 w-4 text-primary-foreground" />
-              </div>
+              <img src={zowehLogoPath} alt="Zoweh" className="h-8 w-8 object-contain" />
               <span className="font-semibold">Zoweh Life</span>
             </div>
             <p className="text-sm text-muted-foreground">

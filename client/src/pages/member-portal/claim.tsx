@@ -9,7 +9,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { claimAccountSchema, type ClaimAccountData } from "@shared/schema";
-import { Heart, Key, Lock, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
+import { Key, Lock, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
+import zowehLogoPath from "@assets/zoweh_logo_2_1771985257647.png";
 import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 
@@ -97,9 +98,7 @@ export default function ClaimAccount() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary">
-              <Heart className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={zowehLogoPath} alt="Zoweh" className="h-12 w-12 object-contain" />
           </Link>
           <h1 className="text-2xl font-bold">{t('memberPortal.claimAccountTitle')}</h1>
           <p className="text-muted-foreground mt-1">{t('memberPortal.claimAccountDescription')}</p>

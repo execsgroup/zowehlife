@@ -13,7 +13,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
-import { UserPlus, Calendar, ArrowRight, Clock, User, Copy, Check, Video, QrCode } from "lucide-react";
+import {
+  GrowthTrendChart,
+  StatusBreakdownChart,
+  FollowUpStageChart,
+  CheckinOutcomeChart,
+  ExportCsvButton,
+} from "@/components/dashboard-charts";
+import { UserPlus, Calendar, ArrowRight, Clock, User, Copy, Check, Video, QrCode, TrendingUp, PieChart, BarChart3, ClipboardCheck } from "lucide-react";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
 interface LeaderStats {
@@ -53,6 +60,22 @@ export default function LeaderDashboard() {
 
   const { data: church } = useQuery<ChurchInfo>({
     queryKey: [`${apiBasePath}/church`],
+  });
+
+  const { data: growthData, isLoading: growthLoading } = useQuery<Array<{ month: string; converts: number; newMembers: number; members: number }>>({
+    queryKey: [apiBasePath + "/reports", "growth"],
+  });
+
+  const { data: statusData, isLoading: statusLoading } = useQuery<Array<{ status: string; count: number }>>({
+    queryKey: [apiBasePath + "/reports", "status-breakdown"],
+  });
+
+  const { data: stagesData, isLoading: stagesLoading } = useQuery<Array<{ stage: string; count: number }>>({
+    queryKey: [apiBasePath + "/reports", "followup-stages"],
+  });
+
+  const { data: outcomesData, isLoading: outcomesLoading } = useQuery<Array<{ outcome: string; count: number }>>({
+    queryKey: [apiBasePath + "/reports", "checkin-outcomes"],
   });
 
   const convertFormLink = church?.publicToken
@@ -137,6 +160,76 @@ export default function LeaderDashboard() {
           </Link>
         ))}
       </div>
+
+      <Section
+        title={t('reports.chartsAndReports')}
+        actions={
+          <ExportCsvButton
+            data={growthData || []}
+            filename="ministry-growth-report"
+            headers={[t('reports.month'), t('reports.converts'), t('reports.newMembers'), t('reports.members')]}
+          />
+        }
+      >
+        <div className="space-y-4">
+          <div className="rounded-lg border bg-card p-5" data-testid="chart-growth-trends">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-500/10">
+                <TrendingUp className="h-3.5 w-3.5 text-blue-500" />
+              </div>
+              <h3 className="text-sm font-semibold">{t('reports.growthTrends')}</h3>
+            </div>
+            {growthLoading ? (
+              <Skeleton className="h-[280px] w-full rounded-md" />
+            ) : (
+              <GrowthTrendChart data={growthData || []} />
+            )}
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border bg-card p-5" data-testid="chart-status-breakdown">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-500/10">
+                  <PieChart className="h-3.5 w-3.5 text-violet-500" />
+                </div>
+                <h3 className="text-sm font-semibold">{t('reports.statusBreakdown')}</h3>
+              </div>
+              {statusLoading ? (
+                <Skeleton className="h-[250px] w-full rounded-md" />
+              ) : (
+                <StatusBreakdownChart data={statusData || []} />
+              )}
+            </div>
+            <div className="rounded-lg border bg-card p-5" data-testid="chart-followup-stages">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/10">
+                  <BarChart3 className="h-3.5 w-3.5 text-emerald-500" />
+                </div>
+                <h3 className="text-sm font-semibold">{t('reports.followUpStages')}</h3>
+              </div>
+              {stagesLoading ? (
+                <Skeleton className="h-[250px] w-full rounded-md" />
+              ) : (
+                <FollowUpStageChart data={stagesData || []} />
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-card p-5" data-testid="chart-checkin-outcomes">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/10">
+                <ClipboardCheck className="h-3.5 w-3.5 text-amber-500" />
+              </div>
+              <h3 className="text-sm font-semibold">{t('reports.checkinOutcomes')}</h3>
+            </div>
+            {outcomesLoading ? (
+              <Skeleton className="h-[280px] w-full rounded-md" />
+            ) : (
+              <CheckinOutcomeChart data={outcomesData || []} />
+            )}
+          </div>
+        </div>
+      </Section>
 
       <Section title={t('dashboard.shareableRegistrationLinks')} description={t('dashboard.shareRegistrationLinksDesc')}>
         <div className="space-y-3">

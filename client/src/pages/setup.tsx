@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { adminSetupSchema, type AdminSetupData } from "@shared/schema";
-import { Heart, User, Mail, Lock, Key, Loader2, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import { User, Mail, Lock, Key, Loader2, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import zowehLogoPath from "@assets/zoweh_logo_2_1771985257647.png";
 import { useTranslation } from "react-i18next";
 
 export default function Setup() {
@@ -107,9 +108,7 @@ export default function Setup() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary">
-              <Heart className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={zowehLogoPath} alt="Zoweh" className="h-12 w-12 object-contain" />
           </Link>
           <h1 className="text-2xl font-bold">{t('setup.adminSetup')}</h1>
           <p className="text-muted-foreground mt-1">{t('setup.createFirstAdmin')}</p>

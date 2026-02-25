@@ -48,6 +48,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useTutorialSafe } from "./interactive-tutorial";
+import zowehLogoPath from "@assets/zoweh_logo_2_1771985257647.png";
 
 interface ChurchData {
   id: string;
@@ -182,14 +183,12 @@ export function AppSidebar() {
           {showChurchLogo ? (
             <Avatar className="h-7 w-7 rounded-md">
               <AvatarImage src={currentChurch.logoUrl!} alt={currentChurch.name} className="object-cover" />
-              <AvatarFallback className="bg-primary text-primary-foreground rounded-md text-xs">
-                <Heart className="h-3.5 w-3.5" />
+              <AvatarFallback className="rounded-md text-xs">
+                <img src={zowehLogoPath} alt="Zoweh" className="h-7 w-7 object-contain" />
               </AvatarFallback>
             </Avatar>
           ) : (
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
-              <Heart className="h-3.5 w-3.5 text-primary-foreground" />
-            </div>
+            <img src={zowehLogoPath} alt="Zoweh" className="h-7 w-7 object-contain rounded-md" />
           )}
           <span className="font-semibold text-sm truncate">
             {getSidebarTitle()}

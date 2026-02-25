@@ -2,7 +2,8 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./theme-provider";
 import { languages } from "@/lib/i18n";
-import { Heart, Menu, X, Globe, Moon, Sun, Check } from "lucide-react";
+import { Menu, X, Globe, Moon, Sun, Check } from "lucide-react";
+import zowehLogoPath from "@assets/zoweh_logo_2_1771985257647.png";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -32,9 +33,7 @@ export function PublicNav() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary">
-              <Heart className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <img src={zowehLogoPath} alt="Zoweh" className="h-9 w-9 object-contain" />
             <span className="font-semibold text-lg hidden sm:inline">Zoweh Life</span>
           </Link>
 
