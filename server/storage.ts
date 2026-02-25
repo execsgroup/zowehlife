@@ -153,6 +153,7 @@ export interface IStorage {
     nextFollowupTime: string | null;
     notes: string | null;
     videoLink: string | null;
+    scheduledByName: string | null;
   }>>;
 
   // Prayer Requests
@@ -249,7 +250,7 @@ export interface IStorage {
     recentPrayerRequests: number;
   }>;
 
-  getLeaderStats(churchId: string): Promise<{
+  getLeaderStats(churchId: string, userId?: string): Promise<{
     churchName: string;
     totalConverts: number;
     newConverts: number;
@@ -261,6 +262,7 @@ export interface IStorage {
       nextFollowupDate: string;
       nextFollowupTime: string | null;
       videoLink: string | null;
+      scheduledByName: string | null;
     }>;
   }>;
 
@@ -315,6 +317,7 @@ export interface IStorage {
     nextFollowupTime: string | null;
     notes: string | null;
     videoLink: string | null;
+    scheduledByName: string | null;
   }>>;
 
   // Members
@@ -359,6 +362,7 @@ export interface IStorage {
     nextFollowupTime: string | null;
     notes: string | null;
     videoLink: string | null;
+    scheduledByName: string | null;
   }>>;
 
   // Guests
@@ -818,9 +822,12 @@ export class DatabaseStorage implements IStorage {
         nextFollowupTime: checkins.nextFollowupTime,
         notes: checkins.notes,
         videoLink: checkins.videoLink,
+        scheduledByFirstName: users.firstName,
+        scheduledByLastName: users.lastName,
       })
       .from(checkins)
       .innerJoin(converts, eq(checkins.convertId, converts.id))
+      .leftJoin(users, eq(checkins.createdByUserId, users.id))
       .where(
         and(
           gte(checkins.nextFollowupDate, today),
@@ -830,8 +837,18 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(checkins.nextFollowupDate);
     return results.map(r => ({
-      ...r,
-      nextFollowupDate: r.nextFollowupDate || ""
+      id: r.id,
+      convertId: r.convertId,
+      convertFirstName: r.convertFirstName,
+      convertLastName: r.convertLastName,
+      convertPhone: r.convertPhone,
+      convertEmail: r.convertEmail,
+      nextFollowupDate: r.nextFollowupDate || "",
+      nextFollowupTime: r.nextFollowupTime,
+      notes: r.notes,
+      videoLink: r.videoLink,
+      scheduledByName: r.scheduledByFirstName && r.scheduledByLastName
+        ? `${r.scheduledByFirstName} ${r.scheduledByLastName}` : null,
     }));
   }
 
@@ -1036,7 +1053,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getLeaderStats(churchId: string) {
+  async getLeaderStats(churchId: string, userId?: string) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const today = new Date().toISOString().split("T")[0];
@@ -1058,6 +1075,14 @@ export class DatabaseStorage implements IStorage {
       .from(converts)
       .where(and(eq(converts.churchId, churchId), eq(converts.status, "ACTIVE")));
 
+    const followupConditions = [
+      eq(checkins.churchId, churchId),
+      lte(checkins.nextFollowupDate, today),
+    ];
+    if (userId) {
+      followupConditions.push(eq(checkins.createdByUserId, userId));
+    }
+
     const followups = await db
       .select({
         id: checkins.id,
@@ -1067,10 +1092,13 @@ export class DatabaseStorage implements IStorage {
         videoLink: checkins.videoLink,
         firstName: converts.firstName,
         lastName: converts.lastName,
+        scheduledByFirstName: users.firstName,
+        scheduledByLastName: users.lastName,
       })
       .from(checkins)
       .innerJoin(converts, eq(checkins.convertId, converts.id))
-      .where(and(eq(checkins.churchId, churchId), lte(checkins.nextFollowupDate, today)))
+      .leftJoin(users, eq(checkins.createdByUserId, users.id))
+      .where(and(...followupConditions))
       .orderBy(checkins.nextFollowupDate);
 
     return {
@@ -1085,6 +1113,8 @@ export class DatabaseStorage implements IStorage {
         nextFollowupDate: f.nextFollowupDate || "",
         nextFollowupTime: f.nextFollowupTime,
         videoLink: f.videoLink || null,
+        scheduledByName: f.scheduledByFirstName && f.scheduledByLastName
+          ? `${f.scheduledByFirstName} ${f.scheduledByLastName}` : null,
       })),
     };
   }
@@ -1543,6 +1573,7 @@ export class DatabaseStorage implements IStorage {
     nextFollowupTime: string | null;
     notes: string | null;
     videoLink: string | null;
+    scheduledByName: string | null;
   }>> {
     const today = new Date().toISOString().split("T")[0];
     const results = await db
@@ -1557,9 +1588,12 @@ export class DatabaseStorage implements IStorage {
         nextFollowupTime: newMemberCheckins.nextFollowupTime,
         notes: newMemberCheckins.notes,
         videoLink: newMemberCheckins.videoLink,
+        scheduledByFirstName: users.firstName,
+        scheduledByLastName: users.lastName,
       })
       .from(newMemberCheckins)
       .innerJoin(newMembers, eq(newMemberCheckins.newMemberId, newMembers.id))
+      .leftJoin(users, eq(newMemberCheckins.createdByUserId, users.id))
       .where(
         and(
           gte(newMemberCheckins.nextFollowupDate, today),
@@ -1580,6 +1614,8 @@ export class DatabaseStorage implements IStorage {
       nextFollowupTime: r.nextFollowupTime,
       notes: r.notes,
       videoLink: r.videoLink,
+      scheduledByName: r.scheduledByFirstName && r.scheduledByLastName
+        ? `${r.scheduledByFirstName} ${r.scheduledByLastName}` : null,
     }));
   }
 
@@ -1792,6 +1828,7 @@ export class DatabaseStorage implements IStorage {
     nextFollowupTime: string | null;
     notes: string | null;
     videoLink: string | null;
+    scheduledByName: string | null;
   }>> {
     const results = await db
       .select({
@@ -1805,9 +1842,12 @@ export class DatabaseStorage implements IStorage {
         nextFollowupTime: memberCheckins.nextFollowupTime,
         notes: memberCheckins.notes,
         videoLink: memberCheckins.videoLink,
+        scheduledByFirstName: users.firstName,
+        scheduledByLastName: users.lastName,
       })
       .from(memberCheckins)
       .innerJoin(members, eq(memberCheckins.memberId, members.id))
+      .leftJoin(users, eq(memberCheckins.createdByUserId, users.id))
       .where(
         and(
           eq(memberCheckins.churchId, churchId),
@@ -1817,8 +1857,18 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(memberCheckins.nextFollowupDate);
     return results.map(r => ({
-      ...r,
+      id: r.id,
+      memberId: r.memberId,
+      memberFirstName: r.memberFirstName,
+      memberLastName: r.memberLastName,
+      memberPhone: r.memberPhone,
+      memberEmail: r.memberEmail,
       nextFollowupDate: r.nextFollowupDate || "",
+      nextFollowupTime: r.nextFollowupTime,
+      notes: r.notes,
+      videoLink: r.videoLink,
+      scheduledByName: r.scheduledByFirstName && r.scheduledByLastName
+        ? `${r.scheduledByFirstName} ${r.scheduledByLastName}` : null,
     }));
   }
 

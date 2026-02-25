@@ -4787,7 +4787,7 @@ export async function registerRoutes(
   app.get("/api/leader/stats", requireLeader, async (req, res) => {
     try {
       const user = (req as any).user;
-      const stats = await storage.getLeaderStats(user.churchId);
+      const stats = await storage.getLeaderStats(user.churchId, user.id);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to get stats" });
