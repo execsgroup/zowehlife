@@ -53,6 +53,7 @@ The application uses a React frontend and an Express backend with a clear separa
 - **Form Customization**: Ministry Admins customize public forms (Salvation, New Member, Member) with editable titles, descriptions, reorderable standard fields, and custom fields (Text, Dropdown, Yes/No).
 - **Remove from Ministry**: Remove individuals from ministry affiliation.
 - **Interactive Tutorial**: Role-aware guided walkthrough for new users. Auto-launches on first login, replayable from user menu. SVG spotlight overlay highlights sidebar items with step-by-step descriptions. Keyboard navigation (arrows, Esc). Completion persisted in localStorage per role. Fully translated (en/es/fr/pt). Component: `client/src/components/interactive-tutorial.tsx`.
+- **Interactive Dashboard & Reporting**: All three dashboards (Admin, Ministry Admin, Leader) feature interactive charts and CSV export. Uses `recharts` library. Reusable chart components in `client/src/components/dashboard-charts.tsx`. Reporting API endpoints at `/api/*/reports/growth`, `/api/*/reports/status-breakdown`, `/api/*/reports/followup-stages`, `/api/*/reports/checkin-outcomes`. Charts include: growth trend area charts, status breakdown donut charts, follow-up stage bar charts, check-in outcome bar charts. Fully translated (en/es/fr/pt).
 
 ## External Dependencies
 - **PostgreSQL**: Primary data store.
@@ -61,3 +62,4 @@ The application uses a React frontend and an Express backend with a clear separa
 - **OpenAI API**: AI Text Helper.
 - **Jitsi Meet**: Video conferencing integration.
 - **Stripe**: Payment processing for subscriptions.
+- **Recharts**: Interactive charts for dashboard reporting.

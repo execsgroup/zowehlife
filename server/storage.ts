@@ -272,6 +272,12 @@ export interface IStorage {
     totalMembers: number;
   }>;
 
+  // Reporting
+  getGrowthTrends(churchId?: string): Promise<Array<{ month: string; converts: number; newMembers: number; members: number }>>;
+  getStatusBreakdown(churchId?: string): Promise<Array<{ status: string; count: number }>>;
+  getFollowUpStageBreakdown(churchId?: string): Promise<Array<{ stage: string; count: number }>>;
+  getCheckinOutcomes(churchId?: string): Promise<Array<{ outcome: string; count: number }>>;
+
   // New Members
   getNewMember(id: string): Promise<NewMember | undefined>;
   getNewMembers(): Promise<NewMember[]>;
@@ -1119,6 +1125,85 @@ export class DatabaseStorage implements IStorage {
       totalNewMembers: Number(newMemberCount?.count || 0),
       totalMembers: Number(memberCount?.count || 0),
     };
+  }
+
+  // Reporting
+  async getGrowthTrends(churchId?: string): Promise<Array<{ month: string; converts: number; newMembers: number; members: number }>> {
+    const months: Array<{ month: string; converts: number; newMembers: number; members: number }> = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      const start = new Date(year, month, 1);
+      const end = new Date(year, month + 1, 1);
+      const label = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+      const conditions = churchId
+        ? and(gte(converts.createdAt, start), lt(converts.createdAt, end), eq(converts.churchId, churchId))
+        : and(gte(converts.createdAt, start), lt(converts.createdAt, end));
+
+      const nmConditions = churchId
+        ? and(gte(newMembers.createdAt, start), lt(newMembers.createdAt, end), eq(newMembers.churchId, churchId))
+        : and(gte(newMembers.createdAt, start), lt(newMembers.createdAt, end));
+
+      const mConditions = churchId
+        ? and(gte(members.createdAt, start), lt(members.createdAt, end), eq(members.churchId, churchId))
+        : and(gte(members.createdAt, start), lt(members.createdAt, end));
+
+      const [cCount] = await db.select({ count: sql<number>`count(*)` }).from(converts).where(conditions);
+      const [nmCount] = await db.select({ count: sql<number>`count(*)` }).from(newMembers).where(nmConditions);
+      const [mCount] = await db.select({ count: sql<number>`count(*)` }).from(members).where(mConditions);
+
+      months.push({
+        month: label,
+        converts: Number(cCount?.count || 0),
+        newMembers: Number(nmCount?.count || 0),
+        members: Number(mCount?.count || 0),
+      });
+    }
+    return months;
+  }
+
+  async getStatusBreakdown(churchId?: string): Promise<Array<{ status: string; count: number }>> {
+    const condition = churchId ? eq(converts.churchId, churchId) : undefined;
+    const results = await db
+      .select({ status: converts.status, count: sql<number>`count(*)` })
+      .from(converts)
+      .where(condition)
+      .groupBy(converts.status);
+    return results.map(r => ({ status: r.status, count: Number(r.count) }));
+  }
+
+  async getFollowUpStageBreakdown(churchId?: string): Promise<Array<{ stage: string; count: number }>> {
+    const cCondition = churchId ? eq(converts.churchId, churchId) : undefined;
+    const nmCondition = churchId ? eq(newMembers.churchId, churchId) : undefined;
+
+    const convertStages = await db
+      .select({ stage: sql<string>`'convert_' || ${converts.status}`, count: sql<number>`count(*)` })
+      .from(converts)
+      .where(cCondition)
+      .groupBy(converts.status);
+
+    const nmStages = await db
+      .select({ stage: newMembers.followUpStage, count: sql<number>`count(*)` })
+      .from(newMembers)
+      .where(nmCondition)
+      .groupBy(newMembers.followUpStage);
+
+    return [
+      ...nmStages.map(r => ({ stage: r.stage, count: Number(r.count) })),
+    ];
+  }
+
+  async getCheckinOutcomes(churchId?: string): Promise<Array<{ outcome: string; count: number }>> {
+    const condition = churchId ? eq(checkins.churchId, churchId) : undefined;
+    const results = await db
+      .select({ outcome: checkins.outcome, count: sql<number>`count(*)` })
+      .from(checkins)
+      .where(condition)
+      .groupBy(checkins.outcome);
+    return results.map(r => ({ outcome: r.outcome, count: Number(r.count) }));
   }
 
   // Email Reminders

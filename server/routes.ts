@@ -1703,6 +1703,25 @@ export async function registerRoutes(
     }
   });
 
+  // Admin reporting routes
+  app.get("/api/admin/reports/growth", requireAdmin, async (req, res) => {
+    try {
+      const data = await storage.getGrowthTrends();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get growth trends" });
+    }
+  });
+
+  app.get("/api/admin/reports/status-breakdown", requireAdmin, async (req, res) => {
+    try {
+      const data = await storage.getStatusBreakdown();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get status breakdown" });
+    }
+  });
+
   // Get churches with counts
   app.get("/api/admin/churches", requireAdmin, async (req, res) => {
     try {
@@ -2787,6 +2806,56 @@ export async function registerRoutes(
       res.status(500).json({ message: "Failed to get stats" });
     }
   });
+
+  // Shared reporting handlers for ministry-admin and leader
+  async function handleReportsGrowth(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const data = await storage.getGrowthTrends(user.churchId);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get growth trends" });
+    }
+  }
+
+  async function handleReportsStatusBreakdown(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const data = await storage.getStatusBreakdown(user.churchId);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get status breakdown" });
+    }
+  }
+
+  async function handleReportsFollowUpStages(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const data = await storage.getFollowUpStageBreakdown(user.churchId);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get follow-up stage breakdown" });
+    }
+  }
+
+  async function handleReportsCheckinOutcomes(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const data = await storage.getCheckinOutcomes(user.churchId);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get checkin outcomes" });
+    }
+  }
+
+  app.get("/api/ministry-admin/reports/growth", requireMinistryAdmin, handleReportsGrowth);
+  app.get("/api/ministry-admin/reports/status-breakdown", requireMinistryAdmin, handleReportsStatusBreakdown);
+  app.get("/api/ministry-admin/reports/followup-stages", requireMinistryAdmin, handleReportsFollowUpStages);
+  app.get("/api/ministry-admin/reports/checkin-outcomes", requireMinistryAdmin, handleReportsCheckinOutcomes);
+  app.get("/api/leader/reports/growth", requireLeader, handleReportsGrowth);
+  app.get("/api/leader/reports/status-breakdown", requireLeader, handleReportsStatusBreakdown);
+  app.get("/api/leader/reports/followup-stages", requireLeader, handleReportsFollowUpStages);
+  app.get("/api/leader/reports/checkin-outcomes", requireLeader, handleReportsCheckinOutcomes);
 
   // Get account requests for ministry admin's ministry
   app.get("/api/ministry-admin/account-requests", requireMinistryAdmin, async (req, res) => {

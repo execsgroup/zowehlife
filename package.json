@@ -84,7 +84,7 @@
     "react-i18next": "^16.5.4",
     "react-icons": "^5.4.0",
     "react-resizable-panels": "^2.1.7",
-    "recharts": "^2.15.2",
+    "recharts": "^2.15.4",
     "resend": "^4.0.0",
     "stripe": "^20.0.0",
     "stripe-replit-sync": "^1.0.0",

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Church, Users, UserPlus, Calendar, ArrowRight, TrendingUp, HandHeart } from "lucide-react";
+import { GrowthTrendChart, StatusBreakdownChart, ExportCsvButton } from "@/components/dashboard-charts";
 
 interface DashboardStats {
   totalChurches: number;
@@ -22,6 +23,14 @@ export default function AdminDashboard() {
   const { t } = useTranslation();
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/admin/stats"],
+  });
+
+  const { data: growthData, isLoading: isGrowthLoading } = useQuery<Array<{ month: string; converts: number; newMembers: number; members: number }>>({
+    queryKey: ["/api/admin/reports", "growth"],
+  });
+
+  const { data: statusData, isLoading: isStatusLoading } = useQuery<Array<{ status: string; count: number }>>({
+    queryKey: ["/api/admin/reports", "status-breakdown"],
   });
 
   return (
@@ -63,6 +72,36 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
+
+      <Section
+        title={t('reports.chartsAndReports')}
+        actions={
+          <ExportCsvButton
+            data={growthData || []}
+            filename="growth-report"
+            headers={[t('reports.month'), t('reports.converts'), t('reports.newMembers'), t('reports.members')]}
+          />
+        }
+      >
+        <div className="grid gap-4 lg:grid-cols-2" data-testid="charts-grid">
+          <div className="rounded-md border p-4" data-testid="chart-growth-trends">
+            <h3 className="text-sm font-medium mb-3">{t('reports.growthTrends')}</h3>
+            {isGrowthLoading ? (
+              <Skeleton className="h-[300px] w-full" />
+            ) : (
+              <GrowthTrendChart data={growthData || []} />
+            )}
+          </div>
+          <div className="rounded-md border p-4" data-testid="chart-status-breakdown">
+            <h3 className="text-sm font-medium mb-3">{t('reports.statusBreakdown')}</h3>
+            {isStatusLoading ? (
+              <Skeleton className="h-[250px] w-full" />
+            ) : (
+              <StatusBreakdownChart data={statusData || []} />
+            )}
+          </div>
+        </div>
+      </Section>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Section title={t('sidebar.ministries')}>

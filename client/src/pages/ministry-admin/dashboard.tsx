@@ -9,6 +9,13 @@ import { Section } from "@/components/section";
 import { QRCodeDialog } from "@/components/qr-code-dialog";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import {
+  GrowthTrendChart,
+  StatusBreakdownChart,
+  FollowUpStageChart,
+  CheckinOutcomeChart,
+  ExportCsvButton,
+} from "@/components/dashboard-charts";
 import { Users, UserPlus, Heart, UserCheck, UsersRound, Copy, ExternalLink, QrCode } from "lucide-react";
 import { Link } from "wouter";
 
@@ -41,6 +48,22 @@ export default function MinistryAdminDashboard() {
 
   const { data: church } = useQuery<Church>({
     queryKey: ["/api/ministry-admin/church"],
+  });
+
+  const { data: growthData, isLoading: growthLoading } = useQuery<Array<{ month: string; converts: number; newMembers: number; members: number }>>({
+    queryKey: ["/api/ministry-admin/reports", "growth"],
+  });
+
+  const { data: statusData, isLoading: statusLoading } = useQuery<Array<{ status: string; count: number }>>({
+    queryKey: ["/api/ministry-admin/reports", "status-breakdown"],
+  });
+
+  const { data: stagesData, isLoading: stagesLoading } = useQuery<Array<{ stage: string; count: number }>>({
+    queryKey: ["/api/ministry-admin/reports", "followup-stages"],
+  });
+
+  const { data: outcomesData, isLoading: outcomesLoading } = useQuery<Array<{ outcome: string; count: number }>>({
+    queryKey: ["/api/ministry-admin/reports", "checkin-outcomes"],
   });
 
   const baseUrl = window.location.origin;
@@ -110,6 +133,56 @@ export default function MinistryAdminDashboard() {
           </Link>
         ))}
       </div>
+
+      <Section
+        title={t('reports.chartsAndReports')}
+        actions={
+          <ExportCsvButton
+            data={growthData || []}
+            filename="growth-trends"
+            headers={[t('reports.month'), t('reports.converts'), t('reports.newMembers'), t('reports.members')]}
+          />
+        }
+      >
+        <div className="space-y-4">
+          <div className="rounded-md border p-4" data-testid="chart-growth-trends">
+            <h3 className="text-sm font-medium mb-3">{t('reports.growthTrends')}</h3>
+            {growthLoading ? (
+              <Skeleton className="h-[300px] w-full" />
+            ) : (
+              <GrowthTrendChart data={growthData || []} />
+            )}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-md border p-4" data-testid="chart-status-breakdown">
+              <h3 className="text-sm font-medium mb-3">{t('reports.statusBreakdown')}</h3>
+              {statusLoading ? (
+                <Skeleton className="h-[250px] w-full" />
+              ) : (
+                <StatusBreakdownChart data={statusData || []} />
+              )}
+            </div>
+            <div className="rounded-md border p-4" data-testid="chart-followup-stages">
+              <h3 className="text-sm font-medium mb-3">{t('reports.followUpStages')}</h3>
+              {stagesLoading ? (
+                <Skeleton className="h-[250px] w-full" />
+              ) : (
+                <FollowUpStageChart data={stagesData || []} />
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-md border p-4" data-testid="chart-checkin-outcomes">
+            <h3 className="text-sm font-medium mb-3">{t('reports.checkinOutcomes')}</h3>
+            {outcomesLoading ? (
+              <Skeleton className="h-[300px] w-full" />
+            ) : (
+              <CheckinOutcomeChart data={outcomesData || []} />
+            )}
+          </div>
+        </div>
+      </Section>
 
       <Section title={t('dashboard.shareableFormLinks')} description={t('dashboard.shareFormLinksDesc')}>
         <div className="space-y-3">
