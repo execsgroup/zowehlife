@@ -59,8 +59,8 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <img src={zowehLogoLight} alt="Zoweh Life" className="h-14 object-contain dark:hidden" />
-            <img src={zowehLogoDark} alt="Zoweh Life" className="h-14 object-contain hidden dark:block" />
+            <img src={zowehLogoLight} alt="Zoweh Life" className="h-9 object-contain dark:hidden" />
+            <img src={zowehLogoDark} alt="Zoweh Life" className="h-9 object-contain hidden dark:block" />
           </Link>
           <h1 className="text-2xl font-bold">{t('auth.loginTitle')}</h1>
           <p className="text-muted-foreground mt-1">{t('auth.loginDescription')}</p>
