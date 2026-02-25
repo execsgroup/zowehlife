@@ -470,6 +470,11 @@ END:VCALENDAR`;
                             {checkin.notes}
                           </p>
                         )}
+                        {(checkin as any).scheduledByName && (
+                          <p className="text-xs text-muted-foreground mb-1" data-testid={`text-scheduled-by-${checkin.id}`}>
+                            {t('followUps.scheduledBy', { name: (checkin as any).scheduledByName })}
+                          </p>
+                        )}
                         {checkin.nextFollowupDate && (
                           <div className="flex items-center gap-2 text-sm flex-wrap">
                             <Clock className="h-3 w-3 text-muted-foreground" />

@@ -53,6 +53,7 @@ interface MemberCheckin {
   nextFollowupTime: string | null;
   videoLink: string | null;
   createdAt: string;
+  scheduledByName: string | null;
 }
 
 const updateMemberSchemaBase = z.object({
@@ -367,6 +368,11 @@ export default function MemberDetail() {
                         {checkin.notes && !checkin.notes.startsWith("Follow-up scheduled for") && !checkin.notes.startsWith("Mass follow-up scheduled for") && (
                           <p className="text-muted-foreground text-sm mb-2">
                             {checkin.notes}
+                          </p>
+                        )}
+                        {checkin.scheduledByName && (
+                          <p className="text-xs text-muted-foreground mb-1" data-testid={`text-scheduled-by-${checkin.id}`}>
+                            {t('followUps.scheduledBy', { name: checkin.scheduledByName })}
                           </p>
                         )}
                         {checkin.nextFollowupDate && (

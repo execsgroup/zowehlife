@@ -452,6 +452,7 @@
     "description": "Seus acompanhamentos agendados com convertidos e novos membros",
     "scheduleFollowUp": "Agendar Acompanhamento",
     "noFollowUps": "Nenhum acompanhamento agendado",
+    "scheduledBy": "Agendado por {{name}}",
     "followUpDate": "Data do Acompanhamento",
     "followUpTime": "Hora do Acompanhamento",
     "followUpTimeOptional": "Hora do Acompanhamento (opcional)",

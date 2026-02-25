@@ -35,6 +35,7 @@ interface LeaderStats {
     nextFollowupDate: string;
     nextFollowupTime: string | null;
     videoLink: string | null;
+    scheduledByName: string | null;
   }>;
 }
 

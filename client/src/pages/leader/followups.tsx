@@ -40,6 +40,7 @@ interface ConvertFollowUp {
   nextFollowupTime: string | null;
   notes: string | null;
   videoLink: string | null;
+  scheduledByName: string | null;
 }
 
 interface NewMemberFollowUp {
@@ -53,6 +54,7 @@ interface NewMemberFollowUp {
   nextFollowupTime: string | null;
   notes: string | null;
   videoLink: string | null;
+  scheduledByName: string | null;
 }
 
 interface MemberFollowUp {
@@ -66,6 +68,7 @@ interface MemberFollowUp {
   nextFollowupTime: string | null;
   notes: string | null;
   videoLink: string | null;
+  scheduledByName: string | null;
 }
 
 interface MassFollowupParticipant {
@@ -615,12 +618,19 @@ export default function LeaderFollowups() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span data-testid={`text-followup-date-${followup.id}`}>
-                              {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
-                              {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
-                            </span>
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span data-testid={`text-followup-date-${followup.id}`}>
+                                {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                                {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
+                              </span>
+                            </div>
+                            {followup.scheduledByName && (
+                              <span className="text-xs text-muted-foreground" data-testid={`text-scheduled-by-${followup.id}`}>
+                                {t('followUps.scheduledBy', { name: followup.scheduledByName })}
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -705,12 +715,19 @@ export default function LeaderFollowups() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span data-testid={`text-newmember-date-${followup.id}`}>
-                              {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
-                              {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
-                            </span>
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span data-testid={`text-newmember-date-${followup.id}`}>
+                                {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                                {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
+                              </span>
+                            </div>
+                            {followup.scheduledByName && (
+                              <span className="text-xs text-muted-foreground" data-testid={`text-scheduled-by-newmember-${followup.id}`}>
+                                {t('followUps.scheduledBy', { name: followup.scheduledByName })}
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -795,12 +812,19 @@ export default function LeaderFollowups() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span data-testid={`text-member-date-${followup.id}`}>
-                              {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
-                              {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
-                            </span>
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span data-testid={`text-member-date-${followup.id}`}>
+                                {format(new Date(followup.nextFollowupDate), "MMM d, yyyy")}
+                                {followup.nextFollowupTime && <span> {t('common.at')} {formatTime(followup.nextFollowupTime)}</span>}
+                              </span>
+                            </div>
+                            {followup.scheduledByName && (
+                              <span className="text-xs text-muted-foreground" data-testid={`text-scheduled-by-member-${followup.id}`}>
+                                {t('followUps.scheduledBy', { name: followup.scheduledByName })}
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>

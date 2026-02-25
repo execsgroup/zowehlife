@@ -452,6 +452,7 @@
     "description": "Vos suivis planifiés avec les convertis et les nouveaux membres",
     "scheduleFollowUp": "Planifier le Suivi",
     "noFollowUps": "Aucun suivi planifié",
+    "scheduledBy": "Planifié par {{name}}",
     "followUpDate": "Date de Suivi",
     "followUpTime": "Heure de Suivi",
     "followUpTimeOptional": "Heure de Suivi (facultatif)",

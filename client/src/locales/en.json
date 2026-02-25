@@ -452,6 +452,7 @@
     "description": "Your scheduled follow-ups with converts and new members",
     "scheduleFollowUp": "Schedule Follow-up",
     "noFollowUps": "No follow-ups scheduled",
+    "scheduledBy": "Scheduled by {{name}}",
     "followUpDate": "Follow-up Date",
     "followUpTime": "Follow-up Time",
     "followUpTimeOptional": "Follow-up Time (optional)",

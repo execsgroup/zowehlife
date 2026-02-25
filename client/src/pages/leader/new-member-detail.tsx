@@ -51,6 +51,7 @@ interface NewMemberCheckin {
   nextFollowupTime: string | null;
   videoLink: string | null;
   createdAt: string;
+  scheduledByName: string | null;
 }
 
 interface NewMemberWithCheckins extends NewMember {
@@ -391,6 +392,11 @@ export default function NewMemberDetail() {
                         {checkin.notes && !checkin.notes.startsWith("Follow-up scheduled for") && !checkin.notes.startsWith("Mass follow-up scheduled for") && (
                           <p className="text-muted-foreground text-sm mb-2">
                             {checkin.notes}
+                          </p>
+                        )}
+                        {checkin.scheduledByName && (
+                          <p className="text-xs text-muted-foreground mb-1" data-testid={`text-scheduled-by-${checkin.id}`}>
+                            {t('followUps.scheduledBy', { name: checkin.scheduledByName })}
                           </p>
                         )}
                         {checkin.nextFollowupDate && (

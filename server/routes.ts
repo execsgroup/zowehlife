@@ -250,6 +250,21 @@ async function autoApproveMinistry(data: {
   return { church, user: newUser, tempPassword };
 }
 
+async function enrichCheckinsWithSchedulerName<T extends { createdByUserId: string }>(
+  checkinsList: T[]
+): Promise<(T & { scheduledByName: string | null })[]> {
+  const userIds = [...new Set(checkinsList.map(c => c.createdByUserId).filter(Boolean))];
+  const userMap = new Map<string, string>();
+  for (const uid of userIds) {
+    const u = await storage.getUser(uid);
+    if (u) userMap.set(uid, `${u.firstName} ${u.lastName}`);
+  }
+  return checkinsList.map(c => ({
+    ...c,
+    scheduledByName: userMap.get(c.createdByUserId) || null,
+  }));
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -3514,8 +3529,9 @@ export async function registerRoutes(
       }
 
       const checkinsList = await storage.getCheckinsByConvert(id);
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkinsList);
 
-      res.json({ ...convert, checkins: checkinsList });
+      res.json({ ...convert, checkins: enrichedCheckins });
     } catch (error) {
       res.status(500).json({ message: "Failed to get convert" });
     }
@@ -3876,7 +3892,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "New member not found" });
       }
       const checkins = await storage.getNewMemberCheckinsByNewMember(req.params.id);
-      res.json(checkins);
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkins);
+      res.json(enrichedCheckins);
     } catch (error) {
       res.status(500).json({ message: "Failed to get check-ins" });
     }
@@ -4145,7 +4162,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "New member not found" });
       }
       const checkinsList = await storage.getNewMemberCheckinsByNewMember(req.params.id);
-      res.json({ ...newMember, checkins: checkinsList });
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkinsList);
+      res.json({ ...newMember, checkins: enrichedCheckins });
     } catch (error) {
       res.status(500).json({ message: "Failed to get new member" });
     }
@@ -4163,7 +4181,8 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Not authorized" });
       }
       const checkins = await storage.getMemberCheckins(id);
-      res.json(checkins);
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkins);
+      res.json(enrichedCheckins);
     } catch (error) {
       console.error("Error fetching member checkins:", error);
       res.status(500).json({ message: "Failed to fetch checkins" });
@@ -4178,7 +4197,8 @@ export async function registerRoutes(
         return res.status(404).json({ message: "Member not found" });
       }
       const checkinsList = await storage.getMemberCheckins(req.params.id);
-      res.json({ ...member, checkins: checkinsList });
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkinsList);
+      res.json({ ...member, checkins: enrichedCheckins });
     } catch (error) {
       res.status(500).json({ message: "Failed to get member" });
     }
@@ -5148,8 +5168,9 @@ export async function registerRoutes(
       }
 
       const checkinsList = await storage.getCheckinsByConvert(id);
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkinsList);
 
-      res.json({ ...convert, checkins: checkinsList });
+      res.json({ ...convert, checkins: enrichedCheckins });
     } catch (error) {
       res.status(500).json({ message: "Failed to get convert" });
     }
@@ -5903,7 +5924,8 @@ export async function registerRoutes(
       }
       
       const checkinsList = await storage.getNewMemberCheckinsByNewMember(id);
-      res.json({ ...newMember, checkins: checkinsList });
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkinsList);
+      res.json({ ...newMember, checkins: enrichedCheckins });
     } catch (error) {
       console.error("Error fetching new member:", error);
       res.status(500).json({ message: "Failed to fetch new member" });
@@ -6050,7 +6072,8 @@ export async function registerRoutes(
       }
       
       const checkins = await storage.getNewMemberCheckinsByNewMember(id);
-      res.json(checkins);
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkins);
+      res.json(enrichedCheckins);
     } catch (error) {
       console.error("Error fetching new member checkins:", error);
       res.status(500).json({ message: "Failed to fetch checkins" });
@@ -6378,7 +6401,8 @@ export async function registerRoutes(
       }
       
       const checkinsList = await storage.getMemberCheckins(id);
-      res.json({ ...member, checkins: checkinsList });
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkinsList);
+      res.json({ ...member, checkins: enrichedCheckins });
     } catch (error) {
       console.error("Error fetching member:", error);
       res.status(500).json({ message: "Failed to fetch member" });
@@ -6774,7 +6798,8 @@ export async function registerRoutes(
       }
       
       const checkins = await storage.getMemberCheckins(id);
-      res.json(checkins);
+      const enrichedCheckins = await enrichCheckinsWithSchedulerName(checkins);
+      res.json(enrichedCheckins);
     } catch (error) {
       console.error("Error fetching member checkins:", error);
       res.status(500).json({ message: "Failed to fetch checkins" });

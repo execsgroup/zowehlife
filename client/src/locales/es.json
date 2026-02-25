@@ -452,6 +452,7 @@
     "description": "Tus seguimientos programados con convertidos y nuevos miembros",
     "scheduleFollowUp": "Programar Seguimiento",
     "noFollowUps": "No hay seguimientos programados",
+    "scheduledBy": "Programado por {{name}}",
     "followUpDate": "Fecha de Seguimiento",
     "followUpTime": "Hora de Seguimiento",
     "followUpTimeOptional": "Hora de Seguimiento (opcional)",
