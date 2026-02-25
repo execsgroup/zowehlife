@@ -23,7 +23,7 @@ import { useBasePath } from "@/hooks/use-base-path";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, UserMinus, Church, Upload } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, UserMinus, Church, Upload, Copy, Link2 } from "lucide-react";
 import { ExcelUploadDialog } from "@/components/excel-upload-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -146,6 +146,41 @@ export default function LeaderConverts() {
     queryKey: [`${apiBasePath}/church`],
   });
 
+  const { data: tokens } = useQuery<{ publicToken: string | null; newMemberToken: string | null; memberToken: string | null }>({
+    queryKey: [`${apiBasePath}/church/tokens`],
+  });
+
+  const generatePublicTokenMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", `${apiBasePath}/church/generate-public-token`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: t('common.success'),
+        description: t('common.savedSuccessfully'),
+      });
+      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/church/tokens`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t('common.error'),
+        description: error.message || t('common.failedToSave'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const copyConvertLink = () => {
+    if (tokens?.publicToken) {
+      const link = `${window.location.origin}/connect/${tokens.publicToken}`;
+      navigator.clipboard.writeText(link);
+      toast({
+        title: t('common.success'),
+        description: t('common.savedSuccessfully'),
+      });
+    }
+  };
+
   const removeMutation = useMutation({
     mutationFn: async (convertId: string) => {
       await apiRequest("DELETE", `${apiBasePath}/remove/convert/${convertId}`);
@@ -259,7 +294,7 @@ export default function LeaderConverts() {
           title={t('converts.title')}
           description={t('converts.description')}
           actions={
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
                 <FileSpreadsheet className="h-4 w-4" />
                 {t('forms.exportExcel')}
@@ -268,6 +303,32 @@ export default function LeaderConverts() {
                 <Upload className="h-4 w-4" />
                 {t('excelUpload.uploadFile')}
               </Button>
+              {tokens?.publicToken ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" className="gap-2" onClick={copyConvertLink} data-testid="button-copy-convert-link">
+                      <Copy className="h-4 w-4" />
+                      {t('converts.copyConvertLink')}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('converts.copyConvertLinkTooltip')}</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => generatePublicTokenMutation.mutate()}
+                  disabled={generatePublicTokenMutation.isPending}
+                  data-testid="button-generate-convert-link"
+                >
+                  {generatePublicTokenMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Link2 className="h-4 w-4" />
+                  )}
+                  {t('converts.generateConvertLink')}
+                </Button>
+              )}
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2" data-testid="button-add-convert">
