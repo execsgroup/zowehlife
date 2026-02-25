@@ -34,8 +34,8 @@ export function PublicNav() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           <Link href="/" className="flex items-center">
-            <img src={zowehLogoLight} alt="Zoweh Life" className="h-10 object-contain dark:hidden" />
-            <img src={zowehLogoDark} alt="Zoweh Life" className="h-10 object-contain hidden dark:block" />
+            <img src={zowehLogoLight} alt="Zoweh Life" className="h-12 w-[180px] object-contain dark:hidden" />
+            <img src={zowehLogoDark} alt="Zoweh Life" className="h-12 w-[180px] object-contain hidden dark:block" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
