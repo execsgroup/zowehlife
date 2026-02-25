@@ -6832,6 +6832,29 @@ export async function registerRoutes(
   app.patch("/api/leader/members/:id", requireLeader, handleUpdateMember);
   app.patch("/api/ministry-admin/members/:id", requireMinistryAdmin, handleUpdateMember);
   
+  // Generate public token (for converts) for church
+  async function handleGeneratePublicToken(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const church = await storage.generateTokenForChurch(user.churchId);
+      
+      await storage.createAuditLog({
+        actorUserId: user.id,
+        action: "GENERATE_PUBLIC_TOKEN",
+        entityType: "CHURCH",
+        entityId: user.churchId,
+      });
+      
+      res.json({ token: church.publicToken });
+    } catch (error) {
+      console.error("Error generating public token:", error);
+      res.status(500).json({ message: "Failed to generate token" });
+    }
+  }
+
+  app.post("/api/leader/church/generate-public-token", requireLeader, handleGeneratePublicToken);
+  app.post("/api/ministry-admin/church/generate-public-token", requireMinistryAdmin, handleGeneratePublicToken);
+
   // Generate new member token for church
   async function handleGenerateNewMemberToken(req: Request, res: Response) {
     try {
