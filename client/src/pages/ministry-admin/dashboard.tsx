@@ -72,6 +72,24 @@ export default function MinistryAdminDashboard() {
     queryKey: ["/api/ministry-admin/reports", "checkin-outcomes"],
   });
 
+  interface LeaderMetric {
+    leaderId: string;
+    leaderName: string;
+    totalConverts: number;
+    totalNewMembers: number;
+    totalMembers: number;
+    totalGuests: number;
+    scheduledFollowups: number;
+    completedFollowups: number;
+    lastActivity: string | null;
+  }
+
+  const { data: leaderMetrics, isLoading: leaderMetricsLoading } = useQuery<LeaderMetric[]>({
+    queryKey: ["/api/ministry-admin/reports", "leader-performance"],
+  });
+
+  const { sortedData: sortedLeaderMetrics, sortConfig: leaderSortConfig, requestSort: requestLeaderSort } = useSortableTable(leaderMetrics || []);
+
   const baseUrl = window.location.origin;
 
   const formLinks = [
@@ -203,6 +221,105 @@ export default function MinistryAdminDashboard() {
             )}
           </div>
         </div>
+      </Section>
+
+      <Section
+        title={t('reports.leaderPerformance')}
+        noPadding
+        actions={
+          <ExportCsvButton
+            data={(leaderMetrics || []).map(l => ({
+              [t('reports.leaderName')]: l.leaderName,
+              [t('reports.totalConvertsCol')]: l.totalConverts,
+              [t('reports.totalNewMembersCol')]: l.totalNewMembers,
+              [t('reports.totalMembersCol')]: l.totalMembers,
+              [t('reports.totalGuestsCol')]: l.totalGuests,
+              [t('reports.scheduledFollowups')]: l.scheduledFollowups,
+              [t('reports.completedFollowups')]: l.completedFollowups,
+              [t('reports.lastActivity')]: l.lastActivity ? format(new Date(l.lastActivity), "MMM d, yyyy") : "—",
+            }))}
+            filename="leader-performance-report"
+            headers={[
+              t('reports.leaderName'), t('reports.totalConvertsCol'), t('reports.totalNewMembersCol'),
+              t('reports.totalMembersCol'), t('reports.totalGuestsCol'),
+              t('reports.scheduledFollowups'), t('reports.completedFollowups'), t('reports.lastActivity'),
+            ]}
+          />
+        }
+      >
+        {leaderMetricsLoading ? (
+          <div className="p-3">
+            <Skeleton className="h-[200px] w-full rounded-md" />
+          </div>
+        ) : sortedLeaderMetrics.length === 0 ? (
+          <div className="text-center py-8">
+            <UserCog className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+            <p className="text-sm text-muted-foreground">{t('reports.noLeaderData')}</p>
+          </div>
+        ) : (
+          <>
+            <div className="p-3">
+              <div className="rounded-md border bg-muted/30 p-3 mb-3" data-testid="chart-leader-performance">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <UserCog className="h-3.5 w-3.5 text-indigo-500" />
+                  <h3 className="text-xs font-semibold">{t('reports.totalRegistered')}</h3>
+                </div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={sortedLeaderMetrics} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="leaderName" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '6px', fontSize: '12px' }}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px' }} />
+                    <Bar dataKey="totalConverts" name={t('reports.totalConvertsCol')} fill="hsl(var(--chart-1))" radius={[2, 2, 0, 0]} />
+                    <Bar dataKey="totalNewMembers" name={t('reports.totalNewMembersCol')} fill="hsl(var(--chart-2))" radius={[2, 2, 0, 0]} />
+                    <Bar dataKey="totalMembers" name={t('reports.totalMembersCol')} fill="hsl(var(--chart-3))" radius={[2, 2, 0, 0]} />
+                    <Bar dataKey="totalGuests" name={t('reports.totalGuestsCol')} fill="hsl(var(--chart-4))" radius={[2, 2, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <SortableTableHead label={t('reports.leaderName')} sortKey="leaderName" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
+                    <SortableTableHead label={t('reports.totalConvertsCol')} sortKey="totalConverts" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
+                    <SortableTableHead label={t('reports.totalNewMembersCol')} sortKey="totalNewMembers" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
+                    <SortableTableHead label={t('reports.totalMembersCol')} sortKey="totalMembers" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
+                    <SortableTableHead label={t('reports.totalGuestsCol')} sortKey="totalGuests" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
+                    <SortableTableHead label={t('reports.scheduledFollowups')} sortKey="scheduledFollowups" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
+                    <SortableTableHead label={t('reports.completedFollowups')} sortKey="completedFollowups" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
+                    <SortableTableHead label={t('reports.lastActivity')} sortKey="lastActivity" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedLeaderMetrics.map((leader) => (
+                    <TableRow key={leader.leaderId} data-testid={`row-leader-performance-${leader.leaderId}`}>
+                      <TableCell className="font-medium" data-testid={`text-leader-name-${leader.leaderId}`}>{leader.leaderName}</TableCell>
+                      <TableCell data-testid={`text-leader-converts-${leader.leaderId}`}>{leader.totalConverts}</TableCell>
+                      <TableCell data-testid={`text-leader-newmembers-${leader.leaderId}`}>{leader.totalNewMembers}</TableCell>
+                      <TableCell data-testid={`text-leader-members-${leader.leaderId}`}>{leader.totalMembers}</TableCell>
+                      <TableCell data-testid={`text-leader-guests-${leader.leaderId}`}>{leader.totalGuests}</TableCell>
+                      <TableCell data-testid={`text-leader-scheduled-${leader.leaderId}`}>
+                        <Badge variant="outline">{leader.scheduledFollowups}</Badge>
+                      </TableCell>
+                      <TableCell data-testid={`text-leader-completed-${leader.leaderId}`}>
+                        <Badge variant="secondary">{leader.completedFollowups}</Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs" data-testid={`text-leader-lastactivity-${leader.leaderId}`}>
+                        {leader.lastActivity ? format(new Date(leader.lastActivity), "MMM d, yyyy") : "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        )}
       </Section>
 
       <Section title={t('dashboard.shareableFormLinks')} description={t('dashboard.shareFormLinksDesc')}>
