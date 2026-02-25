@@ -13,14 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
-import {
-  GrowthTrendChart,
-  StatusBreakdownChart,
-  FollowUpStageChart,
-  CheckinOutcomeChart,
-  ExportCsvButton,
-} from "@/components/dashboard-charts";
-import { UserPlus, Calendar, ArrowRight, Clock, User, Copy, Check, Video, QrCode, TrendingUp, PieChart, BarChart3, ClipboardCheck } from "lucide-react";
+import { UserPlus, Calendar, ArrowRight, Clock, User, Copy, Check, Video, QrCode } from "lucide-react";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
 interface LeaderStats {
@@ -61,22 +54,6 @@ export default function LeaderDashboard() {
 
   const { data: church } = useQuery<ChurchInfo>({
     queryKey: [`${apiBasePath}/church`],
-  });
-
-  const { data: growthData, isLoading: growthLoading } = useQuery<Array<{ month: string; converts: number; newMembers: number; members: number }>>({
-    queryKey: [`${apiBasePath}/reports`, "growth"],
-  });
-
-  const { data: statusData, isLoading: statusLoading } = useQuery<Array<{ status: string; count: number }>>({
-    queryKey: [`${apiBasePath}/reports`, "status-breakdown"],
-  });
-
-  const { data: stagesData, isLoading: stagesLoading } = useQuery<Array<{ stage: string; count: number }>>({
-    queryKey: [`${apiBasePath}/reports`, "followup-stages"],
-  });
-
-  const { data: outcomesData, isLoading: outcomesLoading } = useQuery<Array<{ outcome: string; count: number }>>({
-    queryKey: [`${apiBasePath}/reports`, "checkin-outcomes"],
   });
 
   const convertFormLink = church?.publicToken
@@ -161,69 +138,6 @@ export default function LeaderDashboard() {
           </Link>
         ))}
       </div>
-
-      <Section
-        title={t('reports.chartsAndReports')}
-        actions={
-          <ExportCsvButton
-            data={growthData || []}
-            filename="leader-growth-report"
-            headers={[t('reports.month'), t('reports.converts'), t('reports.newMembers'), t('reports.members')]}
-          />
-        }
-        noPadding
-      >
-        <div className="p-3 space-y-3">
-          <div className="rounded-md border bg-muted/30 p-3" data-testid="chart-growth-trends">
-            <div className="flex items-center gap-1.5 mb-2">
-              <TrendingUp className="h-3.5 w-3.5 text-blue-500" />
-              <h3 className="text-xs font-semibold">{t('reports.growthTrends')}</h3>
-            </div>
-            {growthLoading ? (
-              <Skeleton className="h-[200px] w-full rounded-md" />
-            ) : (
-              <GrowthTrendChart data={growthData || []} />
-            )}
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-md border bg-muted/30 p-3" data-testid="chart-status-breakdown">
-              <div className="flex items-center gap-1.5 mb-2">
-                <PieChart className="h-3.5 w-3.5 text-violet-500" />
-                <h3 className="text-xs font-semibold">{t('reports.statusBreakdown')}</h3>
-              </div>
-              {statusLoading ? (
-                <Skeleton className="h-[180px] w-full rounded-md" />
-              ) : (
-                <StatusBreakdownChart data={statusData || []} />
-              )}
-            </div>
-            <div className="rounded-md border bg-muted/30 p-3" data-testid="chart-followup-stages">
-              <div className="flex items-center gap-1.5 mb-2">
-                <BarChart3 className="h-3.5 w-3.5 text-emerald-500" />
-                <h3 className="text-xs font-semibold">{t('reports.followUpStages')}</h3>
-              </div>
-              {stagesLoading ? (
-                <Skeleton className="h-[180px] w-full rounded-md" />
-              ) : (
-                <FollowUpStageChart data={stagesData || []} />
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-md border bg-muted/30 p-3" data-testid="chart-checkin-outcomes">
-            <div className="flex items-center gap-1.5 mb-2">
-              <ClipboardCheck className="h-3.5 w-3.5 text-amber-500" />
-              <h3 className="text-xs font-semibold">{t('reports.checkinOutcomes')}</h3>
-            </div>
-            {outcomesLoading ? (
-              <Skeleton className="h-[200px] w-full rounded-md" />
-            ) : (
-              <CheckinOutcomeChart data={outcomesData || []} />
-            )}
-          </div>
-        </div>
-      </Section>
 
       <Section title={t('dashboard.shareableRegistrationLinks')} description={t('dashboard.shareRegistrationLinksDesc')}>
         <div className="space-y-3">

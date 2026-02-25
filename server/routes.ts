@@ -2877,10 +2877,6 @@ export async function registerRoutes(
   app.get("/api/ministry-admin/reports/status-breakdown", requireMinistryAdmin, handleReportsStatusBreakdown);
   app.get("/api/ministry-admin/reports/followup-stages", requireMinistryAdmin, handleReportsFollowUpStages);
   app.get("/api/ministry-admin/reports/checkin-outcomes", requireMinistryAdmin, handleReportsCheckinOutcomes);
-  app.get("/api/leader/reports/growth", requireLeader, handleReportsGrowth);
-  app.get("/api/leader/reports/status-breakdown", requireLeader, handleReportsStatusBreakdown);
-  app.get("/api/leader/reports/followup-stages", requireLeader, handleReportsFollowUpStages);
-  app.get("/api/leader/reports/checkin-outcomes", requireLeader, handleReportsCheckinOutcomes);
 
   // Get account requests for ministry admin's ministry
   app.get("/api/ministry-admin/account-requests", requireMinistryAdmin, async (req, res) => {
