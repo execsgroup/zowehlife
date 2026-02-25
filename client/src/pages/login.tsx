@@ -52,9 +52,9 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted p-4 relative">
-      <Link href="/" className="absolute top-4 left-4 inline-flex items-center gap-2">
-        <img src={zowehLogoLight} alt="Zoweh Life" className="h-6 object-contain dark:hidden" />
-        <img src={zowehLogoDark} alt="Zoweh Life" className="h-6 object-contain hidden dark:block" />
+      <Link href="/" className="absolute top-3 left-3 inline-flex items-center gap-2.5">
+        <img src={zowehLogoLight} alt="Zoweh Life" className="h-8 object-contain dark:hidden" />
+        <img src={zowehLogoDark} alt="Zoweh Life" className="h-8 object-contain hidden dark:block" />
       </Link>
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <LanguageToggle />
