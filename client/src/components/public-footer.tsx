@@ -11,7 +11,7 @@ export function PublicFooter() {
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center mb-4">
-              <img src={zowehLogoPath} alt="Zoweh Life" className="h-7 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
+              <img src={zowehLogoPath} alt="Zoweh Life" className="h-9 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
             </div>
             <p className="text-sm text-muted-foreground">
               {t('footer.tagline')}
