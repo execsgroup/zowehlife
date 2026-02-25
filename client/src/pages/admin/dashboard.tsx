@@ -7,7 +7,7 @@ import { Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Church, Users, UserPlus, Calendar, ArrowRight, TrendingUp, HandHeart } from "lucide-react";
+import { Church, Users, UserPlus, Calendar, ArrowRight, TrendingUp, PieChart } from "lucide-react";
 import { GrowthTrendChart, StatusBreakdownChart, ExportCsvButton } from "@/components/dashboard-charts";
 
 interface DashboardStats {
@@ -33,6 +33,13 @@ export default function AdminDashboard() {
     queryKey: ["/api/admin/reports", "status-breakdown"],
   });
 
+  const statCards = [
+    { label: t('dashboard.totalMinistries'), value: stats?.totalChurches, icon: Church, testId: "text-total-churches", href: "/admin/churches" },
+    { label: t('dashboard.totalLeaders'), value: stats?.totalLeaders, icon: Users, testId: "text-total-leaders", href: "/admin/leaders" },
+    { label: t('dashboard.totalConverts'), value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts", sub: stats?.convertsLast30Days, href: "/admin/converts" },
+    { label: t('dashboard.followUpsDue'), value: stats?.followupsDue, icon: Calendar, testId: "text-followups-due", href: "/admin/converts" },
+  ];
+
   return (
     <DashboardLayout>
       <PageHeader
@@ -40,34 +47,31 @@ export default function AdminDashboard() {
         description={t('dashboard.platformDescription')}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="stats-grid">
-        {[
-          { label: t('dashboard.totalMinistries'), value: stats?.totalChurches, icon: Church, testId: "text-total-churches", href: "/admin/churches" },
-          { label: t('dashboard.totalLeaders'), value: stats?.totalLeaders, icon: Users, testId: "text-total-leaders", href: "/admin/leaders" },
-          { label: t('dashboard.totalConverts'), value: stats?.totalConverts, icon: UserPlus, testId: "text-total-converts", sub: stats?.convertsLast30Days, href: "/admin/converts" },
-          { label: t('dashboard.followUpsDue'), value: stats?.followupsDue, icon: Calendar, testId: "text-followups-due", href: "/admin/converts" },
-        ].map((stat) => (
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4" data-testid="stats-grid">
+        {statCards.map((stat) => (
           <Link key={stat.label} href={stat.href} data-testid={`link-stat-${stat.testId}`}>
-            <div className="rounded-md border bg-card p-4 cursor-pointer hover-elevate transition-colors">
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
+            <div className="rounded-lg border bg-card p-4 cursor-pointer hover-elevate transition-all">
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
+                  <stat.icon className="h-3.5 w-3.5 text-primary" />
+                </div>
               </div>
               {isLoading ? (
                 <Skeleton className="h-7 w-14" />
               ) : (
                 <>
-                  <div className="text-2xl font-semibold" data-testid={stat.testId}>
+                  <div className="text-2xl font-bold tracking-tight" data-testid={stat.testId}>
                     {stat.value || 0}
                   </div>
                   {stat.sub !== undefined && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
                       <TrendingUp className="h-3 w-3" />
                       {stat.sub || 0} {t('dashboard.inLast30Days')}
                     </p>
                   )}
                 </>
               )}
+              <span className="text-[11px] font-medium text-muted-foreground leading-none">{stat.label}</span>
             </div>
           </Link>
         ))}
@@ -78,24 +82,34 @@ export default function AdminDashboard() {
         actions={
           <ExportCsvButton
             data={growthData || []}
-            filename="growth-report"
+            filename="platform-growth-report"
             headers={[t('reports.month'), t('reports.converts'), t('reports.newMembers'), t('reports.members')]}
           />
         }
       >
         <div className="grid gap-4 lg:grid-cols-2" data-testid="charts-grid">
-          <div className="rounded-md border p-4" data-testid="chart-growth-trends">
-            <h3 className="text-sm font-medium mb-3">{t('reports.growthTrends')}</h3>
+          <div className="rounded-lg border bg-card p-5" data-testid="chart-growth-trends">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-500/10">
+                <TrendingUp className="h-3.5 w-3.5 text-blue-500" />
+              </div>
+              <h3 className="text-sm font-semibold">{t('reports.growthTrends')}</h3>
+            </div>
             {isGrowthLoading ? (
-              <Skeleton className="h-[300px] w-full" />
+              <Skeleton className="h-[280px] w-full rounded-md" />
             ) : (
               <GrowthTrendChart data={growthData || []} />
             )}
           </div>
-          <div className="rounded-md border p-4" data-testid="chart-status-breakdown">
-            <h3 className="text-sm font-medium mb-3">{t('reports.statusBreakdown')}</h3>
+          <div className="rounded-lg border bg-card p-5" data-testid="chart-status-breakdown">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-500/10">
+                <PieChart className="h-3.5 w-3.5 text-violet-500" />
+              </div>
+              <h3 className="text-sm font-semibold">{t('reports.statusBreakdown')}</h3>
+            </div>
             {isStatusLoading ? (
-              <Skeleton className="h-[250px] w-full" />
+              <Skeleton className="h-[250px] w-full rounded-md" />
             ) : (
               <StatusBreakdownChart data={statusData || []} />
             )}

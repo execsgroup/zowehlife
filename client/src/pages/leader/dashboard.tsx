@@ -13,7 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
-import { GrowthTrendChart, StatusBreakdownChart, CheckinOutcomeChart, ExportCsvButton } from "@/components/dashboard-charts";
 import { UserPlus, Calendar, ArrowRight, Clock, User, Copy, Check, Video, QrCode } from "lucide-react";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
@@ -54,18 +53,6 @@ export default function LeaderDashboard() {
 
   const { data: church } = useQuery<ChurchInfo>({
     queryKey: [`${apiBasePath}/church`],
-  });
-
-  const { data: growthData, isLoading: growthLoading } = useQuery<Array<{month: string, converts: number, newMembers: number, members: number}>>({
-    queryKey: [apiBasePath, 'reports', 'growth'],
-  });
-
-  const { data: statusData, isLoading: statusLoading } = useQuery<Array<{status: string, count: number}>>({
-    queryKey: [apiBasePath, 'reports', 'status-breakdown'],
-  });
-
-  const { data: outcomeData, isLoading: outcomeLoading } = useQuery<Array<{outcome: string, count: number}>>({
-    queryKey: [apiBasePath, 'reports', 'checkin-outcomes'],
   });
 
   const convertFormLink = church?.publicToken
@@ -150,46 +137,6 @@ export default function LeaderDashboard() {
           </Link>
         ))}
       </div>
-
-      <Section
-        title={t('reports.chartsAndReports')}
-        actions={
-          <ExportCsvButton
-            data={growthData || []}
-            filename="growth-report"
-            headers={[t('reports.month'), t('reports.converts'), t('reports.newMembers'), t('reports.members')]}
-          />
-        }
-      >
-        <div className="space-y-4">
-          <div className="rounded-md border p-4" data-testid="chart-growth-trend">
-            <h3 className="text-sm font-medium mb-3">{t('reports.growthTrends')}</h3>
-            {growthLoading ? (
-              <Skeleton className="h-[300px] w-full" />
-            ) : (
-              <GrowthTrendChart data={growthData || []} />
-            )}
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-md border p-4" data-testid="chart-status-breakdown">
-              <h3 className="text-sm font-medium mb-3">{t('reports.statusBreakdown')}</h3>
-              {statusLoading ? (
-                <Skeleton className="h-[250px] w-full" />
-              ) : (
-                <StatusBreakdownChart data={statusData || []} />
-              )}
-            </div>
-            <div className="rounded-md border p-4" data-testid="chart-checkin-outcomes">
-              <h3 className="text-sm font-medium mb-3">{t('reports.checkinOutcomes')}</h3>
-              {outcomeLoading ? (
-                <Skeleton className="h-[300px] w-full" />
-              ) : (
-                <CheckinOutcomeChart data={outcomeData || []} />
-              )}
-            </div>
-          </div>
-        </div>
-      </Section>
 
       <Section title={t('dashboard.shareableRegistrationLinks')} description={t('dashboard.shareRegistrationLinksDesc')}>
         <div className="space-y-3">
