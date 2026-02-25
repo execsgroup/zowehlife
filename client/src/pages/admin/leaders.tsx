@@ -22,6 +22,8 @@ import { type Church, type User } from "@shared/schema";
 import { Plus, Mail, Users, Loader2, KeyRound, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 interface LeaderWithChurch extends Omit<User, "passwordHash"> {
   church?: { id: string; name: string } | null;
@@ -57,6 +59,8 @@ export default function AdminLeaders() {
   const { data: churches } = useQuery<Church[]>({
     queryKey: ["/api/admin/churches"],
   });
+
+  const { sortedData: sortedLeaders, sortConfig, requestSort } = useSortableTable(leaders);
 
   const form = useForm<LeaderFormData>({
     resolver: zodResolver(leaderFormSchema),
@@ -175,19 +179,19 @@ export default function AdminLeaders() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : leaders && leaders.length > 0 ? (
+          ) : sortedLeaders && sortedLeaders.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('forms.name')}</TableHead>
-                  <TableHead>{t('forms.email')}</TableHead>
-                  <TableHead>{t('forms.ministry') || t('sidebar.ministries')}</TableHead>
-                  <TableHead>{t('forms.date')}</TableHead>
+                  <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.email')} sortKey="email" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.ministry') || t('sidebar.ministries')} sortKey="church.name" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.date')} sortKey="createdAt" sortConfig={sortConfig} onSort={requestSort} />
                   <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leaders.map((leader) => {
+                {sortedLeaders.map((leader) => {
                   const initials = `${leader.firstName?.[0] || ''}${leader.lastName?.[0] || ''}`.toUpperCase();
 
                   return (

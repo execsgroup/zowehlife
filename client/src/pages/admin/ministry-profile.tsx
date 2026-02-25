@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, MapPin, Users, UserPlus, Calendar, Heart, UserCheck, Clock, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import type { Church, Convert, NewMember, Member } from "@shared/schema";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 interface SafeUser {
   id: string;
@@ -92,6 +94,11 @@ export default function MinistryProfile() {
   }
 
   const { church, leaders, ministryAdmin, converts, newMembers, members, stats, recentActivity } = profile;
+
+  const { sortedData: sortedLeaders, sortConfig: leadersSortConfig, requestSort: leadersRequestSort } = useSortableTable(leaders);
+  const { sortedData: sortedConverts, sortConfig: convertsSortConfig, requestSort: convertsRequestSort } = useSortableTable(converts);
+  const { sortedData: sortedNewMembers, sortConfig: newMembersSortConfig, requestSort: newMembersRequestSort } = useSortableTable(newMembers);
+  const { sortedData: sortedMembers, sortConfig: membersSortConfig, requestSort: membersRequestSort } = useSortableTable(members);
 
   return (
     <DashboardLayout>
@@ -223,18 +230,18 @@ export default function MinistryProfile() {
 
           <TabsContent value="leaders">
             <Section title={t('ministryProfile.ministryLeaders')} description={t('ministryProfile.ministryLeadersDesc')} noPadding>
-              {leaders.length > 0 ? (
+              {sortedLeaders && sortedLeaders.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
-                      <TableHead>{t('forms.email')}</TableHead>
-                      <TableHead>{t('forms.role')}</TableHead>
-                      <TableHead>{t('ministryProfile.joined')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={leadersSortConfig} onSort={leadersRequestSort} />
+                      <SortableTableHead label={t('forms.email')} sortKey="email" sortConfig={leadersSortConfig} onSort={leadersRequestSort} />
+                      <SortableTableHead label={t('forms.role')} sortKey="role" sortConfig={leadersSortConfig} onSort={leadersRequestSort} />
+                      <SortableTableHead label={t('ministryProfile.joined')} sortKey="createdAt" sortConfig={leadersSortConfig} onSort={leadersRequestSort} />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {leaders.map((leader) => (
+                    {sortedLeaders.map((leader) => (
                       <TableRow key={leader.id} data-testid={`row-leader-${leader.id}`}>
                         <TableCell className="text-sm font-medium">
                           {leader.firstName} {leader.lastName}
@@ -260,18 +267,18 @@ export default function MinistryProfile() {
 
           <TabsContent value="converts">
             <Section title={t('adminConverts.title')} description={t('ministryProfile.convertsDesc')} noPadding>
-              {converts.length > 0 ? (
+              {sortedConverts && sortedConverts.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
-                      <TableHead>{t('forms.phone')}</TableHead>
-                      <TableHead>{t('forms.status')}</TableHead>
-                      <TableHead>{t('ministryProfile.registered')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={convertsSortConfig} onSort={convertsRequestSort} />
+                      <SortableTableHead label={t('forms.phone')} sortKey="phone" sortConfig={convertsSortConfig} onSort={convertsRequestSort} />
+                      <SortableTableHead label={t('forms.status')} sortKey="status" sortConfig={convertsSortConfig} onSort={convertsRequestSort} />
+                      <SortableTableHead label={t('ministryProfile.registered')} sortKey="createdAt" sortConfig={convertsSortConfig} onSort={convertsRequestSort} />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {converts.slice(0, 10).map((convert) => (
+                    {sortedConverts.slice(0, 10).map((convert) => (
                       <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
                         <TableCell className="text-sm font-medium">
                           {convert.firstName} {convert.lastName}
@@ -302,18 +309,18 @@ export default function MinistryProfile() {
 
           <TabsContent value="new-members">
             <Section title={t('ministryProfile.newMembersGuests')} description={t('ministryProfile.newMembersGuestsDesc')} noPadding>
-              {newMembers.length > 0 ? (
+              {sortedNewMembers && sortedNewMembers.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
-                      <TableHead>{t('forms.phone')}</TableHead>
-                      <TableHead>{t('forms.status')}</TableHead>
-                      <TableHead>{t('ministryProfile.registered')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={newMembersSortConfig} onSort={newMembersRequestSort} />
+                      <SortableTableHead label={t('forms.phone')} sortKey="phone" sortConfig={newMembersSortConfig} onSort={newMembersRequestSort} />
+                      <SortableTableHead label={t('forms.status')} sortKey="status" sortConfig={newMembersSortConfig} onSort={newMembersRequestSort} />
+                      <SortableTableHead label={t('ministryProfile.registered')} sortKey="createdAt" sortConfig={newMembersSortConfig} onSort={newMembersRequestSort} />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {newMembers.slice(0, 10).map((nm) => (
+                    {sortedNewMembers.slice(0, 10).map((nm) => (
                       <TableRow key={nm.id} data-testid={`row-new-member-${nm.id}`}>
                         <TableCell className="text-sm font-medium">
                           {nm.firstName} {nm.lastName}
@@ -344,18 +351,18 @@ export default function MinistryProfile() {
 
           <TabsContent value="members">
             <Section title={t('ministryProfile.members')} description={t('ministryProfile.membersDesc')} noPadding>
-              {members.length > 0 ? (
+              {sortedMembers && sortedMembers.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
-                      <TableHead>{t('forms.phone')}</TableHead>
-                      <TableHead>{t('forms.email')}</TableHead>
-                      <TableHead>{t('ministryProfile.memberSince')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={membersSortConfig} onSort={membersRequestSort} />
+                      <SortableTableHead label={t('forms.phone')} sortKey="phone" sortConfig={membersSortConfig} onSort={membersRequestSort} />
+                      <SortableTableHead label={t('forms.email')} sortKey="email" sortConfig={membersSortConfig} onSort={membersRequestSort} />
+                      <SortableTableHead label={t('ministryProfile.memberSince')} sortKey="memberSince" sortConfig={membersSortConfig} onSort={membersRequestSort} />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {members.slice(0, 10).map((member) => (
+                    {sortedMembers.slice(0, 10).map((member) => (
                       <TableRow key={member.id} data-testid={`row-member-${member.id}`}>
                         <TableCell className="text-sm font-medium">
                           {member.firstName} {member.lastName}

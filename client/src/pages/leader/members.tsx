@@ -29,6 +29,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { MemberScheduleFollowUpDialog } from "@/components/member-schedule-followup-dialog";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -227,6 +229,8 @@ export default function LeaderMembers() {
 
     return matchesSearch;
   });
+
+  const { sortedData: sortedMembers, sortConfig, requestSort } = useSortableTable(filteredMembers);
 
   const handleExportExcel = async () => {
     const params = new URLSearchParams();
@@ -563,16 +567,16 @@ export default function LeaderMembers() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
-                      <TableHead>{t('forms.contact')}</TableHead>
-                      <TableHead>{t('forms.gender')}</TableHead>
-                      <TableHead>{t('forms.memberSince')}</TableHead>
-                      <TableHead>{t('forms.status')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.contact')} sortKey="phone" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.gender')} sortKey="gender" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.memberSince')} sortKey="memberSince" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.status')} sortKey="status" sortConfig={sortConfig} onSort={requestSort} />
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredMembers?.map((m) => (
+                    {sortedMembers?.map((m) => (
                       <TableRow key={m.id} data-testid={`row-member-${m.id}`}>
                         <TableCell>
                           <div 

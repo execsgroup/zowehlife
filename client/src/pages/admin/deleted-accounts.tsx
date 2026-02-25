@@ -16,6 +16,8 @@ import { type ArchivedMinistry } from "@shared/schema";
 import { RotateCcw, Trash2, Loader2, Archive, MapPin, Users, Calendar, Eye } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 interface ArchivedMinistryWithCounts extends ArchivedMinistry {
   userCount?: number;
@@ -37,6 +39,8 @@ export default function DeletedAccounts() {
   const { data: archivedMinistries, isLoading } = useQuery<ArchivedMinistryWithCounts[]>({
     queryKey: ["/api/admin/archived-ministries"],
   });
+
+  const { sortedData: sortedArchives, sortConfig, requestSort } = useSortableTable(archivedMinistries);
 
   const reinstateMutation = useMutation({
     mutationFn: async (archiveId: string) => {
@@ -155,20 +159,20 @@ export default function DeletedAccounts() {
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
-          ) : archivedMinistries && archivedMinistries.length > 0 ? (
+          ) : sortedArchives && sortedArchives.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('churches.ministryName')}</TableHead>
-                  <TableHead>{t('forms.location')}</TableHead>
+                  <SortableTableHead label={t('churches.ministryName')} sortKey="churchName" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.location')} sortKey="churchLocation" sortConfig={sortConfig} onSort={requestSort} />
                   <TableHead className="text-center">{t('deletedAccounts.backedUpData')}</TableHead>
-                  <TableHead>{t('deletedAccounts.deletedBy')}</TableHead>
-                  <TableHead>{t('deletedAccounts.deletedOn')}</TableHead>
+                  <SortableTableHead label={t('deletedAccounts.deletedBy')} sortKey="deletedByRole" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('deletedAccounts.deletedOn')} sortKey="archivedAt" sortConfig={sortConfig} onSort={requestSort} />
                   <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {archivedMinistries.map((archive) => {
+                {sortedArchives.map((archive) => {
                   const stats = getBackupStats(archive);
                   return (
                     <TableRow key={archive.id} data-testid={`row-archive-${archive.id}`}>

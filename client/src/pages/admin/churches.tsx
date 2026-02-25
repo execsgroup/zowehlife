@@ -22,6 +22,8 @@ import { Plus, MapPin, Users, Loader2, Pencil, Church as ChurchIcon, Eye, Trash2
 import { useLocation } from "wouter";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 interface ChurchWithCounts extends Church {
   leaderCount: number;
@@ -51,6 +53,8 @@ export default function AdminChurches() {
   const { data: churches, isLoading } = useQuery<ChurchWithCounts[]>({
     queryKey: ["/api/admin/churches"],
   });
+
+  const { sortedData: sortedChurches, sortConfig, requestSort } = useSortableTable(churches);
 
   const form = useForm<ChurchFormData>({
     resolver: zodResolver(churchFormSchema),
@@ -174,20 +178,20 @@ export default function AdminChurches() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : churches && churches.length > 0 ? (
+          ) : sortedChurches && sortedChurches.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('churches.ministryName')}</TableHead>
-                  <TableHead>{t('forms.location')}</TableHead>
-                  <TableHead>{t('forms.plan')}</TableHead>
+                  <SortableTableHead label={t('churches.ministryName')} sortKey="name" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.location')} sortKey="location" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.plan')} sortKey="plan" sortConfig={sortConfig} onSort={requestSort} />
                   <TableHead className="text-center">{t('sidebar.leaders')}</TableHead>
-                  <TableHead>{t('forms.createdAt')}</TableHead>
+                  <SortableTableHead label={t('forms.createdAt')} sortKey="createdAt" sortConfig={sortConfig} onSort={requestSort} />
                   <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {churches.map((church) => (
+                {sortedChurches.map((church) => (
                   <TableRow key={church.id} data-testid={`row-church-${church.id}`}>
                     <TableCell className="font-medium text-sm">{church.name}</TableCell>
                     <TableCell>

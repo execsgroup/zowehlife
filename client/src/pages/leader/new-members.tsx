@@ -30,6 +30,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { NewMemberScheduleFollowUpDialog } from "@/components/new-member-schedule-followup-dialog";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -378,6 +380,8 @@ export default function LeaderNewMembers() {
     return matchesSearch && matchesStatus;
   });
 
+  const { sortedData: sortedNewMembers, sortConfig, requestSort } = useSortableTable(filteredNewMembers);
+
   const handleExportExcel = async () => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
@@ -705,16 +709,16 @@ export default function LeaderNewMembers() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
-                      <TableHead>{t('forms.contact')}</TableHead>
-                      <TableHead>{t('forms.gender')}</TableHead>
-                      <TableHead>{t('forms.status')}</TableHead>
-                      <TableHead>{t('forms.visitDate')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.contact')} sortKey="phone" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.gender')} sortKey="gender" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.status')} sortKey="followUpStage" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.visitDate')} sortKey="visitDate" sortConfig={sortConfig} onSort={requestSort} />
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredNewMembers?.map((nm) => (
+                    {sortedNewMembers?.map((nm) => (
                       <TableRow key={nm.id} data-testid={`row-new-member-${nm.id}`}>
                         <TableCell>
                           <div 

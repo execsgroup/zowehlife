@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -57,6 +59,8 @@ export default function MinistryAdminLeaders() {
   const { data: quota, isLoading: isLoadingQuota } = useQuery<LeaderQuota>({
     queryKey: ["/api/ministry-admin/leader-quota"],
   });
+
+  const { sortedData: sortedLeaders, sortConfig, requestSort } = useSortableTable(leaders);
 
   const form = useForm<AddLeaderFormData>({
     resolver: zodResolver(addLeaderSchema),
@@ -192,14 +196,14 @@ export default function MinistryAdminLeaders() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('forms.name')}</TableHead>
-                  <TableHead>{t('forms.email')}</TableHead>
-                  <TableHead>{t('forms.date')}</TableHead>
+                  <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.email')} sortKey="email" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.date')} sortKey="createdAt" sortConfig={sortConfig} onSort={requestSort} />
                   <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leaders.map((leader) => (
+                {sortedLeaders?.map((leader) => (
                   <TableRow key={leader.id} data-testid={`row-leader-${leader.id}`}>
                     <TableCell className="font-medium text-sm">
                       {leader.firstName} {leader.lastName}

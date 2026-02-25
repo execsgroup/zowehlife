@@ -28,6 +28,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { ConvertScheduleFollowUpDialog } from "@/components/convert-schedule-followup-dialog";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -230,6 +232,8 @@ export default function LeaderConverts() {
 
     return matchesSearch && matchesStatus;
   });
+
+  const { sortedData: sortedConverts, sortConfig, requestSort } = useSortableTable(filteredConverts);
 
   const handleExportExcel = async () => {
     const params = new URLSearchParams();
@@ -630,16 +634,16 @@ export default function LeaderConverts() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('forms.name')}</TableHead>
-                    <TableHead>{t('forms.dateOfBirth')}</TableHead>
-                    <TableHead>{t('forms.contact')}</TableHead>
-                    <TableHead>{t('forms.status')}</TableHead>
-                    <TableHead>{t('forms.convertDate')}</TableHead>
+                    <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfig} onSort={requestSort} />
+                    <SortableTableHead label={t('forms.dateOfBirth')} sortKey="dateOfBirth" sortConfig={sortConfig} onSort={requestSort} />
+                    <SortableTableHead label={t('forms.contact')} sortKey="phone" sortConfig={sortConfig} onSort={requestSort} />
+                    <SortableTableHead label={t('forms.status')} sortKey="status" sortConfig={sortConfig} onSort={requestSort} />
+                    <SortableTableHead label={t('forms.convertDate')} sortKey="createdAt" sortConfig={sortConfig} onSort={requestSort} />
                     <TableHead className="text-right">{t('forms.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredConverts.map((convert) => (
+                  {sortedConverts?.map((convert) => (
                     <TableRow key={convert.id} data-testid={`row-convert-${convert.id}`}>
                       <TableCell>
                         <Link href={`${basePath}/converts/${convert.id}`}>

@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MessageSquare, Mail, Phone, Calendar } from "lucide-react";
 import type { ContactRequest } from "@shared/schema";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 export default function LeaderContactRequests() {
   const { t } = useTranslation();
@@ -15,6 +17,8 @@ export default function LeaderContactRequests() {
   const { data: requests, isLoading } = useQuery<ContactRequest[]>({
     queryKey: [`${apiBasePath}/contact-requests`],
   });
+
+  const { sortedData: sortedRequests, sortConfig, requestSort } = useSortableTable(requests);
 
   return (
     <DashboardLayout>
@@ -37,20 +41,20 @@ export default function LeaderContactRequests() {
                 </div>
               ))}
             </div>
-          ) : requests && requests.length > 0 ? (
+          ) : sortedRequests && sortedRequests.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('forms.name')}</TableHead>
-                    <TableHead>{t('forms.description')}</TableHead>
-                    <TableHead>{t('forms.contact')}</TableHead>
-                    <TableHead>{t('forms.date')}</TableHead>
+                    <SortableTableHead label={t('forms.name')} sortKey="name" sortConfig={sortConfig} onSort={requestSort} />
+                    <SortableTableHead label={t('forms.description')} sortKey="subject" sortConfig={sortConfig} onSort={requestSort} />
+                    <SortableTableHead label={t('forms.contact')} sortKey="email" sortConfig={sortConfig} onSort={requestSort} />
+                    <SortableTableHead label={t('forms.date')} sortKey="createdAt" sortConfig={sortConfig} onSort={requestSort} />
                     <TableHead>{t('forms.notes')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {requests.map((request) => (
+                  {sortedRequests.map((request) => (
                     <TableRow key={request.id} data-testid={`row-contact-${request.id}`}>
                       <TableCell className="font-medium">{request.name}</TableCell>
                       <TableCell>{request.subject}</TableCell>

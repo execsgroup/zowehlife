@@ -23,6 +23,8 @@ import { type Church, type Convert } from "@shared/schema";
 import { Search, UserPlus, Phone, Mail, Eye, FileSpreadsheet, MessageSquarePlus, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 const statusColors: Record<string, string> = {
   NEW: "bg-primary/10 text-primary border-primary/20",
@@ -61,6 +63,8 @@ export default function AdminConverts() {
   const { data: churches } = useQuery<Church[]>({
     queryKey: ["/api/admin/churches"],
   });
+
+  const { sortedData: sortedConverts, sortConfig, requestSort } = useSortableTable(converts);
 
   const checkinForm = useForm<CheckinFormData>({
     resolver: zodResolver(checkinFormSchema),
@@ -128,7 +132,7 @@ export default function AdminConverts() {
     URL.revokeObjectURL(url);
   };
 
-  const filteredConverts = converts?.filter((convert) => {
+  const filteredConverts = sortedConverts?.filter((convert) => {
     const matchesSearch =
       !search ||
       `${convert.firstName} ${convert.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
@@ -209,11 +213,11 @@ export default function AdminConverts() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('forms.name')}</TableHead>
-                  <TableHead>{t('forms.contact')}</TableHead>
-                  <TableHead>{t('forms.ministry')}</TableHead>
-                  <TableHead>{t('forms.status')}</TableHead>
-                  <TableHead>{t('forms.convertDate')}</TableHead>
+                  <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.contact')} sortKey="phone" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.ministry')} sortKey="church.name" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.status')} sortKey="status" sortConfig={sortConfig} onSort={requestSort} />
+                  <SortableTableHead label={t('forms.convertDate')} sortKey="createdAt" sortConfig={sortConfig} onSort={requestSort} />
                   <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>

@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -148,8 +150,11 @@ export default function MinistryAdminAccountRequests() {
     denyMutation.mutate();
   };
 
-  const pendingRequests = requests?.filter(r => r.status === "PENDING") || [];
-  const processedRequests = requests?.filter(r => r.status !== "PENDING") || [];
+  const { sortedData: sortedRequests, sortConfig: pendingSortConfig, requestSort: requestPendingSort } = useSortableTable(requests);
+  const { sortedData: sortedRequestsHistory, sortConfig: historySortConfig, requestSort: requestHistorySort } = useSortableTable(requests);
+
+  const pendingRequests = sortedRequests?.filter(r => r.status === "PENDING") || [];
+  const processedRequests = sortedRequestsHistory?.filter(r => r.status !== "PENDING") || [];
 
   return (
     <DashboardLayout>
@@ -184,10 +189,10 @@ export default function MinistryAdminAccountRequests() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('accountRequests.applicant')}</TableHead>
-                  <TableHead>{t('accountRequests.contact')}</TableHead>
-                  <TableHead>{t('forms.reason')}</TableHead>
-                  <TableHead>{t('accountRequests.submitted')}</TableHead>
+                  <SortableTableHead label={t('accountRequests.applicant')} sortKey="firstName" sortConfig={pendingSortConfig} onSort={requestPendingSort} />
+                  <SortableTableHead label={t('accountRequests.contact')} sortKey="email" sortConfig={pendingSortConfig} onSort={requestPendingSort} />
+                  <SortableTableHead label={t('forms.reason')} sortKey="reason" sortConfig={pendingSortConfig} onSort={requestPendingSort} />
+                  <SortableTableHead label={t('accountRequests.submitted')} sortKey="createdAt" sortConfig={pendingSortConfig} onSort={requestPendingSort} />
                   <TableHead className="text-right">{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -252,11 +257,11 @@ export default function MinistryAdminAccountRequests() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('accountRequests.applicant')}</TableHead>
-                  <TableHead>{t('forms.email')}</TableHead>
-                  <TableHead>{t('common.status')}</TableHead>
-                  <TableHead>{t('accountRequests.submitted')}</TableHead>
-                  <TableHead>{t('accountRequests.reviewed')}</TableHead>
+                  <SortableTableHead label={t('accountRequests.applicant')} sortKey="firstName" sortConfig={historySortConfig} onSort={requestHistorySort} />
+                  <SortableTableHead label={t('forms.email')} sortKey="email" sortConfig={historySortConfig} onSort={requestHistorySort} />
+                  <SortableTableHead label={t('common.status')} sortKey="status" sortConfig={historySortConfig} onSort={requestHistorySort} />
+                  <SortableTableHead label={t('accountRequests.submitted')} sortKey="createdAt" sortConfig={historySortConfig} onSort={requestHistorySort} />
+                  <SortableTableHead label={t('accountRequests.reviewed')} sortKey="reviewedAt" sortConfig={historySortConfig} onSort={requestHistorySort} />
                 </TableRow>
               </TableHeader>
               <TableBody>

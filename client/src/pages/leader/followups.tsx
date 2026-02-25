@@ -8,6 +8,8 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { PageHeader } from "@/components/page-header";
 import { Section } from "@/components/section";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -205,6 +207,11 @@ export default function LeaderFollowups() {
   });
 
   const isLoading = isLoadingConverts || isLoadingNewMembers || isLoadingMembers;
+
+  const { sortedData: sortedMassFollowups, sortConfig: sortConfigMass, requestSort: requestSortMass } = useSortableTable(massFollowups);
+  const { sortedData: sortedConvertFollowups, sortConfig: sortConfigConverts, requestSort: requestSortConverts } = useSortableTable(convertFollowups);
+  const { sortedData: sortedNewMemberFollowups, sortConfig: sortConfigNewMembers, requestSort: requestSortNewMembers } = useSortableTable(newMemberFollowups);
+  const { sortedData: sortedMemberFollowups, sortConfig: sortConfigMembers, requestSort: requestSortMembers } = useSortableTable(memberFollowups);
 
   const notesForm = useForm<FollowUpNotesData>({
     resolver: zodResolver(followUpNotesSchema),
@@ -505,20 +512,20 @@ export default function LeaderFollowups() {
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : massFollowups && massFollowups.filter(mf => mf.status === "SCHEDULED").length > 0 ? (
+              ) : sortedMassFollowups && sortedMassFollowups.filter(mf => mf.status === "SCHEDULED").length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.category')}</TableHead>
-                      <TableHead>{t('forms.scheduledDate')}</TableHead>
-                      <TableHead>{t('followUps.scheduledByColumn')}</TableHead>
+                      <SortableTableHead label={t('forms.category')} sortKey="category" sortConfig={sortConfigMass} onSort={requestSortMass} />
+                      <SortableTableHead label={t('forms.scheduledDate')} sortKey="scheduledDate" sortConfig={sortConfigMass} onSort={requestSortMass} />
+                      <SortableTableHead label={t('followUps.scheduledByColumn')} sortKey="scheduledByName" sortConfig={sortConfigMass} onSort={requestSortMass} />
                       <TableHead>{t('forms.status')}</TableHead>
                       <TableHead>{t('forms.notes')}</TableHead>
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {massFollowups.filter(mf => mf.status === "SCHEDULED").map((mf) => (
+                    {sortedMassFollowups.filter(mf => mf.status === "SCHEDULED").map((mf) => (
                       <TableRow key={mf.id} data-testid={`row-mass-followup-${mf.id}`}>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -580,21 +587,21 @@ export default function LeaderFollowups() {
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : convertFollowups && convertFollowups.length > 0 ? (
+              ) : sortedConvertFollowups && sortedConvertFollowups.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('sidebar.converts')}</TableHead>
-                      <TableHead>{t('forms.contact')}</TableHead>
-                      <TableHead>{t('followUps.followUpDate')}</TableHead>
-                      <TableHead>{t('followUps.scheduledByColumn')}</TableHead>
+                      <SortableTableHead label={t('sidebar.converts')} sortKey="convertFirstName" sortConfig={sortConfigConverts} onSort={requestSortConverts} />
+                      <SortableTableHead label={t('forms.contact')} sortKey="convertPhone" sortConfig={sortConfigConverts} onSort={requestSortConverts} />
+                      <SortableTableHead label={t('followUps.followUpDate')} sortKey="nextFollowupDate" sortConfig={sortConfigConverts} onSort={requestSortConverts} />
+                      <SortableTableHead label={t('followUps.scheduledByColumn')} sortKey="scheduledByName" sortConfig={sortConfigConverts} onSort={requestSortConverts} />
                       <TableHead>{t('forms.status')}</TableHead>
                       <TableHead>{t('forms.notes')}</TableHead>
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {convertFollowups.map((followup) => (
+                    {sortedConvertFollowups.map((followup) => (
                       <TableRow key={followup.id} data-testid={`row-convert-followup-${followup.id}`}>
                         <TableCell>
                           <Link href={`${basePath}/converts/${followup.convertId}`}>
@@ -676,21 +683,21 @@ export default function LeaderFollowups() {
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : newMemberFollowups && newMemberFollowups.length > 0 ? (
+              ) : sortedNewMemberFollowups && sortedNewMemberFollowups.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('newMembers.title')}</TableHead>
-                      <TableHead>{t('forms.contact')}</TableHead>
-                      <TableHead>{t('followUps.followUpDate')}</TableHead>
-                      <TableHead>{t('followUps.scheduledByColumn')}</TableHead>
+                      <SortableTableHead label={t('newMembers.title')} sortKey="newMemberFirstName" sortConfig={sortConfigNewMembers} onSort={requestSortNewMembers} />
+                      <SortableTableHead label={t('forms.contact')} sortKey="newMemberPhone" sortConfig={sortConfigNewMembers} onSort={requestSortNewMembers} />
+                      <SortableTableHead label={t('followUps.followUpDate')} sortKey="nextFollowupDate" sortConfig={sortConfigNewMembers} onSort={requestSortNewMembers} />
+                      <SortableTableHead label={t('followUps.scheduledByColumn')} sortKey="scheduledByName" sortConfig={sortConfigNewMembers} onSort={requestSortNewMembers} />
                       <TableHead>{t('forms.status')}</TableHead>
                       <TableHead>{t('forms.notes')}</TableHead>
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {newMemberFollowups.map((followup) => (
+                    {sortedNewMemberFollowups.map((followup) => (
                       <TableRow key={followup.id} data-testid={`row-newmember-followup-${followup.id}`}>
                         <TableCell>
                           <Link href={`${basePath}/new-members/${followup.newMemberId}`}>
@@ -772,21 +779,21 @@ export default function LeaderFollowups() {
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : memberFollowups && memberFollowups.length > 0 ? (
+              ) : sortedMemberFollowups && sortedMemberFollowups.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('membersPage.title')}</TableHead>
-                      <TableHead>{t('forms.contact')}</TableHead>
-                      <TableHead>{t('followUps.followUpDate')}</TableHead>
-                      <TableHead>{t('followUps.scheduledByColumn')}</TableHead>
+                      <SortableTableHead label={t('membersPage.title')} sortKey="memberFirstName" sortConfig={sortConfigMembers} onSort={requestSortMembers} />
+                      <SortableTableHead label={t('forms.contact')} sortKey="memberPhone" sortConfig={sortConfigMembers} onSort={requestSortMembers} />
+                      <SortableTableHead label={t('followUps.followUpDate')} sortKey="nextFollowupDate" sortConfig={sortConfigMembers} onSort={requestSortMembers} />
+                      <SortableTableHead label={t('followUps.scheduledByColumn')} sortKey="scheduledByName" sortConfig={sortConfigMembers} onSort={requestSortMembers} />
                       <TableHead>{t('forms.status')}</TableHead>
                       <TableHead>{t('forms.notes')}</TableHead>
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {memberFollowups.map((followup) => (
+                    {sortedMemberFollowups.map((followup) => (
                       <TableRow key={followup.id} data-testid={`row-member-followup-${followup.id}`}>
                         <TableCell>
                           <Link href={`${basePath}/members/${followup.memberId}`}>

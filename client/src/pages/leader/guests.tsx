@@ -27,6 +27,8 @@ import { Plus, Search, Users2, Phone, Mail, Loader2, Eye, Trash2, Edit } from "l
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -229,7 +231,9 @@ export default function LeaderGuests() {
     setViewDialogOpen(true);
   };
 
-  const filteredGuests = guests?.filter((g) => {
+  const { sortedData: sortedGuests, sortConfig, requestSort } = useSortableTable(guests);
+
+  const filteredGuests = sortedGuests?.filter((g) => {
     const searchLower = search.toLowerCase();
     return (
       g.firstName.toLowerCase().includes(searchLower) ||
@@ -489,12 +493,12 @@ export default function LeaderGuests() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
-                      <TableHead>{t('forms.contact')}</TableHead>
-                      <TableHead>{t('forms.gender')}</TableHead>
-                      <TableHead>{t('forms.ageGroup')}</TableHead>
-                      <TableHead>{t('guests.source')}</TableHead>
-                      <TableHead>{t('forms.date')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.contact')} sortKey="phone" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.gender')} sortKey="gender" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.ageGroup')} sortKey="ageGroup" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('guests.source')} sortKey="sourceType" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.date')} sortKey="createdAt" sortConfig={sortConfig} onSort={requestSort} />
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>

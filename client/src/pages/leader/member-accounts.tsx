@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Search, Users, Mail, RefreshCw, UserCheck, UserX, Loader2, Clock } from "lucide-react";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 import { format } from "date-fns";
 import {
   AlertDialog,
@@ -98,7 +100,9 @@ export default function LeaderMemberAccounts() {
     },
   });
 
-  const filteredAccounts = accounts?.filter(account => {
+  const { sortedData: sortedAccounts, sortConfig, requestSort } = useSortableTable(accounts);
+
+  const filteredAccounts = sortedAccounts?.filter(account => {
     const searchLower = search.toLowerCase();
     return (
       account.firstName.toLowerCase().includes(searchLower) ||
@@ -173,11 +177,11 @@ export default function LeaderMemberAccounts() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
-                      <TableHead>{t('forms.email')}</TableHead>
-                      <TableHead>{t('forms.type')}</TableHead>
-                      <TableHead>{t('forms.status')}</TableHead>
-                      <TableHead>{t('forms.lastLogin')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.email')} sortKey="email" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.type')} sortKey="affiliationType" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.status')} sortKey="status" sortConfig={sortConfig} onSort={requestSort} />
+                      <SortableTableHead label={t('forms.lastLogin')} sortKey="lastLoginAt" sortConfig={sortConfig} onSort={requestSort} />
                       <TableHead className="text-right">{t('forms.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>

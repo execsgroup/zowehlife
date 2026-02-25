@@ -18,6 +18,8 @@ import { Section } from "@/components/section";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { UserPlus, Check, X, Mail, Phone, Church, Calendar, Loader2, FileText, Edit } from "lucide-react";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 
 interface AccountRequest {
   id: string;
@@ -146,8 +148,10 @@ export default function AccountRequests() {
     denyMutation.mutate();
   };
 
-  const pendingRequests = requests?.filter(r => r.status === "PENDING") || [];
-  const processedRequests = requests?.filter(r => r.status !== "PENDING") || [];
+  const { sortedData: sortedRequests, sortConfig: pendingSortConfig, requestSort: pendingRequestSort } = useSortableTable(requests);
+  const pendingRequests = sortedRequests?.filter(r => r.status === "PENDING") || [];
+  const processedUnsorted = requests?.filter(r => r.status !== "PENDING") || [];
+  const { sortedData: sortedProcessed, sortConfig: processedSortConfig, requestSort: processedRequestSort } = useSortableTable(processedUnsorted);
 
   return (
     <DashboardLayout>
@@ -182,11 +186,11 @@ export default function AccountRequests() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('forms.name')}</TableHead>
+                  <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={pendingSortConfig} onSort={pendingRequestSort} />
                   <TableHead>{t('forms.contact')}</TableHead>
-                  <TableHead>{t('forms.ministry')}</TableHead>
+                  <SortableTableHead label={t('forms.ministry')} sortKey="churchName" sortConfig={pendingSortConfig} onSort={pendingRequestSort} />
                   <TableHead>{t('forms.reason')}</TableHead>
-                  <TableHead>{t('forms.date')}</TableHead>
+                  <SortableTableHead label={t('forms.date')} sortKey="createdAt" sortConfig={pendingSortConfig} onSort={pendingRequestSort} />
                   <TableHead className="text-right">{t('forms.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -248,7 +252,7 @@ export default function AccountRequests() {
           )}
         </Section>
 
-        {processedRequests.length > 0 && (
+        {sortedProcessed && sortedProcessed.length > 0 && (
           <Section
             title={t('accountRequests.processedRequests')}
             description={t('accountRequests.processedDescription')}
@@ -257,16 +261,16 @@ export default function AccountRequests() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('forms.name')}</TableHead>
-                  <TableHead>{t('forms.email')}</TableHead>
-                  <TableHead>{t('forms.ministry')}</TableHead>
-                  <TableHead>{t('forms.status')}</TableHead>
-                  <TableHead>{t('forms.date')}</TableHead>
-                  <TableHead>{t('accountRequests.reviewed')}</TableHead>
+                  <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={processedSortConfig} onSort={processedRequestSort} />
+                  <SortableTableHead label={t('forms.email')} sortKey="email" sortConfig={processedSortConfig} onSort={processedRequestSort} />
+                  <SortableTableHead label={t('forms.ministry')} sortKey="churchName" sortConfig={processedSortConfig} onSort={processedRequestSort} />
+                  <SortableTableHead label={t('forms.status')} sortKey="status" sortConfig={processedSortConfig} onSort={processedRequestSort} />
+                  <SortableTableHead label={t('forms.date')} sortKey="createdAt" sortConfig={processedSortConfig} onSort={processedRequestSort} />
+                  <SortableTableHead label={t('accountRequests.reviewed')} sortKey="reviewedAt" sortConfig={processedSortConfig} onSort={processedRequestSort} />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {processedRequests.map((request) => (
+                {sortedProcessed.map((request) => (
                   <TableRow key={request.id} data-testid={`row-history-${request.id}`}>
                     <TableCell className="font-medium text-sm">{request.firstName} {request.lastName}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{request.email}</TableCell>

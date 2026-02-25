@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AITextarea } from "@/components/ai-text-helper";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useSortableTable } from "@/hooks/use-sortable-table";
+import { SortableTableHead } from "@/components/sortable-table-head";
 import { useToast } from "@/hooks/use-toast";
 import { useBasePath } from "@/hooks/use-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -101,6 +103,9 @@ export default function MassFollowUp() {
   };
 
   const [results, setResults] = useState<MassFollowUpResult[] | null>(null);
+
+  const { sortedData: sortedCandidates, sortConfig: sortConfigCandidates, requestSort: requestSortCandidates } = useSortableTable(candidates);
+  const { sortedData: sortedResults, sortConfig: sortConfigResults, requestSort: requestSortResults } = useSortableTable(results ?? undefined);
 
   const fetchCandidates = async () => {
     if (!category) {
@@ -294,14 +299,14 @@ export default function MassFollowUp() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12"></TableHead>
-                        <TableHead>{t('forms.name')}</TableHead>
-                        <TableHead>{t('forms.email')}</TableHead>
-                        <TableHead>{t('forms.phone')}</TableHead>
-                        <TableHead>{dateFilterLabels[category]}</TableHead>
+                        <SortableTableHead label={t('forms.name')} sortKey="firstName" sortConfig={sortConfigCandidates} onSort={requestSortCandidates} />
+                        <SortableTableHead label={t('forms.email')} sortKey="email" sortConfig={sortConfigCandidates} onSort={requestSortCandidates} />
+                        <SortableTableHead label={t('forms.phone')} sortKey="phone" sortConfig={sortConfigCandidates} onSort={requestSortCandidates} />
+                        <SortableTableHead label={dateFilterLabels[category]} sortKey="date" sortConfig={sortConfigCandidates} onSort={requestSortCandidates} />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {candidates.map((candidate) => (
+                      {(sortedCandidates ?? candidates).map((candidate) => (
                         <TableRow
                           key={candidate.id}
                           className="cursor-pointer"
@@ -443,12 +448,12 @@ export default function MassFollowUp() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('forms.name')}</TableHead>
+                      <SortableTableHead label={t('forms.name')} sortKey="name" sortConfig={sortConfigResults} onSort={requestSortResults} />
                       <TableHead>{t('forms.status')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {results.map((result) => (
+                    {(sortedResults ?? results).map((result) => (
                       <TableRow key={result.personId} data-testid={`row-result-${result.personId}`}>
                         <TableCell className="font-medium">{result.name}</TableCell>
                         <TableCell>
