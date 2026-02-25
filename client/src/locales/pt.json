@@ -1712,5 +1712,25 @@
     "noLeaderData": "Nenhum dado de líder disponível",
     "totalRegistered": "Total Registrado",
     "followUpsBreakdown": "Acompanhamentos"
+  },
+  "excelUpload": {
+    "title": "Carregar de Arquivo",
+    "description": "Carregue um arquivo Excel ou CSV para adicionar várias pessoas de uma vez. Cada linha será processada como uma nova entrada com as mesmas ações de adicionar individualmente.",
+    "expectedColumns": "Colunas Esperadas",
+    "requiredNote": "* Campos obrigatórios",
+    "downloadTemplate": "Baixar Modelo",
+    "dropzoneText": "Clique para selecionar um arquivo",
+    "supportedFormats": ".xlsx, .xls ou .csv",
+    "invalidFileType": "Tipo de Arquivo Inválido",
+    "invalidFileTypeDesc": "Por favor envie um arquivo Excel (.xlsx, .xls) ou CSV.",
+    "uploading": "Carregando...",
+    "upload": "Carregar",
+    "uploadComplete": "Carregamento Concluído",
+    "uploadSuccessDesc": "{{count}} de {{total}} registros adicionados com sucesso.",
+    "uploadFailed": "Falha no Carregamento",
+    "successCount": "{{count}} bem-sucedidos",
+    "errorCount": "{{count}} falharam",
+    "rowError": "Linha {{row}}",
+    "uploadFile": "Carregar Arquivo"
   }
 }

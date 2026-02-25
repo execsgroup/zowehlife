@@ -24,7 +24,8 @@ import { useBasePath } from "@/hooks/use-base-path";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Member } from "@shared/schema";
-import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus, Church, CalendarPlus, FileSpreadsheet } from "lucide-react";
+import { Plus, Search, Users, Phone, Mail, Loader2, Eye, Copy, Link2, UserMinus, Church, CalendarPlus, FileSpreadsheet, Upload } from "lucide-react";
+import { ExcelUploadDialog } from "@/components/excel-upload-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
@@ -102,6 +103,7 @@ export default function LeaderMembers() {
   const apiBasePath = useApiBasePath();
   const [, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
@@ -257,6 +259,10 @@ export default function LeaderMembers() {
             <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
               <FileSpreadsheet className="h-4 w-4" />
               {t('forms.exportExcel')}
+            </Button>
+            <Button onClick={() => setUploadDialogOpen(true)} variant="outline" className="gap-2" data-testid="button-upload-members">
+              <Upload className="h-4 w-4" />
+              {t('excelUpload.uploadFile')}
             </Button>
             {tokens?.memberToken ? (
               <Tooltip>
@@ -712,6 +718,26 @@ export default function LeaderMembers() {
           memberPhone={selectedMemberForSchedule.phone}
         />
       )}
+
+      <ExcelUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        entityType="members"
+        apiPath={apiBasePath + "/members"}
+        invalidateKeys={[`${apiBasePath}/members`, `${apiBasePath}/stats`]}
+        expectedColumns={[
+          { key: "firstName", label: t('forms.firstName'), required: true },
+          { key: "lastName", label: t('forms.lastName'), required: true },
+          { key: "email", label: t('forms.email'), required: false },
+          { key: "phone", label: t('forms.phone'), required: false },
+          { key: "dateOfBirth", label: t('forms.dateOfBirth'), required: false },
+          { key: "address", label: t('forms.address'), required: false },
+          { key: "country", label: t('forms.country'), required: false },
+          { key: "gender", label: t('forms.gender'), required: false },
+          { key: "memberSince", label: t('forms.memberSince'), required: false },
+          { key: "notes", label: t('forms.notes'), required: false },
+        ]}
+      />
     </DashboardLayout>
   );
 }

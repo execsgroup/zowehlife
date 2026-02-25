@@ -1712,5 +1712,25 @@
     "noLeaderData": "Aucune donnée de leader disponible",
     "totalRegistered": "Total Inscrits",
     "followUpsBreakdown": "Suivis"
+  },
+  "excelUpload": {
+    "title": "Importer depuis un Fichier",
+    "description": "Importez un fichier Excel ou CSV pour ajouter plusieurs personnes à la fois. Chaque ligne sera traitée comme une nouvelle entrée avec les mêmes actions qu'un ajout individuel.",
+    "expectedColumns": "Colonnes Attendues",
+    "requiredNote": "* Champs obligatoires",
+    "downloadTemplate": "Télécharger le Modèle",
+    "dropzoneText": "Cliquez pour sélectionner un fichier",
+    "supportedFormats": ".xlsx, .xls ou .csv",
+    "invalidFileType": "Type de Fichier Invalide",
+    "invalidFileTypeDesc": "Veuillez importer un fichier Excel (.xlsx, .xls) ou CSV.",
+    "uploading": "Import en cours...",
+    "upload": "Importer",
+    "uploadComplete": "Import Terminé",
+    "uploadSuccessDesc": "{{count}} sur {{total}} enregistrements ajoutés avec succès.",
+    "uploadFailed": "Échec de l'Import",
+    "successCount": "{{count}} réussis",
+    "errorCount": "{{count}} échoués",
+    "rowError": "Ligne {{row}}",
+    "uploadFile": "Importer un Fichier"
   }
 }

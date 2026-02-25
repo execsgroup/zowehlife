@@ -2,6 +2,8 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import bcrypt from "bcrypt";
+import multer from "multer";
+import * as XLSX from "xlsx";
 import { storage } from "./storage";
 import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail, sendMinistryRemovalEmail, getUncachableResendClient } from "./email";
 import { startReminderScheduler } from "./scheduler";
@@ -37,6 +39,32 @@ import {
   formConfigUpdateSchema,
 } from "@shared/schema";
 import { z } from "zod";
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+function parseExcelBuffer(buffer: Buffer): Record<string, string>[] {
+  const workbook = XLSX.read(buffer, { type: "buffer" });
+  const sheetName = workbook.SheetNames[0];
+  if (!sheetName) return [];
+  const sheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" });
+  return rows;
+}
+
+function normalizeColumnName(col: string): string {
+  return col.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function mapRowToFields(row: Record<string, string>, columnMap: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [rawCol, value] of Object.entries(row)) {
+    const normalized = normalizeColumnName(rawCol);
+    if (columnMap[normalized]) {
+      result[columnMap[normalized]] = String(value).trim();
+    }
+  }
+  return result;
+}
 
 
 declare module "express-session" {
@@ -5264,6 +5292,93 @@ export async function registerRoutes(
   app.post("/api/leader/converts", requireLeader, handleCreateConvert);
   app.post("/api/ministry-admin/converts", requireMinistryAdmin, handleCreateConvert);
 
+  const convertColumnMap: Record<string, string> = {
+    firstname: "firstName", first: "firstName", "firstnam": "firstName",
+    lastname: "lastName", last: "lastName", "lastnam": "lastName",
+    name: "fullName",
+    phone: "phone", phonenumber: "phone", telephone: "phone",
+    email: "email", emailaddress: "email",
+    address: "address",
+    notes: "summaryNotes", summarynotes: "summaryNotes", summary: "summaryNotes",
+    status: "status",
+  };
+
+  async function handleBulkUploadConverts(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const file = (req as any).file;
+      if (!file) return res.status(400).json({ message: "No file uploaded" });
+
+      const rows = parseExcelBuffer(file.buffer);
+      if (rows.length === 0) return res.status(400).json({ message: "File is empty or has no data rows" });
+
+      const results = { totalRows: rows.length, successCount: 0, errorCount: 0, errors: [] as Array<{ row: number; message: string }> };
+      const church = await storage.getChurch(user.churchId);
+
+      for (let i = 0; i < rows.length; i++) {
+        try {
+          const mapped = mapRowToFields(rows[i], convertColumnMap);
+          if (mapped.fullName && !mapped.firstName) {
+            const parts = mapped.fullName.split(/\s+/);
+            mapped.firstName = parts[0] || "";
+            mapped.lastName = parts.slice(1).join(" ") || "";
+          }
+          if (!mapped.firstName || !mapped.lastName) {
+            results.errors.push({ row: i + 2, message: "First name and last name are required" });
+            results.errorCount++;
+            continue;
+          }
+          const validStatuses = ["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"];
+          const status = mapped.status && validStatuses.includes(mapped.status.toUpperCase()) ? mapped.status.toUpperCase() as any : "NEW";
+
+          const convert = await storage.createConvert({
+            firstName: mapped.firstName,
+            lastName: mapped.lastName,
+            phone: mapped.phone || null,
+            email: mapped.email || null,
+            address: mapped.address || null,
+            summaryNotes: mapped.summaryNotes || null,
+            status,
+            churchId: user.churchId,
+            createdByUserId: user.id,
+          });
+
+          await storage.createAuditLog({
+            actorUserId: user.id,
+            action: "CREATE",
+            entityType: "CONVERT",
+            entityId: convert.id,
+          });
+
+          if (mapped.email) {
+            await provisionMemberAccountForConvert({
+              email: mapped.email,
+              firstName: mapped.firstName,
+              lastName: mapped.lastName,
+              phone: mapped.phone || null,
+              ministryId: user.churchId,
+              ministryName: church?.name || "Ministry",
+              convertId: convert.id,
+              sendClaimEmail: true,
+            });
+          }
+
+          results.successCount++;
+        } catch (err: any) {
+          results.errors.push({ row: i + 2, message: err.message || "Unknown error" });
+          results.errorCount++;
+        }
+      }
+
+      res.json(results);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to process upload" });
+    }
+  }
+
+  app.post("/api/leader/converts/bulk-upload", requireLeader, upload.single("file"), handleBulkUploadConverts);
+  app.post("/api/ministry-admin/converts/bulk-upload", requireMinistryAdmin, upload.single("file"), handleBulkUploadConverts);
+
   // Update convert
   app.patch("/api/leader/converts/:id", requireLeader, async (req, res) => {
     try {
@@ -6019,7 +6134,100 @@ export async function registerRoutes(
 
   app.post("/api/leader/new-members", requireLeader, handleCreateNewMember);
   app.post("/api/ministry-admin/new-members", requireMinistryAdmin, handleCreateNewMember);
-  
+
+  const newMemberColumnMap: Record<string, string> = {
+    firstname: "firstName", first: "firstName",
+    lastname: "lastName", last: "lastName",
+    name: "fullName",
+    phone: "phone", phonenumber: "phone", telephone: "phone",
+    email: "email", emailaddress: "email",
+    dateofbirth: "dateOfBirth", dob: "dateOfBirth", birthday: "dateOfBirth", birthdate: "dateOfBirth",
+    address: "address",
+    country: "country",
+    gender: "gender",
+    agegroup: "ageGroup", age: "ageGroup",
+    notes: "notes",
+  };
+
+  async function handleBulkUploadNewMembers(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const file = (req as any).file;
+      if (!file) return res.status(400).json({ message: "No file uploaded" });
+
+      const rows = parseExcelBuffer(file.buffer);
+      if (rows.length === 0) return res.status(400).json({ message: "File is empty or has no data rows" });
+
+      const results = { totalRows: rows.length, successCount: 0, errorCount: 0, errors: [] as Array<{ row: number; message: string }> };
+      const church = await storage.getChurch(user.churchId);
+
+      for (let i = 0; i < rows.length; i++) {
+        try {
+          const mapped = mapRowToFields(rows[i], newMemberColumnMap);
+          if (mapped.fullName && !mapped.firstName) {
+            const parts = mapped.fullName.split(/\s+/);
+            mapped.firstName = parts[0] || "";
+            mapped.lastName = parts.slice(1).join(" ") || "";
+          }
+          if (!mapped.firstName || !mapped.lastName) {
+            results.errors.push({ row: i + 2, message: "First name and last name are required" });
+            results.errorCount++;
+            continue;
+          }
+
+          const newMember = await storage.createNewMember({
+            churchId: user.churchId,
+            createdByUserId: user.id,
+            firstName: mapped.firstName,
+            lastName: mapped.lastName,
+            phone: mapped.phone || null,
+            email: mapped.email || null,
+            dateOfBirth: mapped.dateOfBirth || null,
+            address: mapped.address || null,
+            country: mapped.country || null,
+            gender: mapped.gender || null,
+            ageGroup: mapped.ageGroup || null,
+            notes: mapped.notes || null,
+            selfSubmitted: "false",
+          });
+
+          await storage.createAuditLog({
+            actorUserId: user.id,
+            action: "CREATE",
+            entityType: "NEW_MEMBER",
+            entityId: newMember.id,
+          });
+
+          if (mapped.email) {
+            await provisionMemberAccountForMember({
+              email: mapped.email,
+              firstName: mapped.firstName,
+              lastName: mapped.lastName,
+              phone: mapped.phone || null,
+              ministryId: user.churchId,
+              ministryName: church?.name || "Ministry",
+              newMemberId: newMember.id,
+              memberType: "new_member",
+              sendClaimEmail: true,
+            });
+          }
+
+          results.successCount++;
+        } catch (err: any) {
+          results.errors.push({ row: i + 2, message: err.message || "Unknown error" });
+          results.errorCount++;
+        }
+      }
+
+      res.json(results);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to process upload" });
+    }
+  }
+
+  app.post("/api/leader/new-members/bulk-upload", requireLeader, upload.single("file"), handleBulkUploadNewMembers);
+  app.post("/api/ministry-admin/new-members/bulk-upload", requireMinistryAdmin, upload.single("file"), handleBulkUploadNewMembers);
+
   // Update new member
   async function handleUpdateNewMember(req: Request, res: Response) {
     try {
@@ -6496,7 +6704,100 @@ export async function registerRoutes(
 
   app.post("/api/leader/members", requireLeader, handleCreateMember);
   app.post("/api/ministry-admin/members", requireMinistryAdmin, handleCreateMember);
-  
+
+  const memberColumnMap: Record<string, string> = {
+    firstname: "firstName", first: "firstName",
+    lastname: "lastName", last: "lastName",
+    name: "fullName",
+    phone: "phone", phonenumber: "phone", telephone: "phone",
+    email: "email", emailaddress: "email",
+    dateofbirth: "dateOfBirth", dob: "dateOfBirth", birthday: "dateOfBirth", birthdate: "dateOfBirth",
+    address: "address",
+    country: "country",
+    gender: "gender",
+    membersince: "memberSince", joindate: "memberSince", joined: "memberSince",
+    notes: "notes",
+  };
+
+  async function handleBulkUploadMembers(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const file = (req as any).file;
+      if (!file) return res.status(400).json({ message: "No file uploaded" });
+
+      const rows = parseExcelBuffer(file.buffer);
+      if (rows.length === 0) return res.status(400).json({ message: "File is empty or has no data rows" });
+
+      const results = { totalRows: rows.length, successCount: 0, errorCount: 0, errors: [] as Array<{ row: number; message: string }> };
+      const church = await storage.getChurch(user.churchId);
+
+      for (let i = 0; i < rows.length; i++) {
+        try {
+          const mapped = mapRowToFields(rows[i], memberColumnMap);
+          if (mapped.fullName && !mapped.firstName) {
+            const parts = mapped.fullName.split(/\s+/);
+            mapped.firstName = parts[0] || "";
+            mapped.lastName = parts.slice(1).join(" ") || "";
+          }
+          if (!mapped.firstName || !mapped.lastName) {
+            results.errors.push({ row: i + 2, message: "First name and last name are required" });
+            results.errorCount++;
+            continue;
+          }
+
+          const member = await storage.createMember({
+            churchId: user.churchId,
+            createdByUserId: user.id,
+            firstName: mapped.firstName,
+            lastName: mapped.lastName,
+            phone: mapped.phone || null,
+            email: mapped.email || null,
+            dateOfBirth: mapped.dateOfBirth || null,
+            address: mapped.address || null,
+            country: mapped.country || null,
+            gender: mapped.gender || null,
+            memberSince: mapped.memberSince || null,
+            notes: mapped.notes || null,
+            selfSubmitted: "false",
+          });
+
+          await storage.createAuditLog({
+            actorUserId: user.id,
+            action: "CREATE",
+            entityType: "MEMBER",
+            entityId: member.id,
+          });
+
+          if (mapped.email) {
+            await provisionMemberAccountForMember({
+              email: mapped.email,
+              firstName: mapped.firstName,
+              lastName: mapped.lastName,
+              phone: mapped.phone || null,
+              ministryId: user.churchId,
+              ministryName: church?.name || "Ministry",
+              memberId: member.id,
+              memberType: "member",
+              sendClaimEmail: true,
+            });
+          }
+
+          results.successCount++;
+        } catch (err: any) {
+          results.errors.push({ row: i + 2, message: err.message || "Unknown error" });
+          results.errorCount++;
+        }
+      }
+
+      res.json(results);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to process upload" });
+    }
+  }
+
+  app.post("/api/leader/members/bulk-upload", requireLeader, upload.single("file"), handleBulkUploadMembers);
+  app.post("/api/ministry-admin/members/bulk-upload", requireMinistryAdmin, upload.single("file"), handleBulkUploadMembers);
+
   // Update member
   async function handleUpdateMember(req: Request, res: Response) {
     try {
@@ -6710,6 +7011,83 @@ export async function registerRoutes(
 
   app.post("/api/leader/guests", requireLeader, handleCreateGuest);
   app.post("/api/ministry-admin/guests", requireMinistryAdmin, handleCreateGuest);
+
+  const guestColumnMap: Record<string, string> = {
+    firstname: "firstName", first: "firstName",
+    lastname: "lastName", last: "lastName",
+    name: "fullName",
+    phone: "phone", phonenumber: "phone", telephone: "phone",
+    email: "email", emailaddress: "email",
+    dateofbirth: "dateOfBirth", dob: "dateOfBirth", birthday: "dateOfBirth", birthdate: "dateOfBirth",
+    address: "address",
+    country: "country",
+    gender: "gender",
+    agegroup: "ageGroup", age: "ageGroup",
+    notes: "notes",
+  };
+
+  async function handleBulkUploadGuests(req: Request, res: Response) {
+    try {
+      const user = (req as any).user;
+      const file = (req as any).file;
+      if (!file) return res.status(400).json({ message: "No file uploaded" });
+
+      const rows = parseExcelBuffer(file.buffer);
+      if (rows.length === 0) return res.status(400).json({ message: "File is empty or has no data rows" });
+
+      const results = { totalRows: rows.length, successCount: 0, errorCount: 0, errors: [] as Array<{ row: number; message: string }> };
+
+      for (let i = 0; i < rows.length; i++) {
+        try {
+          const mapped = mapRowToFields(rows[i], guestColumnMap);
+          if (mapped.fullName && !mapped.firstName) {
+            const parts = mapped.fullName.split(/\s+/);
+            mapped.firstName = parts[0] || "";
+            mapped.lastName = parts.slice(1).join(" ") || "";
+          }
+          if (!mapped.firstName || !mapped.lastName) {
+            results.errors.push({ row: i + 2, message: "First name and last name are required" });
+            results.errorCount++;
+            continue;
+          }
+
+          const guest = await storage.createGuest({
+            churchId: user.churchId,
+            createdByUserId: user.id,
+            firstName: mapped.firstName,
+            lastName: mapped.lastName,
+            phone: mapped.phone || null,
+            email: mapped.email || null,
+            dateOfBirth: mapped.dateOfBirth || null,
+            address: mapped.address || null,
+            country: mapped.country || null,
+            gender: mapped.gender || null,
+            ageGroup: mapped.ageGroup || null,
+            notes: mapped.notes || null,
+          });
+
+          await storage.createAuditLog({
+            actorUserId: user.id,
+            action: "CREATE",
+            entityType: "GUEST",
+            entityId: guest.id,
+          });
+
+          results.successCount++;
+        } catch (err: any) {
+          results.errors.push({ row: i + 2, message: err.message || "Unknown error" });
+          results.errorCount++;
+        }
+      }
+
+      res.json(results);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "Failed to process upload" });
+    }
+  }
+
+  app.post("/api/leader/guests/bulk-upload", requireLeader, upload.single("file"), handleBulkUploadGuests);
+  app.post("/api/ministry-admin/guests/bulk-upload", requireMinistryAdmin, upload.single("file"), handleBulkUploadGuests);
 
   // Update guest
   async function handleUpdateGuest(req: Request, res: Response) {

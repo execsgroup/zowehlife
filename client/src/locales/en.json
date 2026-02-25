@@ -1712,5 +1712,25 @@
     "noLeaderData": "No leader data available",
     "totalRegistered": "Total Registered",
     "followUpsBreakdown": "Follow-Ups"
+  },
+  "excelUpload": {
+    "title": "Upload from File",
+    "description": "Upload an Excel or CSV file to add multiple people at once. Each row will be processed as a new entry with all the same actions as adding individually.",
+    "expectedColumns": "Expected Columns",
+    "requiredNote": "* Required fields",
+    "downloadTemplate": "Download Template",
+    "dropzoneText": "Click to select a file",
+    "supportedFormats": ".xlsx, .xls, or .csv",
+    "invalidFileType": "Invalid File Type",
+    "invalidFileTypeDesc": "Please upload an Excel (.xlsx, .xls) or CSV file.",
+    "uploading": "Uploading...",
+    "upload": "Upload",
+    "uploadComplete": "Upload Complete",
+    "uploadSuccessDesc": "{{count}} of {{total}} records added successfully.",
+    "uploadFailed": "Upload Failed",
+    "successCount": "{{count}} succeeded",
+    "errorCount": "{{count}} failed",
+    "rowError": "Row {{row}}",
+    "uploadFile": "Upload File"
   }
 }

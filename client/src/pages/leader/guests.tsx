@@ -23,7 +23,8 @@ import { useBasePath } from "@/hooks/use-base-path";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Guest } from "@shared/schema";
-import { Plus, Search, Users2, Phone, Mail, Loader2, Eye, Trash2, Edit } from "lucide-react";
+import { Plus, Search, Users2, Phone, Mail, Loader2, Eye, Trash2, Edit, Upload } from "lucide-react";
+import { ExcelUploadDialog } from "@/components/excel-upload-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -85,6 +86,7 @@ export default function LeaderGuests() {
   const basePath = useBasePath();
   const apiBasePath = useApiBasePath();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -250,6 +252,11 @@ export default function LeaderGuests() {
           title={t('sidebar.guests')}
           description={t('guests.description')}
           actions={
+            <div className="flex gap-2">
+              <Button onClick={() => setUploadDialogOpen(true)} variant="outline" className="gap-2" data-testid="button-upload-guests">
+                <Upload className="h-4 w-4" />
+                {t('excelUpload.uploadFile')}
+              </Button>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button data-testid="button-add-guest">
@@ -458,6 +465,7 @@ export default function LeaderGuests() {
               </Form>
             </DialogContent>
           </Dialog>
+            </div>
           }
         />
 
@@ -863,6 +871,26 @@ export default function LeaderGuests() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ExcelUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        entityType="guests"
+        apiPath={apiBasePath + "/guests"}
+        invalidateKeys={[`${apiBasePath}/guests`, `${apiBasePath}/stats`]}
+        expectedColumns={[
+          { key: "firstName", label: t('forms.firstName'), required: true },
+          { key: "lastName", label: t('forms.lastName'), required: true },
+          { key: "email", label: t('forms.email'), required: false },
+          { key: "phone", label: t('forms.phone'), required: false },
+          { key: "dateOfBirth", label: t('forms.dateOfBirth'), required: false },
+          { key: "address", label: t('forms.address'), required: false },
+          { key: "country", label: t('forms.country'), required: false },
+          { key: "gender", label: t('forms.gender'), required: false },
+          { key: "ageGroup", label: t('forms.ageGroup'), required: false },
+          { key: "notes", label: t('forms.notes'), required: false },
+        ]}
+      />
     </DashboardLayout>
   );
 }

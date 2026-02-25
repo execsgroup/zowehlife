@@ -23,7 +23,8 @@ import { useBasePath } from "@/hooks/use-base-path";
 import { useApiBasePath } from "@/hooks/use-api-base-path";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { type Convert } from "@shared/schema";
-import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, UserMinus, Church } from "lucide-react";
+import { Plus, Search, UserPlus, Phone, Mail, Loader2, FileSpreadsheet, CalendarPlus, Eye, UserMinus, Church, Upload } from "lucide-react";
+import { ExcelUploadDialog } from "@/components/excel-upload-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
@@ -113,6 +114,7 @@ export default function LeaderConverts() {
   const apiBasePath = useApiBasePath();
   const [location] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
@@ -261,6 +263,10 @@ export default function LeaderConverts() {
               <Button onClick={handleExportExcel} variant="outline" className="gap-2" data-testid="button-export-excel">
                 <FileSpreadsheet className="h-4 w-4" />
                 {t('forms.exportExcel')}
+              </Button>
+              <Button onClick={() => setUploadDialogOpen(true)} variant="outline" className="gap-2" data-testid="button-upload-converts">
+                <Upload className="h-4 w-4" />
+                {t('excelUpload.uploadFile')}
               </Button>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -789,6 +795,23 @@ export default function LeaderConverts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ExcelUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        entityType="converts"
+        apiPath={apiBasePath + "/converts"}
+        invalidateKeys={[`${apiBasePath}/converts`, `${apiBasePath}/stats`]}
+        expectedColumns={[
+          { key: "firstName", label: t('forms.firstName'), required: true },
+          { key: "lastName", label: t('forms.lastName'), required: true },
+          { key: "email", label: t('forms.email'), required: false },
+          { key: "phone", label: t('forms.phone'), required: false },
+          { key: "address", label: t('forms.address'), required: false },
+          { key: "status", label: t('forms.status'), required: false },
+          { key: "notes", label: t('forms.notes'), required: false },
+        ]}
+      />
     </DashboardLayout>
   );
 }
