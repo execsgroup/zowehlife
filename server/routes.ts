@@ -4984,9 +4984,9 @@ export async function registerRoutes(
       const XLSX = await import("xlsx");
       const user = (req as any).user;
 
-      const convertFollowups = await storage.getUpcomingFollowups(user.churchId);
-      const newMemberFollowups = await storage.getNewMemberFollowupsDue(user.churchId);
-      const memberFollowups = await storage.getMemberFollowupsDue(user.churchId);
+      const convertFollowups = await storage.getUpcomingFollowups(user.churchId, user.id);
+      const newMemberFollowups = await storage.getNewMemberFollowupsDue(user.churchId, user.id);
+      const memberFollowups = await storage.getMemberFollowupsDue(user.churchId, user.id);
 
       const data = [
         ...convertFollowups.map((f) => ({
@@ -5180,7 +5180,7 @@ export async function registerRoutes(
   app.get("/api/leader/followups", requireLeader, async (req, res) => {
     try {
       const user = (req as any).user;
-      const followups = await storage.getUpcomingFollowups(user.churchId);
+      const followups = await storage.getUpcomingFollowups(user.churchId, user.id);
       res.json(followups);
     } catch (error) {
       res.status(500).json({ message: "Failed to get follow-ups" });
@@ -6346,7 +6346,7 @@ export async function registerRoutes(
   app.get("/api/leader/new-member-followups", requireLeader, async (req, res) => {
     try {
       const user = (req as any).user;
-      const followups = await storage.getNewMemberFollowupsDue(user.churchId);
+      const followups = await storage.getNewMemberFollowupsDue(user.churchId, user.id);
       res.json(followups);
     } catch (error) {
       console.error("Error fetching new member followups:", error);
@@ -6358,7 +6358,7 @@ export async function registerRoutes(
   app.get("/api/leader/member-followups", requireLeader, async (req, res) => {
     try {
       const user = (req as any).user;
-      const followups = await storage.getMemberFollowupsDue(user.churchId);
+      const followups = await storage.getMemberFollowupsDue(user.churchId, user.id);
       res.json(followups);
     } catch (error) {
       console.error("Error fetching member followups:", error);

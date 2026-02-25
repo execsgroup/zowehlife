@@ -142,7 +142,7 @@ export interface IStorage {
   getCheckinsByChurch(churchId: string): Promise<Checkin[]>;
   createCheckin(checkin: InsertCheckin): Promise<Checkin>;
   getFollowupsDue(churchId?: string): Promise<Checkin[]>;
-  getUpcomingFollowups(churchId: string): Promise<Array<{
+  getUpcomingFollowups(churchId: string, userId?: string): Promise<Array<{
     id: string;
     convertId: string;
     convertFirstName: string;
@@ -306,7 +306,7 @@ export interface IStorage {
   getNewMemberCheckinsByNewMember(newMemberId: string): Promise<NewMemberCheckin[]>;
   getNewMemberCheckinsByChurch(churchId: string): Promise<NewMemberCheckin[]>;
   createNewMemberCheckin(checkin: InsertNewMemberCheckin): Promise<NewMemberCheckin>;
-  getNewMemberFollowupsDue(churchId: string): Promise<Array<{
+  getNewMemberFollowupsDue(churchId: string, userId?: string): Promise<Array<{
     id: string;
     newMemberId: string;
     newMemberFirstName: string;
@@ -351,7 +351,7 @@ export interface IStorage {
   getLastFollowupOutcomesForConverts(churchId: string): Promise<Map<string, string>>;
   getLastFollowupOutcomesForNewMembers(churchId: string): Promise<Map<string, string>>;
   getLastFollowupOutcomesForMembers(churchId: string): Promise<Map<string, string>>;
-  getMemberFollowupsDue(churchId: string): Promise<Array<{
+  getMemberFollowupsDue(churchId: string, userId?: string): Promise<Array<{
     id: string;
     memberId: string;
     memberFirstName: string;
@@ -808,8 +808,16 @@ export class DatabaseStorage implements IStorage {
     return query;
   }
 
-  async getUpcomingFollowups(churchId: string) {
+  async getUpcomingFollowups(churchId: string, userId?: string) {
     const today = new Date().toISOString().split("T")[0];
+    const conditions = [
+      gte(checkins.nextFollowupDate, today),
+      eq(checkins.churchId, churchId),
+      eq(checkins.outcome, "SCHEDULED_VISIT")
+    ];
+    if (userId) {
+      conditions.push(eq(checkins.createdByUserId, userId));
+    }
     const results = await db
       .select({
         id: checkins.id,
@@ -828,13 +836,7 @@ export class DatabaseStorage implements IStorage {
       .from(checkins)
       .innerJoin(converts, eq(checkins.convertId, converts.id))
       .leftJoin(users, eq(checkins.createdByUserId, users.id))
-      .where(
-        and(
-          gte(checkins.nextFollowupDate, today),
-          eq(checkins.churchId, churchId),
-          eq(checkins.outcome, "SCHEDULED_VISIT")
-        )
-      )
+      .where(and(...conditions))
       .orderBy(checkins.nextFollowupDate);
     return results.map(r => ({
       id: r.id,
@@ -1562,7 +1564,7 @@ export class DatabaseStorage implements IStorage {
     return checkin;
   }
 
-  async getNewMemberFollowupsDue(churchId: string): Promise<Array<{
+  async getNewMemberFollowupsDue(churchId: string, userId?: string): Promise<Array<{
     id: string;
     newMemberId: string;
     newMemberFirstName: string;
@@ -1576,6 +1578,14 @@ export class DatabaseStorage implements IStorage {
     scheduledByName: string | null;
   }>> {
     const today = new Date().toISOString().split("T")[0];
+    const conditions = [
+      gte(newMemberCheckins.nextFollowupDate, today),
+      eq(newMemberCheckins.churchId, churchId),
+      eq(newMemberCheckins.outcome, "SCHEDULED_VISIT")
+    ];
+    if (userId) {
+      conditions.push(eq(newMemberCheckins.createdByUserId, userId));
+    }
     const results = await db
       .select({
         id: newMemberCheckins.id,
@@ -1594,13 +1604,7 @@ export class DatabaseStorage implements IStorage {
       .from(newMemberCheckins)
       .innerJoin(newMembers, eq(newMemberCheckins.newMemberId, newMembers.id))
       .leftJoin(users, eq(newMemberCheckins.createdByUserId, users.id))
-      .where(
-        and(
-          gte(newMemberCheckins.nextFollowupDate, today),
-          eq(newMemberCheckins.churchId, churchId),
-          eq(newMemberCheckins.outcome, "SCHEDULED_VISIT")
-        )
-      )
+      .where(and(...conditions))
       .orderBy(newMemberCheckins.nextFollowupDate);
 
     return results.map(r => ({
@@ -1817,7 +1821,7 @@ export class DatabaseStorage implements IStorage {
     return map;
   }
 
-  async getMemberFollowupsDue(churchId: string): Promise<Array<{
+  async getMemberFollowupsDue(churchId: string, userId?: string): Promise<Array<{
     id: string;
     memberId: string;
     memberFirstName: string;
@@ -1830,6 +1834,14 @@ export class DatabaseStorage implements IStorage {
     videoLink: string | null;
     scheduledByName: string | null;
   }>> {
+    const conditions = [
+      eq(memberCheckins.churchId, churchId),
+      eq(memberCheckins.outcome, "SCHEDULED_VISIT"),
+      isNotNull(memberCheckins.nextFollowupDate)
+    ];
+    if (userId) {
+      conditions.push(eq(memberCheckins.createdByUserId, userId));
+    }
     const results = await db
       .select({
         id: memberCheckins.id,
@@ -1848,13 +1860,7 @@ export class DatabaseStorage implements IStorage {
       .from(memberCheckins)
       .innerJoin(members, eq(memberCheckins.memberId, members.id))
       .leftJoin(users, eq(memberCheckins.createdByUserId, users.id))
-      .where(
-        and(
-          eq(memberCheckins.churchId, churchId),
-          eq(memberCheckins.outcome, "SCHEDULED_VISIT"),
-          isNotNull(memberCheckins.nextFollowupDate)
-        )
-      )
+      .where(and(...conditions))
       .orderBy(memberCheckins.nextFollowupDate);
     return results.map(r => ({
       id: r.id,
