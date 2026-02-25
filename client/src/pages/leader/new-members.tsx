@@ -142,7 +142,6 @@ export default function LeaderNewMembers() {
   const [selectedNewMember, setSelectedNewMember] = useState<NewMember | null>(null);
   const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
   const [convertToMemberDialogOpen, setConvertToMemberDialogOpen] = useState(false);
-  const [convertToGuestDialogOpen, setConvertToGuestDialogOpen] = useState(false);
   const [finalFollowUpPromptOpen, setFinalFollowUpPromptOpen] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [newMemberToRemove, setNewMemberToRemove] = useState<NewMember | null>(null);
@@ -337,28 +336,6 @@ export default function LeaderNewMembers() {
     },
   });
 
-  const convertToGuestMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await apiRequest("POST", `${apiBasePath}/new-members/${id}/convert-to-guest`);
-    },
-    onSuccess: () => {
-      toast({
-        title: t('newMembers.movedToGuests'),
-        description: t('newMembers.movedToGuestsDesc'),
-      });
-      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
-      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/guests`] });
-      setConvertToGuestDialogOpen(false);
-      setSelectedNewMember(null);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: t('common.error'),
-        description: error.message || t('common.failedToSave'),
-        variant: "destructive",
-      });
-    },
-  });
 
   const handleConvertToMember = (nm: NewMember) => {
     setSelectedNewMember(nm);
@@ -882,37 +859,6 @@ export default function LeaderNewMembers() {
         </DialogContent>
       </Dialog>
 
-      {/* Convert to Guest Confirmation Dialog */}
-      <Dialog open={convertToGuestDialogOpen} onOpenChange={setConvertToGuestDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('newMembers.moveToGuestList')}</DialogTitle>
-            <DialogDescription>
-              {t('newMembers.moveToGuestConfirm', { name: `${selectedNewMember?.firstName} ${selectedNewMember?.lastName}` })}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setConvertToGuestDialogOpen(false)}>
-              {t('forms.cancel')}
-            </Button>
-            <Button 
-              onClick={() => selectedNewMember && convertToGuestMutation.mutate(selectedNewMember.id)}
-              disabled={convertToGuestMutation.isPending}
-              data-testid="button-confirm-move-to-guest"
-            >
-              {convertToGuestMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  {t('forms.saving')}
-                </>
-              ) : (
-                t('newMembers.moveToGuestList')
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Final Follow-Up Completed Prompt */}
       <Dialog open={finalFollowUpPromptOpen} onOpenChange={(open) => {
         setFinalFollowUpPromptOpen(open);
@@ -935,17 +881,6 @@ export default function LeaderNewMembers() {
             >
               <Users className="h-4 w-4 mr-2" />
               {t('newMembers.moveToMembers')}
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                setFinalFollowUpPromptOpen(false);
-                setConvertToGuestDialogOpen(true);
-              }}
-              data-testid="button-prompt-move-to-guests"
-            >
-              <UserMinus className="h-4 w-4 mr-2" />
-              {t('newMembers.moveToGuestList')}
             </Button>
             <Button 
               variant="ghost"

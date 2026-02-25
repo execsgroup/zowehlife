@@ -99,7 +99,6 @@ export default function MassFollowUp() {
     converts: t('forms.convertDate'),
     new_members: t('forms.visitDate'),
     members: t('forms.memberSince'),
-    guests: t('forms.visitDate'),
   };
 
   const [results, setResults] = useState<MassFollowUpResult[] | null>(null);
@@ -155,7 +154,6 @@ export default function MassFollowUp() {
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/new-members`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/members`] });
-      queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/guests`] });
     },
     onError: (err: any) => {
       toast({ title: t('common.error'), description: err.message || t('common.failedToSave'), variant: "destructive" });

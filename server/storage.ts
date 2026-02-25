@@ -285,7 +285,6 @@ export interface IStorage {
     totalConverts: number;
     totalNewMembers: number;
     totalMembers: number;
-    totalGuests: number;
     scheduledFollowups: number;
     completedFollowups: number;
     lastActivity: string | null;
@@ -1255,7 +1254,6 @@ export class DatabaseStorage implements IStorage {
     totalConverts: number;
     totalNewMembers: number;
     totalMembers: number;
-    totalGuests: number;
     scheduledFollowups: number;
     completedFollowups: number;
     lastActivity: string | null;
@@ -1278,11 +1276,6 @@ export class DatabaseStorage implements IStorage {
           .select({ count: sql<number>`count(*)` })
           .from(members)
           .where(and(eq(members.churchId, churchId), eq(members.createdByUserId, leader.id)));
-
-        const [guestCount] = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(guests)
-          .where(and(eq(guests.churchId, churchId), eq(guests.createdByUserId, leader.id)));
 
         const [scheduledCount] = await db
           .select({ count: sql<number>`count(*)` })
@@ -1327,7 +1320,6 @@ export class DatabaseStorage implements IStorage {
           totalConverts: Number(convertCount.count),
           totalNewMembers: Number(newMemberCount.count),
           totalMembers: Number(memberCount.count),
-          totalGuests: Number(guestCount.count),
           scheduledFollowups: Number(scheduledCount.count),
           completedFollowups: Number(completedCount.count),
           lastActivity,

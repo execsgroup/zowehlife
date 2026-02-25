@@ -49,6 +49,7 @@ The application uses a React frontend and an Express backend with a clear separa
     - **Stripe Webhook Integration**: Handles payment events and subscription status.
     - **Read-Only Enforcement**: Blocks operations for inactive subscriptions.
     - **Billing Management**: Ministry admins access Stripe Customer Portal.
+- **Bulk Excel/CSV Upload**: Upload Excel or CSV files to bulk-import converts, new members, and members. Column auto-mapping, row-by-row validation, account provisioning for records with emails. Reusable `ExcelUploadDialog` component.
 - **Announcements**: Mass communication to selected recipient groups (Email, SMS, MMS) with scheduling and tracking.
 - **Form Customization**: Ministry Admins customize public forms (Salvation, New Member, Member) with editable titles, descriptions, reorderable standard fields, and custom fields (Text, Dropdown, Yes/No).
 - **Remove from Ministry**: Remove individuals from ministry affiliation.

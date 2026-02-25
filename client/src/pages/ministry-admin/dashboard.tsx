@@ -78,7 +78,6 @@ export default function MinistryAdminDashboard() {
     totalConverts: number;
     totalNewMembers: number;
     totalMembers: number;
-    totalGuests: number;
     scheduledFollowups: number;
     completedFollowups: number;
     lastActivity: string | null;
@@ -233,7 +232,6 @@ export default function MinistryAdminDashboard() {
               [t('reports.totalConvertsCol')]: l.totalConverts,
               [t('reports.totalNewMembersCol')]: l.totalNewMembers,
               [t('reports.totalMembersCol')]: l.totalMembers,
-              [t('reports.totalGuestsCol')]: l.totalGuests,
               [t('reports.scheduledFollowups')]: l.scheduledFollowups,
               [t('reports.completedFollowups')]: l.completedFollowups,
               [t('reports.lastActivity')]: l.lastActivity ? format(new Date(l.lastActivity), "MMM d, yyyy") : "—",
@@ -241,7 +239,7 @@ export default function MinistryAdminDashboard() {
             filename="leader-performance-report"
             headers={[
               t('reports.leaderName'), t('reports.totalConvertsCol'), t('reports.totalNewMembersCol'),
-              t('reports.totalMembersCol'), t('reports.totalGuestsCol'),
+              t('reports.totalMembersCol'),
               t('reports.scheduledFollowups'), t('reports.completedFollowups'), t('reports.lastActivity'),
             ]}
           />
@@ -277,7 +275,6 @@ export default function MinistryAdminDashboard() {
                     <Bar dataKey="totalConverts" name={t('reports.totalConvertsCol')} fill="hsl(var(--chart-1))" radius={[2, 2, 0, 0]} />
                     <Bar dataKey="totalNewMembers" name={t('reports.totalNewMembersCol')} fill="hsl(var(--chart-2))" radius={[2, 2, 0, 0]} />
                     <Bar dataKey="totalMembers" name={t('reports.totalMembersCol')} fill="hsl(var(--chart-3))" radius={[2, 2, 0, 0]} />
-                    <Bar dataKey="totalGuests" name={t('reports.totalGuestsCol')} fill="hsl(var(--chart-4))" radius={[2, 2, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -290,7 +287,6 @@ export default function MinistryAdminDashboard() {
                     <SortableTableHead label={t('reports.totalConvertsCol')} sortKey="totalConverts" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
                     <SortableTableHead label={t('reports.totalNewMembersCol')} sortKey="totalNewMembers" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
                     <SortableTableHead label={t('reports.totalMembersCol')} sortKey="totalMembers" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
-                    <SortableTableHead label={t('reports.totalGuestsCol')} sortKey="totalGuests" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
                     <SortableTableHead label={t('reports.scheduledFollowups')} sortKey="scheduledFollowups" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
                     <SortableTableHead label={t('reports.completedFollowups')} sortKey="completedFollowups" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
                     <SortableTableHead label={t('reports.lastActivity')} sortKey="lastActivity" sortConfig={leaderSortConfig} onSort={requestLeaderSort} />
@@ -303,7 +299,6 @@ export default function MinistryAdminDashboard() {
                       <TableCell data-testid={`text-leader-converts-${leader.leaderId}`}>{leader.totalConverts}</TableCell>
                       <TableCell data-testid={`text-leader-newmembers-${leader.leaderId}`}>{leader.totalNewMembers}</TableCell>
                       <TableCell data-testid={`text-leader-members-${leader.leaderId}`}>{leader.totalMembers}</TableCell>
-                      <TableCell data-testid={`text-leader-guests-${leader.leaderId}`}>{leader.totalGuests}</TableCell>
                       <TableCell data-testid={`text-leader-scheduled-${leader.leaderId}`}>
                         <Badge variant="outline">{leader.scheduledFollowups}</Badge>
                       </TableCell>

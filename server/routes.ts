@@ -4550,23 +4550,12 @@ export async function registerRoutes(
     }
   });
 
-  // Get guests for ministry admin's ministry
-  app.get("/api/ministry-admin/guests", requireMinistryAdmin, async (req, res) => {
-    try {
-      const user = (req as any).user;
-      const guests = await storage.getGuestsByChurch(user.churchId);
-      res.json(guests);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to get guests" });
-    }
-  });
-
   // Ministry Admin Group Follow-Up (delegates to the same logic as leader)
   app.post("/api/ministry-admin/mass-followup/candidates", requireMinistryAdmin, async (req, res) => {
     try {
       const user = (req as any).user;
       const schema = z.object({
-        category: z.enum(["converts", "new_members", "members", "guests"]),
+        category: z.enum(["converts", "new_members", "members"]),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
       });
@@ -4579,8 +4568,6 @@ export async function registerRoutes(
         people = await storage.getNewMembersByChurch(user.churchId);
       } else if (data.category === "members") {
         people = await storage.getMembersByChurch(user.churchId);
-      } else if (data.category === "guests") {
-        people = await storage.getGuestsByChurch(user.churchId);
       }
 
       if (data.dateFrom || data.dateTo) {
@@ -4621,7 +4608,7 @@ export async function registerRoutes(
     try {
       const user = (req as any).user;
       const schema = z.object({
-        category: z.enum(["converts", "new_members", "members", "guests"]),
+        category: z.enum(["converts", "new_members", "members"]),
         personIds: z.array(z.string()).min(1, "Select at least one person"),
         nextFollowupDate: z.string().min(1, "Follow-up date is required"),
         nextFollowupTime: z.string().optional(),
@@ -4659,8 +4646,6 @@ export async function registerRoutes(
             person = await storage.getNewMember(personId);
           } else if (data.category === "members") {
             person = await storage.getMember(personId);
-          } else if (data.category === "guests") {
-            person = await storage.getGuest(personId);
           }
 
           if (!person || person.churchId !== user.churchId) {
@@ -4680,7 +4665,7 @@ export async function registerRoutes(
             convertId: data.category === "converts" ? personId : null,
             newMemberId: data.category === "new_members" ? personId : null,
             memberId: data.category === "members" ? personId : null,
-            guestId: data.category === "guests" ? personId : null,
+            guestId: null,
             firstName: person.firstName,
             lastName: person.lastName,
             email: person.email || null,
@@ -4816,8 +4801,6 @@ export async function registerRoutes(
             await storage.updateNewMember(participant.newMemberId, { status: "CONNECTED" });
           } else if (massFollowup.category === "members" && participant.memberId) {
             await storage.createMemberCheckin({ ...checkinData, memberId: participant.memberId });
-          } else if (massFollowup.category === "guests" && participant.guestId) {
-            await storage.createGuestCheckin({ ...checkinData, guestId: participant.guestId });
           }
         }
       }
@@ -6919,261 +6902,6 @@ export async function registerRoutes(
   app.get("/api/leader/church/tokens", requireLeader, handleGetChurchTokens);
   app.get("/api/ministry-admin/church/tokens", requireMinistryAdmin, handleGetChurchTokens);
 
-  // ===== LEADER GUESTS ROUTES =====
-  
-  // Get guests for leader's church
-  app.get("/api/leader/guests", requireLeader, async (req, res) => {
-    try {
-      const user = (req as any).user;
-      const guests = await storage.getGuestsByChurch(user.churchId);
-      res.json(guests);
-    } catch (error) {
-      console.error("Error fetching guests:", error);
-      res.status(500).json({ message: "Failed to fetch guests" });
-    }
-  });
-
-  // Get single guest
-  async function handleGetGuestById(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const user = (req as any).user;
-      
-      const guest = await storage.getGuest(id);
-      if (!guest) {
-        return res.status(404).json({ message: "Guest not found" });
-      }
-      
-      if (guest.churchId !== user.churchId) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
-      
-      res.json(guest);
-    } catch (error) {
-      console.error("Error fetching guest:", error);
-      res.status(500).json({ message: "Failed to fetch guest" });
-    }
-  }
-
-  app.get("/api/leader/guests/:id", requireLeader, handleGetGuestById);
-  app.get("/api/ministry-admin/guests/:id", requireMinistryAdmin, handleGetGuestById);
-
-  // Create guest
-  async function handleCreateGuest(req: Request, res: Response) {
-    try {
-      const user = (req as any).user;
-      const schema = z.object({
-        firstName: z.string().min(1, "First name is required"),
-        lastName: z.string().min(1, "Last name is required"),
-        phone: z.string().optional().nullable(),
-        email: z.string().email().optional().nullable().or(z.literal("")),
-        dateOfBirth: z.string().optional().nullable(),
-        address: z.string().optional().nullable(),
-        country: z.string().optional().nullable(),
-        gender: z.string().optional().nullable(),
-        ageGroup: z.string().optional().nullable(),
-        notes: z.string().optional().nullable(),
-      });
-      
-      const data = schema.parse(req.body);
-      
-      const guest = await storage.createGuest({
-        churchId: user.churchId,
-        createdByUserId: user.id,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone || null,
-        email: data.email || null,
-        dateOfBirth: data.dateOfBirth || null,
-        address: data.address || null,
-        country: data.country || null,
-        gender: data.gender || null,
-        ageGroup: data.ageGroup || null,
-        notes: data.notes || null,
-      });
-      
-      await storage.createAuditLog({
-        actorUserId: user.id,
-        action: "CREATE",
-        entityType: "GUEST",
-        entityId: guest.id,
-      });
-      
-      res.status(201).json(guest);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors[0].message });
-      }
-      console.error("Error creating guest:", error);
-      res.status(500).json({ message: "Failed to create guest" });
-    }
-  }
-
-  app.post("/api/leader/guests", requireLeader, handleCreateGuest);
-  app.post("/api/ministry-admin/guests", requireMinistryAdmin, handleCreateGuest);
-
-  const guestColumnMap: Record<string, string> = {
-    firstname: "firstName", first: "firstName",
-    lastname: "lastName", last: "lastName",
-    name: "fullName",
-    phone: "phone", phonenumber: "phone", telephone: "phone",
-    email: "email", emailaddress: "email",
-    dateofbirth: "dateOfBirth", dob: "dateOfBirth", birthday: "dateOfBirth", birthdate: "dateOfBirth",
-    address: "address",
-    country: "country",
-    gender: "gender",
-    agegroup: "ageGroup", age: "ageGroup",
-    notes: "notes",
-  };
-
-  async function handleBulkUploadGuests(req: Request, res: Response) {
-    try {
-      const user = (req as any).user;
-      const file = (req as any).file;
-      if (!file) return res.status(400).json({ message: "No file uploaded" });
-
-      const rows = parseExcelBuffer(file.buffer);
-      if (rows.length === 0) return res.status(400).json({ message: "File is empty or has no data rows" });
-
-      const results = { totalRows: rows.length, successCount: 0, errorCount: 0, errors: [] as Array<{ row: number; message: string }> };
-
-      for (let i = 0; i < rows.length; i++) {
-        try {
-          const mapped = mapRowToFields(rows[i], guestColumnMap);
-          if (mapped.fullName && !mapped.firstName) {
-            const parts = mapped.fullName.split(/\s+/);
-            mapped.firstName = parts[0] || "";
-            mapped.lastName = parts.slice(1).join(" ") || "";
-          }
-          if (!mapped.firstName || !mapped.lastName) {
-            results.errors.push({ row: i + 2, message: "First name and last name are required" });
-            results.errorCount++;
-            continue;
-          }
-
-          const guest = await storage.createGuest({
-            churchId: user.churchId,
-            createdByUserId: user.id,
-            firstName: mapped.firstName,
-            lastName: mapped.lastName,
-            phone: mapped.phone || null,
-            email: mapped.email || null,
-            dateOfBirth: mapped.dateOfBirth || null,
-            address: mapped.address || null,
-            country: mapped.country || null,
-            gender: mapped.gender || null,
-            ageGroup: mapped.ageGroup || null,
-            notes: mapped.notes || null,
-          });
-
-          await storage.createAuditLog({
-            actorUserId: user.id,
-            action: "CREATE",
-            entityType: "GUEST",
-            entityId: guest.id,
-          });
-
-          results.successCount++;
-        } catch (err: any) {
-          results.errors.push({ row: i + 2, message: err.message || "Unknown error" });
-          results.errorCount++;
-        }
-      }
-
-      res.json(results);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message || "Failed to process upload" });
-    }
-  }
-
-  app.post("/api/leader/guests/bulk-upload", requireLeader, upload.single("file"), handleBulkUploadGuests);
-  app.post("/api/ministry-admin/guests/bulk-upload", requireMinistryAdmin, upload.single("file"), handleBulkUploadGuests);
-
-  // Update guest
-  async function handleUpdateGuest(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const user = (req as any).user;
-      
-      const guest = await storage.getGuest(id);
-      if (!guest) {
-        return res.status(404).json({ message: "Guest not found" });
-      }
-      
-      if (guest.churchId !== user.churchId) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
-      
-      const schema = z.object({
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
-        phone: z.string().optional().nullable(),
-        email: z.string().email().optional().nullable().or(z.literal("")),
-        dateOfBirth: z.string().optional().nullable(),
-        address: z.string().optional().nullable(),
-        country: z.string().optional().nullable(),
-        gender: z.string().optional().nullable(),
-        ageGroup: z.string().optional().nullable(),
-        notes: z.string().optional().nullable(),
-      });
-      
-      const data = schema.parse(req.body);
-      const updated = await storage.updateGuest(id, data);
-      
-      await storage.createAuditLog({
-        actorUserId: user.id,
-        action: "UPDATE",
-        entityType: "GUEST",
-        entityId: id,
-      });
-      
-      res.json(updated);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: error.errors[0].message });
-      }
-      console.error("Error updating guest:", error);
-      res.status(500).json({ message: "Failed to update guest" });
-    }
-  }
-
-  app.patch("/api/leader/guests/:id", requireLeader, handleUpdateGuest);
-  app.patch("/api/ministry-admin/guests/:id", requireMinistryAdmin, handleUpdateGuest);
-
-  // Delete guest
-  async function handleDeleteGuest(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const user = (req as any).user;
-      
-      const guest = await storage.getGuest(id);
-      if (!guest) {
-        return res.status(404).json({ message: "Guest not found" });
-      }
-      
-      if (guest.churchId !== user.churchId) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
-      
-      await storage.deleteGuest(id);
-      
-      await storage.createAuditLog({
-        actorUserId: user.id,
-        action: "DELETE",
-        entityType: "GUEST",
-        entityId: id,
-      });
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting guest:", error);
-      res.status(500).json({ message: "Failed to delete guest" });
-    }
-  }
-
-  app.delete("/api/leader/guests/:id", requireLeader, handleDeleteGuest);
-  app.delete("/api/ministry-admin/guests/:id", requireMinistryAdmin, handleDeleteGuest);
-
   // ===== MEMBER CHECKINS ROUTES =====
 
   // Get member checkins
@@ -7409,7 +7137,7 @@ export async function registerRoutes(
     try {
       const user = (req as any).user;
       const schema = z.object({
-        category: z.enum(["converts", "new_members", "members", "guests"]),
+        category: z.enum(["converts", "new_members", "members"]),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
       });
@@ -7422,8 +7150,6 @@ export async function registerRoutes(
         people = await storage.getNewMembersByChurch(user.churchId);
       } else if (data.category === "members") {
         people = await storage.getMembersByChurch(user.churchId);
-      } else if (data.category === "guests") {
-        people = await storage.getGuestsByChurch(user.churchId);
       }
 
       if (data.dateFrom || data.dateTo) {
@@ -7465,7 +7191,7 @@ export async function registerRoutes(
     try {
       const user = (req as any).user;
       const schema = z.object({
-        category: z.enum(["converts", "new_members", "members", "guests"]),
+        category: z.enum(["converts", "new_members", "members"]),
         personIds: z.array(z.string()).min(1, "Select at least one person"),
         nextFollowupDate: z.string().min(1, "Follow-up date is required"),
         nextFollowupTime: z.string().optional(),
@@ -7503,8 +7229,6 @@ export async function registerRoutes(
             person = await storage.getNewMember(personId);
           } else if (data.category === "members") {
             person = await storage.getMember(personId);
-          } else if (data.category === "guests") {
-            person = await storage.getGuest(personId);
           }
 
           if (!person || person.churchId !== user.churchId) {
@@ -7524,7 +7248,7 @@ export async function registerRoutes(
             convertId: data.category === "converts" ? personId : null,
             newMemberId: data.category === "new_members" ? personId : null,
             memberId: data.category === "members" ? personId : null,
-            guestId: data.category === "guests" ? personId : null,
+            guestId: null,
             firstName: person.firstName,
             lastName: person.lastName,
             email: person.email || null,
@@ -7661,8 +7385,6 @@ export async function registerRoutes(
             await storage.updateNewMember(participant.newMemberId, { status: "CONNECTED" });
           } else if (massFollowup.category === "members" && participant.memberId) {
             await storage.createMemberCheckin({ ...checkinData, memberId: participant.memberId });
-          } else if (massFollowup.category === "guests" && participant.guestId) {
-            await storage.createGuestCheckin({ ...checkinData, guestId: participant.guestId });
           }
         }
       }
@@ -7725,40 +7447,6 @@ export async function registerRoutes(
 
   app.post("/api/leader/new-members/:id/convert-to-member", requireLeader, handleConvertToMember);
   app.post("/api/ministry-admin/new-members/:id/convert-to-member", requireMinistryAdmin, handleConvertToMember);
-
-  // Convert new member to guest
-  async function handleConvertToGuest(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const user = (req as any).user;
-      
-      const newMember = await storage.getNewMember(id);
-      if (!newMember) {
-        return res.status(404).json({ message: "New member not found" });
-      }
-      
-      if (newMember.churchId !== user.churchId) {
-        return res.status(403).json({ message: "Not authorized" });
-      }
-      
-      const guest = await storage.convertNewMemberToGuest(id, user.id);
-      
-      await storage.createAuditLog({
-        actorUserId: user.id,
-        action: "CONVERT_TO_GUEST",
-        entityType: "NEW_MEMBER",
-        entityId: id,
-      });
-      
-      res.status(201).json(guest);
-    } catch (error) {
-      console.error("Error converting to guest:", error);
-      res.status(500).json({ message: "Failed to convert to guest" });
-    }
-  }
-
-  app.post("/api/leader/new-members/:id/convert-to-guest", requireLeader, handleConvertToGuest);
-  app.post("/api/ministry-admin/new-members/:id/convert-to-guest", requireMinistryAdmin, handleConvertToGuest);
 
   // Update new member follow-up stage
   async function handleFollowUpStage(req: Request, res: Response) {
@@ -7918,10 +7606,6 @@ Provide only the message text, without any explanations or quotes.`;
         const members = await storage.getMembersByChurch(user.churchId);
         members.forEach(m => recipients.push({ firstName: m.firstName, email: m.email, phone: m.phone }));
       }
-      if (recipientGroups.includes("guests")) {
-        const guestList = await storage.getGuestsByChurch(user.churchId);
-        guestList.forEach(g => recipients.push({ firstName: g.firstName, email: g.email, phone: g.phone }));
-      }
 
       if (recipients.length === 0) {
         return res.status(400).json({ message: "No recipients found in the selected groups" });
@@ -8047,13 +7731,11 @@ Provide only the message text, without any explanations or quotes.`;
       const converts = await storage.getConvertsByChurch(user.churchId);
       const newMembers = await storage.getNewMembersByChurch(user.churchId);
       const members = await storage.getMembersByChurch(user.churchId);
-      const guestList = await storage.getGuestsByChurch(user.churchId);
 
       res.json({
         converts: { email: converts.filter(c => c.email).length, phone: converts.filter(c => c.phone).length, total: converts.length },
         new_members: { email: newMembers.filter(nm => nm.email).length, phone: newMembers.filter(nm => nm.phone).length, total: newMembers.length },
         members: { email: members.filter(m => m.email).length, phone: members.filter(m => m.phone).length, total: members.length },
-        guests: { email: guestList.filter(g => g.email).length, phone: guestList.filter(g => g.phone).length, total: guestList.length },
       });
     } catch (error: any) {
       console.error("[Announcement] Error fetching counts:", error);
@@ -8078,7 +7760,7 @@ Provide only the message text, without any explanations or quotes.`;
         return res.status(400).json({ message: "Subject, message, and at least one recipient group are required" });
       }
 
-      const validGroups = ["converts", "new_members", "members", "guests"];
+      const validGroups = ["converts", "new_members", "members"];
       const invalidGroups = recipientGroups.filter((g: string) => !validGroups.includes(g));
       if (invalidGroups.length > 0) {
         return res.status(400).json({ message: `Invalid recipient groups: ${invalidGroups.join(", ")}` });

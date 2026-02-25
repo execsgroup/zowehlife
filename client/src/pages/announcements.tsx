@@ -76,14 +76,12 @@ const recipientGroupOptionKeys: Array<{ id: string; labelKey: string }> = [
   { id: "converts", labelKey: "sidebar.converts" },
   { id: "new_members", labelKey: "newMembers.title" },
   { id: "members", labelKey: "membersPage.title" },
-  { id: "guests", labelKey: "sidebar.guests" },
 ];
 
 const groupLabelKeys: Record<string, string> = {
   converts: "sidebar.converts",
   new_members: "newMembers.title",
   members: "membersPage.title",
-  guests: "sidebar.guests",
 };
 
 const methodLabelKeys: Record<string, string> = {

@@ -39,7 +39,6 @@ import LeaderPrayerRequests from "@/pages/leader/prayer-requests";
 import LeaderContactRequests from "@/pages/leader/contact-requests";
 import LeaderNewMembers from "@/pages/leader/new-members";
 import LeaderMembers from "@/pages/leader/members";
-import LeaderGuests from "@/pages/leader/guests";
 import LeaderMemberAccounts from "@/pages/leader/member-accounts";
 import MassFollowUp from "@/pages/leader/mass-followup";
 import ConvertDetail from "@/pages/leader/convert-detail";
@@ -223,9 +222,6 @@ function Router() {
       <Route path="/ministry-admin/member-accounts">
         <ProtectedRoute component={LeaderMemberAccounts} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
-      <Route path="/ministry-admin/guests">
-        <ProtectedRoute component={LeaderGuests} allowedRoles={["MINISTRY_ADMIN"]} />
-      </Route>
       <Route path="/ministry-admin/mass-followup">
         <ProtectedRoute component={MassFollowUp} allowedRoles={["MINISTRY_ADMIN"]} />
       </Route>
@@ -272,9 +268,6 @@ function Router() {
       </Route>
       <Route path="/leader/members/:id">
         <ProtectedRoute component={MemberDetail} allowedRoles={["LEADER"]} />
-      </Route>
-      <Route path="/leader/guests">
-        <ProtectedRoute component={LeaderGuests} allowedRoles={["LEADER"]} />
       </Route>
       <Route path="/leader/mass-followup">
         <ProtectedRoute component={MassFollowUp} allowedRoles={["LEADER"]} />
