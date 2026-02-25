@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import zowehLogoPath from "@assets/zoweh_logo_transparent.png";
+import zowehLogoPath from "@assets/ChatGPT_Image_Feb_24,_2026,_10_13_39_PM_1771989231984.png";
 import { useTranslation } from "react-i18next";
 
 export function PublicFooter() {
@@ -10,9 +10,8 @@ export function PublicFooter() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <img src={zowehLogoPath} alt="Zoweh" className="h-8 w-8 object-contain" />
-              <span className="font-semibold">Zoweh Life</span>
+            <div className="flex items-center mb-4">
+              <img src={zowehLogoPath} alt="Zoweh Life" className="h-7 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
             </div>
             <p className="text-sm text-muted-foreground">
               {t('footer.tagline')}

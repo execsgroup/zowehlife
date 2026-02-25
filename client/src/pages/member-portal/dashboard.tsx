@@ -20,7 +20,7 @@ import {
   ExternalLink,
   Loader2 
 } from "lucide-react";
-import zowehLogoPath from "@assets/zoweh_logo_transparent.png";
+import zowehLogoPath from "@assets/ChatGPT_Image_Feb_24,_2026,_10_13_39_PM_1771989231984.png";
 
 interface MemberProfile {
   person: {
@@ -160,7 +160,7 @@ export default function MemberDashboard() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src={zowehLogoPath} alt="Zoweh" className="h-12 w-12 object-contain" />
+            <img src={zowehLogoPath} alt="Zoweh Life" className="h-10 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
             <div>
               <h1 className="text-2xl font-bold">
                 {t('memberPortal.welcomeMessage', { name: profile?.person.firstName })}

@@ -48,7 +48,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useTutorialSafe } from "./interactive-tutorial";
-import zowehLogoPath from "@assets/zoweh_logo_transparent.png";
+import zowehLogoPath from "@assets/ChatGPT_Image_Feb_24,_2026,_10_13_39_PM_1771989231984.png";
 
 interface ChurchData {
   id: string;
@@ -164,12 +164,6 @@ export function AppSidebar() {
   const currentChurch = (user?.role === "LEADER" || user?.role === "MINISTRY_ADMIN") ? church : null;
   const showChurchLogo = currentChurch?.logoUrl;
 
-  const getSidebarTitle = () => {
-    if (user?.role === "LEADER" && church?.name) return church.name;
-    if (user?.role === "MINISTRY_ADMIN" && church?.name) return church.name;
-    return "Zoweh Life";
-  };
-
   const getRoleLabel = () => {
     if (user?.role === "ADMIN") return t('roles.platformAdmin');
     if (user?.role === "MINISTRY_ADMIN") return t('roles.ministryAdmin');
@@ -181,18 +175,20 @@ export function AppSidebar() {
       <SidebarHeader className="px-3 py-3 border-b">
         <Link href="/" className="flex items-center gap-2.5">
           {showChurchLogo ? (
-            <Avatar className="h-7 w-7 rounded-md">
-              <AvatarImage src={currentChurch.logoUrl!} alt={currentChurch.name} className="object-cover" />
-              <AvatarFallback className="rounded-md text-xs">
-                <img src={zowehLogoPath} alt="Zoweh" className="h-7 w-7 object-contain" />
-              </AvatarFallback>
-            </Avatar>
+            <>
+              <Avatar className="h-7 w-7 rounded-md">
+                <AvatarImage src={currentChurch.logoUrl!} alt={currentChurch.name} className="object-cover" />
+                <AvatarFallback className="rounded-md text-xs">
+                  <img src={zowehLogoPath} alt="Zoweh Life" className="h-6 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-semibold text-sm truncate">
+                {currentChurch.name}
+              </span>
+            </>
           ) : (
-            <img src={zowehLogoPath} alt="Zoweh" className="h-7 w-7 object-contain" />
+            <img src={zowehLogoPath} alt="Zoweh Life" className="h-6 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
           )}
-          <span className="font-semibold text-sm truncate">
-            {getSidebarTitle()}
-          </span>
         </Link>
       </SidebarHeader>
 

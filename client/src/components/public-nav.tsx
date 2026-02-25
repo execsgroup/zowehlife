@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "./theme-provider";
 import { languages } from "@/lib/i18n";
 import { Menu, X, Globe, Moon, Sun, Check } from "lucide-react";
-import zowehLogoPath from "@assets/zoweh_logo_transparent.png";
+import zowehLogoPath from "@assets/ChatGPT_Image_Feb_24,_2026,_10_13_39_PM_1771989231984.png";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -32,9 +32,8 @@ export function PublicNav() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2">
-            <img src={zowehLogoPath} alt="Zoweh" className="h-9 w-9 object-contain" />
-            <span className="font-semibold text-lg hidden sm:inline">Zoweh Life</span>
+          <Link href="/" className="flex items-center">
+            <img src={zowehLogoPath} alt="Zoweh Life" className="h-8 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
