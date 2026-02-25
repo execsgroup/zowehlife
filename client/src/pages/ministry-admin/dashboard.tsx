@@ -114,23 +114,23 @@ export default function MinistryAdminDashboard() {
         description={t('dashboard.welcomeBack', { name: user?.firstName })}
       />
 
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-5" data-testid="stats-grid">
+      <div className="grid gap-2 grid-cols-3 lg:grid-cols-5" data-testid="stats-grid">
         {statCards.map((stat) => (
           <Link key={stat.title} href={stat.href} data-testid={`link-stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
-            <div className="rounded-lg border bg-card p-4 cursor-pointer hover-elevate transition-all">
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
-                  <stat.icon className="h-3.5 w-3.5 text-primary" />
+            <div className="rounded-lg border bg-card px-3 py-2.5 cursor-pointer hover-elevate transition-all">
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 shrink-0">
+                  <stat.icon className="h-3 w-3 text-primary" />
                 </div>
+                {statsLoading ? (
+                  <Skeleton className="h-5 w-8" />
+                ) : (
+                  <span className="text-lg font-bold tracking-tight" data-testid={`stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                    {stat.value}
+                  </span>
+                )}
               </div>
-              {statsLoading ? (
-                <Skeleton className="h-7 w-14" />
-              ) : (
-                <div className="text-2xl font-bold tracking-tight" data-testid={`stat-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                  {stat.value}
-                </div>
-              )}
-              <span className="text-[11px] font-medium text-muted-foreground leading-none">{stat.title}</span>
+              <span className="text-[10px] font-medium text-muted-foreground leading-none mt-1 block">{stat.title}</span>
             </div>
           </Link>
         ))}
