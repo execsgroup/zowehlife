@@ -48,7 +48,8 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useTutorialSafe } from "./interactive-tutorial";
-import zowehLogoPath from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoDark from "@assets/zoweh_logo_dark.png";
 
 interface ChurchData {
   id: string;
@@ -179,7 +180,8 @@ export function AppSidebar() {
               <Avatar className="h-7 w-7 rounded-md">
                 <AvatarImage src={currentChurch.logoUrl!} alt={currentChurch.name} className="object-cover" />
                 <AvatarFallback className="rounded-md text-xs">
-                  <img src={zowehLogoPath} alt="Zoweh Life" className="h-8 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
+                  <img src={zowehLogoLight} alt="Zoweh Life" className="h-8 object-contain dark:hidden" />
+                  <img src={zowehLogoDark} alt="Zoweh Life" className="h-8 object-contain hidden dark:block" />
                 </AvatarFallback>
               </Avatar>
               <span className="font-semibold text-sm truncate">
@@ -187,7 +189,10 @@ export function AppSidebar() {
               </span>
             </>
           ) : (
-            <img src={zowehLogoPath} alt="Zoweh Life" className="h-8 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
+            <>
+              <img src={zowehLogoLight} alt="Zoweh Life" className="h-8 object-contain dark:hidden" />
+              <img src={zowehLogoDark} alt="Zoweh Life" className="h-8 object-contain hidden dark:block" />
+            </>
           )}
         </Link>
       </SidebarHeader>

@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { claimAccountSchema, type ClaimAccountData } from "@shared/schema";
 import { Key, Lock, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
-import zowehLogoPath from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoDark from "@assets/zoweh_logo_dark.png";
 import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 
@@ -98,7 +99,8 @@ export default function ClaimAccount() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <img src={zowehLogoPath} alt="Zoweh Life" className="h-14 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
+            <img src={zowehLogoLight} alt="Zoweh Life" className="h-14 object-contain dark:hidden" />
+            <img src={zowehLogoDark} alt="Zoweh Life" className="h-14 object-contain hidden dark:block" />
           </Link>
           <h1 className="text-2xl font-bold">{t('memberPortal.claimAccountTitle')}</h1>
           <p className="text-muted-foreground mt-1">{t('memberPortal.claimAccountDescription')}</p>

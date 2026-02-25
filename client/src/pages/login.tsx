@@ -10,7 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { loginSchema, type LoginData } from "@shared/schema";
 import { Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
-import zowehLogoPath from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoDark from "@assets/zoweh_logo_dark.png";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -58,7 +59,8 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <img src={zowehLogoPath} alt="Zoweh Life" className="h-14 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
+            <img src={zowehLogoLight} alt="Zoweh Life" className="h-14 object-contain dark:hidden" />
+            <img src={zowehLogoDark} alt="Zoweh Life" className="h-14 object-contain hidden dark:block" />
           </Link>
           <h1 className="text-2xl font-bold">{t('auth.loginTitle')}</h1>
           <p className="text-muted-foreground mt-1">{t('auth.loginDescription')}</p>

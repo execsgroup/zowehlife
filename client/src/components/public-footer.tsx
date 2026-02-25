@@ -1,5 +1,6 @@
 import { Link } from "wouter";
-import zowehLogoPath from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoDark from "@assets/zoweh_logo_dark.png";
 import { useTranslation } from "react-i18next";
 
 export function PublicFooter() {
@@ -11,7 +12,8 @@ export function PublicFooter() {
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center mb-4">
-              <img src={zowehLogoPath} alt="Zoweh Life" className="h-9 object-contain dark:invert dark:brightness-200 transition-[filter] duration-300" />
+              <img src={zowehLogoLight} alt="Zoweh Life" className="h-9 object-contain dark:hidden" />
+              <img src={zowehLogoDark} alt="Zoweh Life" className="h-9 object-contain hidden dark:block" />
             </div>
             <p className="text-sm text-muted-foreground">
               {t('footer.tagline')}
