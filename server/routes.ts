@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import multer from "multer";
 import * as XLSX from "xlsx";
 import { storage } from "./storage";
+import { OUTCOME_TO_STATUS, DB_STATUS_TO_DISPLAY, EXPORT_STATUS_LABELS } from "@shared/status-constants";
 import { sendFollowUpNotification, sendFollowUpReminderEmail, sendAccountApprovalEmail, sendMinistryAdminApprovalEmail, sendAccountDenialEmail, sendMinistryRemovalEmail, getUncachableResendClient } from "./email";
 import { startReminderScheduler } from "./scheduler";
 import { SMS_PLAN_LIMITS, getCurrentBillingPeriod, sendSms, sendMms, formatPhoneForSms, buildFollowUpSmsMessage } from "./sms";
@@ -2302,7 +2303,7 @@ export async function registerRoutes(
         isChurchMember: z.enum(["Yes", "No", ""]).optional(),
         prayerRequest: z.string().optional(),
         summaryNotes: z.string().optional(),
-        status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]).optional(),
+        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]).optional(),
       });
 
       const data = schema.parse(req.body);
@@ -2420,21 +2421,7 @@ export async function registerRoutes(
         })
       );
 
-      const statusLabels: Record<string, string> = {
-        NEW: "New",
-        SCHEDULED: "Scheduled",
-        CONNECTED: "Connected",
-        NO_RESPONSE: "Not Connected",
-        NEEDS_PRAYER: "Needs Prayer",
-        NEEDS_FOLLOWUP: "Needs Follow-up",
-        SCHEDULED_VISIT: "Scheduled Visit",
-        REFERRED: "Referred",
-        NOT_COMPLETED: "Not Completed",
-        NEVER_CONTACTED: "Never Contacted",
-        ACTIVE: "Active",
-        IN_PROGRESS: "In Progress",
-        INACTIVE: "Inactive",
-      };
+      const statusLabels = EXPORT_STATUS_LABELS;
 
       // Build data for Excel
       const data = convertsWithChurch.map((c) => ({
@@ -3391,14 +3378,7 @@ export async function registerRoutes(
         );
       }
 
-      const statusLabels: Record<string, string> = {
-        NEW: "New", SCHEDULED: "Scheduled", CONNECTED: "Connected",
-        NO_RESPONSE: "Not Connected", NEEDS_PRAYER: "Needs Prayer",
-        NEEDS_FOLLOWUP: "Needs Follow-up", SCHEDULED_VISIT: "Scheduled Visit",
-        REFERRED: "Referred", NOT_COMPLETED: "Not Completed",
-        NEVER_CONTACTED: "Never Contacted", ACTIVE: "Active",
-        IN_PROGRESS: "In Progress", INACTIVE: "Inactive",
-      };
+      const statusLabels = EXPORT_STATUS_LABELS;
 
       const data = convertsList.map((c) => ({
         "Category": "Convert",
@@ -3447,12 +3427,7 @@ export async function registerRoutes(
         );
       }
 
-      const statusLabels: Record<string, string> = {
-        NEW: "New", SCHEDULED: "Scheduled", CONNECTED: "Connected",
-        NO_RESPONSE: "Not Connected", NEEDS_PRAYER: "Needs Prayer",
-        NEEDS_FOLLOWUP: "Needs Follow-up", NOT_COMPLETED: "Not Completed",
-        ACTIVE: "Active", IN_PROGRESS: "In Progress", INACTIVE: "Inactive",
-      };
+      const statusLabels = EXPORT_STATUS_LABELS;
 
       const data = newMembersList.map((nm) => ({
         "Category": "New Member",
@@ -3593,7 +3568,7 @@ export async function registerRoutes(
         email: z.string().email().optional().or(z.literal("")),
         address: z.string().optional(),
         summaryNotes: z.string().optional(),
-        status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]).optional(),
+        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]).optional(),
       });
 
       const data = schema.parse(req.body);
@@ -3794,15 +3769,7 @@ export async function registerRoutes(
         nextFollowupDate: data.nextFollowupDate || null,
       });
 
-      const outcomeToStatus: Record<string, string> = {
-        "CONNECTED": "CONNECTED",
-        "NO_RESPONSE": "NO_RESPONSE",
-        "NEEDS_FOLLOWUP": "SCHEDULED",
-        "NEEDS_PRAYER": "NEEDS_PRAYER",
-        "REFERRED": "REFERRED",
-        "SCHEDULED_VISIT": "SCHEDULED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
-      };
+      const outcomeToStatus = OUTCOME_TO_STATUS;
       if (outcomeToStatus[data.outcome]) {
         await storage.updateConvert(convertId, { status: outcomeToStatus[data.outcome] as any });
       }
@@ -3970,15 +3937,7 @@ export async function registerRoutes(
         nextFollowupDate: data.nextFollowupDate || null,
       });
       
-      const outcomeToStatus: Record<string, string> = {
-        "CONNECTED": "CONNECTED",
-        "NO_RESPONSE": "NO_RESPONSE",
-        "NEEDS_FOLLOWUP": "SCHEDULED",
-        "NEEDS_PRAYER": "NEEDS_PRAYER",
-        "REFERRED": "REFERRED",
-        "SCHEDULED_VISIT": "SCHEDULED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
-      };
+      const outcomeToStatus = OUTCOME_TO_STATUS;
       if (outcomeToStatus[data.outcome]) {
         await storage.updateNewMember(newMemberId, { status: outcomeToStatus[data.outcome] as any });
       }
@@ -4266,15 +4225,7 @@ export async function registerRoutes(
         nextFollowupDate: data.nextFollowupDate || null,
         videoLink: data.videoLink || null,
       });
-      const statusMap: Record<string, string> = {
-        CONNECTED: "ACTIVE",
-        NO_RESPONSE: "NO_RESPONSE",
-        NEEDS_FOLLOWUP: "SCHEDULED",
-        NEEDS_PRAYER: "NEEDS_PRAYER",
-        REFERRED: "REFERRED",
-        SCHEDULED_VISIT: "SCHEDULED",
-        NOT_COMPLETED: "NOT_COMPLETED",
-      };
+      const statusMap = OUTCOME_TO_STATUS;
       if (statusMap[data.outcome]) {
         await storage.updateMember(memberId, { status: statusMap[data.outcome] });
       }
@@ -4953,21 +4904,7 @@ export async function registerRoutes(
         );
       }
 
-      const statusLabels: Record<string, string> = {
-        NEW: "New",
-        SCHEDULED: "Scheduled",
-        CONNECTED: "Connected",
-        NO_RESPONSE: "Not Connected",
-        NEEDS_PRAYER: "Needs Prayer",
-        NEEDS_FOLLOWUP: "Needs Follow-up",
-        SCHEDULED_VISIT: "Scheduled Visit",
-        REFERRED: "Referred",
-        NOT_COMPLETED: "Not Completed",
-        NEVER_CONTACTED: "Never Contacted",
-        ACTIVE: "Active",
-        IN_PROGRESS: "In Progress",
-        INACTIVE: "Inactive",
-      };
+      const statusLabels = EXPORT_STATUS_LABELS;
 
       // Build data for Excel
       const data = convertsList.map((c) => ({
@@ -5082,21 +5019,7 @@ export async function registerRoutes(
         );
       }
 
-      const statusLabels: Record<string, string> = {
-        NEW: "New",
-        SCHEDULED: "Scheduled",
-        CONNECTED: "Connected",
-        NO_RESPONSE: "Not Connected",
-        NEEDS_PRAYER: "Needs Prayer",
-        NEEDS_FOLLOWUP: "Needs Follow-up",
-        SCHEDULED_VISIT: "Scheduled Visit",
-        REFERRED: "Referred",
-        NOT_COMPLETED: "Not Completed",
-        NEVER_CONTACTED: "Never Contacted",
-        ACTIVE: "Active",
-        IN_PROGRESS: "In Progress",
-        INACTIVE: "Inactive",
-      };
+      const statusLabels = EXPORT_STATUS_LABELS;
 
       const data = newMembersList.map((nm) => ({
         "Category": "New Member",
@@ -5226,7 +5149,7 @@ export async function registerRoutes(
         email: z.string().email().optional().or(z.literal("")),
         address: z.string().optional(),
         summaryNotes: z.string().optional(),
-        status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]),
+        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]),
       });
 
       const data = schema.parse(req.body);
@@ -5385,7 +5308,7 @@ export async function registerRoutes(
         email: z.string().email().optional().or(z.literal("")),
         address: z.string().optional(),
         summaryNotes: z.string().optional(),
-        status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE"]).optional(),
+        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]).optional(),
       });
 
       const data = schema.parse(req.body);
@@ -5590,15 +5513,7 @@ export async function registerRoutes(
       });
 
       // Update convert status based on outcome
-      const outcomeToStatus: Record<string, string> = {
-        "CONNECTED": "CONNECTED",
-        "NO_RESPONSE": "NO_RESPONSE",
-        "NEEDS_FOLLOWUP": "SCHEDULED",
-        "NEEDS_PRAYER": "NEEDS_PRAYER",
-        "REFERRED": "REFERRED",
-        "SCHEDULED_VISIT": "SCHEDULED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
-      };
+      const outcomeToStatus = OUTCOME_TO_STATUS;
       if (outcomeToStatus[data.outcome]) {
         await storage.updateConvert(convertId, { status: outcomeToStatus[data.outcome] as any });
       }
@@ -5663,15 +5578,7 @@ export async function registerRoutes(
         checkinDate: today,
       });
 
-      const outcomeToStatus: Record<string, string> = {
-        "CONNECTED": "CONNECTED",
-        "NO_RESPONSE": "NO_RESPONSE",
-        "NEEDS_FOLLOWUP": "SCHEDULED",
-        "NEEDS_PRAYER": "NEEDS_PRAYER",
-        "REFERRED": "REFERRED",
-        "SCHEDULED_VISIT": "SCHEDULED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
-      };
+      const outcomeToStatus = OUTCOME_TO_STATUS;
       if (outcomeToStatus[data.outcome]) {
         await storage.updateConvert(checkin.convertId, { status: outcomeToStatus[data.outcome] as any });
       }
@@ -5706,15 +5613,7 @@ export async function registerRoutes(
         checkinDate: today,
       });
 
-      const outcomeToStatus: Record<string, string> = {
-        "CONNECTED": "CONNECTED",
-        "NO_RESPONSE": "NO_RESPONSE",
-        "NEEDS_FOLLOWUP": "SCHEDULED",
-        "NEEDS_PRAYER": "NEEDS_PRAYER",
-        "REFERRED": "REFERRED",
-        "SCHEDULED_VISIT": "SCHEDULED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
-      };
+      const outcomeToStatus = OUTCOME_TO_STATUS;
       if (outcomeToStatus[data.outcome]) {
         await storage.updateNewMember(checkinRecord.newMemberId, { status: outcomeToStatus[data.outcome] as any });
       }
@@ -5749,15 +5648,7 @@ export async function registerRoutes(
         checkinDate: today,
       });
 
-      const outcomeToStatus: Record<string, string> = {
-        "CONNECTED": "CONNECTED",
-        "NO_RESPONSE": "NO_RESPONSE",
-        "NEEDS_FOLLOWUP": "SCHEDULED",
-        "NEEDS_PRAYER": "NEEDS_PRAYER",
-        "REFERRED": "REFERRED",
-        "SCHEDULED_VISIT": "SCHEDULED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
-      };
+      const outcomeToStatus = OUTCOME_TO_STATUS;
       if (outcomeToStatus[data.outcome]) {
         await storage.updateConvert(checkin.convertId, { status: outcomeToStatus[data.outcome] as any });
       }
@@ -5792,15 +5683,7 @@ export async function registerRoutes(
         checkinDate: today,
       });
 
-      const outcomeToStatus: Record<string, string> = {
-        "CONNECTED": "CONNECTED",
-        "NO_RESPONSE": "NO_RESPONSE",
-        "NEEDS_FOLLOWUP": "SCHEDULED",
-        "NEEDS_PRAYER": "NEEDS_PRAYER",
-        "REFERRED": "REFERRED",
-        "SCHEDULED_VISIT": "SCHEDULED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
-      };
+      const outcomeToStatus = OUTCOME_TO_STATUS;
       if (outcomeToStatus[data.outcome]) {
         await storage.updateNewMember(checkinRecord.newMemberId, { status: outcomeToStatus[data.outcome] as any });
       }
@@ -6237,7 +6120,7 @@ export async function registerRoutes(
         gender: z.string().optional().nullable(),
         ageGroup: z.string().optional().nullable(),
         notes: z.string().optional().nullable(),
-        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]).optional(),
+        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]).optional(),
       });
       
       const data = schema.parse(req.body);
@@ -6326,15 +6209,7 @@ export async function registerRoutes(
       });
       
       // Update new member status based on outcome
-      const outcomeToStatus: Record<string, string> = {
-        "CONNECTED": "CONNECTED",
-        "NO_RESPONSE": "NO_RESPONSE",
-        "NEEDS_FOLLOWUP": "SCHEDULED",
-        "NEEDS_PRAYER": "NEEDS_PRAYER",
-        "REFERRED": "REFERRED",
-        "SCHEDULED_VISIT": "SCHEDULED",
-        "NOT_COMPLETED": "NOT_COMPLETED",
-      };
+      const outcomeToStatus = OUTCOME_TO_STATUS;
       if (outcomeToStatus[data.outcome]) {
         await storage.updateNewMember(newMemberId, { status: outcomeToStatus[data.outcome] as any });
       }
@@ -6987,15 +6862,7 @@ export async function registerRoutes(
       });
       
       // Update member status based on outcome
-      const statusMap: Record<string, string> = {
-        CONNECTED: "ACTIVE",
-        NO_RESPONSE: "NO_RESPONSE",
-        NEEDS_FOLLOWUP: "SCHEDULED",
-        NEEDS_PRAYER: "NEEDS_PRAYER",
-        REFERRED: "REFERRED",
-        SCHEDULED_VISIT: "SCHEDULED",
-        NOT_COMPLETED: "NOT_COMPLETED",
-      };
+      const statusMap = OUTCOME_TO_STATUS;
       
       if (statusMap[data.outcome]) {
         await storage.updateMember(memberId, { status: statusMap[data.outcome] });

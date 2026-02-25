@@ -158,6 +158,7 @@ export const members = pgTable("members", {
   ageGroup: text("age_group"),
   memberSince: date("member_since"),
   notes: text("notes"),
+  status: convertStatusEnum("status").notNull().default("NEW"),
   selfSubmitted: text("self_submitted").default("false"),
   customFieldData: jsonb("custom_field_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

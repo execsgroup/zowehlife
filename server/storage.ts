@@ -1471,7 +1471,7 @@ export class DatabaseStorage implements IStorage {
 
     const result = await db
       .update(converts)
-      .set({ status: "NEVER_CONTACTED" })
+      .set({ status: "NOT_COMPLETED" })
       .where(
         and(
           eq(converts.status, "NEW"),

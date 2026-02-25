@@ -33,7 +33,7 @@ async function processNeverContactedConverts() {
     const count = await storage.markConvertsAsNeverContacted();
     
     if (count > 0) {
-      console.log(`[Scheduler] Marked ${count} converts as NEVER_CONTACTED (30+ days with no follow-up)`);
+      console.log(`[Scheduler] Marked ${count} converts as NOT_COMPLETED (30+ days with no follow-up)`);
     }
   } catch (error) {
     console.error("[Scheduler] Error processing never contacted converts:", error);

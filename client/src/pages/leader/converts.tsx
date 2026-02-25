@@ -67,26 +67,14 @@ const convertFormSchemaBase = z.object({
   prayerRequest: z.string().optional(),
   address: z.string().optional(),
   summaryNotes: z.string().optional(),
-  status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]),
+  status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]),
 });
 
 type ConvertFormData = z.infer<typeof convertFormSchemaBase>;
 
-const statusColors: Record<string, string> = {
-  NEW: "bg-muted text-muted-foreground border-muted",
-  SCHEDULED: "bg-primary/10 text-primary border-primary/20",
-  CONNECTED: "bg-success/10 text-success border-success/20",
-  NO_RESPONSE: "bg-coral/10 text-coral border-coral/20",
-  NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
-  NEEDS_FOLLOWUP: "bg-gold/10 text-gold border-gold/20",
-  SCHEDULED_VISIT: "bg-primary/10 text-primary border-primary/20",
-  REFERRED: "bg-primary/10 text-primary border-primary/20",
-  NOT_COMPLETED: "bg-coral/10 text-coral border-coral/20",
-  NEVER_CONTACTED: "bg-muted text-muted-foreground border-muted",
-  ACTIVE: "bg-success/10 text-success border-success/20",
-  IN_PROGRESS: "bg-primary/10 text-primary border-primary/20",
-  INACTIVE: "bg-muted text-muted-foreground border-muted",
-};
+import { STATUS_COLORS, DB_STATUS_TO_DISPLAY } from "@shared/status-constants";
+
+const statusColors: Record<string, string> = STATUS_COLORS;
 
 export default function LeaderConverts() {
   const { t } = useTranslation();
@@ -125,17 +113,8 @@ export default function LeaderConverts() {
   const statusLabels: Record<string, string> = {
     NEW: t('statusLabels.new'),
     SCHEDULED: t('statusLabels.scheduled'),
-    CONNECTED: t('statusLabels.connected'),
-    NO_RESPONSE: t('statusLabels.notConnected'),
-    NEEDS_PRAYER: t('statusLabels.needsPrayer'),
-    NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
-    SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
-    REFERRED: t('statusLabels.referred'),
-    NOT_COMPLETED: t('statusLabels.notCompleted'),
-    NEVER_CONTACTED: t('statusLabels.neverContacted'),
-    ACTIVE: t('statusLabels.active'),
-    IN_PROGRESS: t('statusLabels.inProgress'),
-    INACTIVE: t('statusLabels.inactive'),
+    CONNECTED: t('statusLabels.completed'),
+    NOT_COMPLETED: t('statusLabels.notConnected'),
   };
 
   const { data: converts, isLoading } = useQuery<Convert[]>({
@@ -678,14 +657,11 @@ export default function LeaderConverts() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('forms.allStatuses')}</SelectItem>
-              <SelectItem value="NEW">{t('statusLabels.new')}</SelectItem>
-              <SelectItem value="SCHEDULED">{t('statusLabels.scheduled')}</SelectItem>
-              <SelectItem value="CONNECTED">{t('statusLabels.connected')}</SelectItem>
-              <SelectItem value="NO_RESPONSE">{t('statusLabels.noResponse')}</SelectItem>
-              <SelectItem value="NEEDS_PRAYER">{t('statusLabels.needsPrayer')}</SelectItem>
-              <SelectItem value="REFERRED">{t('statusLabels.referred')}</SelectItem>
-              <SelectItem value="NOT_COMPLETED">{t('statusLabels.notCompleted')}</SelectItem>
-              <SelectItem value="NEVER_CONTACTED">{t('statusLabels.neverContacted')}</SelectItem>
+              {Object.entries(statusLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

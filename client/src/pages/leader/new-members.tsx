@@ -69,21 +69,9 @@ const newMemberFormSchemaBase = z.object({
 
 type NewMemberFormData = z.infer<typeof newMemberFormSchemaBase>;
 
-const statusColors: Record<string, string> = {
-  NEW: "bg-muted text-muted-foreground border-muted",
-  SCHEDULED: "bg-primary/10 text-primary border-primary/20",
-  CONNECTED: "bg-success/10 text-success border-success/20",
-  NO_RESPONSE: "bg-coral/10 text-coral border-coral/20",
-  NEEDS_PRAYER: "bg-primary/10 text-primary border-primary/20",
-  NEEDS_FOLLOWUP: "bg-gold/10 text-gold border-gold/20",
-  SCHEDULED_VISIT: "bg-primary/10 text-primary border-primary/20",
-  REFERRED: "bg-primary/10 text-primary border-primary/20",
-  NOT_COMPLETED: "bg-coral/10 text-coral border-coral/20",
-  NEVER_CONTACTED: "bg-muted text-muted-foreground border-muted",
-  ACTIVE: "bg-success/10 text-success border-success/20",
-  IN_PROGRESS: "bg-primary/10 text-primary border-primary/20",
-  INACTIVE: "bg-muted text-muted-foreground border-muted",
-};
+import { STATUS_COLORS } from "@shared/status-constants";
+
+const statusColors: Record<string, string> = STATUS_COLORS;
 
 
 const followUpStageColors: Record<string, string> = {
@@ -149,17 +137,8 @@ export default function LeaderNewMembers() {
   const statusLabels: Record<string, string> = {
     NEW: t('statusLabels.new'),
     SCHEDULED: t('statusLabels.scheduled'),
-    CONNECTED: t('statusLabels.connected'),
-    NO_RESPONSE: t('statusLabels.notConnected'),
-    NEEDS_PRAYER: t('statusLabels.needsPrayer'),
-    NEEDS_FOLLOWUP: t('statusLabels.needsFollowUp'),
-    SCHEDULED_VISIT: t('statusLabels.scheduledVisit'),
-    REFERRED: t('statusLabels.referred'),
-    NOT_COMPLETED: t('statusLabels.notCompleted'),
-    NEVER_CONTACTED: t('statusLabels.neverContacted'),
-    ACTIVE: t('statusLabels.active'),
-    IN_PROGRESS: t('statusLabels.inProgress'),
-    INACTIVE: t('statusLabels.inactive'),
+    CONNECTED: t('statusLabels.completed'),
+    NOT_COMPLETED: t('statusLabels.notConnected'),
   };
 
   const followUpStageLabels: Record<string, string> = {

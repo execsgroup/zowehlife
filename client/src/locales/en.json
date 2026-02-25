@@ -1346,9 +1346,10 @@
   "statusLabels": {
     "new": "New",
     "scheduled": "Scheduled",
+    "completed": "Completed",
+    "notConnected": "Not Connected",
     "connected": "Connected",
     "noResponse": "No Response",
-    "notConnected": "Not Connected",
     "needsPrayer": "Needs Prayer",
     "needsFollowUp": "Needs Follow-Up",
     "referred": "Referred",

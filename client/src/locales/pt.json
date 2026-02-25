@@ -1294,6 +1294,7 @@
   "statusLabels": {
     "new": "Novo",
     "scheduled": "Agendado",
+    "completed": "Concluído",
     "connected": "Conectado",
     "noResponse": "Sem Resposta",
     "notConnected": "Não Conectado",

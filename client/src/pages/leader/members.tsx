@@ -53,14 +53,9 @@ const countries = [
   "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-const statusColors: Record<string, string> = {
-  CONNECTED: "bg-success/10 text-success border-success/20",
-  NO_RESPONSE: "bg-coral/10 text-coral border-coral/20",
-  NOT_COMPLETED: "bg-coral/10 text-coral border-coral/20",
-  SCHEDULED: "bg-primary/10 text-primary border-primary/20",
-  SCHEDULED_VISIT: "bg-primary/10 text-primary border-primary/20",
-  NEEDS_FOLLOWUP: "bg-gold/10 text-gold border-gold/20",
-};
+import { STATUS_COLORS } from "@shared/status-constants";
+
+const statusColors: Record<string, string> = STATUS_COLORS;
 
 const memberFormSchemaBase = z.object({
   firstName: z.string().min(1),
@@ -81,8 +76,10 @@ export default function LeaderMembers() {
   const { t } = useTranslation();
 
   const statusLabels: Record<string, string> = {
-    CONNECTED: t('statusLabels.connected'),
-    NO_RESPONSE: t('statusLabels.notConnected'),
+    NEW: t('statusLabels.new'),
+    SCHEDULED: t('statusLabels.scheduled'),
+    CONNECTED: t('statusLabels.completed'),
+    NOT_COMPLETED: t('statusLabels.notConnected'),
   };
 
   const memberFormSchema = z.object({
@@ -105,6 +102,7 @@ export default function LeaderMembers() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
   const [scheduleFollowupDialogOpen, setScheduleFollowupDialogOpen] = useState(false);
