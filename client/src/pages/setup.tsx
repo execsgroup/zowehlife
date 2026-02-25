@@ -108,7 +108,7 @@ export default function Setup() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <img src={zowehLogoPath} alt="Zoweh" className="h-12 w-12 object-contain" />
+            <img src={zowehLogoPath} alt="Zoweh" className="h-12 w-12 object-contain mix-blend-multiply dark:rounded-md dark:bg-white/90 dark:p-0.5" />
           </Link>
           <h1 className="text-2xl font-bold">{t('setup.adminSetup')}</h1>
           <p className="text-muted-foreground mt-1">{t('setup.createFirstAdmin')}</p>

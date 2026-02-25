@@ -160,7 +160,7 @@ export default function MemberDashboard() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src={zowehLogoPath} alt="Zoweh" className="h-12 w-12 object-contain" />
+            <img src={zowehLogoPath} alt="Zoweh" className="h-12 w-12 object-contain mix-blend-multiply dark:rounded-md dark:bg-white/90 dark:p-0.5" />
             <div>
               <h1 className="text-2xl font-bold">
                 {t('memberPortal.welcomeMessage', { name: profile?.person.firstName })}

@@ -11,7 +11,7 @@ export function PublicFooter() {
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img src={zowehLogoPath} alt="Zoweh" className="h-8 w-8 object-contain" />
+              <img src={zowehLogoPath} alt="Zoweh" className="h-8 w-8 object-contain mix-blend-multiply dark:rounded dark:bg-white/90 dark:p-0.5" />
               <span className="font-semibold">Zoweh Life</span>
             </div>
             <p className="text-sm text-muted-foreground">

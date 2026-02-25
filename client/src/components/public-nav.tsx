@@ -33,7 +33,7 @@ export function PublicNav() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <img src={zowehLogoPath} alt="Zoweh" className="h-9 w-9 object-contain" />
+            <img src={zowehLogoPath} alt="Zoweh" className="h-9 w-9 object-contain mix-blend-multiply dark:rounded dark:bg-white/90 dark:p-0.5" />
             <span className="font-semibold text-lg hidden sm:inline">Zoweh Life</span>
           </Link>
 

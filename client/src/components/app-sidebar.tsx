@@ -184,11 +184,11 @@ export function AppSidebar() {
             <Avatar className="h-7 w-7 rounded-md">
               <AvatarImage src={currentChurch.logoUrl!} alt={currentChurch.name} className="object-cover" />
               <AvatarFallback className="rounded-md text-xs">
-                <img src={zowehLogoPath} alt="Zoweh" className="h-7 w-7 object-contain" />
+                <img src={zowehLogoPath} alt="Zoweh" className="h-7 w-7 object-contain mix-blend-multiply dark:rounded dark:bg-white/90 dark:p-0.5" />
               </AvatarFallback>
             </Avatar>
           ) : (
-            <img src={zowehLogoPath} alt="Zoweh" className="h-7 w-7 object-contain rounded-md" />
+            <img src={zowehLogoPath} alt="Zoweh" className="h-7 w-7 object-contain mix-blend-multiply dark:rounded-md dark:bg-white/90 dark:p-0.5" />
           )}
           <span className="font-semibold text-sm truncate">
             {getSidebarTitle()}
