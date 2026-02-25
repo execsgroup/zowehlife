@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { memberLoginSchema, type MemberLoginData } from "@shared/schema";
 import { Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
-import zowehLogoPath from "@assets/ChatGPT_Image_Feb_24,_2026,_10_13_39_PM_1771989231984.png";
+import zowehLogoPath from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function MemberLogin() {

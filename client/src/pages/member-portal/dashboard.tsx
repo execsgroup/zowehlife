@@ -20,7 +20,7 @@ import {
   ExternalLink,
   Loader2 
 } from "lucide-react";
-import zowehLogoPath from "@assets/ChatGPT_Image_Feb_24,_2026,_10_13_39_PM_1771989231984.png";
+import zowehLogoPath from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
 
 interface MemberProfile {
   person: {
