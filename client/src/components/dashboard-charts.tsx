@@ -110,8 +110,8 @@ export function GrowthTrendChart({ data }: { data: GrowthTrendData[] }) {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <AreaChart data={formatted} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+    <ResponsiveContainer width="100%" height={220}>
+      <AreaChart data={formatted} margin={{ top: 5, right: 15, left: -10, bottom: 5 }}>
         <defs>
           <linearGradient id="colorConverts" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.3} />
@@ -187,15 +187,15 @@ export function StatusBreakdownChart({ data }: { data: StatusData[] }) {
   const total = formatted.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4">
-      <ResponsiveContainer width="100%" height={250}>
+    <div className="flex flex-col sm:flex-row items-center gap-3">
+      <ResponsiveContainer width="100%" height={180}>
         <PieChart>
           <Pie
             data={formatted}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={100}
+            innerRadius={45}
+            outerRadius={75}
             paddingAngle={2}
             dataKey="count"
             nameKey="label"
@@ -247,8 +247,8 @@ export function FollowUpStageChart({ data }: { data: StageData[] }) {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={Math.max(200, formatted.length * 40)}>
-      <BarChart data={formatted} layout="vertical" margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+    <ResponsiveContainer width="100%" height={Math.max(160, formatted.length * 30)}>
+      <BarChart data={formatted} layout="vertical" margin={{ top: 5, right: 15, left: -10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
         <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))" }} className="text-xs" allowDecimals={false} />
         <YAxis
@@ -265,7 +265,7 @@ export function FollowUpStageChart({ data }: { data: StageData[] }) {
             color: "hsl(var(--foreground))",
           }}
         />
-        <Bar dataKey="count" name={t("reports.count")} fill={CHART_COLORS[0]} radius={[0, 4, 4, 0]} barSize={20} />
+        <Bar dataKey="count" name={t("reports.count")} fill={CHART_COLORS[0]} radius={[0, 4, 4, 0]} barSize={16} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -287,16 +287,16 @@ export function CheckinOutcomeChart({ data }: { data: OutcomeData[] }) {
     }));
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={formatted} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+    <ResponsiveContainer width="100%" height={220}>
+      <BarChart data={formatted} margin={{ top: 5, right: 15, left: -10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis
           dataKey="label"
-          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
           interval={0}
           angle={-25}
           textAnchor="end"
-          height={60}
+          height={50}
         />
         <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} className="text-xs" allowDecimals={false} />
         <Tooltip
@@ -307,7 +307,7 @@ export function CheckinOutcomeChart({ data }: { data: OutcomeData[] }) {
             color: "hsl(var(--foreground))",
           }}
         />
-        <Bar dataKey="count" name={t("reports.count")} radius={[4, 4, 0, 0]} barSize={32}>
+        <Bar dataKey="count" name={t("reports.count")} radius={[4, 4, 0, 0]} barSize={24}>
           {formatted.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.fill} />
           ))}
@@ -319,7 +319,7 @@ export function CheckinOutcomeChart({ data }: { data: OutcomeData[] }) {
 
 function EmptyChart({ message }: { message: string }) {
   return (
-    <div className="flex items-center justify-center h-[200px] text-muted-foreground text-sm">
+    <div className="flex items-center justify-center h-[140px] text-muted-foreground text-sm">
       {message}
     </div>
   );

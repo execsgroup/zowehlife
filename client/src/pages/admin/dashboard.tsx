@@ -86,30 +86,27 @@ export default function AdminDashboard() {
             headers={[t('reports.month'), t('reports.converts'), t('reports.newMembers'), t('reports.members')]}
           />
         }
+        noPadding
       >
-        <div className="grid gap-4 lg:grid-cols-2" data-testid="charts-grid">
-          <div className="rounded-lg border bg-card p-5" data-testid="chart-growth-trends">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-500/10">
-                <TrendingUp className="h-3.5 w-3.5 text-blue-500" />
-              </div>
-              <h3 className="text-sm font-semibold">{t('reports.growthTrends')}</h3>
+        <div className="p-3 grid gap-3 lg:grid-cols-2" data-testid="charts-grid">
+          <div className="rounded-md border bg-muted/30 p-3" data-testid="chart-growth-trends">
+            <div className="flex items-center gap-1.5 mb-2">
+              <TrendingUp className="h-3.5 w-3.5 text-blue-500" />
+              <h3 className="text-xs font-semibold">{t('reports.growthTrends')}</h3>
             </div>
             {isGrowthLoading ? (
-              <Skeleton className="h-[280px] w-full rounded-md" />
+              <Skeleton className="h-[200px] w-full rounded-md" />
             ) : (
               <GrowthTrendChart data={growthData || []} />
             )}
           </div>
-          <div className="rounded-lg border bg-card p-5" data-testid="chart-status-breakdown">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-500/10">
-                <PieChart className="h-3.5 w-3.5 text-violet-500" />
-              </div>
-              <h3 className="text-sm font-semibold">{t('reports.statusBreakdown')}</h3>
+          <div className="rounded-md border bg-muted/30 p-3" data-testid="chart-status-breakdown">
+            <div className="flex items-center gap-1.5 mb-2">
+              <PieChart className="h-3.5 w-3.5 text-violet-500" />
+              <h3 className="text-xs font-semibold">{t('reports.statusBreakdown')}</h3>
             </div>
             {isStatusLoading ? (
-              <Skeleton className="h-[250px] w-full rounded-md" />
+              <Skeleton className="h-[180px] w-full rounded-md" />
             ) : (
               <StatusBreakdownChart data={statusData || []} />
             )}
