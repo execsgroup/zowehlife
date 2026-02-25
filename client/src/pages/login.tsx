@@ -52,16 +52,16 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted p-4 relative">
-      <Link href="/" className="absolute top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-2.5">
-        <img src={zowehLogoLight} alt="Zoweh Life" className="h-4 object-contain dark:hidden" />
-        <img src={zowehLogoDark} alt="Zoweh Life" className="h-4 object-contain hidden dark:block" />
-      </Link>
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <LanguageToggle />
         <ThemeToggle />
       </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center justify-center mb-4">
+            <img src={zowehLogoLight} alt="Zoweh Life" className="h-4 object-contain dark:hidden" />
+            <img src={zowehLogoDark} alt="Zoweh Life" className="h-4 object-contain hidden dark:block" />
+          </Link>
           <h1 className="text-2xl font-bold">{t('auth.loginTitle')}</h1>
           <p className="text-muted-foreground mt-1">{t('auth.loginDescription')}</p>
         </div>
