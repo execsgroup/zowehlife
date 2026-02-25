@@ -453,6 +453,7 @@
     "scheduleFollowUp": "Schedule Follow-up",
     "noFollowUps": "No follow-ups scheduled",
     "scheduledBy": "Scheduled by {{name}}",
+    "scheduledByColumn": "Scheduled By",
     "followUpDate": "Follow-up Date",
     "followUpTime": "Follow-up Time",
     "followUpTimeOptional": "Follow-up Time (optional)",

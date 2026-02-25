@@ -453,6 +453,7 @@
     "scheduleFollowUp": "Planifier le Suivi",
     "noFollowUps": "Aucun suivi planifié",
     "scheduledBy": "Planifié par {{name}}",
+    "scheduledByColumn": "Planifié Par",
     "followUpDate": "Date de Suivi",
     "followUpTime": "Heure de Suivi",
     "followUpTimeOptional": "Heure de Suivi (facultatif)",

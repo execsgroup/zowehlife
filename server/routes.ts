@@ -4712,7 +4712,17 @@ export async function registerRoutes(
     try {
       const user = (req as any).user;
       const massFollowups = await storage.getMassFollowupsByChurch(user.churchId);
-      res.json(massFollowups);
+      const userIds = [...new Set(massFollowups.map(mf => mf.createdByUserId).filter(Boolean))];
+      const userMap = new Map<string, string>();
+      for (const uid of userIds) {
+        const u = await storage.getUser(uid);
+        if (u) userMap.set(uid, `${u.firstName} ${u.lastName}`);
+      }
+      const enriched = massFollowups.map(mf => ({
+        ...mf,
+        scheduledByName: userMap.get(mf.createdByUserId) || null,
+      }));
+      res.json(enriched);
     } catch (error) {
       res.status(500).json({ message: "Failed to get group follow-ups" });
     }
@@ -7197,7 +7207,17 @@ export async function registerRoutes(
     try {
       const user = (req as any).user;
       const massFollowups = await storage.getMassFollowupsByChurch(user.churchId);
-      res.json(massFollowups);
+      const userIds = [...new Set(massFollowups.map(mf => mf.createdByUserId).filter(Boolean))];
+      const userMap = new Map<string, string>();
+      for (const uid of userIds) {
+        const u = await storage.getUser(uid);
+        if (u) userMap.set(uid, `${u.firstName} ${u.lastName}`);
+      }
+      const enriched = massFollowups.map(mf => ({
+        ...mf,
+        scheduledByName: userMap.get(mf.createdByUserId) || null,
+      }));
+      res.json(enriched);
     } catch (error) {
       res.status(500).json({ message: "Failed to get group follow-ups" });
     }

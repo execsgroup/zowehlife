@@ -453,6 +453,7 @@
     "scheduleFollowUp": "Agendar Acompanhamento",
     "noFollowUps": "Nenhum acompanhamento agendado",
     "scheduledBy": "Agendado por {{name}}",
+    "scheduledByColumn": "Agendado Por",
     "followUpDate": "Data do Acompanhamento",
     "followUpTime": "Hora do Acompanhamento",
     "followUpTimeOptional": "Hora do Acompanhamento (opcional)",
