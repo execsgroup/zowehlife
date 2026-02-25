@@ -13,7 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { adminSetupSchema, type AdminSetupData } from "@shared/schema";
 import { User, Mail, Lock, Key, Loader2, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
 import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
-import zowehLogoDark from "@assets/zoweh_logo_dark.png";
+import zowehLogoDark from "@assets/zoweh_life_logo_transparent_1771993303739.png";
 import { useTranslation } from "react-i18next";
 
 export default function Setup() {

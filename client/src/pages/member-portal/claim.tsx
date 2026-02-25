@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { claimAccountSchema, type ClaimAccountData } from "@shared/schema";
 import { Key, Lock, Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
-import zowehLogoDark from "@assets/zoweh_logo_dark.png";
+import zowehLogoDark from "@assets/zoweh_life_logo_transparent_1771993303739.png";
 import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 

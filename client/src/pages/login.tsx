@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { loginSchema, type LoginData } from "@shared/schema";
 import { Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
 import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
-import zowehLogoDark from "@assets/zoweh_logo_dark.png";
+import zowehLogoDark from "@assets/zoweh_life_logo_transparent_1771993303739.png";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
