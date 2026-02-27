@@ -77,6 +77,10 @@ import {
   type InsertScheduledAnnouncement,
   formConfigurations,
   type FormConfiguration,
+  messagingAutomationConfig,
+  automationSentLog,
+  type MessagingAutomationConfig,
+  type InsertMessagingAutomationConfig,
   passwordResetTokens,
   type PasswordResetToken,
 } from "@shared/schema";
@@ -476,6 +480,14 @@ export interface IStorage {
   getFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member"): Promise<FormConfiguration | undefined>;
   getFormConfigurations(churchId: string): Promise<FormConfiguration[]>;
   upsertFormConfiguration(churchId: string, formType: "convert" | "new_member" | "member", data: { title?: string; heroTitle?: string; description?: string; fieldConfig: any; customFields: any }): Promise<FormConfiguration>;
+
+  // Messaging automation
+  getMessagingAutomationConfigs(churchId: string): Promise<MessagingAutomationConfig[]>;
+  getMessagingAutomationConfig(churchId: string, category: "convert" | "member" | "new_member_guest"): Promise<MessagingAutomationConfig | undefined>;
+  getEnabledMessagingAutomationConfigs(): Promise<MessagingAutomationConfig[]>;
+  upsertMessagingAutomationConfig(churchId: string, category: "convert" | "member" | "new_member_guest", data: Partial<InsertMessagingAutomationConfig>): Promise<MessagingAutomationConfig>;
+  hasAutomationBeenSent(churchId: string, entityType: "convert" | "member" | "new_member_guest", entityId: string): Promise<boolean>;
+  recordAutomationSent(churchId: string, entityType: "convert" | "member" | "new_member_guest", entityId: string): Promise<void>;
 
   // Password Reset Tokens
   createPasswordResetToken(email: string, tokenHash: string, accountType: "staff" | "member", expiresAt: Date): Promise<PasswordResetToken>;
@@ -2782,6 +2794,64 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  async getMessagingAutomationConfigs(churchId: string): Promise<MessagingAutomationConfig[]> {
+    return db.select().from(messagingAutomationConfig)
+      .where(eq(messagingAutomationConfig.churchId, churchId));
+  }
+
+  async getMessagingAutomationConfig(churchId: string, category: "convert" | "member" | "new_member_guest"): Promise<MessagingAutomationConfig | undefined> {
+    const [row] = await db.select().from(messagingAutomationConfig)
+      .where(and(
+        eq(messagingAutomationConfig.churchId, churchId),
+        eq(messagingAutomationConfig.category, category),
+      ));
+    return row || undefined;
+  }
+
+  async getEnabledMessagingAutomationConfigs(): Promise<MessagingAutomationConfig[]> {
+    return db.select().from(messagingAutomationConfig)
+      .where(eq(messagingAutomationConfig.enabled, "true"));
+  }
+
+  async upsertMessagingAutomationConfig(churchId: string, category: "convert" | "member" | "new_member_guest", data: Partial<InsertMessagingAutomationConfig>): Promise<MessagingAutomationConfig> {
+    const existing = await this.getMessagingAutomationConfig(churchId, category);
+    const payload = {
+      ...data,
+      churchId,
+      category,
+      updatedAt: new Date(),
+    };
+    if (existing) {
+      const [updated] = await db.update(messagingAutomationConfig)
+        .set(payload)
+        .where(eq(messagingAutomationConfig.id, existing.id))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(messagingAutomationConfig)
+      .values(payload as InsertMessagingAutomationConfig)
+      .returning();
+    return created;
+  }
+
+  async hasAutomationBeenSent(churchId: string, entityType: "convert" | "member" | "new_member_guest", entityId: string): Promise<boolean> {
+    const [row] = await db.select().from(automationSentLog)
+      .where(and(
+        eq(automationSentLog.churchId, churchId),
+        eq(automationSentLog.entityType, entityType),
+        eq(automationSentLog.entityId, entityId),
+      ));
+    return !!row;
+  }
+
+  async recordAutomationSent(churchId: string, entityType: "convert" | "member" | "new_member_guest", entityId: string): Promise<void> {
+    await db.insert(automationSentLog).values({
+      churchId,
+      entityType,
+      entityId,
+    });
   }
 
   // Password Reset Tokens

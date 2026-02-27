@@ -16,7 +16,7 @@ import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, CheckCircle, Church, Heart, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle, Church, AlertCircle } from "lucide-react";
 
 const convertFormSchemaBase = z.object({
   firstName: z.string().min(1),
@@ -237,11 +237,7 @@ export default function NewConvert() {
                   data-testid="img-church-logo"
                 />
               </div>
-            ) : (
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
-                <Heart className="h-8 w-8 text-primary" />
-              </div>
-            )}
+            ) : null}
             <h1 className="text-2xl md:text-3xl font-bold mb-2">{church?.formConfig?.heroTitle || t('publicForms.welcomeFamily')}</h1>
           </div>
 

@@ -58,7 +58,10 @@
     "startJourney": "Commencer le Parcours",
     "getConnected": "Se Connecter",
     "ctaTitle": "Prêt à Faire le Prochain Pas?",
-    "ctaDescription": "Que vous souhaitiez en savoir plus sur la foi, ayez besoin de prière ou souhaitiez vous connecter avec un ministère local, nous sommes là pour vous."
+    "ctaDescription": "Que vous souhaitiez en savoir plus sur la foi, ayez besoin de prière ou souhaitiez vous connecter avec un ministère local, nous sommes là pour vous.",
+    "ctaMinistryTitle": "Prêt à diriger votre ministère ?",
+    "ctaMinistryDescription": "Configurez votre église ou ministère avec des outils de suivi, de soins aux membres et de disciples. Commencez avec un plan gratuit.",
+    "ctaMinistryButton": "Inscription ministère"
   },
   "footer": {
     "tagline": "Nourrir la foi et construire une communauté, une âme à la fois.",
@@ -98,7 +101,8 @@
     "people": "Personnes",
     "engagement": "Engagement",
     "management": "Gestion",
-    "configuration": "Configuration"
+    "configuration": "Configuration",
+    "messaging": "Configuration de l'automatisation des messages"
   },
   "dashboard": {
     "platformOverview": "Aperçu de la Plateforme",
@@ -473,6 +477,8 @@
     "emailOnly": "e-mail",
     "emailSms": "E-mail + SMS",
     "emailMms": "E-mail + MMS",
+    "smsOnly": "SMS",
+    "mmsOnly": "MMS",
     "massFollowUps": "Suivis de Groupe",
     "convertFollowUps": "Suivi des Convertis",
     "newMemberFollowUps": "Suivi des Nouveaux Membres & Invités",

@@ -71,6 +71,56 @@ export function NotificationMethodSelector({
                   </span>
                 </SelectItem>
                 <SelectItem
+                  value="sms_only"
+                  disabled={isFree || !smsAvailable || !hasPhone}
+                  data-testid="option-sms-only"
+                >
+                  <span className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    {t('followUps.smsOnly')}
+                    {isFree && (
+                      <Badge variant="secondary" className="text-xs">
+                        {t('followUps.upgrade')}
+                      </Badge>
+                    )}
+                    {!isFree && !smsAvailable && (
+                      <Badge variant="destructive" className="text-xs">
+                        {t('followUps.limitReached')}
+                      </Badge>
+                    )}
+                    {!hasPhone && !isFree && (
+                      <Badge variant="secondary" className="text-xs">
+                        {t('followUps.noPhone')}
+                      </Badge>
+                    )}
+                  </span>
+                </SelectItem>
+                <SelectItem
+                  value="mms_only"
+                  disabled={isFree || !mmsAvailable || !hasPhone}
+                  data-testid="option-mms-only"
+                >
+                  <span className="flex items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    {t('followUps.mmsOnly')}
+                    {isFree && (
+                      <Badge variant="secondary" className="text-xs">
+                        {t('followUps.upgrade')}
+                      </Badge>
+                    )}
+                    {!isFree && !mmsAvailable && (
+                      <Badge variant="destructive" className="text-xs">
+                        {t('followUps.limitReached')}
+                      </Badge>
+                    )}
+                    {!hasPhone && !isFree && (
+                      <Badge variant="secondary" className="text-xs">
+                        {t('followUps.noPhone')}
+                      </Badge>
+                    )}
+                  </span>
+                </SelectItem>
+                <SelectItem
                   value="sms"
                   disabled={isFree || !smsAvailable || !hasPhone}
                   data-testid="option-sms"

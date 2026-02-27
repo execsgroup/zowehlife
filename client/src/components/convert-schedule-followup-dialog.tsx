@@ -32,7 +32,7 @@ function createScheduleFollowUpSchema(t: (key: string) => string) {
     smsMessage: z.string().optional(),
     mmsMediaUrl: z.string().optional(),
     includeVideoLink: z.boolean().optional(),
-    notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+    notificationMethod: z.enum(["email", "sms", "sms_only", "mms", "mms_only"]).optional().default("email"),
   });
 }
 
@@ -88,7 +88,9 @@ export function ConvertScheduleFollowUpDialog({
       const method = form.getValues("notificationMethod");
       toast({
         title: t('followUps.followUpScheduled'),
-        description: t('followUps.followUpScheduledNotification', { method: method === "email" ? t('followUps.emailOnly') : `${t('followUps.emailOnly')} + ${method?.toUpperCase()}` }),
+        description: t('followUps.followUpScheduledNotification', {
+          method: method === "email" ? t('followUps.emailOnly') : method === "sms_only" ? t('followUps.smsOnly') : method === "mms_only" ? t('followUps.mmsOnly') : `${t('followUps.emailOnly')} + ${method?.toUpperCase()}`,
+        }),
       });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`] });
       queryClient.invalidateQueries({ queryKey: [`${apiBasePath}/converts`, convert?.id?.toString()] });
@@ -250,10 +252,10 @@ export function ConvertScheduleFollowUpDialog({
                 )}
             </div>
 
-            {(notificationMethod === "sms" || notificationMethod === "mms") && (
+            {(notificationMethod === "sms" || notificationMethod === "sms_only" || notificationMethod === "mms" || notificationMethod === "mms_only") && (
               <div className="space-y-3 p-3 bg-muted/50 rounded-lg border-t pt-4">
-                <p className="text-sm font-medium">{t('followUps.customMethodMessage', { method: notificationMethod.toUpperCase() })}</p>
-                <p className="text-xs text-muted-foreground">{t('followUps.additionalMethodSent', { method: notificationMethod.toUpperCase() })}</p>
+                <p className="text-sm font-medium">{t('followUps.customMethodMessage', { method: notificationMethod === "sms_only" ? "SMS" : notificationMethod === "mms_only" ? "MMS" : notificationMethod.toUpperCase() })}</p>
+                <p className="text-xs text-muted-foreground">{(notificationMethod === "sms_only" || notificationMethod === "mms_only") ? (notificationMethod === "sms_only" ? t('followUps.smsOnly') : t('followUps.mmsOnly')) : t('followUps.additionalMethodSent', { method: notificationMethod.toUpperCase() })}</p>
                 <FormField
                   control={form.control}
                   name="smsMessage"
@@ -274,7 +276,7 @@ export function ConvertScheduleFollowUpDialog({
                     </FormItem>
                   )}
                 />
-                {notificationMethod === "mms" && (
+                {(notificationMethod === "mms" || notificationMethod === "mms_only") && (
                   <MmsImageUpload
                     onImageUploaded={(url) => form.setValue("mmsMediaUrl", url)}
                     onImageRemoved={() => form.setValue("mmsMediaUrl", "")}

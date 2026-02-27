@@ -13,7 +13,7 @@ import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Mail, Phone, HandHeart, CheckCircle2, Loader2 } from "lucide-react";
+import { Mail, Phone, Loader2 } from "lucide-react";
 
 const contactSchemaBase = z.object({
   name: z.string().min(2),
@@ -75,9 +75,6 @@ export default function Contact() {
           <div className="container mx-auto px-4">
             <Card className="max-w-md mx-auto text-center">
               <CardContent className="pt-8 pb-6">
-                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
-                  <CheckCircle2 className="h-8 w-8 text-primary" />
-                </div>
                 <h2 className="text-2xl font-bold mb-2">{t('contact.requestSubmitted')}</h2>
                 <p className="text-muted-foreground mb-6">
                   {t('contact.thankYouReachOut')}
@@ -103,9 +100,6 @@ export default function Contact() {
         <section className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6">
-                <HandHeart className="h-8 w-8 text-primary" />
-              </div>
               <h1 className="text-2xl md:text-3xl font-bold mb-6">
                 {t('contact.pageTitle')}
               </h1>

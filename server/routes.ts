@@ -3615,19 +3615,19 @@ export async function registerRoutes(
         smsMessage: z.string().optional(),
         mmsMediaUrl: z.string().optional(),
         includeVideoLink: z.boolean().optional(),
-        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+        notificationMethod: z.enum(["email", "sms", "sms_only", "mms", "mms_only"]).optional().default("email"),
       });
 
       const data = schema.parse(req.body);
 
       const church = await storage.getChurch(user.churchId);
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
         const plan = (church?.plan || "free") as string;
         const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
         const billingPeriod = getCurrentBillingPeriod();
         const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
-        const type = data.notificationMethod;
+        const type = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const used = type === "sms" ? usage.smsCount : usage.mmsCount;
         const limit = type === "sms" ? limits.sms : limits.mms;
         if (used >= limit) {
@@ -3664,10 +3664,11 @@ export async function registerRoutes(
 
       const contactUrl = buildUrl("/contact", req);
 
-      console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
+      const convertGetsEmail = data.notificationMethod !== "sms_only" && data.notificationMethod !== "mms_only";
+      console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convertGetsEmail ? (convert.email || 'N/A') : 'SMS only'}`);
       sendFollowUpNotification({
         convertName: `${convert.firstName} ${convert.lastName}`,
-        convertEmail: convert.email || undefined,
+        convertEmail: convertGetsEmail ? (convert.email || undefined) : undefined,
         leaderName: `${user.firstName} ${user.lastName}`,
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
@@ -3684,8 +3685,8 @@ export async function registerRoutes(
         console.log(`Follow-up email result:`, result);
       }).catch(err => console.error("Email notification failed:", err));
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
-        const smsType = data.notificationMethod as "sms" | "mms";
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
+        const smsType = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = convert.phone ? formatPhoneForSms(convert.phone) : null;
         const churchName = church?.name || "Ministry";
@@ -4022,18 +4023,18 @@ export async function registerRoutes(
         customReminderMessage: z.string().optional(),
         smsMessage: z.string().optional(),
         mmsMediaUrl: z.string().optional(),
-        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+        notificationMethod: z.enum(["email", "sms", "sms_only", "mms", "mms_only"]).optional().default("email"),
       });
       
       const data = schema.parse(req.body);
       const church = await storage.getChurch(user.churchId);
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
         const plan = (church?.plan || "free") as string;
         const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
         const billingPeriod = getCurrentBillingPeriod();
         const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
-        const type = data.notificationMethod;
+        const type = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const used = type === "sms" ? usage.smsCount : usage.mmsCount;
         const limit = type === "sms" ? limits.sms : limits.mms;
         if (used >= limit) {
@@ -4086,10 +4087,10 @@ export async function registerRoutes(
       });
       
       const contactUrl = buildUrl("/contact", req);
-      
+      const newMemberGetsEmail = data.notificationMethod !== "sms_only" && data.notificationMethod !== "mms_only";
       sendFollowUpNotification({
         convertName: `${newMember.firstName} ${newMember.lastName}`,
-        convertEmail: newMember.email || undefined,
+        convertEmail: newMemberGetsEmail ? (newMember.email || undefined) : undefined,
         leaderName: `${user.firstName} ${user.lastName}`,
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
@@ -4102,8 +4103,8 @@ export async function registerRoutes(
         customConvertSubject: data.customConvertSubject || undefined,
       }).catch(err => console.error("Email notification failed:", err));
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
-        const smsType = data.notificationMethod as "sms" | "mms";
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
+        const smsType = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = newMember.phone ? formatPhoneForSms(newMember.phone) : null;
         const churchName = church?.name || "Ministry";
@@ -4267,17 +4268,17 @@ export async function registerRoutes(
         customConvertSubject: z.string().optional(),
         smsMessage: z.string().optional(),
         mmsMediaUrl: z.string().optional(),
-        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+        notificationMethod: z.enum(["email", "sms", "sms_only", "mms", "mms_only"]).optional().default("email"),
       });
       const data = schema.parse(req.body);
       const church = await storage.getChurch(user.churchId);
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
         const plan = (church?.plan || "free") as string;
         const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
         const billingPeriod = getCurrentBillingPeriod();
         const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
-        const type = data.notificationMethod;
+        const type = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const used = type === "sms" ? usage.smsCount : usage.mmsCount;
         const limit = type === "sms" ? limits.sms : limits.mms;
         if (used >= limit) {
@@ -4309,9 +4310,10 @@ export async function registerRoutes(
         entityId: memberId,
       });
       const contactUrl = buildUrl("/contact", req);
+      const memberGetsEmail = data.notificationMethod !== "sms_only" && data.notificationMethod !== "mms_only";
       sendFollowUpNotification({
         convertName: `${member.firstName} ${member.lastName}`,
-        convertEmail: member.email || undefined,
+        convertEmail: memberGetsEmail ? (member.email || undefined) : undefined,
         leaderName: `${user.firstName} ${user.lastName}`,
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
@@ -4326,8 +4328,8 @@ export async function registerRoutes(
         customConvertSubject: data.customConvertSubject || undefined,
       }).catch(err => console.error("Email notification failed:", err));
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
-        const smsType = data.notificationMethod as "sms" | "mms";
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
+        const smsType = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = member.phone ? formatPhoneForSms(member.phone) : null;
         const churchName = church?.name || "Ministry";
@@ -4498,6 +4500,58 @@ export async function registerRoutes(
       }
       console.error("Error updating form configuration:", error);
       res.status(500).json({ message: "Failed to update form configuration" });
+    }
+  });
+
+  // Message automation setup - Ministry Admin
+  const messagingAutomationUpdateSchema = z.object({
+    category: z.enum(["convert", "member", "new_member_guest"]),
+    enabled: z.boolean().optional(),
+    cutoffTime: z.string().optional().nullable(),
+    delayHoursSameDay: z.number().int().min(0).optional().nullable(),
+    nextDaySendTime: z.string().optional().nullable(),
+    sendEmail: z.boolean().optional(),
+    sendSms: z.boolean().optional(),
+    emailSubject: z.string().optional().nullable(),
+    emailBody: z.string().optional().nullable(),
+    smsBody: z.string().optional().nullable(),
+  });
+  app.get("/api/ministry-admin/messaging-automation", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const configs = await storage.getMessagingAutomationConfigs(user.churchId);
+      const byCategory = { convert: null as any, member: null as any, new_member_guest: null as any };
+      for (const c of configs) {
+        byCategory[c.category as keyof typeof byCategory] = c;
+      }
+      res.json(byCategory);
+    } catch (error) {
+      console.error("Error fetching message automation settings:", error);
+      res.status(500).json({ message: "Failed to fetch message automation settings" });
+    }
+  });
+  app.put("/api/ministry-admin/messaging-automation", requireMinistryAdmin, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const data = messagingAutomationUpdateSchema.parse(req.body);
+      const payload: any = {};
+      if (data.enabled !== undefined) payload.enabled = data.enabled ? "true" : "false";
+      if (data.cutoffTime !== undefined) payload.cutoffTime = data.cutoffTime;
+      if (data.delayHoursSameDay !== undefined) payload.delayHoursSameDay = data.delayHoursSameDay;
+      if (data.nextDaySendTime !== undefined) payload.nextDaySendTime = data.nextDaySendTime;
+      if (data.sendEmail !== undefined) payload.sendEmail = data.sendEmail ? "true" : "false";
+      if (data.sendSms !== undefined) payload.sendSms = data.sendSms ? "true" : "false";
+      if (data.emailSubject !== undefined) payload.emailSubject = data.emailSubject;
+      if (data.emailBody !== undefined) payload.emailBody = data.emailBody;
+      if (data.smsBody !== undefined) payload.smsBody = data.smsBody;
+      const config = await storage.upsertMessagingAutomationConfig(user.churchId, data.category, payload);
+      res.json(config);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Error updating message automation settings:", error);
+      res.status(500).json({ message: "Failed to update message automation settings" });
     }
   });
 
@@ -5356,19 +5410,19 @@ export async function registerRoutes(
         smsMessage: z.string().optional(),
         mmsMediaUrl: z.string().optional(),
         includeVideoLink: z.boolean().optional(),
-        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+        notificationMethod: z.enum(["email", "sms", "sms_only", "mms", "mms_only"]).optional().default("email"),
       });
 
       const data = schema.parse(req.body);
 
       const church = await storage.getChurch(user.churchId);
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
         const plan = (church?.plan || "free") as string;
         const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
         const billingPeriod = getCurrentBillingPeriod();
         const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
-        const type = data.notificationMethod;
+        const type = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const used = type === "sms" ? usage.smsCount : usage.mmsCount;
         const limit = type === "sms" ? limits.sms : limits.mms;
         if (used >= limit) {
@@ -5405,10 +5459,11 @@ export async function registerRoutes(
 
       const contactUrl = buildUrl("/contact", req);
 
-      console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convert.email || 'N/A'}`);
+      const convertGetsEmail = data.notificationMethod !== "sms_only" && data.notificationMethod !== "mms_only";
+      console.log(`Sending follow-up emails to leader: ${user.email}, convert: ${convertGetsEmail ? (convert.email || 'N/A') : 'SMS only'}`);
       sendFollowUpNotification({
         convertName: `${convert.firstName} ${convert.lastName}`,
-        convertEmail: convert.email || undefined,
+        convertEmail: convertGetsEmail ? (convert.email || undefined) : undefined,
         leaderName: `${user.firstName} ${user.lastName}`,
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
@@ -5425,8 +5480,8 @@ export async function registerRoutes(
         console.log(`Follow-up email result:`, result);
       }).catch(err => console.error("Email notification failed:", err));
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
-        const smsType = data.notificationMethod as "sms" | "mms";
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
+        const smsType = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = convert.phone ? formatPhoneForSms(convert.phone) : null;
         const churchName = church?.name || "Ministry";
@@ -6299,18 +6354,18 @@ export async function registerRoutes(
         customReminderMessage: z.string().optional(),
         smsMessage: z.string().optional(),
         mmsMediaUrl: z.string().optional(),
-        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+        notificationMethod: z.enum(["email", "sms", "sms_only", "mms", "mms_only"]).optional().default("email"),
       });
       
       const data = schema.parse(req.body);
       const church = await storage.getChurch(user.churchId);
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
         const plan = (church?.plan || "free") as string;
         const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
         const billingPeriod = getCurrentBillingPeriod();
         const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
-        const type = data.notificationMethod;
+        const type = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const used = type === "sms" ? usage.smsCount : usage.mmsCount;
         const limit = type === "sms" ? limits.sms : limits.mms;
         if (used >= limit) {
@@ -6363,10 +6418,10 @@ export async function registerRoutes(
       });
       
       const contactUrl = buildUrl("/contact", req);
-      
+      const newMemberGetsEmail = data.notificationMethod !== "sms_only" && data.notificationMethod !== "mms_only";
       sendFollowUpNotification({
         convertName: `${newMember.firstName} ${newMember.lastName}`,
-        convertEmail: newMember.email || undefined,
+        convertEmail: newMemberGetsEmail ? (newMember.email || undefined) : undefined,
         leaderName: `${user.firstName} ${user.lastName}`,
         leaderEmail: user.email,
         churchName: church?.name || "Ministry",
@@ -6379,8 +6434,8 @@ export async function registerRoutes(
         customConvertSubject: data.customConvertSubject || undefined,
       }).catch(err => console.error("Email notification failed:", err));
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
-        const smsType = data.notificationMethod as "sms" | "mms";
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
+        const smsType = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = newMember.phone ? formatPhoneForSms(newMember.phone) : null;
         const churchName = church?.name || "Ministry";
@@ -6911,18 +6966,18 @@ export async function registerRoutes(
         customConvertSubject: z.string().optional(),
         smsMessage: z.string().optional(),
         mmsMediaUrl: z.string().optional(),
-        notificationMethod: z.enum(["email", "sms", "mms"]).optional().default("email"),
+        notificationMethod: z.enum(["email", "sms", "sms_only", "mms", "mms_only"]).optional().default("email"),
       });
       
       const data = schema.parse(req.body);
       const church = await storage.getChurch(user.churchId);
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
         const plan = (church?.plan || "free") as string;
         const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
         const billingPeriod = getCurrentBillingPeriod();
         const usage = await storage.getSmsUsage(user.churchId, billingPeriod);
-        const type = data.notificationMethod;
+        const type = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const used = type === "sms" ? usage.smsCount : usage.mmsCount;
         const limit = type === "sms" ? limits.sms : limits.mms;
         if (used >= limit) {
@@ -6976,8 +7031,8 @@ export async function registerRoutes(
         customConvertSubject: data.customConvertSubject || undefined,
       }).catch(err => console.error("Email notification failed:", err));
 
-      if (data.notificationMethod === "sms" || data.notificationMethod === "mms") {
-        const smsType = data.notificationMethod as "sms" | "mms";
+      if (data.notificationMethod === "sms" || data.notificationMethod === "mms" || data.notificationMethod === "sms_only" || data.notificationMethod === "mms_only") {
+        const smsType = (data.notificationMethod === "mms" || data.notificationMethod === "mms_only") ? "mms" : "sms";
         const billingPeriod = getCurrentBillingPeriod();
         const recipientPhone = member.phone ? formatPhoneForSms(member.phone) : null;
         const churchName = church?.name || "Ministry";
@@ -7385,7 +7440,7 @@ export async function registerRoutes(
 
   // AI Text Generation endpoint
   const openai = new OpenAI({
-    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
     baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
   });
 

@@ -4,35 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
-import { BookOpen, MessageCircle, Users, Droplets, GraduationCap, Heart, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const journeyStepKeys = [
   {
-    icon: BookOpen,
     titleKey: "journey.readBible",
     descKey: "journey.readBibleDesc",
     tipKeys: ["journey.readBibleTip1", "journey.readBibleTip2", "journey.readBibleTip3", "journey.readBibleTip4", "journey.readBibleTip5"],
   },
   {
-    icon: MessageCircle,
     titleKey: "journey.prayDaily",
     descKey: "journey.prayDailyDesc",
     tipKeys: ["journey.prayDailyTip1", "journey.prayDailyTip2", "journey.prayDailyTip3", "journey.prayDailyTip4", "journey.prayDailyTip5"],
   },
   {
-    icon: Users,
     titleKey: "journey.joinCommunity",
     descKey: "journey.joinCommunityDesc",
     tipKeys: ["journey.joinCommunityTip1", "journey.joinCommunityTip2", "journey.joinCommunityTip3", "journey.joinCommunityTip4", "journey.joinCommunityTip5"],
   },
   {
-    icon: Droplets,
     titleKey: "journey.getBaptized",
     descKey: "journey.getBaptizedDesc",
     tipKeys: ["journey.getBaptizedTip1", "journey.getBaptizedTip2", "journey.getBaptizedTip3", "journey.getBaptizedTip4", "journey.getBaptizedTip5"],
   },
   {
-    icon: GraduationCap,
     titleKey: "journey.growDisciple",
     descKey: "journey.growDiscipleDesc",
     tipKeys: ["journey.growDiscipleTip1", "journey.growDiscipleTip2", "journey.growDiscipleTip3", "journey.growDiscipleTip4", "journey.growDiscipleTip5"],
@@ -50,9 +45,6 @@ export default function Journey() {
         <section className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6">
-                <Heart className="h-8 w-8 text-primary" />
-              </div>
               <h1 className="text-2xl md:text-3xl font-bold mb-6">
                 {t('journey.pageTitle')}
               </h1>
@@ -68,15 +60,10 @@ export default function Journey() {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="space-y-8">
-                {journeyStepKeys.map((step, index) => {
-                  const Icon = step.icon;
-                  return (
+                {journeyStepKeys.map((step, index) => (
                     <Card key={step.titleKey} className="overflow-hidden">
                       <div className="flex flex-col md:flex-row">
                         <div className="bg-muted p-6 md:p-8 flex flex-col items-center justify-center md:w-48">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background mb-2">
-                            <Icon className="h-6 w-6 text-primary" />
-                          </div>
                           <span className="text-sm font-medium text-muted-foreground">
                             {t('journey.step', { number: index + 1 })}
                           </span>
@@ -100,8 +87,7 @@ export default function Journey() {
                         </div>
                       </div>
                     </Card>
-                  );
-                })}
+                ))}
               </div>
             </div>
           </div>

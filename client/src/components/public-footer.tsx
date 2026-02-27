@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoLight from "@assets/zoweh-logo-light.png";
 import zowehLogoDark from "@assets/zoweh_life_logo_transparent_1771993303739.png";
 import { useTranslation } from "react-i18next";
 
@@ -12,7 +12,7 @@ export function PublicFooter() {
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center mb-4">
-              <img src={zowehLogoLight} alt="Zoweh Life" className="h-9 w-[150px] object-contain dark:hidden" />
+              <span className="inline-block"><img src={zowehLogoLight} alt="Zoweh Life" className="h-9 w-[150px] object-contain dark:hidden mix-blend-darken" /></span>
               <img src={zowehLogoDark} alt="Zoweh Life" className="h-9 w-[150px] object-contain hidden dark:block" />
             </div>
             <p className="text-sm text-muted-foreground">

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "./theme-provider";
 import { languages } from "@/lib/i18n";
 import { Menu, X, Globe, Moon, Sun, Check } from "lucide-react";
-import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoLight from "@assets/zoweh-logo-light.png";
 import zowehLogoDark from "@assets/zoweh_life_logo_transparent_1771993303739.png";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,7 +34,7 @@ export function PublicNav() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           <Link href="/" className="flex items-center">
-            <img src={zowehLogoLight} alt="Zoweh Life" className="h-12 w-[180px] object-contain dark:hidden" />
+            <span className="inline-block"><img src={zowehLogoLight} alt="Zoweh Life" className="h-12 w-[180px] object-contain dark:hidden mix-blend-darken" /></span>
             <img src={zowehLogoDark} alt="Zoweh Life" className="h-12 w-[180px] object-contain hidden dark:block" />
           </Link>
 

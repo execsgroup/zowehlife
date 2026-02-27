@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
-import { Heart, BookOpen, Cross, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Heart, BookOpen, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function Salvation() {
   const { t } = useTranslation();
@@ -17,9 +17,6 @@ export default function Salvation() {
         <section className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6">
-                <Cross className="h-8 w-8 text-primary" />
-              </div>
               <h1 className="text-2xl md:text-3xl font-bold mb-6">
                 {t('salvation.pageTitle')}
               </h1>

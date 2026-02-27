@@ -58,7 +58,10 @@
     "startJourney": "Começar Jornada",
     "getConnected": "Conecte-se",
     "ctaTitle": "Pronto para Dar o Próximo Passo?",
-    "ctaDescription": "Quer você queira aprender mais sobre fé, precise de oração ou queira se conectar com um ministério local, estamos aqui para você."
+    "ctaDescription": "Quer você queira aprender mais sobre fé, precise de oração ou queira se conectar com um ministério local, estamos aqui para você.",
+    "ctaMinistryTitle": "Pronto para liderar seu ministério?",
+    "ctaMinistryDescription": "Configure sua igreja ou ministério com ferramentas de acompanhamento, cuidado com membros e discipulado. Comece com um plano gratuito.",
+    "ctaMinistryButton": "Cadastrar ministério"
   },
   "footer": {
     "tagline": "Nutriindo a fé e construindo comunidade, uma alma por vez.",
@@ -98,7 +101,8 @@
     "people": "Pessoas",
     "engagement": "Engajamento",
     "management": "Gestão",
-    "configuration": "Configuração"
+    "configuration": "Configuração",
+    "messaging": "Configuração de automação de mensagens"
   },
   "dashboard": {
     "platformOverview": "Visão Geral da Plataforma",
@@ -473,6 +477,8 @@
     "emailOnly": "e-mail",
     "emailSms": "E-mail + SMS",
     "emailMms": "E-mail + MMS",
+    "smsOnly": "SMS",
+    "mmsOnly": "MMS",
     "massFollowUps": "Acompanhamentos em Grupo",
     "convertFollowUps": "Acompanhamentos de Convertidos",
     "newMemberFollowUps": "Acompanhamentos de Novos Membros e Visitantes",

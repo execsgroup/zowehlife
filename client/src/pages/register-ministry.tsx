@@ -16,10 +16,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import {
   Check,
-  Users,
-  BarChart3,
-  Video,
-  Mail,
   Sparkles,
   Star,
   Loader2,
@@ -318,24 +314,18 @@ export default function RegisterMinistry() {
                 </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
                   {[
-                    { icon: Users, titleKey: "registerMinistry.memberTracking", descKey: "registerMinistry.memberTrackingDesc" },
-                    { icon: Mail, titleKey: "registerMinistry.emailNotifications", descKey: "registerMinistry.emailNotificationsDesc" },
-                    { icon: BarChart3, titleKey: "registerMinistry.dashboardAnalytics", descKey: "registerMinistry.dashboardAnalyticsDesc" },
-                    { icon: Video, titleKey: "registerMinistry.videoConferencing", descKey: "registerMinistry.videoConferencingDesc" },
-                  ].map((item, idx) => {
-                    const ItemIcon = item.icon;
-                    return (
-                      <Card key={idx} className="text-center">
-                        <CardContent className="pt-6">
-                          <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
-                            <ItemIcon className="h-6 w-6 text-primary" />
-                          </div>
-                          <h3 className="font-semibold mb-1">{t(item.titleKey)}</h3>
-                          <p className="text-sm text-muted-foreground">{t(item.descKey)}</p>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                    { titleKey: "registerMinistry.memberTracking", descKey: "registerMinistry.memberTrackingDesc" },
+                    { titleKey: "registerMinistry.emailNotifications", descKey: "registerMinistry.emailNotificationsDesc" },
+                    { titleKey: "registerMinistry.dashboardAnalytics", descKey: "registerMinistry.dashboardAnalyticsDesc" },
+                    { titleKey: "registerMinistry.videoConferencing", descKey: "registerMinistry.videoConferencingDesc" },
+                  ].map((item, idx) => (
+                    <Card key={idx} className="text-center">
+                      <CardContent className="pt-6">
+                        <h3 className="font-semibold mb-1">{t(item.titleKey)}</h3>
+                        <p className="text-sm text-muted-foreground">{t(item.descKey)}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               </div>
             </section>

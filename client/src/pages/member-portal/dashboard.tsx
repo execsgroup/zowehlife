@@ -20,7 +20,7 @@ import {
   ExternalLink,
   Loader2 
 } from "lucide-react";
-import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoLight from "@assets/zoweh-logo-light.png";
 import zowehLogoDark from "@assets/zoweh_life_logo_transparent_1771993303739.png";
 
 interface MemberProfile {
@@ -161,7 +161,7 @@ export default function MemberDashboard() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src={zowehLogoLight} alt="Zoweh Life" className="h-14 object-contain dark:hidden" />
+            <span className="inline-block"><img src={zowehLogoLight} alt="Zoweh Life" className="h-14 object-contain dark:hidden mix-blend-darken" /></span>
             <img src={zowehLogoDark} alt="Zoweh Life" className="h-14 object-contain hidden dark:block" />
             <div>
               <h1 className="text-2xl font-bold">

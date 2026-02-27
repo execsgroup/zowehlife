@@ -3,58 +3,59 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
-import { Heart, BookOpen, Users, ArrowRight, Sparkles, HandHeart, Church } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+const CONTENT_MAX = "max-w-3xl";
+const SECTION_PY = "py-20 md:py-24";
 
 export default function Home() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <PublicNav />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="bg-muted py-20 md:py-28">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary mb-6">
-                <Sparkles className="h-4 w-4" />
-                {t('home.welcomeBadge')}
-              </div>
-
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-6">
-                {t('home.heroTitle')}{" "}
-                <span className="text-primary">{t('home.heroHighlight')}</span>{" "}
-                {t('home.heroTitleEnd')}
-              </h1>
-
-              <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-                {t('home.heroDescription')}
+        {/* Hero */}
+        <section className={SECTION_PY}>
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className={`${CONTENT_MAX} mx-auto text-center`}>
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6">
+                {t("home.welcomeBadge")}
               </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl mb-6">
+                {t("home.heroTitle")}{" "}
+                <span className="text-primary">{t("home.heroHighlight")}</span>{" "}
+                {t("home.heroTitleEnd")}
+              </h1>
+              <p className="text-base text-muted-foreground md:text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+                {t("home.heroDescription")}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
                 <Link href="/salvation">
-                  <Button size="lg" className="gap-2" data-testid="button-learn-more">
-                    {t('home.learnAboutSalvation')}
-                    <ArrowRight className="h-4 w-4" />
+                  <Button size="lg" className="w-full sm:w-auto" data-testid="button-learn-more">
+                    {t("home.learnAboutSalvation")}
                   </Button>
                 </Link>
                 <Link href="/contact">
-                  <Button size="lg" variant="outline" className="gap-2" data-testid="button-contact">
-                    {t('home.requestPrayer')}
-                    <HandHeart className="h-4 w-4" />
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    data-testid="button-contact"
+                  >
+                    {t("home.requestPrayer")}
                   </Button>
                 </Link>
                 <Link href="/contact-us">
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="gap-2" 
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto"
                     data-testid="button-contact-hero"
                   >
-                    <Users className="h-4 w-4" />
-                    {t('home.contactUs')}
+                    {t("home.contactUs")}
                   </Button>
                 </Link>
               </div>
@@ -62,63 +63,61 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="py-16 md:py-24 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">{t('home.pathTitle')}</h2>
-              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                {t('home.pathDescription')}
+        {/* Features */}
+        <section className={`${SECTION_PY} border-t bg-muted/40`}>
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl mb-3">
+                {t("home.pathTitle")}
+              </h2>
+              <p className="text-muted-foreground text-sm md:text-base">
+                {t("home.pathDescription")}
               </p>
             </div>
-
-            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              <Card className="text-center hover-elevate">
-                <CardContent className="pt-8 pb-6">
-                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
-                    <Heart className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{t('home.discoverSalvation')}</h3>
-                  <p className="text-muted-foreground mb-4">
-                    {t('home.discoverSalvationDesc')}
+            <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+              <Card className="border-border/80 bg-card text-left transition-shadow hover:shadow-md">
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    {t("home.discoverSalvation")}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-5">
+                    {t("home.discoverSalvationDesc")}
                   </p>
                   <Link href="/salvation">
-                    <Button variant="ghost" className="gap-1" data-testid="link-salvation-card">
-                      {t('home.learnMore')} <ArrowRight className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" className="gap-1 -ml-2" data-testid="link-salvation-card">
+                      {t("home.learnMore")} <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </CardContent>
               </Card>
 
-              <Card className="text-center hover-elevate">
-                <CardContent className="pt-8 pb-6">
-                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
-                    <BookOpen className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{t('home.growInFaith')}</h3>
-                  <p className="text-muted-foreground mb-4">
-                    {t('home.growInFaithDesc')}
+              <Card className="border-border/80 bg-card text-left transition-shadow hover:shadow-md">
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    {t("home.growInFaith")}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-5">
+                    {t("home.growInFaithDesc")}
                   </p>
                   <Link href="/journey">
-                    <Button variant="ghost" className="gap-1" data-testid="link-journey-card">
-                      {t('home.startJourney')} <ArrowRight className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" className="gap-1 -ml-2" data-testid="link-journey-card">
+                      {t("home.startJourney")} <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </CardContent>
               </Card>
 
-              <Card className="text-center hover-elevate">
-                <CardContent className="pt-8 pb-6">
-                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
-                    <Users className="h-7 w-7 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{t('home.findCommunity')}</h3>
-                  <p className="text-muted-foreground mb-4">
-                    {t('home.findCommunityDesc')}
+              <Card className="border-border/80 bg-card text-left transition-shadow hover:shadow-md">
+                <CardContent className="p-6 md:p-8">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    {t("home.findCommunity")}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-5">
+                    {t("home.findCommunityDesc")}
                   </p>
                   <Link href="/contact">
-                    <Button variant="ghost" className="gap-1" data-testid="link-contact-card">
-                      {t('home.getConnected')} <ArrowRight className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" className="gap-1 -ml-2" data-testid="link-contact-card">
+                      {t("home.getConnected")} <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                 </CardContent>
@@ -127,38 +126,45 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-16 md:py-24 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <Card className="max-w-4xl mx-auto overflow-hidden">
-              <div className="bg-primary p-8 md:p-12 text-primary-foreground">
-                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                  <div className="flex-shrink-0">
-                    <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center">
-                      <Church className="h-10 w-10" />
-                    </div>
-                  </div>
+        {/* CTA */}
+        <section className={SECTION_PY}>
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              <Card className="border-border/80 overflow-hidden">
+                <div className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-8 bg-muted/50 h-full">
                   <div className="text-center md:text-left flex-1">
-                    <h3 className="text-xl md:text-2xl font-bold mb-2">
-                      {t('home.ctaTitle')}
+                    <h3 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl mb-2">
+                      {t("home.ctaTitle")}
                     </h3>
-                    <p className="text-primary-foreground/90 mb-4 md:mb-0">
-                      {t('home.ctaDescription')}
+                    <p className="text-muted-foreground text-sm md:text-base">
+                      {t("home.ctaDescription")}
                     </p>
                   </div>
-                  <Link href="/contact-us">
-                    <Button
-                      size="lg"
-                      variant="secondary"
-                      className="whitespace-nowrap"
-                      data-testid="button-cta-contact"
-                    >
-                      {t('home.contactUs')}
+                  <Link href="/contact-us" className="shrink-0">
+                    <Button size="lg" className="w-full sm:w-auto" data-testid="button-cta-contact">
+                      {t("home.contactUs")}
                     </Button>
                   </Link>
                 </div>
-              </div>
-            </Card>
+              </Card>
+              <Card className="border-border/80 overflow-hidden">
+                <div className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-8 bg-muted/50 h-full">
+                  <div className="text-center md:text-left flex-1">
+                    <h3 className="text-xl font-semibold tracking-tight text-foreground md:text-2xl mb-2">
+                      {t("home.ctaMinistryTitle")}
+                    </h3>
+                    <p className="text-muted-foreground text-sm md:text-base">
+                      {t("home.ctaMinistryDescription")}
+                    </p>
+                  </div>
+                  <Link href="/register-ministry" className="shrink-0">
+                    <Button size="lg" className="w-full sm:w-auto" data-testid="button-cta-ministry">
+                      {t("home.ctaMinistryButton")}
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+            </div>
           </div>
         </section>
       </main>

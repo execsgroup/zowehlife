@@ -507,6 +507,32 @@ export const formConfigurations = pgTable("form_configurations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Messaging automation: per-category (convert, member, new_member_guest) config for welcome/first message
+export const messagingAutomationCategoryEnum = pgEnum("messaging_automation_category", ["convert", "member", "new_member_guest"]);
+export const messagingAutomationConfig = pgTable("messaging_automation_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  category: messagingAutomationCategoryEnum("category").notNull(),
+  enabled: text("enabled").notNull().default("false"),
+  cutoffTime: text("cutoff_time"), // "15:00" = 3 PM; if added before this, use same-day delay
+  delayHoursSameDay: integer("delay_hours_same_day"), // e.g. 2 = send 2 hours after submission
+  nextDaySendTime: text("next_day_send_time"), // e.g. "12:00" = next day at noon
+  sendEmail: text("send_email").notNull().default("true"),
+  sendSms: text("send_sms").notNull().default("false"),
+  emailSubject: text("email_subject"),
+  emailBody: text("email_body"),
+  smsBody: text("sms_body"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+// Automation sent log: so we don't send the welcome message twice
+export const automationSentLog = pgTable("automation_sent_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  churchId: varchar("church_id").notNull().references(() => churches.id),
+  entityType: messagingAutomationCategoryEnum("entity_type").notNull(),
+  entityId: varchar("entity_id").notNull(),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+});
+
 // Password Reset Tokens table
 export const accountTypeEnum = pgEnum("account_type", ["staff", "member"]);
 
@@ -665,6 +691,16 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).omit(
 export const insertFormConfigurationSchema = createInsertSchema(formConfigurations).omit({
   id: true,
   updatedAt: true,
+});
+
+export const insertMessagingAutomationConfigSchema = createInsertSchema(messagingAutomationConfig).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertAutomationSentLogSchema = createInsertSchema(automationSentLog).omit({
+  id: true,
+  sentAt: true,
 });
 
 // Form field config type definitions
@@ -846,6 +882,11 @@ export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 
 export type FormConfiguration = typeof formConfigurations.$inferSelect;
 export type InsertFormConfiguration = z.infer<typeof insertFormConfigurationSchema>;
+
+export type MessagingAutomationConfig = typeof messagingAutomationConfig.$inferSelect;
+export type InsertMessagingAutomationConfig = z.infer<typeof insertMessagingAutomationConfigSchema>;
+export type AutomationSentLogEntry = typeof automationSentLog.$inferSelect;
+export type InsertAutomationSentLog = z.infer<typeof insertAutomationSentLogSchema>;
 
 // Member claim account schema
 export const claimAccountSchema = z.object({

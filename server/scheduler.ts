@@ -1,7 +1,8 @@
 import { storage } from "./storage";
-import { sendFollowUpReminderEmail } from "./email";
+import { sendFollowUpReminderEmail, sendEmail } from "./email";
 import { getBaseUrl } from "./utils/url";
 import { sendSms, sendMms, formatPhoneForSms, buildFollowUpSmsMessage, getCurrentBillingPeriod, SMS_PLAN_LIMITS } from "./sms";
+import type { MessagingAutomationConfig } from "@shared/schema";
 
 const REMINDER_CHECK_INTERVAL = 60 * 60 * 1000; // Check every hour
 const CONTACT_REMINDER_DAYS = 14; // Days before auto-changing to CONTACT_NEW_MEMBER
@@ -56,7 +57,7 @@ async function processUpcomingFollowUpReminders() {
       const method = followup.notificationMethod || "email";
       let reminderSent = false;
 
-      if (followup.convertEmail) {
+      if (method !== "sms_only" && method !== "mms_only" && followup.convertEmail) {
         const contactUrl = `${getBaseUrl()}/contact`;
         const result = await sendFollowUpReminderEmail({
           convertName: `${followup.convertFirstName} ${followup.convertLastName}`,
@@ -71,11 +72,11 @@ async function processUpcomingFollowUpReminders() {
           reminderSent = true;
           console.log(`[Scheduler] Email reminder sent for ${followup.convertFirstName} ${followup.convertLastName}`);
         }
-      } else {
+      } else if (method !== "sms_only" && method !== "mms_only") {
         console.log(`[Scheduler] No email for ${followup.convertFirstName} ${followup.convertLastName}, skipping email reminder`);
       }
 
-      if (method === "sms" || method === "mms") {
+      if (method === "sms" || method === "mms" || method === "sms_only" || method === "mms_only") {
         const phone = followup.convertPhone ? formatPhoneForSms(followup.convertPhone) : null;
         if (!phone) {
           console.log(`[Scheduler] Skipping ${method} reminder for ${followup.convertFirstName} - no phone`);
@@ -85,7 +86,7 @@ async function processUpcomingFollowUpReminders() {
           const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
           const billingPeriod = getCurrentBillingPeriod();
           const usage = await storage.getSmsUsage(followup.churchId, billingPeriod);
-          const smsType = method as "sms" | "mms";
+          const smsType = (method === "mms" || method === "mms_only") ? "mms" : "sms";
           const used = smsType === "sms" ? usage.smsCount : usage.mmsCount;
           const limit = smsType === "sms" ? limits.sms : limits.mms;
           if (used >= limit) {
@@ -139,7 +140,7 @@ async function processNewMemberUpcomingFollowUpReminders() {
       const method = followup.notificationMethod || "email";
       let reminderSent = false;
 
-      if (followup.newMemberEmail) {
+      if (method !== "sms_only" && method !== "mms_only" && followup.newMemberEmail) {
         const contactUrl = `${getBaseUrl()}/contact`;
         const result = await sendFollowUpReminderEmail({
           convertName: `${followup.newMemberFirstName} ${followup.newMemberLastName}`,
@@ -156,11 +157,11 @@ async function processNewMemberUpcomingFollowUpReminders() {
           reminderSent = true;
           console.log(`[Scheduler] Email reminder sent for new member ${followup.newMemberFirstName} ${followup.newMemberLastName}`);
         }
-      } else {
+      } else if (method !== "sms_only" && method !== "mms_only") {
         console.log(`[Scheduler] No email for ${followup.newMemberFirstName} ${followup.newMemberLastName}, skipping email reminder`);
       }
 
-      if (method === "sms" || method === "mms") {
+      if (method === "sms" || method === "mms" || method === "sms_only" || method === "mms_only") {
         const phone = followup.newMemberPhone ? formatPhoneForSms(followup.newMemberPhone) : null;
         if (!phone) {
           console.log(`[Scheduler] Skipping ${method} reminder for ${followup.newMemberFirstName} - no phone`);
@@ -170,7 +171,7 @@ async function processNewMemberUpcomingFollowUpReminders() {
           const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
           const billingPeriod = getCurrentBillingPeriod();
           const usage = await storage.getSmsUsage(followup.churchId, billingPeriod);
-          const smsType = method as "sms" | "mms";
+          const smsType = (method === "mms" || method === "mms_only") ? "mms" : "sms";
           const used = smsType === "sms" ? usage.smsCount : usage.mmsCount;
           const limit = smsType === "sms" ? limits.sms : limits.mms;
           if (used >= limit) {
@@ -267,6 +268,104 @@ async function processNewMemberFinalFollowUp() {
     }
   } catch (error) {
     console.error("[Scheduler] Error processing final follow-up initiation:", error);
+  }
+}
+
+function parseTimeToMinutes(timeStr: string): number {
+  const [h, m] = (timeStr || "00:00").split(":").map(Number);
+  return (h ?? 0) * 60 + (m ?? 0);
+}
+
+function computeAutomationSendAt(createdAt: Date, config: MessagingAutomationConfig): Date {
+  const cutoffM = parseTimeToMinutes(config.cutoffTime || "15:00");
+  const createdM = createdAt.getHours() * 60 + createdAt.getMinutes();
+  const delayHours = config.delayHoursSameDay ?? 2;
+  if (createdM < cutoffM) {
+    return new Date(createdAt.getTime() + delayHours * 60 * 60 * 1000);
+  }
+  const [nh, nm] = (config.nextDaySendTime || "12:00").split(":").map(Number);
+  const next = new Date(createdAt);
+  next.setDate(next.getDate() + 1);
+  next.setHours(nh ?? 12, nm ?? 0, 0, 0);
+  return next;
+}
+
+function replaceTemplate(str: string, vars: { firstName: string; lastName: string; churchName: string }): string {
+  return str
+    .replace(/\{\{firstName\}\}/g, vars.firstName)
+    .replace(/\{\{lastName\}\}/g, vars.lastName)
+    .replace(/\{\{churchName\}\}/g, vars.churchName);
+}
+
+async function processMessagingAutomation() {
+  try {
+    const enabledConfigs = await storage.getEnabledMessagingAutomationConfigs();
+    if (enabledConfigs.length === 0) return;
+
+    const now = new Date();
+    const churchIds = [...new Set(enabledConfigs.map((c) => c.churchId))];
+
+    for (const churchId of churchIds) {
+      const church = await storage.getChurch(churchId);
+      const churchName = church?.name ?? "Ministry";
+
+      for (const config of enabledConfigs.filter((c) => c.churchId === churchId)) {
+        const category = config.category as "convert" | "member" | "new_member_guest";
+        let entities: { id: string; firstName: string; lastName: string; email?: string | null; phone?: string | null }[] = [];
+
+        if (category === "convert") {
+          entities = await storage.getConvertsByChurch(churchId);
+        } else if (category === "member") {
+          entities = await storage.getMembersByChurch(churchId);
+        } else {
+          entities = await storage.getNewMembersByChurch(churchId);
+        }
+
+        for (const entity of entities) {
+          const alreadySent = await storage.hasAutomationBeenSent(churchId, category, entity.id);
+          if (alreadySent) continue;
+
+          const createdAt = "createdAt" in entity ? new Date((entity as any).createdAt) : new Date();
+          const sendAt = computeAutomationSendAt(createdAt, config);
+          if (sendAt.getTime() > now.getTime()) continue;
+
+          const firstName = entity.firstName || "";
+          const lastName = entity.lastName || "";
+          const vars = { firstName, lastName, churchName };
+
+          const doEmail = config.sendEmail === "true" && config.emailSubject && config.emailBody && entity.email;
+          const doSms = config.sendSms === "true" && config.smsBody && entity.phone;
+
+          if (doEmail) {
+            const subject = replaceTemplate(config.emailSubject!, vars);
+            const html = replaceTemplate(config.emailBody!, vars).replace(/\n/g, "<br>");
+            const result = await sendEmail({ to: entity.email!, subject, html });
+            if (!result.success) console.error("[Scheduler] Message automation email failed:", result.error);
+          }
+          if (doSms) {
+            const phone = formatPhoneForSms(entity.phone!);
+            if (phone) {
+              const body = replaceTemplate(config.smsBody!, vars);
+              const plan = (church as any)?.plan || "free";
+              const limits = SMS_PLAN_LIMITS[plan] || SMS_PLAN_LIMITS.free;
+              const billingPeriod = getCurrentBillingPeriod();
+              const usage = await storage.getSmsUsage(churchId, billingPeriod);
+              if (usage.smsCount < limits.sms) {
+                const result = await sendSms({ to: phone, body });
+                if (result.success) {
+                  await storage.incrementSmsUsage(churchId, billingPeriod, "sms");
+                }
+              }
+            }
+          }
+
+          await storage.recordAutomationSent(churchId, category, entity.id);
+          console.log(`[Scheduler] Message automation sent for ${category} ${entity.id} (${firstName} ${lastName})`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error processing message automation:", error);
   }
 }
 
@@ -429,7 +528,8 @@ export function startReminderScheduler() {
   processNewMemberSecondFollowUp();
   processNewMemberFinalFollowUp();
   processScheduledAnnouncements();
-  
+  processMessagingAutomation();
+
   // Then run periodically
   setInterval(() => {
     processUpcomingFollowUpReminders();
@@ -439,6 +539,7 @@ export function startReminderScheduler() {
     processNewMemberContactReminders();
     processNewMemberSecondFollowUp();
     processNewMemberFinalFollowUp();
+    processMessagingAutomation();
   }, REMINDER_CHECK_INTERVAL);
 
   // Check scheduled announcements more frequently (every minute)

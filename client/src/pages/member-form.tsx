@@ -174,11 +174,7 @@ export default function MemberForm() {
                 data-testid="img-church-logo"
               />
             </div>
-          ) : (
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
-              <Church className="h-8 w-8 text-primary" />
-            </div>
-          )}
+          ) : null}
           <h1 className="text-2xl md:text-3xl font-bold mb-2" data-testid="text-hero-title">{church?.formConfig?.heroTitle || t('publicForms.welcomeMember')}</h1>
         </div>
         <Card>

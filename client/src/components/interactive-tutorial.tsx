@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
-import { X, ChevronRight, ChevronLeft, Lightbulb } from "lucide-react";
+import { X, ChevronRight, ChevronLeft } from "lucide-react";
 
 interface TutorialStep {
   targetSelector: string;
@@ -403,9 +403,6 @@ function TutorialOverlay({
       >
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10">
-              <Lightbulb className="h-4 w-4 text-primary" />
-            </div>
             <h3 className="font-semibold text-sm text-foreground">{t(step.titleKey)}</h3>
           </div>
           <Button

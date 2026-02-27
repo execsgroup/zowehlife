@@ -46,9 +46,10 @@ import {
   Megaphone,
   FileEdit,
   GraduationCap,
+  Send,
 } from "lucide-react";
 import { useTutorialSafe } from "./interactive-tutorial";
-import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import zowehLogoLight from "@assets/zoweh-logo-light.png";
 import zowehLogoDark from "@assets/zoweh_life_logo_transparent_1771993303739.png";
 
 interface ChurchData {
@@ -108,6 +109,7 @@ export function AppSidebar() {
     {
       label: t('sidebar.configuration'),
       items: [
+        { title: t('sidebar.messaging'), url: "/ministry-admin/messaging", icon: Send },
         { title: t('sidebar.formSettings'), url: "/ministry-admin/form-settings", icon: FileEdit },
         { title: t('sidebar.settings'), url: "/ministry-admin/settings", icon: Settings },
         { title: t('sidebar.billing'), url: "/ministry-admin/billing", icon: CreditCard },
@@ -180,7 +182,7 @@ export function AppSidebar() {
               <Avatar className="h-7 w-7 rounded-md">
                 <AvatarImage src={currentChurch.logoUrl!} alt={currentChurch.name} className="object-cover" />
                 <AvatarFallback className="rounded-md text-xs">
-                  <img src={zowehLogoLight} alt="Zoweh Life" className="h-8 object-contain dark:hidden" />
+                  <span className="inline-block"><img src={zowehLogoLight} alt="Zoweh Life" className="h-8 object-contain dark:hidden mix-blend-darken" /></span>
                   <img src={zowehLogoDark} alt="Zoweh Life" className="h-8 object-contain hidden dark:block" />
                 </AvatarFallback>
               </Avatar>
@@ -190,7 +192,7 @@ export function AppSidebar() {
             </>
           ) : (
             <>
-              <img src={zowehLogoLight} alt="Zoweh Life" className="h-8 object-contain dark:hidden" />
+              <span className="inline-block"><img src={zowehLogoLight} alt="Zoweh Life" className="h-8 object-contain dark:hidden mix-blend-darken" /></span>
               <img src={zowehLogoDark} alt="Zoweh Life" className="h-8 object-contain hidden dark:block" />
             </>
           )}

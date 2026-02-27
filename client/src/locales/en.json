@@ -58,7 +58,10 @@
     "startJourney": "Start Journey",
     "getConnected": "Get Connected",
     "ctaTitle": "Ready to Take the Next Step?",
-    "ctaDescription": "Whether you want to learn more about faith, need prayer, or want to connect with a local ministry, we're here for you."
+    "ctaDescription": "Whether you want to learn more about faith, need prayer, or want to connect with a local ministry, we're here for you.",
+    "ctaMinistryTitle": "Ready to Lead Your Ministry?",
+    "ctaMinistryDescription": "Get your church or ministry set up with tools for follow-up, member care, and discipleship. Start with a free plan.",
+    "ctaMinistryButton": "Sign Up Ministry"
   },
   "footer": {
     "tagline": "Nurturing faith and building community, one soul at a time.",
@@ -68,7 +71,7 @@
     "prayerRequest": "Prayer Request",
     "contactUs": "Contact Us",
     "forMinistries": "For Ministries",
-    "registerMinistry": "Register a Ministry",
+    "registerMinistry": "Ministry Sign Up",
     "allRightsReserved": "All rights reserved."
   },
   "sidebar": {
@@ -98,7 +101,8 @@
     "people": "People",
     "engagement": "Engagement",
     "management": "Management",
-    "configuration": "Configuration"
+    "configuration": "Configuration",
+    "messaging": "Message Automation Setup"
   },
   "dashboard": {
     "platformOverview": "Platform Overview",
@@ -470,9 +474,11 @@
     "joinMeeting": "Join Meeting",
     "generateVideoLink": "Generate Video Link",
     "notificationMethod": "Notification Method",
-    "emailOnly": "email",
+    "emailOnly": "Email",
     "emailSms": "Email + SMS",
     "emailMms": "Email + MMS",
+    "smsOnly": "SMS",
+    "mmsOnly": "MMS",
     "massFollowUps": "Group Follow-ups",
     "convertFollowUps": "Convert Follow-ups",
     "newMemberFollowUps": "New Member & Guest Follow-ups",
@@ -1411,7 +1417,37 @@
     "unknownMinistry": "Unknown Ministry",
     "savedSuccessfully": "Saved successfully",
     "deletedSuccessfully": "Deleted successfully",
-    "updatedSuccessfully": "Updated successfully"
+    "updatedSuccessfully": "Updated successfully",
+    "save": "Save",
+    "saved": "Saved"
+  },
+  "messaging": {
+    "pageDescription": "Control when and how automated welcome messages are sent when someone is added to Converts, Members, or New Members & Guests.",
+    "automationDescription": "Set time rules and message content for the first automated message sent after a person is added.",
+    "enableAutomation": "Enable automated message",
+    "timeRulesHelp": "If the person is added before the cutoff time, the message is sent after the delay (hours). If added after the cutoff, the message is sent the next day at the specified time.",
+    "cutoffTime": "Cutoff time (same-day rule)",
+    "cutoffTimeHelp": "e.g. 15:00 = 3 PM. Submissions before this use the same-day delay.",
+    "delayHoursSameDay": "Delay (hours) when added before cutoff",
+    "delayHoursHelp": "Send message this many hours after submission when added before cutoff.",
+    "nextDaySendTime": "Next-day send time",
+    "nextDaySendTimeHelp": "When added after cutoff, send the next day at this time (e.g. 12:00).",
+    "sendEmail": "Send email",
+    "sendSms": "Send SMS",
+    "emailSubject": "Email subject",
+    "emailSubjectPlaceholder": "e.g. Welcome – we're glad you're here",
+    "emailBody": "Email body (HTML supported)",
+    "emailBodyPlaceholder": "Hello {{firstName}},\n\nWe're so glad you...",
+    "emailBodyHelp": "Use {{firstName}}, {{lastName}}, {{churchName}} for personalization.",
+    "smsBody": "SMS message",
+    "smsBodyPlaceholder": "Hi {{firstName}}, welcome! - {{churchName}}",
+    "smsBodyHelp": "Use {{firstName}}, {{lastName}}, {{churchName}}. Keep under 160 chars for a single SMS.",
+    "aiEmailContext": "Automated welcome email for {{category}}. Use placeholders {{firstName}}, {{lastName}}, {{churchName}}. Keep the tone warm and concise. Output plain text or simple HTML.",
+    "aiEmailPlaceholder": "e.g., Write a short welcome message...",
+    "aiSmsContext": "Short SMS for {{category}} welcome. Use {{firstName}}, {{lastName}}, {{churchName}}. Keep under 160 characters.",
+    "aiSmsPlaceholder": "e.g., Write a brief welcome SMS...",
+    "savedSuccess": "Message automation settings saved.",
+    "saveFailed": "Failed to save message automation settings."
   },
   "setup": {
     "adminSetup": "Admin Setup",

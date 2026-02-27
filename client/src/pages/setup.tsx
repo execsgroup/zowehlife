@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { adminSetupSchema, type AdminSetupData } from "@shared/schema";
-import { User, Mail, Lock, Key, Loader2, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
-import zowehLogoLight from "@assets/Screenshot_2026-02-24_at_10.38.33_PM_1771990719265.png";
+import { User, Mail, Lock, Key, Loader2, ArrowLeft, AlertCircle } from "lucide-react";
+import zowehLogoLight from "@assets/zoweh-logo-light.png";
 import zowehLogoDark from "@assets/zoweh_life_logo_transparent_1771993303739.png";
 import { useTranslation } from "react-i18next";
 
@@ -87,9 +87,6 @@ export default function Setup() {
         <div className="w-full max-w-md">
           <Card className="text-center">
             <CardContent className="pt-8 pb-6">
-              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
-                <CheckCircle2 className="h-8 w-8 text-primary" />
-              </div>
               <h2 className="text-2xl font-bold mb-2">{t('setup.setupComplete')}</h2>
               <p className="text-muted-foreground mb-6">
                 {t('setup.setupCompleteDesc')}
@@ -109,7 +106,7 @@ export default function Setup() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <img src={zowehLogoLight} alt="Zoweh Life" className="h-14 object-contain dark:hidden" />
+            <span className="inline-block"><img src={zowehLogoLight} alt="Zoweh Life" className="h-14 object-contain dark:hidden mix-blend-darken" /></span>
             <img src={zowehLogoDark} alt="Zoweh Life" className="h-14 object-contain hidden dark:block" />
           </Link>
           <h1 className="text-2xl font-bold">{t('setup.adminSetup')}</h1>
