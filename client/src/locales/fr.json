@@ -1099,6 +1099,7 @@
     "ministryAdminEmailRequired": "Le courriel de l'administrateur est requis lors de l'ajout d'un ministère.",
     "ministryCreatedDescWithEmail": "Le nouveau ministère a été ajouté et les identifiants ont été envoyés au courriel indiqué.",
     "ministryCreatedEmailFailed": "Ministère créé, mais l'envoi des identifiants par courriel a échoué. Veuillez partager les identifiants manuellement.",
+    "ministryCreatedEmailFailedWithCredentials": "L'envoi du courriel a échoué. Partagez ces identifiants avec l'administrateur du ministère : Courriel : {{email}}, Mot de passe temporaire : {{password}}",
     "cancelConfirmDesc": "Êtes-vous sûr de vouloir annuler le compte de {{name}}? Cela supprimera toutes les données du ministère, y compris les leaders, les convertis et les membres. Une sauvegarde sera créée et pourra être restaurée ultérieurement.",
     "cancelConfirmStep2": "Cette action supprimera définitivement toutes les données de {{name}}. Pour confirmer, veuillez taper Cancel Account ci-dessous.",
     "cancelAccountButton": "Oui, Annuler le Compte",

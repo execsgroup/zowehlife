@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push",
     "seed:leader": "tsx script/seed-ministry-leader.ts",
     "seed:ministry-admin": "tsx script/seed-ministry-admin.ts",
+    "seed:platform-admin": "tsx script/seed-platform-admin.ts",
     "check:no-env": "node script/check-no-env.js",
     "push": "node script/push-to-branch.js"
   },

@@ -50,6 +50,8 @@ export default function AdminChurches() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [churchToDelete, setChurchToDelete] = useState<Church | null>(null);
   const [confirmText, setConfirmText] = useState("");
+  const [credentialsDialogOpen, setCredentialsDialogOpen] = useState(false);
+  const [pendingCredentials, setPendingCredentials] = useState<{ email: string; temporaryPassword: string } | null>(null);
 
   const { data: churches, isLoading } = useQuery<ChurchWithCounts[]>({
     queryKey: ["/api/admin/churches"],
@@ -70,27 +72,37 @@ export default function AdminChurches() {
   const createMutation = useMutation({
     mutationFn: async (data: ChurchFormData) => {
       if (editingChurch) {
-        await apiRequest("PATCH", `/api/admin/churches/${editingChurch.id}`, data);
+        const res = await apiRequest("PATCH", `/api/admin/churches/${editingChurch.id}`, data);
+        return res.json?.() ?? {};
       } else {
         const email = (data.adminEmail ?? "").trim();
         if (!email) {
           throw new Error(t("churches.ministryAdminEmailRequired"));
         }
-        await apiRequest("POST", "/api/admin/churches", { ...data, adminEmail: email });
+        const res = await apiRequest("POST", "/api/admin/churches", { ...data, adminEmail: email });
+        return (await res.json()) as { church?: unknown; emailSent?: boolean; credentials?: { email: string; temporaryPassword: string } };
       }
     },
-    onSuccess: (data: { church?: unknown; emailSent?: boolean } | undefined) => {
+    onSuccess: (data: { church?: unknown; emailSent?: boolean; credentials?: { email: string; temporaryPassword: string } } | undefined) => {
       const withEmail = data?.emailSent === true;
       const emailFailed = data && "emailSent" in data && data.emailSent === false;
-      toast({
-        title: editingChurch ? t('churches.ministryUpdated') : t('churches.ministryCreated'),
-        description: editingChurch
-          ? t('churches.ministryUpdatedDesc')
-          : withEmail
-            ? t('churches.ministryCreatedDescWithEmail')
+      const creds = data?.credentials;
+      if (emailFailed && creds) {
+        setPendingCredentials(creds);
+        setCredentialsDialogOpen(true);
+      }
+      const description = editingChurch
+        ? t('churches.ministryUpdatedDesc')
+        : withEmail
+          ? t('churches.ministryCreatedDescWithEmail')
+          : emailFailed && creds
+            ? t('churches.ministryCreatedEmailFailedWithCredentials', { email: creds.email, password: creds.temporaryPassword })
             : emailFailed
               ? t('churches.ministryCreatedEmailFailed')
-              : t('churches.ministryCreatedDesc'),
+              : t('churches.ministryCreatedDesc');
+      toast({
+        title: editingChurch ? t('churches.ministryUpdated') : t('churches.ministryCreated'),
+        description,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
@@ -99,9 +111,23 @@ export default function AdminChurches() {
       form.reset();
     },
     onError: (error: Error) => {
+      let description = error.message || t('common.failedToSave');
+      const match = error.message?.match(/\d+:\s*(\{.*\})/);
+      if (match) {
+        try {
+          const body = JSON.parse(match[1]) as { message?: string };
+          if (body?.message?.includes("email already exists")) {
+            description = t('churches.emailAlreadyInUse');
+          } else if (body?.message) {
+            description = body.message;
+          }
+        } catch {
+          /* use original description */
+        }
+      }
       toast({
         title: t('common.error'),
-        description: error.message || t('common.failedToSave'),
+        description,
         variant: "destructive",
       });
     },
@@ -484,6 +510,45 @@ export default function AdminChurches() {
                 )}
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={credentialsDialogOpen} onOpenChange={setCredentialsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('churches.ministryAdminCredentialsTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('churches.ministryAdminCredentialsDesc')}
+            </DialogDescription>
+          </DialogHeader>
+          {pendingCredentials && (
+            <div className="space-y-3 py-2">
+              <div className="rounded-md border bg-muted/50 p-3 space-y-2">
+                <p className="text-sm font-medium">{t('churches.ministryAdminEmail')}</p>
+                <p className="text-sm font-mono break-all" data-testid="text-credential-email">{pendingCredentials.email}</p>
+                <p className="text-sm font-medium mt-2">{t('churches.temporaryPassword')}</p>
+                <p className="text-sm font-mono break-all" data-testid="text-credential-password">{pendingCredentials.temporaryPassword}</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const text = `Email: ${pendingCredentials.email}\nTemporary password: ${pendingCredentials.temporaryPassword}`;
+                  void navigator.clipboard.writeText(text);
+                  toast({ title: t('churches.credentialsCopied'), description: t('churches.credentialsCopiedDesc') });
+                }}
+                data-testid="button-copy-credentials"
+              >
+                {t('churches.copyCredentials')}
+              </Button>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => { setCredentialsDialogOpen(false); setPendingCredentials(null); }}>
+              {t('churches.close')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

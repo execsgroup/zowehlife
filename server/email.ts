@@ -2,21 +2,25 @@ import { Resend } from 'resend';
 
 let connectionSettings: any;
 
-async function getCredentials() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  console.log('[Email] REPLIT_CONNECTORS_HOSTNAME:', hostname ? 'set' : 'NOT SET');
-  
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken) {
-    console.error('[Email] X_REPLIT_TOKEN not found for repl/depl');
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+async function getCredentials(): Promise<{ apiKey: string; fromEmail: string | undefined }> {
+  // Local / any host: use Resend API key from env if set (e.g. .env RESEND_API_KEY, EMAIL_FROM)
+  const envApiKey = process.env.RESEND_API_KEY?.trim();
+  if (envApiKey) {
+    const fromEmail = process.env.EMAIL_FROM?.trim() || undefined;
+    return { apiKey: envApiKey, fromEmail };
   }
-  console.log('[Email] Token type:', xReplitToken.startsWith('repl ') ? 'repl' : 'depl');
+
+  // Replit: use Connectors
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  const xReplitToken = process.env.REPL_IDENTITY
+    ? 'repl ' + process.env.REPL_IDENTITY
+    : process.env.WEB_REPL_RENEWAL
+      ? 'depl ' + process.env.WEB_REPL_RENEWAL
+      : null;
+
+  if (!xReplitToken || !hostname) {
+    throw new Error('Email not configured. Set RESEND_API_KEY (and optionally EMAIL_FROM) in .env for local dev, or use Replit Resend connector.');
+  }
 
   try {
     const response = await fetch(
@@ -29,14 +33,11 @@ async function getCredentials() {
       }
     );
     const data = await response.json();
-    console.log('[Email] Connector response status:', response.status);
     connectionSettings = data.items?.[0];
 
-    if (!connectionSettings || (!connectionSettings.settings?.api_key)) {
-      console.error('[Email] Resend not connected - no api_key in settings');
+    if (!connectionSettings?.settings?.api_key) {
       throw new Error('Resend not connected');
     }
-    console.log('[Email] Resend connected, from_email:', connectionSettings.settings.from_email || 'default');
     return { apiKey: connectionSettings.settings.api_key, fromEmail: connectionSettings.settings.from_email };
   } catch (error: any) {
     console.error('[Email] Failed to get credentials:', error?.message || error);

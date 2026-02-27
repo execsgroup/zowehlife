@@ -1099,6 +1099,7 @@
     "ministryAdminEmailRequired": "O e-mail do administrador é obrigatório ao adicionar um ministério.",
     "ministryCreatedDescWithEmail": "O novo ministério foi adicionado e os dados da conta foram enviados ao e-mail informado.",
     "ministryCreatedEmailFailed": "Ministério criado, mas não foi possível enviar o e-mail com as credenciais. Compartilhe os dados de acesso manualmente.",
+    "ministryCreatedEmailFailedWithCredentials": "Não foi possível enviar o e-mail. Compartilhe estes dados com o administrador do ministério: E-mail: {{email}}, Senha temporária: {{password}}",
     "cancelConfirmDesc": "Tem certeza de que deseja cancelar a conta de {{name}}? Isso removerá todos os dados do ministério, incluindo líderes, convertidos e membros. Um backup será criado que poderá ser restaurado posteriormente.",
     "cancelConfirmStep2": "Esta ação removerá permanentemente todos os dados de {{name}}. Para confirmar, digite Cancelar Conta abaixo.",
     "cancelAccountButton": "Sim, Cancelar Conta",

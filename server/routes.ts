@@ -1855,15 +1855,23 @@ export async function registerRoutes(
         entityId: newMinistryAdmin.id,
       });
 
-      const emailResult = await sendMinistryAdminApprovalEmail({
-        adminName: "Ministry Admin",
-        adminEmail,
-        ministryName: church.name,
-        temporaryPassword: tempPassword,
-      });
+      let emailSent = false;
+      try {
+        const emailResult = await sendMinistryAdminApprovalEmail({
+          adminName: "Ministry Admin",
+          adminEmail,
+          ministryName: church.name,
+          temporaryPassword: tempPassword,
+        });
+        emailSent = emailResult.success;
+        if (!emailResult.success) {
+          console.error("Failed to send ministry admin credentials email:", emailResult.error);
+        }
+      } catch (emailErr: any) {
+        console.error("Failed to send ministry admin credentials email:", emailErr?.message || emailErr);
+      }
 
-      if (!emailResult.success) {
-        console.error("Failed to send ministry admin credentials email:", emailResult.error);
+      if (!emailSent) {
         return res.status(201).json({
           church,
           emailSent: false,
@@ -2023,7 +2031,11 @@ export async function registerRoutes(
       res.json({ message: "Ministry account cancelled and backed up successfully", archived });
     } catch (error) {
       console.error("Failed to archive ministry:", error);
-      res.status(500).json({ message: "Failed to cancel ministry account" });
+      const errMessage = error instanceof Error ? error.message : "Failed to cancel ministry account";
+      res.status(500).json({
+        message: "Failed to cancel ministry account",
+        ...(process.env.NODE_ENV === "development" && { detail: errMessage }),
+      });
     }
   });
 

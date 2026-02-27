@@ -85,7 +85,7 @@ import {
   type PasswordResetToken,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, sql, desc, lte, gte, lt, isNotNull } from "drizzle-orm";
+import { eq, and, sql, desc, lte, gte, lt, isNotNull, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -94,6 +94,8 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUserPassword(id: string, passwordHash: string): Promise<void>;
   deleteUser(id: string): Promise<void>;
+  /** Delete user by email after clearing all FK references (for one-off admin use). */
+  deleteUserByEmail(email: string): Promise<boolean>;
   getAdminCount(): Promise<number>;
   getLeaders(): Promise<User[]>;
   getLeadersByChurch(churchId: string): Promise<User[]>;
@@ -519,6 +521,37 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: string): Promise<void> {
     await db.delete(users).where(eq(users.id, id));
+  }
+
+  async deleteUserByEmail(email: string): Promise<boolean> {
+    const user = await this.getUserByEmail(email);
+    if (!user) return false;
+    const userId = user.id;
+
+    // Null nullable FK references
+    await db.update(auditLog).set({ actorUserId: null }).where(eq(auditLog.actorUserId, userId));
+    await db.update(converts).set({ createdByUserId: null }).where(eq(converts.createdByUserId, userId));
+    await db.update(newMembers).set({ createdByUserId: null }).where(eq(newMembers.createdByUserId, userId));
+    await db.update(members).set({ createdByUserId: null }).where(eq(members.createdByUserId, userId));
+    await db.update(guests).set({ createdByUserId: null }).where(eq(guests.createdByUserId, userId));
+    await db.update(accountRequests).set({ reviewedByUserId: null }).where(eq(accountRequests.reviewedByUserId, userId));
+    await db.update(ministryRequests).set({ reviewedByUserId: null }).where(eq(ministryRequests.reviewedByUserId, userId));
+
+    // Delete rows that reference this user (NOT NULL FKs)
+    const mfRows = await db.select({ id: massFollowups.id }).from(massFollowups).where(eq(massFollowups.createdByUserId, userId));
+    const mfIds = mfRows.map((r) => r.id);
+    if (mfIds.length > 0) {
+      await db.delete(massFollowupParticipants).where(inArray(massFollowupParticipants.massFollowupId, mfIds));
+      await db.delete(massFollowups).where(eq(massFollowups.createdByUserId, userId));
+    }
+    await db.delete(scheduledAnnouncements).where(eq(scheduledAnnouncements.createdByUserId, userId));
+    await db.delete(checkins).where(eq(checkins.createdByUserId, userId));
+    await db.delete(newMemberCheckins).where(eq(newMemberCheckins.createdByUserId, userId));
+    await db.delete(memberCheckins).where(eq(memberCheckins.createdByUserId, userId));
+    await db.delete(guestCheckins).where(eq(guestCheckins.createdByUserId, userId));
+
+    await db.delete(users).where(eq(users.id, userId));
+    return true;
   }
 
   async getAdminCount(): Promise<number> {
@@ -2220,22 +2253,65 @@ export class DatabaseStorage implements IStorage {
     // 3. Delete new member checkins
     await db.delete(newMemberCheckins).where(eq(newMemberCheckins.churchId, churchId));
 
-    // 4. Delete converts
+    // 4. Mass follow-up participants (references massFollowups, converts, newMembers, members, guests)
+    const mfRows = await db.select({ id: massFollowups.id }).from(massFollowups).where(eq(massFollowups.churchId, churchId));
+    const mfIds = mfRows.map((r) => r.id);
+    if (mfIds.length > 0) {
+      await db.delete(massFollowupParticipants).where(inArray(massFollowupParticipants.massFollowupId, mfIds));
+    }
+    await db.delete(massFollowups).where(eq(massFollowups.churchId, churchId));
+
+    // 5. Member checkins (before members)
+    await db.delete(memberCheckins).where(eq(memberCheckins.churchId, churchId));
+
+    // 6. Guest checkins (before guests)
+    await db.delete(guestCheckins).where(eq(guestCheckins.churchId, churchId));
+
+    // 7. Ministry affiliations MUST be before converts/newMembers/members (FK: convertId, newMemberId, memberId)
+    await db.delete(ministryAffiliations).where(eq(ministryAffiliations.ministryId, churchId));
+
+    // 8. Member prayer requests (reference ministryId only)
+    await db.delete(memberPrayerRequests).where(eq(memberPrayerRequests.ministryId, churchId));
+
+    // 9. Delete converts
     await db.delete(converts).where(eq(converts.churchId, churchId));
 
-    // 5. Delete new members
+    // 10. Delete new members
     await db.delete(newMembers).where(eq(newMembers.churchId, churchId));
 
-    // 6. Delete members
+    // 11. Delete members
     await db.delete(members).where(eq(members.churchId, churchId));
 
-    // 7. Delete account requests for this church
+    // 12. Delete guests
+    await db.delete(guests).where(eq(guests.churchId, churchId));
+
+    // 13. Delete account requests for this church
     await db.delete(accountRequests).where(eq(accountRequests.churchId, churchId));
 
-    // 8. Delete users (leaders and ministry admin)
+    // 14. Scheduled announcements (reference users)
+    await db.delete(scheduledAnnouncements).where(eq(scheduledAnnouncements.churchId, churchId));
+
+    // 15. Form and messaging config
+    await db.delete(formConfigurations).where(eq(formConfigurations.churchId, churchId));
+    await db.delete(messagingAutomationConfig).where(eq(messagingAutomationConfig.churchId, churchId));
+    await db.delete(automationSentLog).where(eq(automationSentLog.churchId, churchId));
+
+    // 16. SMS usage
+    await db.delete(smsUsage).where(eq(smsUsage.churchId, churchId));
+
+    // 17. Clear journal entry shared-with reference to this ministry
+    await db.update(journalEntries).set({ sharedWithMinistryId: null }).where(eq(journalEntries.sharedWithMinistryId, churchId));
+
+    // 18. Null audit log actor references so we can delete ministry users (FK)
+    const ministryUserIds = ministryUsers.map((u) => u.id);
+    if (ministryUserIds.length > 0) {
+      await db.update(auditLog).set({ actorUserId: null }).where(inArray(auditLog.actorUserId, ministryUserIds));
+    }
+
+    // 19. Delete users (leaders and ministry admin)
     await db.delete(users).where(eq(users.churchId, churchId));
 
-    // 9. Delete the church
+    // 20. Delete the church
     await db.delete(churches).where(eq(churches.id, churchId));
 
     return archived;
