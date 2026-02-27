@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 import { DatePicker } from "@/components/date-picker";
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
@@ -355,7 +356,7 @@ export default function NewConvert() {
                       <FormItem>
                         <FormLabel>{getFieldLabel('dateOfBirth', t('forms.dateOfBirth'))}</FormLabel>
                         <FormControl>
-                          <DatePicker
+                          <DateOfBirthPicker
                             value={field.value || ""}
                             onChange={field.onChange}
                             maxDate={new Date()}

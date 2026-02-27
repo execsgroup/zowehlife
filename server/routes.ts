@@ -3645,11 +3645,19 @@ export async function registerRoutes(
       const schema = z.object({
         firstName: z.string().min(1).optional(),
         lastName: z.string().min(1).optional(),
-        phone: z.string().optional(),
-        email: z.string().email().optional().or(z.literal("")),
-        address: z.string().optional(),
-        summaryNotes: z.string().optional(),
-        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]).optional(),
+        phone: z.string().optional().nullable(),
+        email: z.string().email().optional().or(z.literal("")).nullable(),
+        dateOfBirth: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        country: z.string().optional().nullable(),
+        salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus", ""]).optional().nullable(),
+        wantsContact: z.enum(["Yes", "No", ""]).optional().nullable(),
+        gender: z.enum(["Male", "Female", ""]).optional().nullable(),
+        ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above", ""]).optional().nullable(),
+        isChurchMember: z.enum(["Yes", "No", ""]).optional().nullable(),
+        prayerRequest: z.string().optional().nullable(),
+        summaryNotes: z.string().optional().nullable(),
+        status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE", "SCHEDULED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED"]).optional(),
       });
 
       const data = schema.parse(req.body);
@@ -5439,11 +5447,19 @@ export async function registerRoutes(
       const schema = z.object({
         firstName: z.string().min(1).optional(),
         lastName: z.string().min(1).optional(),
-        phone: z.string().optional(),
-        email: z.string().email().optional().or(z.literal("")),
-        address: z.string().optional(),
-        summaryNotes: z.string().optional(),
-        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]).optional(),
+        phone: z.string().optional().nullable(),
+        email: z.string().email().optional().or(z.literal("")).nullable(),
+        dateOfBirth: z.string().optional().nullable(),
+        address: z.string().optional().nullable(),
+        country: z.string().optional().nullable(),
+        salvationDecision: z.enum(["I just made Jesus Christ my Lord and Savior", "I have rededicated my life to Jesus", ""]).optional().nullable(),
+        wantsContact: z.enum(["Yes", "No", ""]).optional().nullable(),
+        gender: z.enum(["Male", "Female", ""]).optional().nullable(),
+        ageGroup: z.enum(["Under 18", "18-24", "25-34", "35 and Above", ""]).optional().nullable(),
+        isChurchMember: z.enum(["Yes", "No", ""]).optional().nullable(),
+        prayerRequest: z.string().optional().nullable(),
+        summaryNotes: z.string().optional().nullable(),
+        status: z.enum(["NEW", "ACTIVE", "IN_PROGRESS", "CONNECTED", "INACTIVE", "SCHEDULED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED"]).optional(),
       });
 
       const data = schema.parse(req.body);
@@ -6256,7 +6272,7 @@ export async function registerRoutes(
         gender: z.string().optional().nullable(),
         ageGroup: z.string().optional().nullable(),
         notes: z.string().optional().nullable(),
-        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NOT_COMPLETED"]).optional(),
+        status: z.enum(["NEW", "SCHEDULED", "CONNECTED", "NO_RESPONSE", "NEEDS_PRAYER", "REFERRED", "NOT_COMPLETED", "NEVER_CONTACTED", "ACTIVE", "IN_PROGRESS", "INACTIVE"]).optional(),
       });
       
       const data = schema.parse(req.body);
@@ -6816,6 +6832,7 @@ export async function registerRoutes(
         address: z.string().optional().nullable(),
         country: z.string().optional().nullable(),
         gender: z.string().optional().nullable(),
+        ageGroup: z.string().optional().nullable(),
         memberSince: z.string().optional().nullable(),
         notes: z.string().optional().nullable(),
       });

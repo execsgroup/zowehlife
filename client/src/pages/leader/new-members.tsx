@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 import { DatePicker } from "@/components/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { AITextarea } from "@/components/ai-text-helper";
@@ -587,7 +588,7 @@ export default function LeaderNewMembers() {
                         <FormItem>
                           <FormLabel>{t('forms.dateOfBirth')}</FormLabel>
                           <FormControl>
-                            <DatePicker
+                            <DateOfBirthPicker
                               value={field.value || ""}
                               onChange={field.onChange}
                               maxDate={new Date()}

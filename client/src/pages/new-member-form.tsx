@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateOfBirthPicker } from "@/components/date-of-birth-picker";
 import { DatePicker } from "@/components/date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -329,7 +330,7 @@ export default function NewMemberForm() {
                     <FormItem>
                       <FormLabel>{getFieldLabel('dateOfBirth', t('forms.dateOfBirth'))}</FormLabel>
                       <FormControl>
-                        <DatePicker
+                        <DateOfBirthPicker
                           value={field.value || ""}
                           onChange={field.onChange}
                           maxDate={new Date()}
