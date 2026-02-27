@@ -7508,11 +7508,6 @@ export async function registerRoutes(
   app.patch("/api/ministry-admin/new-members/:id/follow-up-stage", requireMinistryAdmin, handleFollowUpStage);
 
   // AI Text Generation endpoint
-  const openai = new OpenAI({
-    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  });
-
   const aiTextGenerationSchema = z.object({
     prompt: z.string().max(500).optional(),
     existingText: z.string().max(2000).optional(),
@@ -7523,6 +7518,15 @@ export async function registerRoutes(
 
   app.post("/api/ai/generate-text", requireAuth, async (req: Request, res: Response) => {
     try {
+      const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(503).json({ message: "AI text generation is not configured" });
+      }
+      const openai = new OpenAI({
+        apiKey,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      });
+
       const validationResult = aiTextGenerationSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ message: validationResult.error.errors[0].message });
