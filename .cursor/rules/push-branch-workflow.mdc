@@ -1,0 +1,16 @@
+---
+description: When user asks to push to GitHub, always ask which branch to push to first
+alwaysApply: true
+---
+
+# Push to GitHub: Branch Workflow
+
+When the user asks to **push** (or "push to my repo", "push to GitHub", "push changes", etc.):
+
+1. **Ask first**: "Which branch do you want to push to?" (e.g. `main`, `dev`). Do not assume a branch.
+2. **Then**:
+   - If there are uncommitted changes, stage and commit them (using the same approach as before if the default `git commit` fails due to local config, e.g. system git with clean env), then push to the chosen branch.
+   - If the user is on a different branch than the target, either checkout the target branch and merge/rebase, or push the current branch to the named branch: `git push origin <current-branch>:<chosen-branch>` or checkout chosen branch first—depending on what the user wants (update that branch with current code vs push current branch as that name).
+3. **Default interpretation**: If the user says "push to dev" or names a branch, use that branch. If they only say "push", ask before running any push.
+
+When the user has already specified the branch in their message (e.g. "push to dev"), use that branch and do not ask again.
