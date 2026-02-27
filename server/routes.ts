@@ -1797,11 +1797,50 @@ export async function registerRoutes(
     }
   });
 
-  // Create church
+  // Create church and ministry admin account; send account details to the provided email
   app.post("/api/admin/churches", requireAdmin, async (req, res) => {
     try {
-      const data = insertChurchSchema.parse(req.body);
-      const church = await storage.createChurch(data);
+      const body = req.body as Record<string, unknown>;
+      const churchData = insertChurchSchema.parse({
+        name: body.name,
+        location: body.location,
+        plan: body.plan ?? "foundations",
+      });
+      const adminEmail = typeof body.adminEmail === "string" ? body.adminEmail.trim().toLowerCase() : "";
+      if (!adminEmail) {
+        return res.status(400).json({ message: "Ministry admin email is required when creating a ministry." });
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(adminEmail)) {
+        return res.status(400).json({ message: "Please provide a valid email address." });
+      }
+
+      const existingUser = await storage.getUserByEmail(adminEmail);
+      if (existingUser) {
+        return res.status(400).json({ message: "An account with this email already exists." });
+      }
+      const existingChurch = await storage.getChurchByName(churchData.name);
+      if (existingChurch) {
+        return res.status(400).json({ message: "A ministry with this name already exists." });
+      }
+
+      const church = await storage.createChurch(churchData);
+
+      if (churchData.plan === "free") {
+        await storage.updateChurchSubscription(church.id, { subscriptionStatus: "free" });
+      }
+
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+      const newMinistryAdmin = await storage.createUser({
+        role: "MINISTRY_ADMIN",
+        firstName: "Ministry",
+        lastName: "Admin",
+        email: adminEmail,
+        passwordHash,
+        churchId: church.id,
+      });
 
       await storage.createAuditLog({
         actorUserId: (req as any).user.id,
@@ -1809,11 +1848,37 @@ export async function registerRoutes(
         entityType: "CHURCH",
         entityId: church.id,
       });
+      await storage.createAuditLog({
+        actorUserId: (req as any).user.id,
+        action: "CREATE",
+        entityType: "USER",
+        entityId: newMinistryAdmin.id,
+      });
 
-      res.status(201).json(church);
+      const emailResult = await sendMinistryAdminApprovalEmail({
+        adminName: "Ministry Admin",
+        adminEmail,
+        ministryName: church.name,
+        temporaryPassword: tempPassword,
+      });
+
+      if (!emailResult.success) {
+        console.error("Failed to send ministry admin credentials email:", emailResult.error);
+        return res.status(201).json({
+          church,
+          emailSent: false,
+          message: "Ministry and admin account created. Account details could not be sent by email; please share the login credentials manually.",
+          credentials: { email: adminEmail, temporaryPassword: tempPassword },
+        });
+      }
+
+      res.status(201).json({ church, emailSent: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
+      }
+      if (error instanceof Error && (error.message.includes("already exists") || error.message.includes("email"))) {
+        return res.status(400).json({ message: error.message });
       }
       res.status(500).json({ message: "Failed to create church" });
     }

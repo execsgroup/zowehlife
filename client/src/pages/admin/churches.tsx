@@ -38,6 +38,7 @@ export default function AdminChurches() {
     name: z.string().min(2, t('validation.nameMinLength')),
     location: z.string().min(2, t('validation.locationRequired')),
     plan: z.enum(["free", "foundations", "formation", "stewardship"]).default("foundations"),
+    adminEmail: z.string().email(t('validation.invalidEmail')).optional().or(z.literal("")),
   });
 
   type ChurchFormData = z.infer<typeof churchFormSchema>;
@@ -62,6 +63,7 @@ export default function AdminChurches() {
       name: "",
       location: "",
       plan: "foundations",
+      adminEmail: "",
     },
   });
 
@@ -70,15 +72,25 @@ export default function AdminChurches() {
       if (editingChurch) {
         await apiRequest("PATCH", `/api/admin/churches/${editingChurch.id}`, data);
       } else {
-        await apiRequest("POST", "/api/admin/churches", data);
+        const email = (data.adminEmail ?? "").trim();
+        if (!email) {
+          throw new Error(t("churches.ministryAdminEmailRequired"));
+        }
+        await apiRequest("POST", "/api/admin/churches", { ...data, adminEmail: email });
       }
     },
-    onSuccess: () => {
+    onSuccess: (data: { church?: unknown; emailSent?: boolean } | undefined) => {
+      const withEmail = data?.emailSent === true;
+      const emailFailed = data && "emailSent" in data && data.emailSent === false;
       toast({
         title: editingChurch ? t('churches.ministryUpdated') : t('churches.ministryCreated'),
         description: editingChurch
           ? t('churches.ministryUpdatedDesc')
-          : t('churches.ministryCreatedDesc'),
+          : withEmail
+            ? t('churches.ministryCreatedDescWithEmail')
+            : emailFailed
+              ? t('churches.ministryCreatedEmailFailed')
+              : t('churches.ministryCreatedDesc'),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/churches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
@@ -147,13 +159,14 @@ export default function AdminChurches() {
       name: church.name,
       location: church.location || "",
       plan: church.plan || "foundations",
+      adminEmail: "",
     });
     setDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingChurch(null);
-    form.reset({ name: "", location: "", plan: "foundations" });
+    form.reset({ name: "", location: "", plan: "foundations", adminEmail: "" });
     setDialogOpen(true);
   };
 
@@ -335,6 +348,26 @@ export default function AdminChurches() {
                   </FormItem>
                 )}
               />
+              {!editingChurch && (
+                <FormField
+                  control={form.control}
+                  name="adminEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('churches.ministryAdminEmail')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder={t('churches.ministryAdminEmailPlaceholder')}
+                          {...field}
+                          data-testid="input-ministry-admin-email"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="plan"
