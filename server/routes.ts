@@ -298,10 +298,14 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Session setup
+  // Session setup - require SESSION_SECRET in production to avoid predictable sessions
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (process.env.NODE_ENV === "production" && !sessionSecret) {
+    throw new Error("SESSION_SECRET environment variable is required in production");
+  }
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || "fallback-secret-change-me",
+      secret: sessionSecret || "dev-only-fallback-do-not-use-in-production",
       resave: false,
       saveUninitialized: false,
       cookie: {

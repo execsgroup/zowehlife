@@ -10,5 +10,4 @@ data/
 !.env.example
 .local/
 zowehlife-key
-zowehlife-key.pubzowehlife-key
 zowehlife-key.pub

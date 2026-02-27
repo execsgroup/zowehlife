@@ -61,7 +61,7 @@ async function main() {
 
   console.log("\n--- Ministry Leader login credentials ---");
   console.log("Email:", email);
-  console.log("Password:", password);
+  console.log("Password: (set via LEADER_PASSWORD env or dev default)");
   console.log("Ministry:", church.name);
   console.log("Login URL: /login (then use Ministry Login)");
   console.log("------------------------------------------\n");

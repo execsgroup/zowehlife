@@ -3,7 +3,6 @@ import { Resend } from 'resend';
 let connectionSettings: any;
 
 async function getCredentials() {
-  console.log('[Email] getCredentials called');
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   console.log('[Email] REPLIT_CONNECTORS_HOSTNAME:', hostname ? 'set' : 'NOT SET');
   

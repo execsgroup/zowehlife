@@ -88,6 +88,14 @@ In Replit, go to the **Secrets** tab and add:
 - **Database**: PostgreSQL (Replit managed)
 - **Authentication**: Session-based with bcrypt password hashing
 
+## Security & environment
+
+- **Never commit `.env`.** It is in `.gitignore`; keep it that way. Use `.env.example` as a template (copy to `.env` and fill in real values only locally or in your host’s secrets).
+- **Production:** Set `SESSION_SECRET` and `DATABASE_URL` (and any other secrets) in your host environment (e.g. Replit Secrets). The app will not start in production without `SESSION_SECRET`.
+- **If `.env` was ever committed:** Rotate every secret (database password, API keys, etc.) and remove `.env` from git history (e.g. `git filter-repo` or BFG).
+- **Seed scripts** (`script/seed-ministry-admin.ts`, `script/seed-ministry-leader.ts`) use env vars for credentials when set; dev defaults are for local use only. Do not use default passwords in production.
+- **Before committing:** Run `npm run check:no-env` to ensure `.env` is not staged.
+
 ## Deployment
 
 1. Ensure all secrets are configured
