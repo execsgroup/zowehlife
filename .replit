@@ -47,3 +47,6 @@ expertMode = true
 
 [userenv.production]
 APP_URL = "https://zowehlife.com"
+
+[userenv.shared]
+ADMIN_SETUP_KEY = "zoweh-admin-2026"
